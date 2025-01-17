@@ -22,7 +22,7 @@ export default function About() {
                 <motion.h2
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 2 }}
                     className="text-4xl font-bold text-center mb-12"
                 >
                     About Us
@@ -34,7 +34,7 @@ export default function About() {
                         ref={missionRef}
                         initial={{ opacity: 0, x: -50 }}
                         animate={missionInView ? { opacity: 1, x: 0 } : {}}
-                        transition={{ duration: 0.5 }}
+                        transition={{ duration: 2 }}
                         className="space-y-6"
                     >
                         <h3 className="text-2xl font-semibold text-green-400">
@@ -53,7 +53,7 @@ export default function About() {
                         ref={missionRef}
                         initial={{ opacity: 0, x: 50 }}
                         animate={missionInView ? { opacity: 1, x: 0 } : {}}
-                        transition={{ duration: 0.5 }}
+                        transition={{ duration: 2 }}
                     >
                         <img
                             src={undrawImage}

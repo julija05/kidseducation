@@ -13,7 +13,7 @@ const Home = () => {
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -50 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 2 }}
                 className="container mx-auto px-6 py-16 flex items-center justify-between"
             >
                 {/* Left Side: Text and Button */}
