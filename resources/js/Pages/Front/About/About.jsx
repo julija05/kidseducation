@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import undrawImage from "../../../../assets/people.svg";
-import { usePage } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 
 export default function About() {
     const { programs, pageTitle, content } = usePage().props;
@@ -74,25 +74,28 @@ export default function About() {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {programs.map((program) => (
-                            <div
+                            <Link
                                 key={program.id}
-                                className="bg-white p-6 rounded-lg shadow-md"
+                                href={route("programs.show", program.id)}
+                                className="block transition-transform duration-200 hover:scale-[1.02]"
                             >
-                                <h3 className="text-xl font-semibold mb-2">
-                                    {program.name}
-                                </h3>
-                                <p className="text-gray-600 mb-4">
-                                    {program.description}
-                                </p>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-blue-600 font-bold">
-                                        ${program.price}
-                                    </span>
-                                    <span className="text-sm bg-gray-100 px-3 py-1 rounded-full">
-                                        {program.duration}
-                                    </span>
+                                <div className="bg-white p-6 rounded-lg shadow-md cursor-pointer hover:shadow-lg">
+                                    <h3 className="text-xl font-semibold mb-2">
+                                        {program.name}
+                                    </h3>
+                                    <p className="text-gray-600 mb-4 line-clamp-3">
+                                        {program.description}
+                                    </p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-blue-600 font-bold">
+                                            ${program.price}
+                                        </span>
+                                        <span className="text-sm bg-gray-100 px-3 py-1 rounded-full">
+                                            {program.duration}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 </div>

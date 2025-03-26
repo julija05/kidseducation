@@ -6,7 +6,8 @@ use App\Models\Program;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 abstract class Controller
 {
@@ -28,7 +29,7 @@ abstract class Controller
             return Program::all()->map(function ($program) {
                 return [
                     'id' => $program->id,
-                    'title' => $program->title,
+                    'name' => $program->name,
                     'description' => $program->description,
                     'price' => number_format($program->price, 2),
                     'duration' => $program->duration
@@ -48,8 +49,10 @@ abstract class Controller
      */
     private function setUpAllPrograms(): void
     {
-        $this->programs = $this->cachedControllerData['programs']->sortBy('title');
-        $this->templateValues['programs'] = $this->programs;
+        $this->templateValues['programs'] = $this->cachedControllerData['programs']
+        ->sortBy('name')
+        ->values()
+        ->toArray();
     }
 
     protected function createView(string $templateName, array $values = [])
