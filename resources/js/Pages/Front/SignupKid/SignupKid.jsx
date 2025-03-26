@@ -2,7 +2,7 @@ import React from "react";
 
 function SignupKid() {
     return (
-        <section id="contact" class="container mx-auto px-4 py-16">
+        <section id="contact" className="container mx-auto px-4 py-16">
             <h2 className="text-2xl font-bold mb-4">Signup your kid</h2>
             <p>
                 Lorem Ipsum is simply dummy text of the printing and typesetting
