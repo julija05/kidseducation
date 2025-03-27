@@ -7,6 +7,7 @@ use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\SignUpKidController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProgramController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -15,6 +16,7 @@ Route::get('/', [LandingController::class,'index'])->name('landing.index');
 Route::get('/about', [AboutController::class,'index'])->name('about.index');
 Route::get('/contact', [ContactController::class,'index'])->name('contact.index');
 Route::get('/signupkid', [SignUpKidController::class,'index'])->name('signupkid.index');
+Route::get('/programs/{program}', [ProgramController::class, 'show'])->name('programs.show');
 
 Route::get('/dashboard',[DashboardController::class,'index'])->middleware(['auth', 'verified'])->name('dashboard');
 

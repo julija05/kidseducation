@@ -1,8 +1,12 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import undrawImage from "../../../../assets/people.svg";
+import { Link, usePage } from "@inertiajs/react";
 
 export default function About() {
+    const { programs, pageTitle, content } = usePage().props;
+    console.log(programs, "programs");
+    console.log(programs, "programsAbout");
     const [missionRef, missionInView] = useInView({
         triggerOnce: true,
         threshold: 0.2,
@@ -68,60 +72,31 @@ export default function About() {
                     <h3 className="text-2xl font-semibold text-blue-500 text-center mb-8">
                         Our Programs
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Program 1 */}
-                        <motion.div
-                            ref={programsRef}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={programsInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                            className="p-6 bg-green-400 text-white rounded-lg shadow-lg"
-                        >
-                            <h4 className="text-xl font-bold mb-4">
-                                Creative Arts
-                            </h4>
-                            <p>
-                                Unlock your child’s creativity with hands-on art
-                                and craft activities designed to inspire
-                                imagination.
-                            </p>
-                        </motion.div>
-
-                        {/* Program 2 */}
-                        <motion.div
-                            ref={programsRef}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={programsInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="p-6 bg-blue-500 text-white rounded-lg shadow-lg"
-                        >
-                            <h4 className="text-xl font-bold mb-4">
-                                Math Explorers
-                            </h4>
-                            <p>
-                                Develop problem-solving skills through
-                                interactive math games and puzzles that make
-                                learning fun.
-                            </p>
-                        </motion.div>
-
-                        {/* Program 3 */}
-                        <motion.div
-                            ref={programsRef}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={programsInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                            className="p-6 bg-green-400 text-white rounded-lg shadow-lg"
-                        >
-                            <h4 className="text-xl font-bold mb-4">
-                                Junior Scientists
-                            </h4>
-                            <p>
-                                Inspire curiosity with exciting science
-                                experiments that encourage exploration and
-                                discovery.
-                            </p>
-                        </motion.div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {programs.map((program) => (
+                            <Link
+                                key={program.id}
+                                href={route("programs.show", program.id)}
+                                className="block transition-transform duration-200 hover:scale-[1.02]"
+                            >
+                                <div className="bg-white p-6 rounded-lg shadow-md cursor-pointer hover:shadow-lg">
+                                    <h3 className="text-xl font-semibold mb-2">
+                                        {program.name}
+                                    </h3>
+                                    <p className="text-gray-600 mb-4 line-clamp-3">
+                                        {program.description}
+                                    </p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-blue-600 font-bold">
+                                            ${program.price}
+                                        </span>
+                                        <span className="text-sm bg-gray-100 px-3 py-1 rounded-full">
+                                            {program.duration}
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </div>
