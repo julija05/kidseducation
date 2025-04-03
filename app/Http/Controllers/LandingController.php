@@ -10,7 +10,7 @@ class LandingController extends Controller
 {
     public function index()
     {
-        return $this->createView('Front/Landing/Index', [
+        return $this->createView('Front/Home/Home', [
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
         ]);

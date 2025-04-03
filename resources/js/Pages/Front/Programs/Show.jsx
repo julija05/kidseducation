@@ -139,7 +139,7 @@ export default function ProgramDetail(auth) {
 
                         <div className="flex justify-between items-center mt-8">
                             <Link
-                                href=""
+                                href={route("about.index")}
                                 className="text-gray-600 hover:text-gray-900 underline"
                             >
                                 Back to Programs
