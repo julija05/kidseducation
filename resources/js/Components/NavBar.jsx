@@ -1,11 +1,13 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 
-const NavBar = ({ auth }) => {
+const NavBar = React.memo(() => {
+    const { auth } = usePage().props;
+
     return (
         <header className="bg-gradient-to-r from-green-400 to-blue-500 text-white">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                <h1 className="text-xl font-bold">Abacus</h1>
+                <h1 className="text-xl font-bold">Abacoding</h1>
                 <nav className="flex flex-1 justify-end space-x-3">
                     <Link
                         href={route("landing.index")}
@@ -58,6 +60,6 @@ const NavBar = ({ auth }) => {
             </div>
         </header>
     );
-};
+});
 
 export default NavBar;
