@@ -1,0 +1,42 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # Ensure Authorization header is passed to PHP
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect to the public folder
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ /public/$1 [L]
+</IfModule>
+
+# Deny access to .env file
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Deny access to composer.json and composer.lock
+<FilesMatch "^composer\.(json|lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Deny access to artisan
+<Files artisan>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Deny access to anything starting with a dot
+<Files ~ "^\.">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevent directory listing
+Options -Indexes

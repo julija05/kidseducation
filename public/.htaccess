@@ -19,3 +19,10 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+<Files "deployment.php">
+    Order allow,deny
+    Deny from all
+    Allow from 192.30.252.0/22
+    Allow from 185.199.108.0/22
+    Allow from 140.82.112.0/20
+</Files>
