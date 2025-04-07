@@ -25,7 +25,7 @@ export default function About() {
                     transition={{ duration: 2 }}
                     className="text-4xl font-bold text-center mb-12"
                 >
-                    Programs
+                    Programs here
                 </motion.h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
