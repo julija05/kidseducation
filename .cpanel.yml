@@ -1,0 +1,13 @@
+deployment:
+  tasks:
+    - echo "Starting deployment..."
+    - cd /home/abacygmx/repositories/kidseducation
+    - git pull origin master
+    - export COMPOSER_ALLOW_SUPERUSER=1
+    - /opt/cpanel/ea-php82/root/usr/bin/php /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader
+    - npm install
+    - npm run build
+    - echo "Copying public/build to public_html/build..."
+    - rm -rf /home/abacygmx/public_html/build
+    - cp -r /home/abacygmx/repositories/kidseducation/public/build /home/abacygmx/public_html/build
+    - echo "Deployment complete."
