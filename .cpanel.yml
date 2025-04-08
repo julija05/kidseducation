@@ -7,12 +7,12 @@ deployment:
     - /opt/cpanel/ea-php82/root/usr/bin/php /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader
     - npm install
     - npm run build
-    - echo "Copying public/build to public_html/build..."
+    - echo "Removing old build folder from public_html..."
     - rm -rf /home/abacygmx/public_html/build
-    - cp -r /home/abacygmx/repositories/kidseducation/public/build /home/abacygmx/public_html/build
+    - echo "Unzipping new build into public_html..."
+    - unzip -o /home/abacygmx/repositories/kidseducation/public/build.zip -d /home/abacygmx/public_html/build
     - export DEPLOYPATH=/home/abacygmx
-    - echo "Deploying from repo to public_html"
-    - cp -r public/build $DEPLOYPATH/public_html/
+    - echo "Deploying index.php and .htaccess to public_html..."
     - cp public/index.php $DEPLOYPATH/public_html/
     - cp public/.htaccess $DEPLOYPATH/public_html/
     - echo "Deployment complete."
