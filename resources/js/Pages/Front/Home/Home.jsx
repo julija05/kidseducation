@@ -48,7 +48,7 @@ const Home = () => {
                 </div>
             </motion.div>
 
-            {/* SVG divider at the bottom */}
+            {/* SVG divider at the bottom . */}
             <div class="custom-shape-divider-bottom-1736693835">
                 <svg
                     data-name="Layer 1"
