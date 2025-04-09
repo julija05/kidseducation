@@ -1,5 +1,5 @@
 <?php
-$username = 'your_cpanel_username';
+$username = 'abacygmx';
 $deployPath = '/home/' . $username . '/public_html/';
 $appPath = '/home/' . $username . '/repositories/kidseducation/';
 
