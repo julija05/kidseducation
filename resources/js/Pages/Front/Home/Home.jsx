@@ -30,7 +30,7 @@ const Home = () => {
                         href="#signup"
                         className="bg-white text-green-600 py-3 px-8 rounded shadow-lg hover:bg-gray-100 transition"
                     >
-                        Get Started Now!!!!!!!!!
+                        Get Started Now!!!!!!!!!!!
                     </a>
                 </div>
 
