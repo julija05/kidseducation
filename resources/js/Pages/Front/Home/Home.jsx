@@ -16,10 +16,10 @@ const Home = () => {
                 transition={{ duration: 2 }}
                 className="container mx-auto px-6 py-16 flex items-center justify-between"
             >
-                {/* Left Side: Text and Button */}
+                {/* Left sSide: Text and Button */}
                 <div className="max-w-lg">
                     <h1 className="text-5xl font-bold mb-6 font-shantell">
-                        Welcome to this site!
+                        Welcome to Jule
                     </h1>
                     <p className="text-lg mb-6">
                         Inspiring young minds through interactive learning and
