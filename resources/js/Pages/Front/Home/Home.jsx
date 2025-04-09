@@ -19,7 +19,7 @@ const Home = () => {
                 {/* Left Side: Text and Button */}
                 <div className="max-w-lg">
                     <h1 className="text-5xl font-bold mb-6 font-shantell">
-                        Welcome to Kids Education!
+                        Welcome on this site!
                     </h1>
                     <p className="text-lg mb-6">
                         Inspiring young minds through interactive learning and
