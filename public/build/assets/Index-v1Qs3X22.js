@@ -1,0 +1,1 @@
+import{j as t}from"./app-DKJR0nXi.js";import{A as e}from"./AuthenticatedLayout-2WiKN4rm.js";import"./transition-zgvOmroG.js";function r(){return t.jsx(e,{header:t.jsx("h2",{className:"text-xl font-semibold leading-tight text-gray-800",children:"Counting On Abacus"})})}export{r as default};
