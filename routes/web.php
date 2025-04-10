@@ -8,15 +8,18 @@ use App\Http\Controllers\Front\SignUpKidController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
+Route::middleware('guest')->group(function () 
+{
 Route::get('/', [LandingController::class,'index'])->name('landing.index');
 Route::get('/about', [AboutController::class,'index'])->name('about.index');
 Route::get('/contact', [ContactController::class,'index'])->name('contact.index');
 Route::get('/signupkid', [SignUpKidController::class,'index'])->name('signupkid.index');
 Route::get('/programs/{program}', [ProgramController::class, 'show'])->name('programs.show');
+Route::post('/student', [StudentController::class,'store'])->name('student.store');
+});
 
 Route::get('/dashboard',[DashboardController::class,'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
