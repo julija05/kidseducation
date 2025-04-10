@@ -66,7 +66,7 @@ export default function About() {
                 {/* Programs Section */}
                 <div className="mt-16">
                     <h3 className="text-2xl font-semibold text-blue-500 text-center mb-8">
-                        Our Programs
+                        Our Programs are
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Program 1 */}
