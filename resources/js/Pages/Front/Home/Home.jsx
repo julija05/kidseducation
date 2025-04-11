@@ -24,7 +24,7 @@ const Home = () => {
                     <p className="text-lg mb-6">
                         Inspiring young minds through interactive learning and
                         play. Discover our programs and join our growing
-                        community!!
+                        community!!!!
                     </p>
                     <a
                         href="#signup"
