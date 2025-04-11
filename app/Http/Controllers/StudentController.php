@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Mail\CompanyNotificationMail;
 use App\Models\Student;
+use Illuminate\Support\Facades\Mail;
 
 class StudentController extends Controller
 {
@@ -30,6 +32,7 @@ class StudentController extends Controller
     public function store(StoreStudentRequest $request)
     {
         $student = Student::create($request->all());
+        Mail::to('your-company@example.com')->send(new CompanyNotificationMail($student));
         return redirect()->route("")->with("success","");
     }
 

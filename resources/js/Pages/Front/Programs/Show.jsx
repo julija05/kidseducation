@@ -150,9 +150,7 @@ export default function ProgramDetail(auth) {
                                 disabled={processing}
                                 className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                             >
-                                {processing
-                                    ? "Processing..."
-                                    : "Continue to Payment"}
+                                {processing ? "Processing..." : "Submit"}
                             </button>
                         </div>
                     </form>
