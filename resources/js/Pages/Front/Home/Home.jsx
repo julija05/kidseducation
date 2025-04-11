@@ -19,7 +19,7 @@ const Home = () => {
                 {/* Left sSide: Text and Button */}
                 <div className="max-w-lg">
                     <h1 className="text-5xl font-bold mb-6 font-shantell">
-                        Welcome to Abacoding!
+                        Welcome to Abacoding!!!
                     </h1>
                     <p className="text-lg mb-6">
                         Inspiring young minds through interactive learning and
