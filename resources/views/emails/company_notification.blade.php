@@ -30,12 +30,14 @@
 </head>
 <body>
     <div class="container">
-        <h2>New Program Enrollment</h2>
-
-        <p><span class="strong">Program ID:</span> {{ $student->program_id }}</p>
-        <p><span class="strong">Child's Name:</span> {{ $student->child_name }} {{ $student->child_surname }}</p>
-        <p><span class="strong">Age:</span> {{ $student->child_age }}</p>
-        <p><span class="strong">Address:</span> {{ $student->address }}</p>
+    <h2>New Enrollment Notification</h2>
+    @foreach ($student->programs as $program)
+    <p><strong>Program:</strong> {{ $program->name }} (ID: {{ $program->id }})</p>
+@endforeach
+        <p><strong>Name:</strong> {{ $student->first_name }} {{ $student->last_name }}</p>
+        <p><strong>Email:</strong> {{ $student->email }}</p>
+        <p><strong>Phone:</strong> {{ $student->phone }}</p>
+        <p><strong>Date of Birth:</strong> {{ $student->date_of_birth }}</p>
     </div>
 </body>
 </html>

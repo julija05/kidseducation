@@ -3,24 +3,32 @@ import { Link, useForm, usePage } from "@inertiajs/react";
 import NavBar from "@/Components/NavBar";
 
 export default function ProgramDetail(auth) {
-    const { program } = usePage().props;
+    const { success, program } = usePage().props;
 
     const { data, setData, post, processing, errors } = useForm({
         program_id: program.id,
-        child_name: "",
-        child_surname: "",
-        child_age: "",
-        address: "",
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+        date_of_birth: "",
     });
-
+    console.log(usePage().props, "Pageprops");
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route("enroll.store"));
+        post(route("student.store"));
     };
 
     return (
         <div>
             <NavBar auth={auth} />
+
+            {success && (
+                <div className="bg-green-100 text-green-800 p-4 rounded mb-4">
+                    {success}
+                </div>
+            )}
+
             <div className="container mx-auto px-4 py-8 max-w-4xl">
                 <div className="bg-white rounded-lg shadow-md p-8">
                     <h1 className="text-3xl font-bold mb-4">{program.name}</h1>
@@ -50,22 +58,22 @@ export default function ProgramDetail(auth) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Child's First Name
+                                    First Name
                                     <input
                                         type="text"
-                                        value={data.child_name}
+                                        value={data.first_name}
                                         onChange={(e) =>
                                             setData(
-                                                "child_name",
+                                                "first_name",
                                                 e.target.value
                                             )
                                         }
                                         className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
                                         required
                                     />
-                                    {errors.child_name && (
+                                    {errors.first_name && (
                                         <div className="text-red-500 text-sm">
-                                            {errors.child_name}
+                                            {errors.first_name}
                                         </div>
                                     )}
                                 </label>
@@ -73,64 +81,82 @@ export default function ProgramDetail(auth) {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Child's Last Name
+                                    Last Name
                                     <input
                                         type="text"
-                                        value={data.child_surname}
+                                        value={data.last_name}
+                                        onChange={(e) =>
+                                            setData("last_name", e.target.value)
+                                        }
+                                        className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
+                                        required
+                                    />
+                                    {errors.last_name && (
+                                        <div className="text-red-500 text-sm">
+                                            {errors.last_name}
+                                        </div>
+                                    )}
+                                </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Email
+                                    <input
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(e) =>
+                                            setData("email", e.target.value)
+                                        }
+                                        className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
+                                        required
+                                    />
+                                    {errors.email && (
+                                        <div className="text-red-500 text-sm">
+                                            {errors.email}
+                                        </div>
+                                    )}
+                                </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone
+                                    <input
+                                        type="text"
+                                        value={data.phone}
+                                        onChange={(e) =>
+                                            setData("phone", e.target.value)
+                                        }
+                                        className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
+                                        required
+                                    />
+                                    {errors.phone && (
+                                        <div className="text-red-500 text-sm">
+                                            {errors.phone}
+                                        </div>
+                                    )}
+                                </label>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Date of Birth
+                                    <input
+                                        type="date"
+                                        value={data.date_of_birth}
                                         onChange={(e) =>
                                             setData(
-                                                "child_surname",
+                                                "date_of_birth",
                                                 e.target.value
                                             )
                                         }
                                         className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
                                         required
                                     />
-                                    {errors.child_surname && (
+                                    {errors.date_of_birth && (
                                         <div className="text-red-500 text-sm">
-                                            {errors.child_surname}
-                                        </div>
-                                    )}
-                                </label>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Child's Age
-                                    <input
-                                        type="number"
-                                        value={data.child_age}
-                                        onChange={(e) =>
-                                            setData("child_age", e.target.value)
-                                        }
-                                        className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
-                                        min="3"
-                                        max="18"
-                                        required
-                                    />
-                                    {errors.child_age && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.child_age}
-                                        </div>
-                                    )}
-                                </label>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Address
-                                    <textarea
-                                        value={data.address}
-                                        onChange={(e) =>
-                                            setData("address", e.target.value)
-                                        }
-                                        className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm"
-                                        rows="3"
-                                        required
-                                    />
-                                    {errors.address && (
-                                        <div className="text-red-500 text-sm">
-                                            {errors.address}
+                                            {errors.date_of_birth}
                                         </div>
                                     )}
                                 </label>

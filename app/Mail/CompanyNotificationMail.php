@@ -12,14 +12,14 @@ use Illuminate\Queue\SerializesModels;
 class CompanyNotificationMail extends Mailable
 {
     use Queueable, SerializesModels;
-    public $enrollment;
+    public $student;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($enrollment)
+    public function __construct($student)
     {
-        $this->enrollment = $enrollment;
+        $this->student = $student;
     }
 
     /**
@@ -40,7 +40,7 @@ class CompanyNotificationMail extends Mailable
         return new Content(
             view: 'emails.company_notification',
             with: [
-                'enrollment' => $this->enrollment,
+                'student' => $this->student,
             ],
         );
     }

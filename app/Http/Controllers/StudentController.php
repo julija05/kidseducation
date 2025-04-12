@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Mail\CompanyNotificationMail;
+use App\Models\Program;
 use App\Models\Student;
 use Illuminate\Support\Facades\Mail;
 
@@ -32,8 +33,14 @@ class StudentController extends Controller
     public function store(StoreStudentRequest $request)
     {
         $student = Student::create($request->all());
-        Mail::to('your-company@example.com')->send(new CompanyNotificationMail($student));
-        return redirect()->route("")->with("success","");
+        $student->programs()->attach($request->program_id);
+        $student->load('programs');
+
+        Mail::to('abacoding@abacoding.com')->send(new CompanyNotificationMail($student));
+        return $this->createView('Front/Programs/Success',[
+            'student' => $student,
+            'program' => $student->programs->first(), // assuming only one program
+        ]);
     }
 
     /**
