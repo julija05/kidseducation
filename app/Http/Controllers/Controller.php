@@ -21,7 +21,7 @@ abstract class Controller
         $this->setUpAllPrograms();
     }
 
-   
+
 
     private function getCachedControllerDataForPrograms(): Collection
     {
@@ -32,7 +32,8 @@ abstract class Controller
                     'name' => $program->name,
                     'description' => $program->description,
                     'price' => number_format($program->price, 2),
-                    'duration' => $program->duration
+                    'duration' => $program->duration,
+                    'image' => $program->image
                 ];
             });
         });
@@ -42,17 +43,17 @@ abstract class Controller
     {
         $this->cachedControllerData['programs'] = $this->getCachedControllerDataForPrograms();
     }
-  
-        /**
+
+    /**
      * Takes data from cache by filtering cachedControllerData['programs']
      * @return void
      */
     private function setUpAllPrograms(): void
     {
         $this->templateValues['programs'] = $this->cachedControllerData['programs']
-        ->sortBy('name')
-        ->values()
-        ->toArray();
+            ->sortBy('name')
+            ->values()
+            ->toArray();
     }
 
     protected function createView(string $templateName, array $values = [])
