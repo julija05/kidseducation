@@ -28,10 +28,10 @@ export default function Success() {
                     details.
                 </p>
                 <Link
-                    href={route("about.index")}
+                    href={route("landing.index")}
                     className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition"
                 >
-                    Back to Programs
+                    Back to Home
                 </Link>
             </div>
         </div>

@@ -11,7 +11,7 @@ class Program extends Model
     /** @use HasFactory<\Database\Factories\ProgramFactory> */
     use HasFactory;
 
-      /**
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -21,6 +21,7 @@ class Program extends Model
         'description',
         'duration',
         'price',
+        'image'
     ];
 
     public function students(): BelongsToMany

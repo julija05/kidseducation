@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import hero from "../../../../assets/Hero.jpg";
 import coding from "../../../../assets/coding.svg";
@@ -9,8 +10,13 @@ import math from "../../../../assets/math.svg";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 
 const Home = ({ auth }) => {
+    const { programs, pageTitle, content } = usePage().props;
     const fullText = "Where kids learn to think fast and build the future.";
     const [displayedText, setDisplayedText] = useState("");
+
+    useEffect(() => {
+        console.log("Programs:", programs);
+    }, [programs]);
 
     useEffect(() => {
         let currentIndex = 0;
@@ -21,6 +27,20 @@ const Home = ({ auth }) => {
         }, 100); // typing speed
         return () => clearInterval(interval);
     }, []);
+
+    const colors = [
+        {
+            bg: "bg-blue-100",
+            text: "text-blue-900",
+            button: "bg-blue-600 hover:bg-blue-700",
+        },
+        {
+            bg: "bg-pink-100",
+            text: "text-pink-900",
+            button: "bg-pink-600 hover:bg-pink-700",
+        },
+    ];
+
     return (
         <GuestFrontLayout auth={auth}>
             <div className="bg-white text-gray-800 overflow-hidden">
@@ -127,7 +147,6 @@ const Home = ({ auth }) => {
 
                 {/* Programs Section */}
                 <section className="relative bg-gray-100 py-32 px-6 text-center overflow-hidden">
-                    {/* Top Wave Separator */}
                     <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180 z-0">
                         <svg
                             viewBox="0 0 500 150"
@@ -153,71 +172,48 @@ const Home = ({ auth }) => {
                     </motion.h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto z-10 relative">
-                        {/* Abacus Program */}
-                        <motion.div
-                            className="bg-blue-100 p-10 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative"
-                            whileHover={{ scale: 1.03 }}
-                            initial={{ opacity: 0, x: -100 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 1 }}
-                        >
-                            {/* Attention-grabbing badge */}
-                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-6 py-2 rounded-full shadow-lg border-2 border-yellow-500 z-20 animate-bounce">
-                                🎁 1 Free Class
-                            </div>
-                            <img
-                                src={math}
-                                alt="Abacus Program"
-                                className="mb-8 mx-auto w-72 h-72 object-contain shadow-md rounded-xl mt-10"
-                            />
-                            <h3 className="text-4xl font-bold mb-4 text-blue-900">
-                                Mental Artitmetic
-                            </h3>
-                            <p className="text-lg text-gray-800 mb-8 leading-relaxed">
-                                Boost focus and mental math skills with
-                                engaging, hands-on abacus techniques proven to
-                                enhance brain development.
-                            </p>
-                            <a
-                                href="/abacus"
-                                className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-lg px-6 py-3 rounded-full transition shadow-lg"
-                            >
-                                Learn More
-                            </a>
-                        </motion.div>
-
-                        {/* Coding Program */}
-                        <motion.div
-                            className="bg-purple-100 p-10 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative"
-                            whileHover={{ scale: 1.03 }}
-                            initial={{ opacity: 0, x: 100 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 1 }}
-                        >
-                            {/* Attention-grabbing badge */}
-                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-6 py-2 rounded-full shadow-lg border-2 border-yellow-500 z-20 animate-bounce">
-                                🎁 1 Free Class
-                            </div>
-                            <img
-                                src={coding}
-                                alt="Coding Program"
-                                className="mb-8 mx-auto w-72 h-72 object-contain shadow-md rounded-xl mt-10"
-                            />
-                            <h3 className="text-4xl font-bold mb-4 text-purple-900">
-                                Coding for Kids
-                            </h3>
-                            <p className="text-lg text-gray-800 mb-8 leading-relaxed">
-                                Develop creativity and logic as your child
-                                learns to code through fun projects and
-                                beginner-friendly lessons.
-                            </p>
-                            <a
-                                href="/coding"
-                                className="inline-block bg-purple-600 hover:bg-purple-700 text-white text-lg px-6 py-3 rounded-full transition shadow-lg"
-                            >
-                                Learn More
-                            </a>
-                        </motion.div>
+                        {programs.map((program, index) => {
+                            const color = colors[index % 2];
+                            return (
+                                <motion.div
+                                    key={program.id}
+                                    className={`${color.bg} p-10 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative`}
+                                    whileHover={{ scale: 1.03 }}
+                                    initial={{
+                                        opacity: 0,
+                                        y: index % 2 === 0 ? -100 : 100,
+                                    }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 1 }}
+                                >
+                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-6 py-2 rounded-full shadow-lg border-2 border-yellow-500 z-20 animate-bounce">
+                                        🎁 1 Free Class
+                                    </div>
+                                    <img
+                                        src={`/${program.image}`}
+                                        alt={program.name}
+                                        className="mb-8 mx-auto w-72 h-72 object-contain shadow-md rounded-xl mt-10"
+                                    />
+                                    <h3
+                                        className={`text-4xl font-bold mb-4 ${color.text}`}
+                                    >
+                                        {program.name}
+                                    </h3>
+                                    <p className="text-lg text-gray-800 mb-8 leading-relaxed">
+                                        {program.description}
+                                    </p>
+                                    <Link
+                                        href={route(
+                                            "programs.show",
+                                            program.id
+                                        )}
+                                        className={`inline-block ${color.button} text-white text-lg px-6 py-3 rounded-full transition shadow-lg`}
+                                    >
+                                        Learn More
+                                    </Link>
+                                </motion.div>
+                            );
+                        })}
                     </div>
                 </section>
 
