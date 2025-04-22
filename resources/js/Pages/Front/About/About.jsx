@@ -1,107 +1,123 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import undrawImage from "../../../../assets/people.svg";
-import { Link, usePage } from "@inertiajs/react";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 
 export default function About({ auth }) {
-    const { programs, pageTitle, content } = usePage().props;
     const [missionRef, missionInView] = useInView({
-        triggerOnce: true,
-        threshold: 0.2,
-    });
-    const [programsRef, programsInView] = useInView({
         triggerOnce: true,
         threshold: 0.2,
     });
 
     return (
         <GuestFrontLayout auth={auth}>
-            <section
-                id="about"
-                className="relative min-h-screen py-16 bg-white text-gray-800"
-            >
-                <div className="container mx-auto px-6 lg:px-12">
-                    {/* Section Heading */}
+            <div className="bg-white text-gray-800 overflow-hidden">
+                {/* Hero Section */}
+                <section className="min-h-screen flex flex-col md:flex-row items-center justify-between px-6 py-24 relative z-10 max-w-7xl mx-auto gap-12">
+                    {/* Text Content */}
+                    <div className="md:w-1/2 text-center md:text-left">
+                        <motion.h1
+                            className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-transparent bg-clip-text drop-shadow-lg mb-6 leading-tight"
+                            initial={{ opacity: 0, y: 40 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 1.5 }}
+                        >
+                            Who We Are
+                        </motion.h1>
+                        <motion.p
+                            className="text-xl text-gray-800 mt-4 leading-relaxed"
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 1 }}
+                        >
+                            We’re passionate about helping kids develop
+                            problem-solving and creative thinking skills from a
+                            young age. Our programs are carefully designed to
+                            make learning fun, engaging, and meaningful.
+                        </motion.p>
+                    </div>
+
+                    {/* Decorative + Image */}
+                    <div className="md:w-1/2 relative flex justify-center items-center">
+                        <div className="absolute -top-10 -left-10 w-40 h-40 bg-yellow-200 rounded-full blur-3xl opacity-60 animate-spin-slow" />
+                        <div className="absolute bottom-0 right-10 w-60 h-60 bg-green-300 rounded-full blur-2xl opacity-50 animate-pulse" />
+                        <div className="absolute top-20 left-20 w-24 h-24 bg-purple-300 rotate-12 blur-xl opacity-60 animate-bounce" />
+
+                        <img
+                            src={undrawImage}
+                            alt="Team Illustration"
+                            className="relative z-10 w-full max-w-sm md:max-w-md"
+                        />
+                    </div>
+                </section>
+
+                {/* Mission Section */}
+                <section className="relative bg-gray-100 py-32 px-6 overflow-hidden text-center">
+                    <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180 z-0">
+                        <svg
+                            viewBox="0 0 500 150"
+                            preserveAspectRatio="none"
+                            className="w-full h-20"
+                        >
+                            <path
+                                d="M0.00,49.98 C150.00,150.00 349.53,-50.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z"
+                                style={{ stroke: "none", fill: "#ffffff" }}
+                            ></path>
+                        </svg>
+                    </div>
+
                     <motion.h2
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 2 }}
-                        className="text-4xl font-bold text-center mb-12"
+                        className="text-5xl font-extrabold mb-12 bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text drop-shadow"
+                        initial={{ opacity: 0, y: -30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1 }}
                     >
-                        About Us
+                        Our Mission
                     </motion.h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                        {/* Left Side: Mission */}
-                        <motion.div
-                            ref={missionRef}
-                            initial={{ opacity: 0, x: -50 }}
-                            animate={missionInView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ duration: 2 }}
-                            className="space-y-6"
-                        >
-                            <h3 className="text-2xl font-semibold text-green-400">
-                                Our Mission
-                            </h3>
-                            <p className="text-lg leading-relaxed">
-                                We are dedicated to nurturing young minds
-                                through interactive and engaging learning
-                                experiences. Our mission is to foster
-                                creativity, critical thinking, and a lifelong
-                                love of learning in every child.
-                            </p>
-                        </motion.div>
+                    <motion.div
+                        ref={missionRef}
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={missionInView ? { opacity: 1, y: 0 } : {}}
+                        transition={{ duration: 1 }}
+                        className="max-w-3xl mx-auto text-lg text-gray-800 leading-relaxed"
+                    >
+                        We are dedicated to nurturing young minds through
+                        interactive and engaging learning experiences. Our
+                        mission is to foster creativity, critical thinking, and
+                        a lifelong love of learning in every child.
+                    </motion.div>
+                </section>
 
-                        {/* Right Side: Illustration */}
-                        <motion.div
-                            ref={missionRef}
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={missionInView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ duration: 2 }}
-                        >
-                            <img
-                                src={undrawImage}
-                                alt="Mission Illustration"
-                                className="w-full h-auto rounded-lg shadow-lg"
-                            />
-                        </motion.div>
-                    </div>
-
-                    {/* Programs Section */}
-                    <div className="mt-16">
-                        <h3 className="text-2xl font-semibold text-blue-500 text-center mb-8">
-                            Our Programs
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {programs.map((program) => (
-                                <Link
-                                    key={program.id}
-                                    href={route("programs.show", program.id)}
-                                    className="block transition-transform duration-200 hover:scale-[1.02]"
-                                >
-                                    <div className="bg-white p-6 rounded-lg shadow-md cursor-pointer hover:shadow-lg">
-                                        <h3 className="text-xl font-semibold mb-2">
-                                            {program.name}
-                                        </h3>
-                                        <p className="text-gray-600 mb-4 line-clamp-3">
-                                            {program.description}
-                                        </p>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-blue-600 font-bold">
-                                                ${program.price}
-                                            </span>
-                                            <span className="text-sm bg-gray-100 px-3 py-1 rounded-full">
-                                                {program.duration}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </section>
+                {/* Call to Action */}
+                <section className="bg-yellow-100 text-center px-6 py-20">
+                    <motion.h2
+                        className="text-4xl font-bold mb-6"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1 }}
+                    >
+                        Want to Know More?
+                    </motion.h2>
+                    <motion.p
+                        className="text-lg mb-8"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        transition={{ delay: 0.3, duration: 1 }}
+                    >
+                        Discover how we help children thrive through joyful
+                        learning.
+                    </motion.p>
+                    <motion.a
+                        href="/programs"
+                        className="bg-yellow-400 hover:bg-yellow-300 text-white font-semibold py-3 px-8 rounded-2xl text-lg transition inline-block"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        Explore Programs
+                    </motion.a>
+                </section>
+            </div>
         </GuestFrontLayout>
     );
 }
