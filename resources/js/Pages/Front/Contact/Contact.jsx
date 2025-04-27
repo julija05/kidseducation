@@ -14,54 +14,44 @@ export default function ContactUs({ auth }) {
         <GuestFrontLayout auth={auth}>
             <section
                 id="contact"
-                className="relative min-h-screen py-16 bg-gradient-to-r from-green-400 to-blue-500 text-white"
+                className="relative min-h-screen py-24 bg-white text-gray-800 overflow-hidden"
             >
-                {/* Custom Divider */}
-                {/* <div className="custom-shape-divider-top-1736802648">
-                    <svg
-                        data-name="Layer 1"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 1200 120"
-                        preserveAspectRatio="none"
-                    >
-                        <path
-                            d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
-                            className="shape-fill"
-                        ></path>
-                    </svg>
-                </div> */}
+                {/* Background Decorative Blobs */}
+                <div className="absolute top-0 left-0 w-72 h-72 bg-purple-300 opacity-30 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-300 opacity-30 rounded-full blur-2xl animate-bounce" />
 
-                <div className="container mx-auto px-6 lg:px-12">
-                    {/* Section Heading */}
+                {/* Section Heading */}
+                <div className="container mx-auto px-6 lg:px-12 text-center z-10 relative">
                     <motion.h2
                         initial={{ opacity: 0, y: 30 }}
                         animate={contactInView ? { opacity: 1, y: 0 } : {}}
-                        transition={{ duration: 0.5 }}
+                        transition={{ duration: 0.8 }}
                         ref={contactRef}
-                        className="text-4xl font-bold text-center mb-12"
+                        className="text-5xl font-extrabold bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-transparent bg-clip-text drop-shadow mb-12"
                     >
-                        Contact Us
+                        Get in Touch
                     </motion.h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    {/* Contact Info Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 z-10 relative">
                         {/* Address */}
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={contactInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                            className="p-6 bg-white text-gray-800 rounded-lg shadow-lg"
+                            transition={{ duration: 0.6, delay: 0.1 }}
+                            className="p-6 bg-white text-gray-800 rounded-2xl shadow-2xl"
                         >
                             <h4 className="text-xl font-bold mb-4">Address</h4>
                             <p>123 Learning Avenue</p>
                             <p>Cityville, Educationland 45678</p>
                         </motion.div>
 
-                        {/* Phone Number */}
+                        {/* Phone */}
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={contactInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="p-6 bg-white text-gray-800 rounded-lg shadow-lg"
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="p-6 bg-white text-gray-800 rounded-2xl shadow-2xl"
                         >
                             <h4 className="text-xl font-bold mb-4">
                                 Phone Number
@@ -70,12 +60,12 @@ export default function ContactUs({ auth }) {
                             <p>Mon - Fri, 9:00 AM - 6:00 PM</p>
                         </motion.div>
 
-                        {/* Email Address */}
+                        {/* Email */}
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             animate={contactInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                            className="p-6 bg-white text-gray-800 rounded-lg shadow-lg"
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                            className="p-6 bg-white text-gray-800 rounded-2xl shadow-2xl"
                         >
                             <h4 className="text-xl font-bold mb-4">
                                 Email Address
@@ -87,15 +77,15 @@ export default function ContactUs({ auth }) {
 
                     {/* Illustration */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
                         animate={contactInView ? { opacity: 1, scale: 1 } : {}}
-                        transition={{ duration: 0.8, delay: 0.4 }}
-                        className="mt-16 text-center"
+                        transition={{ duration: 0.8, delay: 0.5 }}
+                        className="mt-20"
                     >
                         <img
                             src={undrawImage}
                             alt="Contact Illustration"
-                            className="w-full max-w-lg mx-auto rounded-lg shadow-lg"
+                            className="w-full max-w-lg mx-auto rounded-xl shadow-xl"
                         />
                     </motion.div>
                 </div>

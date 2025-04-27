@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import hero from "../../../../assets/Hero.jpg";
 import coding from "../../../../assets/coding.svg";
 import abacus from "../../../../assets/abacus.png";
-import kid from "../../../../assets/kid-no-bg.png";
+import kid from "../../../../assets/Abacoding.png";
 import math from "../../../../assets/math.svg";
 
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
