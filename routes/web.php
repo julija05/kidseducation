@@ -9,6 +9,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\StudentController;
+use App\Models\Program;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -16,7 +17,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/about', [AboutController::class, 'index'])->name('about.index');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
     Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid.index');
-    Route::get('/programs/{program}', [ProgramController::class, 'show'])->name('programs.show');
+    // Route::get('/programs/{program}', [ProgramController::class, 'show'])->name('programs.show');
+    Route::resource('/programs', ProgramController::class)->only('index', 'show');
 
 
     Route::post('/student', [StudentController::class, 'store'])->name('student.store');

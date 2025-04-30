@@ -18,14 +18,16 @@ export default function About({ auth }) {
                 <section className="min-h-screen flex flex-col md:flex-row items-center justify-between px-6 py-24 relative z-10 max-w-7xl mx-auto gap-12">
                     {/* Text Content */}
                     <div className="md:w-1/2 text-center md:text-left">
-                        <motion.h1
-                            className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-transparent bg-clip-text drop-shadow-lg mb-6 leading-tight"
-                            initial={{ opacity: 0, y: 40 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 1.5 }}
+                        <motion.h2
+                            className="text-5xl md:text-6xl font-extrabold mb-20 z-10 relative"
+                            initial={{ opacity: 0, y: -30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 1 }}
                         >
-                            Who We Are
-                        </motion.h1>
+                            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                Who we are
+                            </span>
+                        </motion.h2>
                         <motion.p
                             className="text-xl text-gray-800 mt-4 leading-relaxed"
                             initial={{ opacity: 0, y: 50 }}
@@ -96,7 +98,7 @@ export default function About({ auth }) {
                             transition={{ duration: 1 }}
                             className="w-full md:w-1/2 text-center md:text-left"
                         >
-                            <h2 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text drop-shadow">
+                            <h2 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent drop-shadow">
                                 Our Mission
                             </h2>
                             <p className="text-lg text-gray-800 leading-relaxed">
@@ -134,7 +136,7 @@ export default function About({ auth }) {
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ duration: 1 }}
                         >
-                            <h2 className="text-5xl font-extrabold mb-6 p-2 bg-gradient-to-r from-green-400 to-blue-500 text-transparent bg-clip-text drop-shadow">
+                            <h2 className="text-5xl font-extrabold mb-6 p-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent drop-shadow">
                                 Why Choose Us?
                             </h2>
                             <div className="text-lg text-gray-800 leading-relaxed space-y-6">
@@ -200,7 +202,7 @@ export default function About({ auth }) {
                     </div>
 
                     <motion.h2
-                        className="text-5xl font-extrabold mb-12 text-center bg-gradient-to-r from-purple-500 to-pink-500 text-transparent bg-clip-text drop-shadow relative z-10"
+                        className="text-5xl font-extrabold mb-12 text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent drop-shadow relative z-10"
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1 }}

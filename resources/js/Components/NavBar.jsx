@@ -52,6 +52,12 @@ const NavBar = React.memo(() => {
                             Home
                         </Link>
                         <Link
+                            href={route("programs.index")}
+                            className="hover:text-purple-600 transition"
+                        >
+                            Programs
+                        </Link>
+                        <Link
                             href={route("about.index")}
                             className="hover:text-purple-600 transition"
                         >

@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
-import hero from "../../../../assets/Hero.jpg";
-import coding from "../../../../assets/coding.svg";
-import abacus from "../../../../assets/abacus.png";
 import kid from "../../../../assets/Abacoding.png";
-import math from "../../../../assets/math.svg";
+import learningMap from "../../../../assets/learning_map.png";
+import learningMapCoding from "../../../../assets/lerning-map-coding.png";
 
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 
@@ -146,20 +144,9 @@ const Home = ({ auth }) => {
                 </section>
 
                 {/* Programs Section */}
+                {/* Abacus Program Explanation Section */}
                 <section className="relative bg-gray-100 py-32 px-6 text-center overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180 z-0">
-                        <svg
-                            viewBox="0 0 500 150"
-                            preserveAspectRatio="none"
-                            className="w-full h-20"
-                        >
-                            <path
-                                d="M0.00,49.98 C150.00,150.00 349.53,-50.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z"
-                                style={{ stroke: "none", fill: "#ffffff" }}
-                            ></path>
-                        </svg>
-                    </div>
-
+                    {/* Section Title */}
                     <motion.h2
                         className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-20 z-10 relative"
                         initial={{ opacity: 0, y: -30 }}
@@ -167,53 +154,176 @@ const Home = ({ auth }) => {
                         transition={{ duration: 1 }}
                     >
                         <span className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text drop-shadow-md p-3">
-                            Programs
+                            Mental Arithmetic Program
                         </span>
                     </motion.h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto z-10 relative">
-                        {programs.map((program, index) => {
-                            const color = colors[index % 2];
-                            return (
-                                <motion.div
-                                    key={program.id}
-                                    className={`${color.bg} p-10 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative`}
-                                    whileHover={{ scale: 1.03 }}
-                                    initial={{
-                                        opacity: 0,
-                                        y: index % 2 === 0 ? -100 : 100,
-                                    }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 1 }}
-                                >
-                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-6 py-2 rounded-full shadow-lg border-2 border-yellow-500 z-20 animate-bounce">
-                                        🎁 1 Free Class
-                                    </div>
-                                    <img
-                                        src={`/${program.image}`}
-                                        alt={program.name}
-                                        className="mb-8 mx-auto w-72 h-72 object-contain shadow-md rounded-xl mt-10"
-                                    />
-                                    <h3
-                                        className={`text-4xl font-bold mb-4 ${color.text}`}
-                                    >
-                                        {program.name}
-                                    </h3>
-                                    <p className="text-lg text-gray-800 mb-8 leading-relaxed">
-                                        {program.description}
-                                    </p>
-                                    <Link
-                                        href={route(
-                                            "programs.show",
-                                            program.id
-                                        )}
-                                        className={`inline-block ${color.button} text-white text-lg px-6 py-3 rounded-full transition shadow-lg`}
-                                    >
-                                        Learn More
-                                    </Link>
-                                </motion.div>
-                            );
-                        })}
+                    {/* Image and Text */}
+                    <div className="flex flex-col md:flex-row items-center gap-10 max-w-7xl mx-auto z-10 relative">
+                        {/* Image */}
+                        <div className="w-full md:w-2/3">
+                            <img
+                                src={learningMap}
+                                alt="Abacus Levels"
+                                className="rounded-xl w-full h-auto"
+                            />
+                        </div>
+
+                        {/* Text */}
+                        <div className="md:w-1/2 text-left">
+                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                                What is Abacus?
+                            </h3>
+                            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                                The abacus is an ancient calculating tool that
+                                has been used for centuries to teach
+                                mathematical concepts. By using an abacus,
+                                children engage both their visual and motor
+                                memory, helping to build a strong foundation in
+                                mathematics, critical thinking, and
+                                problem-solving skills.
+                            </p>
+
+                            <h3 className="text-3xl font-bold text-pink-600 mb-6">
+                                Why Learn Abacus?
+                            </h3>
+                            <ul className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2">
+                                <li>
+                                    Develops strong mental math skills and fast
+                                    calculation abilities.
+                                </li>
+                                <li>
+                                    Improves memory, concentration, and focus.
+                                </li>
+                                <li>
+                                    Enhances visualization and imaginative
+                                    thinking.
+                                </li>
+                                <li>
+                                    Boosts self-confidence through successful
+                                    problem-solving.
+                                </li>
+                                <li>
+                                    Strengthens brain development by stimulating
+                                    both hemispheres.
+                                </li>
+                                <li>
+                                    Helps children love math and overcome math
+                                    anxiety.
+                                </li>
+                            </ul>
+
+                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                                When Should a Child Start Learning Abacus?
+                            </h3>
+                            <p className="text-lg text-gray-700 leading-relaxed mb-12">
+                                Children can start learning abacus as early as 4
+                                to 5 years old. Early training helps shape the
+                                child's brain development during crucial
+                                formative years. However, children up to 12
+                                years old can still benefit significantly from
+                                abacus learning.
+                            </p>
+
+                            {/* Call-to-Action: "First Lesson Free" */}
+                            <div className="mt-8">
+                                <p className="text-xl text-blue-600 font-semibold mb-4">
+                                    Ready to get started? Join now and enjoy the
+                                    first lesson for free!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="relative bg-white py-32 px-6 text-center overflow-hidden">
+                    {/* Section Title */}
+                    <motion.h2
+                        className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-20 z-10 relative"
+                        initial={{ opacity: 0, y: -30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1 }}
+                    >
+                        <span className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text drop-shadow-md p-3">
+                            Coding for Kids (Scratch)
+                        </span>
+                    </motion.h2>
+
+                    {/* Image and Text */}
+                    <div className="flex flex-col md:flex-row-reverse items-center gap-10 max-w-7xl mx-auto z-10 relative">
+                        {/* Image on Right */}
+                        <div className="w-full md:w-2/3">
+                            <img
+                                src={learningMapCoding}
+                                alt="Scratch Programming for Kids"
+                                className="rounded-xl w-full h-auto"
+                            />
+                        </div>
+
+                        {/* Text on Left */}
+                        <div className="md:w-1/2 text-left">
+                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                                What is Scratch Programming?
+                            </h3>
+                            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                                Scratch is a beginner-friendly programming
+                                platform created by MIT where kids use colorful
+                                blocks to build games, stories, and animations.
+                                It teaches the basics of coding logic in a
+                                playful, creative, and engaging way — perfect
+                                for young minds!
+                            </p>
+
+                            <h3 className="text-3xl font-bold text-pink-600 mb-6">
+                                Why Learn Coding at a Young Age?
+                            </h3>
+                            <ul className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2">
+                                <li>
+                                    Strengthens problem-solving and logical
+                                    thinking skills.
+                                </li>
+                                <li>
+                                    Encourages creativity, storytelling, and
+                                    design skills.
+                                </li>
+                                <li>
+                                    Helps kids express themselves through
+                                    technology.
+                                </li>
+                                <li>
+                                    Improves persistence and resilience through
+                                    hands-on projects.
+                                </li>
+                                <li>
+                                    Builds early tech confidence for future
+                                    learning.
+                                </li>
+                                <li>
+                                    Creates a strong foundation for real-world
+                                    programming languages later on.
+                                </li>
+                            </ul>
+
+                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                                When Should a Child Start Learning Scratch?
+                            </h3>
+                            <p className="text-lg text-gray-700 leading-relaxed mb-12">
+                                Children aged 6 and above can start learning
+                                Scratch. Its simple drag-and-drop interface
+                                makes it easy for young kids to create projects,
+                                while older kids can explore more advanced
+                                concepts — setting them up for success in coding
+                                and beyond!
+                            </p>
+
+                            {/* Call-to-Action: "First Lesson Free" */}
+                            <div className="mt-8">
+                                <p className="text-xl text-blue-600 font-semibold mb-4">
+                                    Ready to get started? Join now and enjoy the
+                                    first lesson for free!
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -241,7 +351,7 @@ const Home = ({ auth }) => {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        Enroll Now
+                        <Link href={route("programs.index")}>Enroll Now</Link>
                     </motion.button>
                 </section>
             </div>
