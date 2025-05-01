@@ -18,19 +18,22 @@ class ProgramSeeder extends Seeder
                 'name' => 'Mental Arithmetic Mastery',
                 'description' => 'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 6-12.',
                 'price' => 299.99,
-                'duration' => '12 weeks'
+                'duration' => '12 weeks',
+                'image' => 'images/math.svg',
             ],
             [
                 'name' => 'Creative Writing Workshop',
                 'description' => 'Unlock your child\'s imagination through structured storytelling exercises. Improves language skills, creativity, and self-expression for ages 8-14.',
                 'price' => 199.50,
-                'duration' => '8 weeks'
+                'duration' => '8 weeks',
+                'image' => 'images/books.svg',
             ],
             [
                 'name' => 'Junior Robotics Academy',
                 'description' => 'Introduction to robotics and programming through hands-on projects. Teaches logical thinking and problem-solving skills for children 9-15 years old.',
                 'price' => 399.00,
-                'duration' => '16 weeks'
+                'duration' => '16 weeks',
+                'image' => 'images/coding.svg',
             ]
         ];
 
@@ -38,5 +41,4 @@ class ProgramSeeder extends Seeder
             Program::create($program);
         }
     }
-    
 }
