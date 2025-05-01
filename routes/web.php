@@ -16,6 +16,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing.index');
     Route::get('/about', [AboutController::class, 'index'])->name('about.index');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+    Route::post('/contact', [ContactController::class, 'create'])->name('contact.create');
     Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid.index');
     // Route::get('/programs/{program}', [ProgramController::class, 'show'])->name('programs.show');
     Route::resource('/programs', ProgramController::class)->only('index', 'show');

@@ -3,12 +3,18 @@ import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import undrawImage from "../../../../assets/contact-us.svg";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
+import axios from "@/config/axios";
+import ContactForm from "@/Components/Contact/ContactForm";
 
 export default function ContactUs({ auth }) {
     const [contactRef, contactInView] = useInView({
         triggerOnce: true,
         threshold: 0.2,
     });
+    const [responseMessage, setResponseMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+    const [errors, setErrors] = useState({});
 
     const [formData, setFormData] = useState({
         name: "",
@@ -24,10 +30,35 @@ export default function ContactUs({ auth }) {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Implement form submission logic here (like sending an email)
-        console.log("Form submitted", formData);
+        setSuccessMessage("");
+        setErrorMessage("");
+        setErrors({});
+
+        try {
+            console.log(formData, "formdata");
+            const response = await axios.post("/contact", formData);
+            setSuccessMessage(
+                response.data.message || "Message sent successfully!"
+            );
+            setFormData({ name: "", email: "", message: "" });
+            // Reset form
+            // Auto-hide success message after 5 seconds
+            setTimeout(() => {
+                setSuccessMessage("");
+            }, 3000);
+        } catch (error) {
+            if (error.response?.status === 422) {
+                // Validation error
+                setErrors(error.response.data.errors);
+            } else {
+                // Other errors
+                setErrorMessage(
+                    "Something went wrong. Please try again later."
+                );
+            }
+        }
     };
 
     return (
@@ -55,88 +86,16 @@ export default function ContactUs({ auth }) {
                     {/* Contact Section */}
                     <div className="flex flex-col lg:flex-row items-center justify-between gap-12 z-10 relative">
                         {/* Left Side: Form and Email */}
-                        <div className="lg:w-1/2 w-full bg-white p-8 rounded-xl shadow-xl">
-                            <form onSubmit={handleSubmit}>
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="name"
-                                        className="block text-sm font-semibold text-gray-700"
-                                    >
-                                        Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
+                        <div className="lg:w-1/2 w-full bg-white p-8 rounded-xl shadow-xl mt-8">
+                            <ContactForm />
 
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="email"
-                                        className="block text-sm font-semibold text-gray-700"
-                                    >
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="mb-4">
-                                    <label
-                                        htmlFor="message"
-                                        className="block text-sm font-semibold text-gray-700"
-                                    >
-                                        Message
-                                    </label>
-                                    <textarea
-                                        id="message"
-                                        name="message"
-                                        value={formData.message}
-                                        onChange={handleInputChange}
-                                        rows="5"
-                                        className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    ></textarea>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
-                                >
-                                    Send Message
-                                </button>
-                            </form>
-
-                            {/* Contact Email */}
-                            <div className="mt-8 text-center text-lg text-gray-700">
-                                <p>Feel free to email us at:</p>
-                                <p>
-                                    <a
-                                        href="mailto:info@kidseducation.com"
-                                        className="text-blue-600 hover:underline"
-                                    >
-                                        info@kidseducation.com
-                                    </a>
+                            {/* Email Section */}
+                            <div className="mt-8 text-center sm:text-center">
+                                <p className="text-gray-700">
+                                    Or you can contact us at:
                                 </p>
-                                <p>
-                                    <a
-                                        href="mailto:support@kidseducation.com"
-                                        className="text-blue-600 hover:underline"
-                                    >
-                                        support@kidseducation.com
-                                    </a>
+                                <p className="font-semibold text-blue-600 break-words">
+                                    abacoding@abacoding.com
                                 </p>
                             </div>
                         </div>
