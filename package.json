@@ -11,7 +11,7 @@
         "@tailwindcss/forms": "^0.5.3",
         "@vitejs/plugin-react": "^4.2.0",
         "autoprefixer": "^10.4.12",
-        "axios": "^1.7.4",
+        "axios": "^1.9.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.0",
         "postcss": "^8.4.31",
@@ -22,7 +22,9 @@
     },
     "dependencies": {
         "framer-motion": "^11.17.0",
+        "lucide-react": "^0.488.0",
         "react-awesome-shapes": "^0.1.12",
+        "react-icons": "^5.5.0",
         "react-intersection-observer": "^9.14.1",
         "react-localization": "^1.0.19"
     }

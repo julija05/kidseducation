@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 /* Bottom waves divider */
-.custom-shape-divider-bottom-1736693835 {
+/* .custom-shape-divider-bottom-1736693835 {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -27,7 +27,7 @@
 
 /* Top waves divider */
 
-.custom-shape-divider-top-1736802648 {
+/* .custom-shape-divider-top-1736802648 {
     position: absolute;
     top: 0;
     left: 0;
@@ -45,4 +45,4 @@
 
 .custom-shape-divider-top-1736802648 .shape-fill {
     fill: #ffffff;
-}
+} */
