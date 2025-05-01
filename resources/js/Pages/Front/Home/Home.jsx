@@ -146,7 +146,6 @@ const Home = ({ auth }) => {
                 {/* Programs Section */}
                 {/* Abacus Program Explanation Section */}
                 <section className="relative bg-gray-100 py-32 px-6 text-center overflow-hidden">
-                    {/* Section Title */}
                     <motion.h2
                         className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-20 z-10 relative"
                         initial={{ opacity: 0, y: -30 }}
@@ -158,40 +157,53 @@ const Home = ({ auth }) => {
                         </span>
                     </motion.h2>
 
-                    {/* Image and Text */}
                     <div className="flex flex-col md:flex-row items-center gap-10 max-w-7xl mx-auto z-10 relative">
-                        {/* Image */}
-                        <div className="w-full md:w-2/3">
+                        <motion.div
+                            className="w-full md:w-2/3"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.6 }}
+                        >
                             <img
                                 src={learningMap}
                                 alt="Abacus Levels"
                                 className="rounded-xl w-full h-auto"
                             />
-                        </div>
+                        </motion.div>
 
-                        {/* Text */}
                         <div className="md:w-1/2 text-left">
-                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                            <motion.h3
+                                className="text-3xl font-bold text-blue-600 mb-6"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
                                 What is Abacus?
-                            </h3>
-                            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                                The abacus is an ancient calculating tool that
-                                has been used for centuries to teach
-                                mathematical concepts. By using an abacus,
-                                children engage both their visual and motor
-                                memory, helping to build a strong foundation in
-                                mathematics, critical thinking, and
-                                problem-solving skills.
-                            </p>
+                            </motion.h3>
+                            <motion.p
+                                className="text-lg text-gray-700 leading-relaxed mb-6"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
+                                The abacus is an ancient calculating tool...
+                            </motion.p>
 
-                            <h3 className="text-3xl font-bold text-pink-600 mb-6">
+                            <motion.h3
+                                className="text-3xl font-bold text-pink-600 mb-6"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
                                 Why Learn Abacus?
-                            </h3>
-                            <ul className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2">
-                                <li>
-                                    Develops strong mental math skills and fast
-                                    calculation abilities.
-                                </li>
+                            </motion.h3>
+                            <motion.ul
+                                className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
+                                <li>Develops strong mental math skills...</li>
                                 <li>
                                     Improves memory, concentration, and focus.
                                 </li>
@@ -199,45 +211,46 @@ const Home = ({ auth }) => {
                                     Enhances visualization and imaginative
                                     thinking.
                                 </li>
-                                <li>
-                                    Boosts self-confidence through successful
-                                    problem-solving.
-                                </li>
-                                <li>
-                                    Strengthens brain development by stimulating
-                                    both hemispheres.
-                                </li>
-                                <li>
-                                    Helps children love math and overcome math
-                                    anxiety.
-                                </li>
-                            </ul>
+                                <li>Boosts self-confidence...</li>
+                                <li>Strengthens brain development...</li>
+                                <li>Helps children love math...</li>
+                            </motion.ul>
 
-                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                            <motion.h3
+                                className="text-3xl font-bold text-blue-600 mb-6"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
                                 When Should a Child Start Learning Abacus?
-                            </h3>
-                            <p className="text-lg text-gray-700 leading-relaxed mb-12">
+                            </motion.h3>
+                            <motion.p
+                                className="text-lg text-gray-700 leading-relaxed mb-12"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
                                 Children can start learning abacus as early as 4
-                                to 5 years old. Early training helps shape the
-                                child's brain development during crucial
-                                formative years. However, children up to 12
-                                years old can still benefit significantly from
-                                abacus learning.
-                            </p>
+                                to 5 years old...
+                            </motion.p>
 
-                            {/* Call-to-Action: "First Lesson Free" */}
-                            <div className="mt-8">
+                            <motion.div
+                                className="mt-8"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                            >
                                 <p className="text-xl text-blue-600 font-semibold mb-4">
                                     Ready to get started? Join now and enjoy the
                                     first lesson for free!
                                 </p>
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
                 </section>
 
+                {/* Scratch Programming Section */}
                 <section className="relative bg-white py-32 px-6 text-center overflow-hidden">
-                    {/* Section Title */}
                     <motion.h2
                         className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-20 z-10 relative"
                         initial={{ opacity: 0, y: -30 }}
@@ -249,80 +262,95 @@ const Home = ({ auth }) => {
                         </span>
                     </motion.h2>
 
-                    {/* Image and Text */}
                     <div className="flex flex-col md:flex-row-reverse items-center gap-10 max-w-7xl mx-auto z-10 relative">
-                        {/* Image on Right */}
-                        <div className="w-full md:w-2/3">
+                        <motion.div
+                            className="w-full md:w-2/3"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.6 }}
+                        >
                             <img
                                 src={learningMapCoding}
                                 alt="Scratch Programming for Kids"
                                 className="rounded-xl w-full h-auto"
                             />
-                        </div>
+                        </motion.div>
 
-                        {/* Text on Left */}
                         <div className="md:w-1/2 text-left">
-                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                            <motion.h3
+                                className="text-3xl font-bold text-blue-600 mb-6"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
                                 What is Scratch Programming?
-                            </h3>
-                            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                            </motion.h3>
+                            <motion.p
+                                className="text-lg text-gray-700 leading-relaxed mb-6"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
                                 Scratch is a beginner-friendly programming
-                                platform created by MIT where kids use colorful
-                                blocks to build games, stories, and animations.
-                                It teaches the basics of coding logic in a
-                                playful, creative, and engaging way — perfect
-                                for young minds!
-                            </p>
+                                platform...
+                            </motion.p>
 
-                            <h3 className="text-3xl font-bold text-pink-600 mb-6">
+                            <motion.h3
+                                className="text-3xl font-bold text-pink-600 mb-6"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
                                 Why Learn Coding at a Young Age?
-                            </h3>
-                            <ul className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2">
+                            </motion.h3>
+                            <motion.ul
+                                className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
+                                <li>Strengthens problem-solving skills.</li>
+                                <li>Encourages creativity and storytelling.</li>
                                 <li>
-                                    Strengthens problem-solving and logical
-                                    thinking skills.
+                                    Helps kids express themselves through tech.
                                 </li>
+                                <li>Improves persistence and resilience.</li>
+                                <li>Builds early tech confidence.</li>
                                 <li>
-                                    Encourages creativity, storytelling, and
-                                    design skills.
+                                    Creates a strong foundation for future
+                                    coding.
                                 </li>
-                                <li>
-                                    Helps kids express themselves through
-                                    technology.
-                                </li>
-                                <li>
-                                    Improves persistence and resilience through
-                                    hands-on projects.
-                                </li>
-                                <li>
-                                    Builds early tech confidence for future
-                                    learning.
-                                </li>
-                                <li>
-                                    Creates a strong foundation for real-world
-                                    programming languages later on.
-                                </li>
-                            </ul>
+                            </motion.ul>
 
-                            <h3 className="text-3xl font-bold text-blue-600 mb-6">
+                            <motion.h3
+                                className="text-3xl font-bold text-blue-600 mb-6"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
                                 When Should a Child Start Learning Scratch?
-                            </h3>
-                            <p className="text-lg text-gray-700 leading-relaxed mb-12">
+                            </motion.h3>
+                            <motion.p
+                                className="text-lg text-gray-700 leading-relaxed mb-12"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
                                 Children aged 6 and above can start learning
-                                Scratch. Its simple drag-and-drop interface
-                                makes it easy for young kids to create projects,
-                                while older kids can explore more advanced
-                                concepts — setting them up for success in coding
-                                and beyond!
-                            </p>
+                                Scratch...
+                            </motion.p>
 
-                            {/* Call-to-Action: "First Lesson Free" */}
-                            <div className="mt-8">
+                            <motion.div
+                                className="mt-8"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                            >
                                 <p className="text-xl text-blue-600 font-semibold mb-4">
                                     Ready to get started? Join now and enjoy the
                                     first lesson for free!
                                 </p>
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
                 </section>
