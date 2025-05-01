@@ -13,7 +13,10 @@ class ProgramController extends Controller
      */
     public function index()
     {
-        //
+        $programs = $this->cachedControllerData['programs'];
+        return $this->createView('Front/Programs/Index', [
+            'programs' => $programs,
+        ]);
     }
 
     /**

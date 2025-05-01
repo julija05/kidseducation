@@ -52,10 +52,22 @@ const NavBar = React.memo(() => {
                             Home
                         </Link>
                         <Link
+                            href={route("programs.index")}
+                            className="hover:text-purple-600 transition"
+                        >
+                            Programs
+                        </Link>
+                        <Link
                             href={route("about.index")}
                             className="hover:text-purple-600 transition"
                         >
                             About
+                        </Link>
+                        <Link
+                            href={""}
+                            className="hover:text-purple-600 transition"
+                        >
+                            News
                         </Link>
                         <Link
                             href={route("contact.index")}
@@ -63,12 +75,12 @@ const NavBar = React.memo(() => {
                         >
                             Contact
                         </Link>
-                        <Link
+                        {/* <Link
                             href={route("signupkid.index")}
                             className="hover:text-purple-600 transition"
                         >
                             Sign up your kid
-                        </Link>
+                        </Link> */}
                         {auth.user ? (
                             <Link
                                 href={route("dashboard")}
