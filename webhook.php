@@ -59,6 +59,13 @@ if ($returnMigrate !== 0) {
     echo "\nReturn Code: $returnMigrate\n";
 }
 
+exec('php artisan cache:clear --force 2>&1', $outputMigrate, $returnMigrate);
+if ($returnMigrate !== 0) {
+    echo "Migration Failed:\n";
+    echo implode("\n", $outputMigrate);
+    echo "\nReturn Code: $returnMigrate\n";
+}
+
 // Clear destination except webhook.php
 exec("find {$deployDestination} -mindepth 1 ! -name {$preserveFile} -exec rm -rf {} +");
 
