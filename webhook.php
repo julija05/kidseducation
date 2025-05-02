@@ -59,7 +59,7 @@ if ($returnMigrate !== 0) {
     echo "\nReturn Code: $returnMigrate\n";
 }
 
-exec('php artisan cache:clear --force 2>&1', $outputMigrate, $returnMigrate);
+exec('php artisan cache:clear 2>&1', $outputMigrate, $returnMigrate);
 if ($returnMigrate !== 0) {
     echo "Migration Failed:\n";
     echo implode("\n", $outputMigrate);
