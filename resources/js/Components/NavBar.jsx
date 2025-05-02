@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
-import Logo from "../../assets/logo.png";
 import { Menu, X } from "lucide-react";
 
 const NavBar = React.memo(() => {
@@ -75,12 +74,6 @@ const NavBar = React.memo(() => {
                         >
                             Contact
                         </Link>
-                        {/* <Link
-                            href={route("signupkid.index")}
-                            className="hover:text-purple-600 transition"
-                        >
-                            Sign up your kid
-                        </Link> */}
                         {auth.user ? (
                             <Link
                                 href={route("dashboard")}
