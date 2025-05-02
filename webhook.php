@@ -13,7 +13,7 @@ $secret = 'SrdglkkjdsnrgiuoserhgoihklNDH)O*DSF(ESF'; // <-- GitHub Webhook secre
 $payload = file_get_contents('php://input');
 $headers = getallheaders();
 
-if ($secret!='' && isset($headers['X-Hub-Signature-256'])) {
+if ($secret != '' && isset($headers['X-Hub-Signature-256'])) {
     $hash = 'sha256=' . hash_hmac('sha256', $secret, $payload, false);
     if (!hash_equals($headers['X-Hub-Signature-256'], $hash)) {
         http_response_code(403);
@@ -52,6 +52,12 @@ if ($returnMigrate !== 0) {
     echo "\nReturn Code: $returnMigrate\n";
 }
 
+exec('php artisan db:seed --force 2>&1', $outputMigrate, $returnMigrate);
+if ($returnMigrate !== 0) {
+    echo "Migration Failed:\n";
+    echo implode("\n", $outputMigrate);
+    echo "\nReturn Code: $returnMigrate\n";
+}
 
 // Clear destination except webhook.php
 exec("find {$deployDestination} -mindepth 1 ! -name {$preserveFile} -exec rm -rf {} +");
@@ -69,8 +75,8 @@ if ($zip->open($buildZip) === TRUE) {
 
 // Copy build to destination
 exec("cp -r {$buildDir}/* {$deployDestination}/");
-  copy($customIndexSource, $deployIndexPath);
-copy($buildDir."/.htaccess",$deployDestination . "/.htaccess" );
+copy($customIndexSource, $deployIndexPath);
+copy($buildDir . "/.htaccess", $deployDestination . "/.htaccess");
 unlink($deployDestination . "/hot");
 unlink($repoDir . "/public/hot");
 echo "Deployment completed successfully.";
