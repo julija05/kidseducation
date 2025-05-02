@@ -34,11 +34,25 @@ class ProgramSeeder extends Seeder
                 'price' => 399.00,
                 'duration' => '16 weeks',
                 'image' => 'images/coding.svg',
+            ],
+            [
+                'name' => '3333333',
+                'description' => 'Introduction to robotics and programming through hands-on projects. Teaches logical thinking and problem-solving skills for children 9-15 years old.',
+                'price' => 399.00,
+                'duration' => '16 weeks',
+                'image' => 'images/coding.svg',
+            ],
+            [
+                'name' => '3333333',
+                'description' => 'Introduction to robotics and programming through hands-on projects. Teaches logical thinking and problem-solving skills for children 9-15 years old.',
+                'price' => 399.00,
+                'duration' => '16 weeks',
+                'image' => 'images/coding.svg',
             ]
         ];
 
         foreach ($programs as $program) {
-            Program::create($program);
+            Program::updateOrInsert($program);
         }
     }
 }
