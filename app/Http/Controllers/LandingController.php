@@ -12,7 +12,7 @@ class LandingController extends Controller
     {
         return $this->createView('Front/Home/Home', [
             'canLogin' => Route::has('login'),
-            'canRegister' => Route::has('register'),
+            // 'canRegister' => Route::has('register'),
         ]);
     }
 }

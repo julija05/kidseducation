@@ -143,16 +143,6 @@ export default function Login({ status, canResetPassword, auth }) {
                                 Log in
                             </PrimaryButton>
                         </form>
-
-                        {/* <p className="mt-6 text-center text-sm text-gray-600">
-                            Don’t have an account?{" "}
-                            <Link
-                                href={route("register")}
-                                className="text-pink-500 font-semibold hover:underline"
-                            >
-                                Register
-                            </Link>
-                        </p> */}
                     </div>
                 </motion.div>
             </section>

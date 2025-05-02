@@ -96,12 +96,6 @@ const NavBar = React.memo(() => {
                                 >
                                     Log in
                                 </Link>
-                                {/* <Link
-                                    href={route("register")}
-                                    className="hover:text-purple-600 transition"
-                                >
-                                    Register
-                                </Link> */}
                             </>
                         )}
                     </nav>
