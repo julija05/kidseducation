@@ -17,24 +17,17 @@ class ProgramSeeder extends Seeder
             [
                 'name' => 'Mental Arithmetic Mastery',
                 'description' => 'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 6-12.',
-                'price' => 299.99,
+                'price' => 100,
                 'duration' => '12 weeks',
                 'image' => 'images/math.svg',
             ],
             [
-                'name' => 'Creative Writing Workshop',
-                'description' => 'Unlock your child\'s imagination through structured storytelling exercises. Improves language skills, creativity, and self-expression for ages 8-14.',
-                'price' => 199.50,
-                'duration' => '8 weeks',
-                'image' => 'images/books.svg',
-            ],
-            [
-                'name' => 'Junior Robotics Academy',
-                'description' => 'Introduction to robotics and programming through hands-on projects. Teaches logical thinking and problem-solving skills for children 9-15 years old.',
-                'price' => 399.00,
+                'name' => 'Coding for Kids(Scratch)',
+                'description' => 'Introduce your child to the exciting world of programming through our fun and interactive Scratch coding program! Designed especially for young learners, this course teaches the basics of coding by letting kids build their own games, animations, and stories using colorful drag-and-drop blocks. No prior experience needed — just imagination!',
+                'price' => 150,
                 'duration' => '16 weeks',
                 'image' => 'images/coding.svg',
-            ]
+            ],
         ];
 
         foreach ($programs as $program) {
