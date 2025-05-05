@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\CountingOnAbacusController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
@@ -25,13 +27,18 @@ Route::middleware('guest')->group(function () {
     Route::post('/student', [StudentController::class, 'store'])->name('student.store');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'role:student', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('counting-on-abacus', CountingOnAbacusController::class);
+});
+// Admin routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/programs', [AdminProgramController::class, 'index'])->name('programs.index');
 });
 
 require __DIR__ . '/auth.php';
