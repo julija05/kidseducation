@@ -64,7 +64,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                                     🎁 1 Free Class
                                 </div>
                                 <img
-                                    src={`/${program.image}`}
+                                    src={`${program.image}`}
                                     alt={program.name}
                                     className="mb-8 mx-auto w-72 h-72 object-contain shadow-md rounded-xl mt-10"
                                 />

@@ -38,7 +38,7 @@ Route::middleware('auth')->group(function () {
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/programs', [AdminProgramController::class, 'index'])->name('programs.index');
+    Route::resource('programs', AdminProgramController::class);
 });
 
 require __DIR__ . '/auth.php';

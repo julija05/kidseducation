@@ -11,7 +11,7 @@ class UpdateProgramRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,11 @@ class UpdateProgramRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'string|max:255',
+            'description' => 'nullable|string',
+            'duration' => 'string',
+            'price' => 'numeric',
+            'image' => 'image|max:2048',
         ];
     }
 }
