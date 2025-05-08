@@ -14,9 +14,12 @@ export default function AdminPrograms({ programs }) {
         <AdminLayout>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Programs</h1>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
+                <Link
+                    href={route("admin.programs.create")}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+                >
                     + Create New Program
-                </button>
+                </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -36,13 +39,13 @@ export default function AdminPrograms({ programs }) {
                         </p>
                         <div className="flex justify-end gap-4 text-sm">
                             <Link
-                                // href={route("admin.programs.edit", program.id)}
+                                href={route("admin.programs.edit", program.id)}
                                 className="text-blue-600 hover:underline"
                             >
                                 Edit
                             </Link>
                             <button
-                                // onClick={() => handleDelete(program.id)}
+                                onClick={() => handleDelete(program.id)}
                                 className="text-red-600 hover:underline"
                             >
                                 Delete
