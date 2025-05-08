@@ -33,7 +33,7 @@ class AdminProgramController extends Controller
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('program_images', 'public');
-            $data['image'] = $imagePath;
+            $data['image'] = "/storage/{$imagePath}";
         }
         Program::create($data);
         Cache::forget('controllerData.programs');
@@ -57,7 +57,7 @@ class AdminProgramController extends Controller
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('program_images', 'public');
-            $data['image'] = $imagePath;
+            $data['image'] = "/storage/{$imagePath}";
         }
 
         $program->update($data);

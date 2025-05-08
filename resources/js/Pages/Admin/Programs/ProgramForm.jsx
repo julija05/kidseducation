@@ -72,6 +72,18 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
                 <label className="block text-sm font-medium">
                     Image (optional)
                 </label>
+
+                {formData.image && (
+                    <div className="mb-2">
+                        <img
+                            src={`/storage/${formData.image}`}
+                            alt="Current"
+                            className="w-32 h-auto rounded"
+                        />
+                        <p className="text-sm text-gray-600">Current image</p>
+                    </div>
+                )}
+
                 <input
                     type="file"
                     onChange={(e) => setData("image", e.target.files[0])}
