@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\CountingOnAbacusController;
 use App\Http\Controllers\DashboardController;
@@ -8,25 +9,27 @@ use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\SignUpKidController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\StudentController;
-use App\Models\Program;
 use Illuminate\Support\Facades\Route;
 
+
+//public routes
 Route::middleware('guest')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('landing.index');
     Route::get('/about', [AboutController::class, 'index'])->name('about.index');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
     Route::post('/contact', [ContactController::class, 'create'])->name('contact.create');
     Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid.index');
-    // Route::get('/programs/{program}', [ProgramController::class, 'show'])->name('programs.show');
     Route::resource('/programs', ProgramController::class)->only('index', 'show');
-
-
+    Route::get('/news', [NewsController::class, 'index']);
     Route::post('/student', [StudentController::class, 'store'])->name('student.store');
 });
 
+
+// student
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'role:student', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -35,10 +38,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('counting-on-abacus', CountingOnAbacusController::class);
 });
+
+
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('programs', AdminProgramController::class);
+    Route::resource('news', AdminNewsController::class);
 });
 
 require __DIR__ . '/auth.php';

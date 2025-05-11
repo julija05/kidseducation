@@ -18,7 +18,7 @@ export default function AdminLayout({ children }) {
                         </Link>
                     </li>
                     <li className="mb-4">
-                        <Link href="#">News</Link>
+                        <Link href={route("admin.news.index")}>News</Link>
                     </li>
                 </ul>
             </aside>
