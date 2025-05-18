@@ -3,21 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreNewsRequest;
 use App\Http\Requests\UpdateNewsRequest;
 use App\Models\News;
+use App\Services\NewsService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Storage;
 
 class AdminNewsController extends Controller
 {
+    public function __construct(
+        protected NewsService $newsService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $news = News::latest()->paginate(5);;
+        $news = $this->newsService->getPaginatedNews(5);
         return $this->createView("Admin/News/Index", ['news' => $news]);
     }
 
@@ -34,23 +37,25 @@ class AdminNewsController extends Controller
      */
     public function store(StoreNewsRequest $request): RedirectResponse
     {
-        $news = $request->all();
-
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('news', 'public');
-            $news['image'] = "/storage/{$imagePath}";
+        try {
+            $this->newsService->createNews($request);
+            return redirect()
+                ->route('admin.news.index')
+                ->with('success', 'News post created successfully.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to create news post. Please try again.');
         }
-
-        News::create($news);
-
-        return redirect()->route('admin.news.index')->with('success', 'News post created successfully.');
     }
+
     /**
      * Display the specified resource.
      */
     public function show(News $news)
     {
-        //
+        return $this->createView("Admin/News/Show", ['news' => $news]);
     }
 
     /**
@@ -58,9 +63,7 @@ class AdminNewsController extends Controller
      */
     public function edit(News $news)
     {
-        return $this->createView("Admin/News/Edit", [
-            'news' => $news
-        ]);
+        return $this->createView("Admin/News/Edit", ['news' => $news]);
     }
 
     /**
@@ -68,42 +71,33 @@ class AdminNewsController extends Controller
      */
     public function update(UpdateNewsRequest $request, News $news): RedirectResponse
     {
-        // Get validated data excluding image initially
-        $data = $request->validated();
-
-        // Only update image if a new one is uploaded
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($news->image) {
-                // Extract the path from the full URL (/storage/news/abc.jpg -> news/abc.jpg)
-                $oldImagePath = str_replace('/storage/', '', $news->image);
-                Storage::disk('public')->delete($oldImagePath);
-            }
-
-            $imagePath = $request->file('image')->store('news', 'public');
-            $data['image'] = "/storage/{$imagePath}";
-        } else {
-            // Remove image from update data to keep the existing image
-            unset($data['image']);
+        try {
+            $this->newsService->updateNews($request, $news);
+            return redirect()
+                ->route('admin.news.index')
+                ->with('success', 'News updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to update news post. Please try again.');
         }
-
-        $news->update($data);
-
-        return redirect()->route('admin.news.index')->with('success', 'News updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(News $news)
+    public function destroy(News $news): RedirectResponse
     {
-        if ($news->image) {
-            $path = str_replace('/storage/', '', $news->image);
-            Storage::disk('public')->delete($path);
+        try {
+            $this->newsService->deleteNews($news);
+            return redirect()
+                ->route('admin.news.index')
+                ->with('success', 'News deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to delete news post. Please try again.');
         }
-
-        $news->delete();
-
-        return redirect()->route('admin.news.index')->with('deleted', 'News deleted successfully.');
     }
 }
