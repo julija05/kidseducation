@@ -1,38 +1,36 @@
+import { useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 
-export default function NewsForm({ formData = {} }) {
+export default function NewsForm({ formData = {}, onSubmit }) {
     const { data, setData, post, put, processing, errors } = useForm({
         title: formData.title || "",
         content: formData.content || "",
         image: null,
+        _method: formData.id ? "PUT" : "POST",
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        if (formData.id) {
-            put(route("admin.news.update", formData.id), {
-                preserveScroll: true,
-            });
-        } else {
-            post(route("admin.news.store"), {
-                preserveScroll: true,
-            });
-        }
+        onSubmit(data, post, put, {
+            forceFormData: true,
+            preserveScroll: true,
+            preserveState: false,
+        });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-xl mx-auto">
             <div>
                 <label className="block text-sm font-medium">Title</label>
                 <input
                     type="text"
                     value={data.title}
                     onChange={(e) => setData("title", e.target.value)}
-                    className="w-full border rounded"
+                    className="w-full border-gray-300 rounded-md shadow-sm mt-1"
+                    required
                 />
                 {errors.title && (
-                    <div className="text-sm text-red-500">{errors.title}</div>
+                    <p className="text-red-500 text-sm">{errors.title}</p>
                 )}
             </div>
 
@@ -41,37 +39,53 @@ export default function NewsForm({ formData = {} }) {
                 <textarea
                     value={data.content}
                     onChange={(e) => setData("content", e.target.value)}
-                    className="w-full border rounded"
+                    className="w-full border-gray-300 rounded-md shadow-sm mt-1"
+                    rows="5"
+                    required
                 />
                 {errors.content && (
-                    <div className="text-sm text-red-500">{errors.content}</div>
+                    <p className="text-red-500 text-sm">{errors.content}</p>
                 )}
             </div>
 
             <div>
-                <label className="block text-sm font-medium">Image</label>
+                <label className="block text-sm font-medium">
+                    Image (optional)
+                </label>
+
+                {formData.image && (
+                    <div className="mb-2">
+                        <img
+                            src={formData.image}
+                            alt="Current"
+                            className="w-32 h-auto rounded"
+                            onError={(e) => (e.target.style.display = "none")}
+                        />
+                        <p className="text-sm text-gray-600">Current image</p>
+                    </div>
+                )}
+
                 <input
                     type="file"
+                    accept="image/*"
                     onChange={(e) => setData("image", e.target.files[0])}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
                 />
-                {formData.image && (
-                    <img
-                        src={formData.image}
-                        alt="Current"
-                        className="w-48 mt-2"
-                    />
-                )}
                 {errors.image && (
-                    <div className="text-sm text-red-500">{errors.image}</div>
+                    <p className="text-red-500 text-sm">{errors.image}</p>
                 )}
             </div>
 
             <button
                 type="submit"
                 disabled={processing}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
             >
-                {formData.id ? "Update Post" : "Create Post"}
+                {processing
+                    ? "Saving..."
+                    : formData.id
+                    ? "Update Post"
+                    : "Create Post"}
             </button>
         </form>
     );

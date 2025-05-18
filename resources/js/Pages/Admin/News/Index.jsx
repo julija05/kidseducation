@@ -74,13 +74,7 @@ export default function News({ news }) {
                         className="border p-4 rounded shadow space-y-4 mt-8"
                     >
                         <h2 className="text-xl font-bold">{item.title}</h2>
-                        {item.image && (
-                            <img
-                                src={item.image}
-                                alt={item.title}
-                                className="w-full max-w-md my-2"
-                            />
-                        )}
+
                         <p>{item.content}</p>
 
                         <div className="flex gap-4 mt-4">

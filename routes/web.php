@@ -45,6 +45,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('programs', AdminProgramController::class);
     Route::resource('news', AdminNewsController::class);
+    // Route::post('/news', [AdminNewsController::class, 'update'])->name('admin.news.update');
 });
 
 require __DIR__ . '/auth.php';

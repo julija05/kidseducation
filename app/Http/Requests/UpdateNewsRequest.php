@@ -11,7 +11,7 @@ class UpdateNewsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Adjust based on your authorization logic
     }
 
     /**
@@ -22,7 +22,26 @@ class UpdateNewsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => 'string|max:255',
+            'content' => 'string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Make image nullable for updates
+        ];
+    }
+
+    /**
+     * Get custom error messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'The title field is required.',
+            'title.max' => 'The title may not be greater than 255 characters.',
+            'content.required' => 'The content field is required.',
+            'image.image' => 'The file must be an image.',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif.',
+            'image.max' => 'The image may not be greater than 2MB.',
         ];
     }
 }

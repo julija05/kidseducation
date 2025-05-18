@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreNewsRequest;
 use App\Http\Requests\UpdateNewsRequest;
 use App\Models\News;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 
 class AdminNewsController extends Controller
@@ -31,7 +32,7 @@ class AdminNewsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreNewsRequest $request)
+    public function store(StoreNewsRequest $request): RedirectResponse
     {
         $news = $request->all();
 
@@ -65,19 +66,27 @@ class AdminNewsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateNewsRequest $request, News $news)
+    public function update(UpdateNewsRequest $request, News $news): RedirectResponse
     {
-        $data = $request->all();
+        // Get validated data excluding image initially
+        $data = $request->validated();
+
+        // Only update image if a new one is uploaded
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($news->image) {
-                $oldPath = str_replace(asset('storage') . '/', '', $news->image);
-                Storage::disk('public')->delete($oldPath);
+                // Extract the path from the full URL (/storage/news/abc.jpg -> news/abc.jpg)
+                $oldImagePath = str_replace('/storage/', '', $news->image);
+                Storage::disk('public')->delete($oldImagePath);
             }
 
-            $path = $request->file('image')->store('news', 'public');
-            $data['image'] = asset('storage/' . $path);
+            $imagePath = $request->file('image')->store('news', 'public');
+            $data['image'] = "/storage/{$imagePath}";
+        } else {
+            // Remove image from update data to keep the existing image
+            unset($data['image']);
         }
+
         $news->update($data);
 
         return redirect()->route('admin.news.index')->with('success', 'News updated successfully.');
@@ -89,7 +98,7 @@ class AdminNewsController extends Controller
     public function destroy(News $news)
     {
         if ($news->image) {
-            $path = str_replace(asset('storage') . '/', '', $news->image);
+            $path = str_replace('/storage/', '', $news->image);
             Storage::disk('public')->delete($path);
         }
 

@@ -2,8 +2,8 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import NewsForm from "./NewsForm";
 
 export default function Create() {
-    const handleSubmit = (data, post) => {
-        post(route("admin.news.store"));
+    const handleSubmit = (data, post, put, options) => {
+        post(route("admin.news.store"), options);
     };
 
     return (
