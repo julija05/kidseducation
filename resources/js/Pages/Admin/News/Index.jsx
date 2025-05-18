@@ -4,7 +4,6 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import { useEffect, useState } from "react";
 
 export default function News({ news }) {
-    console.log(news, "news");
     const { delete: destroy } = useForm();
     const { props } = usePage();
     const [successMessage, setSuccessMessage] = useState(
