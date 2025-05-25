@@ -1,105 +1,126 @@
 import { useForm } from "@inertiajs/react";
+import { useEffect } from "react";
+import FormField from "@/Components/Form/FormField";
+import ImagePreview from "@/Components/ImagePreview/ImagePreview";
+import { FormSubmitHandler } from "@/Components/Handlers/FormSubmitHandler";
 
-export default function ProgramForm({ formData = {}, onSubmit }) {
-    const { data, setData, post, put, processing, errors } = useForm({
+// Single Responsibility: Manage program form state and render form fields
+export default function ProgramForm({ formData = {} }) {
+    const { data, setData, post, processing, errors } = useForm({
         name: formData.name || "",
         description: formData.description || "",
         duration: formData.duration || "",
         price: formData.price || "",
         image: null,
+        _method: formData.id ? "PUT" : "POST",
     });
+
+    // Update form data when formData prop changes
+    useEffect(() => {
+        if (formData.id) {
+            setData({
+                name: formData.name || "",
+                description: formData.description || "",
+                duration: formData.duration || "",
+                price: formData.price || "",
+                image: null, // Always null for file input
+                _method: "PUT",
+            });
+        }
+    }, [formData]);
+
+    const submitHandler = new FormSubmitHandler(post, route);
+    const isUpdate = Boolean(formData.id);
+
+    const handleFieldChange = (name, value) => {
+        setData(name, value);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit(data, post, put);
+
+        const onSuccess = () => {
+            console.log(`${isUpdate ? "Update" : "Create"} successful`);
+        };
+
+        const onError = (errors) => {
+            console.log(`${isUpdate ? "Update" : "Create"} errors:`, errors);
+        };
+
+        if (isUpdate) {
+            submitHandler.handleUpdate(data, formData.id, onSuccess, onError);
+        } else {
+            submitHandler.handleCreate(data, onSuccess, onError);
+        }
     };
+
+    const formFields = [
+        {
+            name: "name",
+            label: "Name",
+            type: "text",
+            required: true,
+        },
+        {
+            name: "description",
+            label: "Description",
+            type: "textarea",
+            required: true,
+        },
+        {
+            name: "duration",
+            label: "Duration",
+            type: "text",
+            required: true,
+        },
+        {
+            name: "price",
+            label: "Price (€)",
+            type: "number",
+            step: "0.01",
+            required: true,
+        },
+    ];
 
     return (
         <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-6">
-            <div>
-                <label className="block text-sm font-medium">Name</label>
-                <input
-                    type="text"
-                    value={data.name}
-                    onChange={(e) => setData("name", e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            {formFields.map((field) => (
+                <FormField
+                    key={field.name}
+                    {...field}
+                    value={data[field.name]}
+                    onChange={handleFieldChange}
+                    error={errors[field.name]}
                 />
-                {errors.name && (
-                    <p className="text-red-500 text-sm">{errors.name}</p>
-                )}
-            </div>
-
-            <div>
-                <label className="block text-sm font-medium">Description</label>
-                <textarea
-                    value={data.description}
-                    onChange={(e) => setData("description", e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                ></textarea>
-                {errors.description && (
-                    <p className="text-red-500 text-sm">{errors.description}</p>
-                )}
-            </div>
-
-            <div>
-                <label className="block text-sm font-medium">Duration</label>
-                <input
-                    type="text"
-                    value={data.duration}
-                    onChange={(e) => setData("duration", e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                />
-                {errors.duration && (
-                    <p className="text-red-500 text-sm">{errors.duration}</p>
-                )}
-            </div>
-
-            <div>
-                <label className="block text-sm font-medium">Price (€)</label>
-                <input
-                    type="number"
-                    step="0.01"
-                    value={data.price}
-                    onChange={(e) => setData("price", e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                />
-                {errors.price && (
-                    <p className="text-red-500 text-sm">{errors.price}</p>
-                )}
-            </div>
+            ))}
 
             <div>
                 <label className="block text-sm font-medium">
                     Image (optional)
                 </label>
 
-                {formData.image && (
-                    <div className="mb-2">
-                        <img
-                            src={`/storage/${formData.image}`}
-                            alt="Current"
-                            className="w-32 h-auto rounded"
-                        />
-                        <p className="text-sm text-gray-600">Current image</p>
-                    </div>
-                )}
+                <ImagePreview imagePath={formData.image} />
 
-                <input
+                <FormField
+                    name="image"
                     type="file"
-                    onChange={(e) => setData("image", e.target.files[0])}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    accept="image/*"
+                    onChange={handleFieldChange}
+                    error={errors.image}
+                    label=""
                 />
-                {errors.image && (
-                    <p className="text-red-500 text-sm">{errors.image}</p>
-                )}
             </div>
 
             <button
                 type="submit"
                 disabled={processing}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
             >
-                {processing ? "Saving..." : "Save Program"}
+                {processing
+                    ? "Saving..."
+                    : isUpdate
+                    ? "Update Program"
+                    : "Create Program"}
             </button>
         </form>
     );
