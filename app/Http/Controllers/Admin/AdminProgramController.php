@@ -46,9 +46,14 @@ class AdminProgramController extends BaseAdminController
 
             $this->programService->createProgram($validatedData, $image);
 
-            return $this->successRedirect('created');
+            return redirect()
+                ->route('admin.programs.index')
+                ->with('success', 'New Program successfully created!');
         } catch (\Exception $e) {
-            return $this->errorRedirect('create', $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Error occurred: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -67,9 +72,14 @@ class AdminProgramController extends BaseAdminController
 
             $this->programService->updateProgram($program, $validatedData, $image);
 
-            return $this->successRedirect('updated');
+            return redirect()
+                ->route('admin.programs.index')
+                ->with('success', 'Program successfully updated!');
         } catch (\Exception $e) {
-            return $this->errorRedirect('update', $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Error occurred: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -78,9 +88,13 @@ class AdminProgramController extends BaseAdminController
         try {
             $this->programService->deleteProgram($program);
 
-            return $this->successRedirect('deleted');
+            return redirect()
+                ->route('admin.programs.index')
+                ->with('success', 'Program successfully deleted!');
         } catch (\Exception $e) {
-            return $this->errorRedirect('delete', $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Error occurred: ' . $e->getMessage());
         }
     }
 }

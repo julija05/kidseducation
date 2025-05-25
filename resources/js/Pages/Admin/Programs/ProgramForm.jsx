@@ -41,10 +41,12 @@ export default function ProgramForm({ formData = {} }) {
 
         const onSuccess = () => {
             console.log(`${isUpdate ? "Update" : "Create"} successful`);
+            // Flash message will be handled by the backend redirect
         };
 
         const onError = (errors) => {
             console.log(`${isUpdate ? "Update" : "Create"} errors:`, errors);
+            // You could add client-side error handling here if needed
         };
 
         if (isUpdate) {
