@@ -2,18 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class StoreProgramRequest extends FormRequest
+class StoreProgramRequest extends BaseProgramRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -21,12 +11,24 @@ class StoreProgramRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'duration' => 'required|string',
-            'price' => 'required|numeric',
-            'image' => 'nullable|image|max:2048',
-        ];
+        $rules = $this->getSharedRules();
+
+        // Make fields required for creation
+        $rules['name'] = 'required|' . $rules['name'];
+        $rules['description'] = 'required|' . $rules['description'];
+        $rules['duration'] = 'required|' . $rules['duration'];
+        $rules['price'] = 'required|' . $rules['price'];
+
+        return $rules;
+    }
+
+    /**
+     * Get custom error messages for validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return $this->getSharedMessages();
     }
 }
