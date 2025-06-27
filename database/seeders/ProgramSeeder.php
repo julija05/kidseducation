@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Program;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ProgramSeeder extends Seeder
 {
@@ -31,7 +31,29 @@ class ProgramSeeder extends Seeder
         ];
 
         foreach ($programs as $program) {
+            // Generate slug
+            $program['slug'] = Str::slug($program['name']);
+
+            // Convert duration to weeks
+            $program['duration_weeks'] = $this->convertDurationToWeeks($program['duration']);
+
+            // Create program
             Program::create($program);
         }
+    }
+
+    private function convertDurationToWeeks($duration)
+    {
+        $weeks = null;
+
+        if (preg_match('/(\d+)\s*weeks?/i', $duration, $matches)) {
+            $weeks = (int) $matches[1];
+        } elseif (preg_match('/(\d+)\s*months?/i', $duration, $matches)) {
+            $weeks = (int) $matches[1] * 4; // Approximate
+        } elseif (preg_match('/(\d+)\s*years?/i', $duration, $matches)) {
+            $weeks = (int) $matches[1] * 52;
+        }
+
+        return $weeks;
     }
 }

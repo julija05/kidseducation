@@ -77,7 +77,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                                     {program.description}
                                 </p>
                                 <Link
-                                    href={route("programs.show", program.id)}
+                                    href={route("programs.show", program.slug)}
                                     className={`inline-block ${color.button} text-white text-lg px-6 py-3 rounded-full transition shadow-lg`}
                                 >
                                     Learn More
