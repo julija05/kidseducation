@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProgramRequest;
 use App\Http\Requests\UpdateProgramRequest;
 use App\Models\Program;
+use Illuminate\Support\Facades\Auth;
 
 class ProgramController extends Controller
 {
@@ -13,7 +14,7 @@ class ProgramController extends Controller
      */
     public function index()
     {
-        $programs = $this->cachedControllerData['programs'];
+        $programs = Program::all();
         return $this->createView('Front/Programs/Index', [
             'programs' => $programs,
         ]);
@@ -32,9 +33,9 @@ class ProgramController extends Controller
      */
     public function store(StoreProgramRequest $request)
     {
-        $program = Program::create($request->validated());
+        // $program = Program::create($request->validated());
 
-        return $program;
+        // return $program;
     }
 
     /**
@@ -42,15 +43,18 @@ class ProgramController extends Controller
      */
     public function show(Program $program)
     {
-        $program = $this->cachedControllerData['programs']->firstWhere('id', $program->id);
+        $userEnrollment = null;
 
-        if (!$program) {
-            abort(404);
+        if (Auth::user() && Auth::user()->hasRole('student')) {
+            $userEnrollment = Auth::user()->enrollments()
+                ->where('program_id', $program->id)
+                ->first();
         }
 
         return $this->createView('Front/Programs/Show', [
             'program' => $program,
-            'pageTitle' => $program['name']
+            'pageTitle' => $program->name,
+            'userEnrollment' => $userEnrollment,
         ]);
     }
 
@@ -76,5 +80,18 @@ class ProgramController extends Controller
     public function destroy(Program $program)
     {
         //
+    }
+
+    public function showDashboard(Program $program)
+    {
+        // Check if user is enrolled
+        $userEnrollment = Auth::user()->enrollments()
+            ->where('program_id', $program->id)
+            ->first();
+
+        return $this->createView('Dashboard/Programs/Show', [
+            'program' => $program,
+            'userEnrollment' => $userEnrollment,
+        ]);
     }
 }
