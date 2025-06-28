@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEnrollmentRequest;
 use App\Http\Requests\UpdateEnrollmentRequest;
+use App\Mail\AdminEnrollmentNotificationMail;
 use App\Mail\CompanyNotificationMail;
+use App\Mail\StudentEnrollmentRequestMail;
 use App\Models\Enrollment;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EnrollmentController extends Controller
@@ -67,24 +70,35 @@ class EnrollmentController extends Controller
         ]);
 
         // Send email to student
-        // if (class_exists(EnrollmentRequestMail::class)) {
-        //     Mail::to($user->email)->send(
-        //         new EnrollmentRequestMail($user, $program)
-        //     );
-        // }
+        try {
+            Log::info('Sending ProgramApproved email to: ' . $user->email);
+            Mail::to($user->email)->send(
+                new StudentEnrollmentRequestMail($user, $program)
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to send student enrollment email: ' . $e->getMessage());
+        }
 
-        // Send notification to company email
-        // Mail::to('abacoding@abacoding.com')->send(
-        //     new CompanyNotificationMail($enrollment)
-        // );
+        // Send notification to admin
+        try {
+            Mail::to('abacoding@abacoding.com')->send(
+                new AdminEnrollmentNotificationMail($enrollment)
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to send admin notification email: ' . $e->getMessage());
+        }
 
-        // Notify all admins
-        $admins = User::role('admin')->get();
-        // foreach ($admins as $admin) {
-        //     Mail::to($admin->email)->send(
-        //         new CompanyNotificationMail($enrollment)
-        //     );
-        // }
+        // Optional: Also notify all admin users
+        try {
+            $admins = User::role('admin')->get();
+            foreach ($admins as $admin) {
+                Mail::to($admin->email)->send(
+                    new AdminEnrollmentNotificationMail($enrollment)
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send admin user notifications: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Your enrollment request has been submitted! We\'ll notify you once it\'s approved.');
     }

@@ -83,17 +83,15 @@ class EnrollmentApprovalController extends Controller
                 'approved_by' => auth()->id()
             ]);
 
-            // Send approval email to student (if mail class exists)
-            // try {
-            //     if (class_exists(EnrollmentApprovedMail::class)) {
-            //         Mail::to($enrollment->user->email)->send(
-            //             new EnrollmentApprovedMail($enrollment)
-            //         );
-            //     }
-            // } catch (\Exception $mailException) {
-            //     // Log email error but don't fail the approval
-            //     \Log::error('Failed to send approval email: ' . $mailException->getMessage());
-            // }
+            // Send approval email to student
+            try {
+                Log::info('Sending approval email to: ' . $enrollment->user->email);
+                Mail::to($enrollment->user->email)->send(
+                    new EnrollmentApprovedMail($enrollment)
+                );
+            } catch (\Exception $mailException) {
+                Log::error('Failed to send approval email: ' . $mailException->getMessage());
+            }
 
             return redirect()->back()->with('success', 'Enrollment approved successfully! The student has been notified.');
         } catch (\Exception $e) {
@@ -105,6 +103,7 @@ class EnrollmentApprovalController extends Controller
     /**
      * Reject an enrollment request
      */
+
     public function reject(Request $request, Enrollment $enrollment)
     {
         // Check if enrollment is already processed
@@ -141,8 +140,15 @@ class EnrollmentApprovalController extends Controller
 
             DB::commit();
 
-            // Send rejection email to student (if needed)
-            // ... email code ...
+            // Send rejection email to student
+            try {
+                Log::info('Sending rejection email to: ' . $enrollment->user->email);
+                Mail::to($enrollment->user->email)->send(
+                    new EnrollmentRejectedMail($enrollment)
+                );
+            } catch (\Exception $mailException) {
+                Log::error('Failed to send rejection email: ' . $mailException->getMessage());
+            }
 
             return redirect()->back()->with('success', 'Enrollment rejected successfully.');
         } catch (\Exception $e) {
