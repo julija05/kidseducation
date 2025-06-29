@@ -42,11 +42,13 @@ export default function Dashboard() {
     }, [pendingProgramId, availablePrograms]);
 
     const handleStartLesson = (lessonId) => {
-        alert("Lesson functionality will be available soon!");
+        // Navigate to the lesson page
+        router.visit(route("lessons.show", lessonId));
     };
 
     const handleReviewLesson = (lessonId) => {
-        alert("Lesson functionality will be available soon!");
+        // Navigate to the lesson page for review
+        router.visit(route("lessons.show", lessonId));
     };
 
     const handleEnrollConfirm = () => {

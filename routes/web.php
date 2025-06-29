@@ -10,6 +10,8 @@ use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\SignUpKidController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LessonController;
+use App\Http\Controllers\LessonResourceController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
@@ -24,19 +26,14 @@ Route::get('/about', [AboutController::class, 'index'])->name('about.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'create'])->name('contact.create');
 Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid.index');
-
-// Updated to use slug
 Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name('programs.show');
-
 Route::get('/news', [NewsController::class, 'index']);
 Route::post('/student', [StudentController::class, 'store'])->name('student.store');
 
 // Student dashboard
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Updated to use slug
     Route::get('/dashboard/programs/{program:slug}', [ProgramController::class, 'showDashboard'])
         ->name('dashboard.programs.show');
 
@@ -44,6 +41,21 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
 
     Route::resource('counting-on-abacus', CountingOnAbacusController::class);
+
+    // Individual lesson routes
+    Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
+    Route::post('/lessons/{lesson}/start', [LessonController::class, 'start'])->name('lessons.start');
+    Route::patch('/lessons/{lesson}/progress', [LessonController::class, 'updateProgress'])->name('lessons.updateProgress');
+    Route::post('/lessons/{lesson}/complete', [LessonController::class, 'complete'])->name('lessons.complete');
+
+    // Lesson resource routes
+    Route::get('/lesson-resources/{lessonResource}/download', [LessonResourceController::class, 'download'])->name('lesson-resources.download');
+    Route::get('/lesson-resources/{lessonResource}/stream', [LessonResourceController::class, 'stream'])->name('lesson-resources.stream');
+    Route::post('/lesson-resources/{lessonResource}/mark-viewed', [LessonResourceController::class, 'markAsViewed'])->name('lesson-resources.mark-viewed');
+
+    // Dashboard lesson actions (AJAX endpoints)
+    Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
+    Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
 });
 
 // Profile routes (shared)
@@ -64,7 +76,5 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/enrollments/{enrollment}/approve', [EnrollmentApprovalController::class, 'approve'])->name('enrollments.approve');
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
 });
-
-
 
 require __DIR__ . '/auth.php';
