@@ -15,10 +15,10 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
         const enrollment = enrollmentMap[program.id];
 
         if (!enrollment) {
-            // Not enrolled - show View Details button
+            // Not enrolled - show View Details button that goes to dashboard program show
             return (
                 <Link
-                    href={route("programs.show", program.slug)}
+                    href={route("dashboard.programs.show", program.slug)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-opacity flex items-center justify-center"
                 >
                     View Details
@@ -65,7 +65,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
             default:
                 return (
                     <Link
-                        href={route("programs.show", program.slug)}
+                        href={route("dashboard.programs.show", program.slug)}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-opacity flex items-center justify-center"
                     >
                         View Details

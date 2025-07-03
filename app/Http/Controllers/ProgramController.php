@@ -8,6 +8,7 @@ use App\Models\Program;
 use App\Services\ProgramService;
 use App\Services\EnrollmentService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProgramController extends Controller
 {
@@ -50,6 +51,28 @@ class ProgramController extends Controller
      */
     public function show(Program $program)
     {
+        // Log::info('PUBLIC SHOW METHOD CALLED', [
+        //     'route' => request()->route()->getName(),
+        //     'url' => request()->url(),
+        //     'method' => request()->method(),
+        //     'user' => auth()->id()
+        // ]);
+
+        // dd('PUBLIC SHOW METHOD', request()->route()->getName(), request()->url());
+
+
+        if (Auth::user() && Auth::user()->hasRole('student')) {
+            $userEnrollment = Auth::user()->enrollments()
+                ->where('program_id', $program->id)
+                ->first();
+
+            // If enrolled and approved, redirect to dashboard
+            if ($userEnrollment && $this->enrollmentService->isEnrollmentActiveAndApproved($userEnrollment)) {
+                return redirect()->route('dashboard.programs.show', $program->slug);
+            }
+        }
+
+
         $userEnrollment = null;
 
         if (Auth::user() && Auth::user()->hasRole('student')) {
@@ -98,24 +121,28 @@ class ProgramController extends Controller
             ->where('program_id', $program->id)
             ->first();
 
-        if (!$userEnrollment) {
-            return redirect()->route('programs.show', $program->slug)
-                ->with('error', 'You are not enrolled in this program.');
+        // Determine enrollment status
+        $enrollmentStatus = 'not_enrolled';
+        $enrolledProgramData = null;
+
+        if ($userEnrollment) {
+            if ($userEnrollment->approval_status === 'approved' && $userEnrollment->status === 'active') {
+                $enrollmentStatus = 'approved';
+                // Only format enrollment data if approved
+                $enrolledProgramData = $this->enrollmentService->formatEnrollmentForDashboard($userEnrollment);
+            } elseif ($userEnrollment->approval_status === 'pending') {
+                $enrollmentStatus = 'pending';
+            } elseif ($userEnrollment->approval_status === 'rejected') {
+                $enrollmentStatus = 'rejected';
+            }
         }
 
-        // Check if enrollment is approved
-        if (!$this->enrollmentService->isEnrollmentActiveAndApproved($userEnrollment)) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Your enrollment is still pending approval.');
-        }
-
-        // Format enrollment data for dashboard
-        $enrolledProgramData = $this->enrollmentService->formatEnrollmentForDashboard($userEnrollment);
-
+        // Return view with appropriate data for all enrollment states
         return $this->createView('Dashboard/Programs/Show', [
             'program' => $program,
             'userEnrollment' => $userEnrollment,
             'enrolledProgram' => $enrolledProgramData,
+            'enrollmentStatus' => $enrollmentStatus,
             'nextClass' => '02-10-2025 10:00 AM', // Placeholder for next class
         ]);
     }

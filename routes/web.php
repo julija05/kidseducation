@@ -20,16 +20,6 @@ use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 
 
-// Public routes (guests)
-Route::get('/', [LandingController::class, 'index'])->name('landing.index');
-Route::get('/about', [AboutController::class, 'index'])->name('about.index');
-Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
-Route::post('/contact', [ContactController::class, 'create'])->name('contact.create');
-Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid.index');
-Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
-Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name('programs.show');
-Route::get('/news', [NewsController::class, 'index']);
-Route::post('/student', [StudentController::class, 'store'])->name('student.store');
 
 // Student dashboard
 Route::middleware(['auth', 'role:student'])->group(function () {
@@ -40,7 +30,6 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
     Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
 
-    Route::resource('counting-on-abacus', CountingOnAbacusController::class);
 
     // Individual lesson routes
     Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
@@ -76,5 +65,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/enrollments/{enrollment}/approve', [EnrollmentApprovalController::class, 'approve'])->name('enrollments.approve');
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
 });
+
+
+// Public routes (guests)
+
+Route::get('/', [LandingController::class, 'index'])->name('landing.index');
+Route::get('/about', [AboutController::class, 'index'])->name('about.index');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'create'])->name('contact.create');
+Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid.index');
+Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
+Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name('programs.show');
+Route::get('/news', [NewsController::class, 'index']);
 
 require __DIR__ . '/auth.php';
