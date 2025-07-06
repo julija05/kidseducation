@@ -26,7 +26,7 @@ class ResourceService
             'file_size' => $resource->formatted_file_size,
             'download_url' => $resource->getDownloadUrl(),
             'youtube_embed_url' => $resource->getYouTubeEmbedUrl(),
-            'youtube_thumbnail' => $resource->getYouTubeThumbnail(),
+            // 'youtube_thumbnail' => $resource->getYouTubeThumbnail(),
             'is_youtube_video' => $resource->isYouTubeVideo(),
             'order' => $resource->order,
         ];

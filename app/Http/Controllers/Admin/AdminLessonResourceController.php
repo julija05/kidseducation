@@ -7,13 +7,22 @@ use App\Models\Lesson;
 use App\Models\LessonResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class AdminLessonResourceController extends Controller
 {
+    /**
+     * Create a view response.
+     */
+    protected function createView(string $component, array $props = [])
+    {
+        return Inertia::render($component, $props);
+    }
+
     public function index(Lesson $lesson)
     {
         $lesson->load(['resources' => function ($query) {
-            $query->ordered();
+            $query->orderBy('order', 'asc'); // Changed from ordered() to orderBy()
         }]);
 
         return $this->createView('Admin/Lessons/Resources/Index', [
@@ -53,10 +62,10 @@ class AdminLessonResourceController extends Controller
             'is_required' => $validated['is_required'] ?? true,
         ];
 
-        // Handle file upload
+        // Handle file upload - FIXED TO USE LOCAL DISK
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $path = $file->store('lesson-resources/' . $lesson->id, 'private');
+            $path = $file->store('lesson-resources/' . $lesson->id); // Removed 'private' disk
 
             $resourceData['file_path'] = $path;
             $resourceData['file_name'] = $file->getClientOriginalName();
@@ -102,15 +111,15 @@ class AdminLessonResourceController extends Controller
             'is_required' => $validated['is_required'] ?? true,
         ];
 
-        // Handle new file upload
+        // Handle new file upload - FIXED TO USE LOCAL DISK
         if ($request->hasFile('file')) {
             // Delete old file if exists
-            if ($resource->file_path && Storage::disk('private')->exists($resource->file_path)) {
-                Storage::disk('private')->delete($resource->file_path);
+            if ($resource->file_path && Storage::exists($resource->file_path)) {
+                Storage::delete($resource->file_path);
             }
 
             $file = $request->file('file');
-            $path = $file->store('lesson-resources/' . $lesson->id, 'private');
+            $path = $file->store('lesson-resources/' . $lesson->id); // Removed 'private' disk
 
             $updateData['file_path'] = $path;
             $updateData['file_name'] = $file->getClientOriginalName();
@@ -127,9 +136,9 @@ class AdminLessonResourceController extends Controller
 
     public function destroy(Lesson $lesson, LessonResource $resource)
     {
-        // Delete associated file if exists
-        if ($resource->file_path && Storage::disk('private')->exists($resource->file_path)) {
-            Storage::disk('private')->delete($resource->file_path);
+        // Delete associated file if exists - FIXED TO USE LOCAL DISK
+        if ($resource->file_path && Storage::exists($resource->file_path)) {
+            Storage::delete($resource->file_path);
         }
 
         $resource->delete();

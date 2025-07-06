@@ -62,7 +62,8 @@ class Lesson extends Model
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('level')->orderBy('order_in_level');
+        return $query->orderBy('level', 'asc')
+            ->orderBy('order_in_level', 'asc');
     }
 
     public function scopeWithResources($query)
