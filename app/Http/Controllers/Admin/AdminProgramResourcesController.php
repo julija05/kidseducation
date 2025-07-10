@@ -68,7 +68,7 @@ class AdminProgramResourcesController extends Controller
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error in AdminProgramResourcesController@index: ' . $e->getMessage());
+            Log::error('Error in AdminProgramResourcesController@index: ' . $e->getMessage());
 
             return $this->createView('Admin/Resources/Index', [
                 'programs' => [],
@@ -204,7 +204,7 @@ class AdminProgramResourcesController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error in AdminProgramResourcesController@quickAdd: ' . $e->getMessage());
+            Log::error('Error in AdminProgramResourcesController@quickAdd: ' . $e->getMessage());
 
             return redirect()
                 ->route('admin.resources.program.show', $program)

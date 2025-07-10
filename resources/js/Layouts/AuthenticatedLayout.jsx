@@ -1,7 +1,7 @@
 import Dropdown from "@/Components/Dropdown";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import { User } from "lucide-react";
+import { User, ChevronDown } from "lucide-react";
 
 export default function AuthenticatedLayout({
     children,
@@ -24,10 +24,20 @@ export default function AuthenticatedLayout({
 
     const theme = programConfig || defaultTheme;
 
+    // Debug logging
+    console.log("AuthenticatedLayout theme:", theme);
+    console.log("Program config:", programConfig);
+
+    // Ensure we have a valid background color class
+    const headerBgClass =
+        theme.color && theme.color.startsWith("bg-")
+            ? theme.color
+            : "bg-gray-700";
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <header className={`${theme.color} text-white shadow-lg`}>
+            <header className={`${headerBgClass} text-white shadow-lg`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center">
@@ -35,45 +45,67 @@ export default function AuthenticatedLayout({
                                 customHeader
                             ) : (
                                 <>
-                                    <User className="mr-3" size={32} />
-                                    <h1 className="text-2xl font-bold">
+                                    <User
+                                        className="mr-3 text-white"
+                                        size={32}
+                                    />
+                                    <h1 className="text-2xl font-bold text-white">
                                         {theme.name}
                                     </h1>
                                 </>
                             )}
                         </div>
 
+                        {/* User Dropdown - Fixed with better visibility */}
                         <div className="relative">
                             <Dropdown>
                                 <Dropdown.Trigger>
                                     <span className="inline-flex rounded-md">
                                         <button
                                             type="button"
-                                            className="flex items-center space-x-4 text-white hover:opacity-90 transition-opacity"
+                                            className="flex items-center space-x-3 px-4 py-2 text-white hover:bg-white hover:bg-opacity-20 rounded-lg transition-all duration-200 border-2 border-white border-opacity-30 hover:border-opacity-50 shadow-sm"
                                         >
                                             <div className="text-right">
-                                                <p className="text-sm opacity-90">
+                                                <p className="text-xs opacity-90">
                                                     Welcome back,
                                                 </p>
-                                                <p className="font-semibold">
+                                                <p className="font-semibold text-sm text-white">
                                                     {user.name}
                                                 </p>
                                             </div>
-                                            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                                <User size={20} />
+                                            <div className="w-8 h-8 bg-white bg-opacity-30 rounded-full flex items-center justify-center border border-white border-opacity-20">
+                                                <User
+                                                    size={16}
+                                                    className="text-white"
+                                                />
                                             </div>
+                                            <ChevronDown
+                                                size={16}
+                                                className="opacity-90 text-white"
+                                            />
                                         </button>
                                     </span>
                                 </Dropdown.Trigger>
 
                                 <Dropdown.Content>
-                                    <Dropdown.Link href={route("profile.edit")}>
-                                        Profile
+                                    <Dropdown.Link
+                                        href={route("dashboard")}
+                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Dashboard
                                     </Dropdown.Link>
+                                    <Dropdown.Link
+                                        href={route("profile.edit")}
+                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Profile Settings
+                                    </Dropdown.Link>
+                                    <div className="border-t border-gray-100 my-1"></div>
                                     <Dropdown.Link
                                         href={route("logout")}
                                         method="post"
                                         as="button"
+                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                     >
                                         Log Out
                                     </Dropdown.Link>

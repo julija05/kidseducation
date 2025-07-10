@@ -49,6 +49,100 @@ class LessonResourceController extends Controller
         abort(404, 'Resource not found.');
     }
 
+    /**
+     * Serve file for preview (inline display)
+     */
+    public function preview(LessonResource $lessonResource)
+    {
+        $user = Auth::user();
+
+        // Check if user can access this resource
+        if (!$this->resourceService->canUserAccessResource($lessonResource, $user)) {
+            abort(403, 'You do not have access to this resource.');
+        }
+
+        // Check if file exists
+        if (!$lessonResource->file_path || !Storage::exists($lessonResource->file_path)) {
+            abort(404, 'File not found.');
+        }
+
+        // Get file info
+        $filePath = $lessonResource->file_path;
+        $fileName = $lessonResource->file_name ?: basename($filePath);
+        $mimeType = $lessonResource->mime_type ?: Storage::mimeType($filePath);
+
+        // Get file content
+        $fileContent = Storage::get($filePath);
+
+        // Set headers for inline display (preview)
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Length' => strlen($fileContent),
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Cache-Control' => 'private, max-age=3600',
+            'X-Frame-Options' => 'SAMEORIGIN', // Allow embedding in iframes
+        ];
+
+        return response($fileContent, 200, $headers);
+    }
+
+    /**
+     * Serve file directly (for both download and preview based on disposition)
+     */
+    public function serve(LessonResource $lessonResource, Request $request)
+    {
+        $user = Auth::user();
+
+        // Check if user can access this resource
+        if (!$this->resourceService->canUserAccessResource($lessonResource, $user)) {
+            abort(403, 'You do not have access to this resource.');
+        }
+
+        // Check if file exists
+        if (!$lessonResource->file_path || !Storage::exists($lessonResource->file_path)) {
+            abort(404, 'File not found.');
+        }
+
+        // Get file info
+        $filePath = $lessonResource->file_path;
+        $fileName = $lessonResource->file_name ?: basename($filePath);
+        $mimeType = $lessonResource->mime_type ?: Storage::mimeType($filePath);
+
+        // Determine if this should be inline or attachment
+        $disposition = $request->get('disposition', 'inline');
+
+        // For certain file types, force inline for preview
+        if (in_array($mimeType, [
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'text/plain',
+            'text/html'
+        ])) {
+            $disposition = $request->get('disposition', 'inline');
+        }
+
+        // Get file content
+        $fileContent = Storage::get($filePath);
+
+        // Set appropriate headers
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Length' => strlen($fileContent),
+            'Content-Disposition' => $disposition . '; filename="' . $fileName . '"',
+            'Cache-Control' => 'private, max-age=3600',
+        ];
+
+        // Add frame options for preview
+        if ($disposition === 'inline') {
+            $headers['X-Frame-Options'] = 'SAMEORIGIN';
+        }
+
+        return response($fileContent, 200, $headers);
+    }
+
     public function stream(LessonResource $lessonResource)
     {
         $user = Auth::user();
@@ -83,6 +177,7 @@ class LessonResourceController extends Controller
             'Content-Length' => $size,
             'Accept-Ranges' => 'bytes',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'X-Frame-Options' => 'SAMEORIGIN', // Allow embedding for video
         ]);
     }
 
@@ -92,12 +187,24 @@ class LessonResourceController extends Controller
 
         // Check if user can access this resource
         if (!$this->resourceService->canUserAccessResource($lessonResource, $user)) {
-            return response()->json(['error' => 'Not enrolled in this program'], 403);
+            // For AJAX requests, return JSON error
+            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['error' => 'Not enrolled in this program'], 403);
+            }
+
+            // For Inertia requests, redirect back with error
+            return back()->with('error', 'You do not have access to this resource.');
         }
 
         // Mark resource as viewed
         $result = $this->resourceService->markResourceAsViewed($lessonResource, $user);
 
-        return response()->json($result);
+        // For AJAX requests, return JSON
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json($result);
+        }
+
+        // For Inertia requests, redirect back with success message
+        return back()->with('success', 'Resource marked as viewed');
     }
 }

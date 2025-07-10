@@ -13,6 +13,12 @@ import {
     Trophy,
     ChevronDown,
     ChevronRight,
+    Download,
+    ExternalLink,
+    Video,
+    File,
+    Link as LinkIcon,
+    Eye,
 } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 
@@ -24,6 +30,7 @@ export default function ProgramContent({
     const [expandedLevels, setExpandedLevels] = useState(
         new Set([program.currentLevel])
     );
+    const [expandedLessons, setExpandedLessons] = useState(new Set());
 
     const toggleLevel = (level) => {
         const newExpanded = new Set(expandedLevels);
@@ -33,6 +40,78 @@ export default function ProgramContent({
             newExpanded.add(level);
         }
         setExpandedLevels(newExpanded);
+    };
+
+    const toggleLesson = (lessonId) => {
+        const newExpanded = new Set(expandedLessons);
+        if (newExpanded.has(lessonId)) {
+            newExpanded.delete(lessonId);
+        } else {
+            newExpanded.add(lessonId);
+        }
+        setExpandedLessons(newExpanded);
+    };
+
+    const getResourceIcon = (type) => {
+        switch (type) {
+            case "video":
+                return <Video size={16} className="text-blue-600" />;
+            case "document":
+                return <FileText size={16} className="text-green-600" />;
+            case "link":
+                return <ExternalLink size={16} className="text-purple-600" />;
+            case "download":
+                return <Download size={16} className="text-indigo-600" />;
+            case "interactive":
+                return <Calculator size={16} className="text-orange-600" />;
+            case "quiz":
+                return <Trophy size={16} className="text-yellow-600" />;
+            default:
+                return <File size={16} className="text-gray-600" />;
+        }
+    };
+
+    const getResourceTypeColor = (type) => {
+        switch (type) {
+            case "video":
+                return "bg-blue-50 border-blue-200 text-blue-700";
+            case "document":
+                return "bg-green-50 border-green-200 text-green-700";
+            case "link":
+                return "bg-purple-50 border-purple-200 text-purple-700";
+            case "download":
+                return "bg-indigo-50 border-indigo-200 text-indigo-700";
+            case "interactive":
+                return "bg-orange-50 border-orange-200 text-orange-700";
+            case "quiz":
+                return "bg-yellow-50 border-yellow-200 text-yellow-700";
+            default:
+                return "bg-gray-50 border-gray-200 text-gray-700";
+        }
+    };
+
+    const handleResourceClick = (resource) => {
+        // Mark resource as viewed
+        router.post(
+            route("lesson-resources.mark-viewed", resource.id),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+            }
+        );
+
+        // Handle different resource types
+        if (resource.resource_url) {
+            // External URL - open in new tab
+            window.open(resource.resource_url, "_blank");
+        } else if (resource.download_url) {
+            // Downloadable file
+            window.open(resource.download_url, "_blank");
+        } else if (resource.stream_url) {
+            // Streamable content
+            window.open(resource.stream_url, "_blank");
+        }
     };
 
     const getLessonIcon = (status, isUnlocked) => {
@@ -293,92 +372,269 @@ export default function ProgramContent({
                                                     getLessonButtonConfig(
                                                         lesson
                                                     );
+                                                const isLessonExpanded =
+                                                    expandedLessons.has(
+                                                        lesson.id
+                                                    );
+                                                const hasResources =
+                                                    lesson.resources &&
+                                                    lesson.resources.length > 0;
 
                                                 return (
                                                     <div
                                                         key={lesson.id}
-                                                        className={`bg-gray-50 border rounded-lg p-4 flex items-center justify-between transition-all ${
+                                                        className={`bg-gray-50 border rounded-lg transition-all ${
                                                             lesson.is_unlocked
                                                                 ? "hover:shadow-md hover:bg-white"
                                                                 : "opacity-60"
                                                         }`}
                                                     >
-                                                        <div className="flex items-center">
-                                                            <div
-                                                                className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${getStatusColor(
-                                                                    lesson.status,
-                                                                    lesson.is_unlocked
-                                                                )}`}
-                                                            >
-                                                                {getLessonIcon(
-                                                                    lesson.status,
-                                                                    lesson.is_unlocked
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <h6 className="font-medium">
-                                                                    {
-                                                                        lesson.title
-                                                                    }
-                                                                </h6>
-                                                                <div className="flex items-center text-sm text-gray-500 mt-1">
-                                                                    <Clock
-                                                                        size={
-                                                                            14
-                                                                        }
-                                                                        className="mr-1"
-                                                                    />
-                                                                    <span>
-                                                                        {
-                                                                            lesson.duration
-                                                                        }
-                                                                    </span>
-                                                                    <span className="mx-2">
-                                                                        •
-                                                                    </span>
-                                                                    {getContentTypeIcon(
-                                                                        lesson.content_type
+                                                        {/* Lesson Header */}
+                                                        <div className="p-4 flex items-center justify-between">
+                                                            <div className="flex items-center flex-1">
+                                                                <div
+                                                                    className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${getStatusColor(
+                                                                        lesson.status,
+                                                                        lesson.is_unlocked
+                                                                    )}`}
+                                                                >
+                                                                    {getLessonIcon(
+                                                                        lesson.status,
+                                                                        lesson.is_unlocked
                                                                     )}
-                                                                    <span className="capitalize">
-                                                                        {lesson.content_type_display ||
-                                                                            lesson.content_type}
-                                                                    </span>
-                                                                    {lesson.status ===
-                                                                        "completed" &&
-                                                                        lesson.score && (
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <h6 className="font-medium">
+                                                                            {
+                                                                                lesson.title
+                                                                            }
+                                                                        </h6>
+                                                                        {hasResources && (
+                                                                            <button
+                                                                                onClick={(
+                                                                                    e
+                                                                                ) => {
+                                                                                    e.stopPropagation();
+                                                                                    toggleLesson(
+                                                                                        lesson.id
+                                                                                    );
+                                                                                }}
+                                                                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                                                                            >
+                                                                                {isLessonExpanded ? (
+                                                                                    <ChevronDown
+                                                                                        size={
+                                                                                            16
+                                                                                        }
+                                                                                    />
+                                                                                ) : (
+                                                                                    <ChevronRight
+                                                                                        size={
+                                                                                            16
+                                                                                        }
+                                                                                    />
+                                                                                )}
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex items-center text-sm text-gray-500 mt-1">
+                                                                        <Clock
+                                                                            size={
+                                                                                14
+                                                                            }
+                                                                            className="mr-1"
+                                                                        />
+                                                                        <span>
+                                                                            {
+                                                                                lesson.duration
+                                                                            }
+                                                                        </span>
+                                                                        <span className="mx-2">
+                                                                            •
+                                                                        </span>
+                                                                        {getContentTypeIcon(
+                                                                            lesson.content_type
+                                                                        )}
+                                                                        <span className="capitalize">
+                                                                            {lesson.content_type_display ||
+                                                                                lesson.content_type}
+                                                                        </span>
+                                                                        {hasResources && (
                                                                             <>
                                                                                 <span className="mx-2">
                                                                                     •
                                                                                 </span>
-                                                                                <Trophy
+                                                                                <Eye
                                                                                     size={
                                                                                         14
                                                                                     }
-                                                                                    className="mr-1 text-yellow-500"
+                                                                                    className="mr-1"
                                                                                 />
-                                                                                <span className="text-yellow-600">
+                                                                                <span>
                                                                                     {
-                                                                                        lesson.score
-                                                                                    }
-
-                                                                                    %
+                                                                                        lesson
+                                                                                            .resources
+                                                                                            .length
+                                                                                    }{" "}
+                                                                                    resource
+                                                                                    {lesson
+                                                                                        .resources
+                                                                                        .length !==
+                                                                                    1
+                                                                                        ? "s"
+                                                                                        : ""}
                                                                                 </span>
                                                                             </>
                                                                         )}
+                                                                        {lesson.status ===
+                                                                            "completed" &&
+                                                                            lesson.score && (
+                                                                                <>
+                                                                                    <span className="mx-2">
+                                                                                        •
+                                                                                    </span>
+                                                                                    <Trophy
+                                                                                        size={
+                                                                                            14
+                                                                                        }
+                                                                                        className="mr-1 text-yellow-500"
+                                                                                    />
+                                                                                    <span className="text-yellow-600">
+                                                                                        {
+                                                                                            lesson.score
+                                                                                        }
+
+                                                                                        %
+                                                                                    </span>
+                                                                                </>
+                                                                            )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                            <button
+                                                                onClick={
+                                                                    buttonConfig.onClick
+                                                                }
+                                                                disabled={
+                                                                    buttonConfig.disabled
+                                                                }
+                                                                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${buttonConfig.className}`}
+                                                            >
+                                                                {
+                                                                    buttonConfig.text
+                                                                }
+                                                            </button>
                                                         </div>
-                                                        <button
-                                                            onClick={
-                                                                buttonConfig.onClick
-                                                            }
-                                                            disabled={
-                                                                buttonConfig.disabled
-                                                            }
-                                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${buttonConfig.className}`}
-                                                        >
-                                                            {buttonConfig.text}
-                                                        </button>
+
+                                                        {/* Lesson Resources */}
+                                                        {isLessonExpanded &&
+                                                            hasResources && (
+                                                                <div className="px-4 pb-4">
+                                                                    <h6 className="text-sm font-semibold text-gray-700 mb-3">
+                                                                        Learning
+                                                                        Resources:
+                                                                    </h6>
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                                        {lesson.resources.map(
+                                                                            (
+                                                                                resource
+                                                                            ) => (
+                                                                                <div
+                                                                                    key={
+                                                                                        resource.id
+                                                                                    }
+                                                                                    className={`border rounded-lg p-3 cursor-pointer hover:shadow-sm transition-all ${getResourceTypeColor(
+                                                                                        resource.type
+                                                                                    )}`}
+                                                                                    onClick={() =>
+                                                                                        handleResourceClick(
+                                                                                            resource
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <div className="flex items-start">
+                                                                                        <div className="mr-2 mt-0.5">
+                                                                                            {getResourceIcon(
+                                                                                                resource.type
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <div className="flex-1 min-w-0">
+                                                                                            <h6 className="text-sm font-medium truncate">
+                                                                                                {
+                                                                                                    resource.title
+                                                                                                }
+                                                                                            </h6>
+                                                                                            {resource.description && (
+                                                                                                <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                                                                                                    {
+                                                                                                        resource.description
+                                                                                                    }
+                                                                                                </p>
+                                                                                            )}
+                                                                                            <div className="flex items-center justify-between mt-2">
+                                                                                                <span className="text-xs font-medium capitalize">
+                                                                                                    {
+                                                                                                        resource.type
+                                                                                                    }
+                                                                                                </span>
+                                                                                                {resource.is_required && (
+                                                                                                    <span className="text-xs bg-red-100 text-red-600 px-1 rounded">
+                                                                                                        Required
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )
+                                                                        )}
+                                                                    </div>
+                                                                    {!lesson.is_unlocked && (
+                                                                        <div className="mt-3 text-center">
+                                                                            <p className="text-sm text-gray-500">
+                                                                                Complete
+                                                                                previous
+                                                                                lessons
+                                                                                to
+                                                                                unlock
+                                                                                resources
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                        {/* Show "Coming Soon" message if no resources */}
+                                                        {isLessonExpanded &&
+                                                            !hasResources &&
+                                                            lesson.is_unlocked && (
+                                                                <div className="px-4 pb-4">
+                                                                    <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                                                        <FileText
+                                                                            size={
+                                                                                24
+                                                                            }
+                                                                            className="mx-auto text-gray-400 mb-2"
+                                                                        />
+                                                                        <p className="text-sm text-gray-500">
+                                                                            Learning
+                                                                            materials
+                                                                            coming
+                                                                            soon!
+                                                                        </p>
+                                                                        <p className="text-xs text-gray-400 mt-1">
+                                                                            Resources
+                                                                            for
+                                                                            this
+                                                                            lesson
+                                                                            are
+                                                                            being
+                                                                            prepared
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                     </div>
                                                 );
                                             })}
@@ -388,74 +644,6 @@ export default function ProgramContent({
                             );
                         }
                     )}
-                </div>
-            </div>
-
-            {/* Learning Resources */}
-            <div>
-                <h4 className="text-lg font-semibold mb-4">
-                    Learning Resources
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                        {
-                            id: 1,
-                            title: "Practice Workbook",
-                            type: "PDF",
-                            icon: "FileText",
-                            url: "#",
-                            description: "Download practice exercises",
-                        },
-                        {
-                            id: 2,
-                            title: "Video Tutorials",
-                            type: "Video",
-                            icon: "Play",
-                            url: "#",
-                            description: "Watch supplementary videos",
-                        },
-                        {
-                            id: 3,
-                            title: "Interactive Tools",
-                            type: "Interactive",
-                            icon: "Calculator",
-                            url: "#",
-                            description: "Access online tools",
-                        },
-                    ].map((resource) => {
-                        const ResourceIcon =
-                            iconMap[resource.icon] || iconMap.FileText;
-
-                        return (
-                            <a
-                                key={resource.id}
-                                href={resource.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                            >
-                                <div className="flex items-center mb-2">
-                                    <ResourceIcon
-                                        className={
-                                            program.theme.textColor + " mr-2"
-                                        }
-                                        size={20}
-                                    />
-                                    <span className="text-sm text-gray-500">
-                                        {resource.type}
-                                    </span>
-                                </div>
-                                <h5 className="font-medium">
-                                    {resource.title}
-                                </h5>
-                                {resource.description && (
-                                    <p className="text-sm text-gray-600 mt-1">
-                                        {resource.description}
-                                    </p>
-                                )}
-                            </a>
-                        );
-                    })}
                 </div>
             </div>
         </div>

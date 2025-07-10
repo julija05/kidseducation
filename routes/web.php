@@ -6,7 +6,6 @@ use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
-use App\Http\Controllers\CountingOnAbacusController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
@@ -18,7 +17,6 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\Student\EnrollmentController;
-use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -47,6 +45,12 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
+
+    Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])
+        ->name('lesson-resources.preview');
+
+    Route::get('/lesson-resources/{lessonResource}/serve', [LessonResourceController::class, 'serve'])
+        ->name('lesson-resources.serve');
 });
 
 // Profile routes (shared)

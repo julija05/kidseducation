@@ -7,6 +7,7 @@ use App\Services\LessonService;
 use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class LessonController extends Controller
 {
@@ -50,8 +51,76 @@ class LessonController extends Controller
         $nextLesson = $this->lessonService->getNextLessonForUser($lesson, $user);
         $previousLesson = $this->lessonService->getPreviousLessonForUser($lesson, $user);
 
-        // Format lesson data for frontend
-        $lessonData = $this->lessonService->formatLessonForFrontend($lesson);
+        // Format lesson data for frontend INCLUDING RESOURCES
+        $lessonData = [
+            'id' => $lesson->id,
+            'title' => $lesson->title,
+            'description' => $lesson->description,
+            'level' => $lesson->level,
+            'order_in_level' => $lesson->order_in_level,
+            'content_type' => $lesson->content_type,
+            'content_url' => $lesson->content_url,
+            'content_body' => $lesson->content_body,
+            'duration_minutes' => $lesson->duration_minutes,
+            'formatted_duration' => $lesson->formatted_duration,
+            // Enhanced resource formatting with proper URLs
+            'resources' => $lesson->resources->map(function ($resource) {
+                $resourceData = [
+                    'id' => $resource->id,
+                    'title' => $resource->title,
+                    'description' => $resource->description,
+                    'type' => $resource->type,
+                    'file_name' => $resource->file_name,
+                    'mime_type' => $resource->mime_type,
+                    'is_downloadable' => $resource->is_downloadable,
+                    'is_required' => $resource->is_required,
+                    'metadata' => $resource->metadata,
+                ];
+
+                // Handle resource_url - prioritize external URL, then secure preview route
+                if ($resource->resource_url) {
+                    // External URL provided
+                    $resourceData['resource_url'] = $resource->resource_url;
+                } elseif ($resource->file_path && Storage::exists($resource->file_path)) {
+                    // File stored locally - create secure preview URL
+                    $resourceData['resource_url'] = route('lesson-resources.preview', $resource->id);
+                } else {
+                    $resourceData['resource_url'] = null;
+                }
+
+                // Handle download URL - use existing download route
+                if ($resource->canDownload()) {
+                    $resourceData['download_url'] = route('lesson-resources.download', $resource->id);
+                } else {
+                    $resourceData['download_url'] = null;
+                }
+
+                // Handle stream URL
+                if ($resource->canStream()) {
+                    $resourceData['stream_url'] = route('lesson-resources.stream', $resource->id);
+                } else {
+                    $resourceData['stream_url'] = null;
+                }
+
+                // Add debug information
+                $resourceData['debug_info'] = [
+                    'has_resource_url' => !empty($resource->resource_url),
+                    'has_file_path' => !empty($resource->file_path),
+                    'file_exists' => $resource->file_path ? Storage::exists($resource->file_path) : false,
+                    'can_download' => $resource->canDownload(),
+                    'can_stream' => $resource->canStream(),
+                ];
+
+                return $resourceData;
+            })->toArray()
+        ];
+
+        // Debug logging
+        \Log::info('Lesson resources loaded:', [
+            'lesson_id' => $lesson->id,
+            'resources_count' => $lesson->resources->count(),
+            'resources' => $lessonData['resources']
+        ]);
 
         return \Inertia\Inertia::render('Dashboard/Lessons/Show', [
             'lesson' => $lessonData,

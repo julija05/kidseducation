@@ -57,6 +57,14 @@ class ResourceService
      */
     public function markResourceAsViewed(LessonResource $resource, User $user): array
     {
+        // Check access first
+        if (!$this->canUserAccessResource($resource, $user)) {
+            return [
+                'success' => false,
+                'message' => 'You do not have access to this resource'
+            ];
+        }
+
         // Get or create lesson progress
         $progress = \App\Models\LessonProgress::firstOrCreate(
             [
@@ -95,7 +103,10 @@ class ResourceService
 
         return [
             'success' => true,
+            'message' => 'Resource marked as viewed',
             'progress' => $progress->fresh(),
+            'viewed_at' => now(),
+            'already_viewed' => in_array($resource->id, ($sessionData['viewed_resources'] ?? []))
         ];
     }
 
@@ -130,6 +141,106 @@ class ResourceService
             ->required()
             ->ordered()
             ->get();
+    }
+
+    /**
+     * Get resource statistics for a user
+     */
+    public function getResourceStatsForUser(User $user, $programId = null): array
+    {
+        $query = $user->enrollments()
+            ->where('status', 'active')
+            ->where('approval_status', 'approved');
+
+        if ($programId) {
+            $query->where('program_id', $programId);
+        }
+
+        $enrollments = $query->with(['program.lessons.resources'])->get();
+
+        $stats = [
+            'total_resources' => 0,
+            'viewed_resources' => 0,
+            'resources_by_type' => [],
+            'viewed_by_type' => [],
+        ];
+
+        foreach ($enrollments as $enrollment) {
+            foreach ($enrollment->program->lessons as $lesson) {
+                foreach ($lesson->resources as $resource) {
+                    $stats['total_resources']++;
+
+                    $type = $resource->type;
+                    $stats['resources_by_type'][$type] = ($stats['resources_by_type'][$type] ?? 0) + 1;
+
+                    // Check if resource was viewed by checking lesson progress session data
+                    $progress = $lesson->userProgress($user);
+                    if ($progress && isset($progress->session_data['viewed_resources'])) {
+                        if (in_array($resource->id, $progress->session_data['viewed_resources'])) {
+                            $stats['viewed_resources']++;
+                            $stats['viewed_by_type'][$type] = ($stats['viewed_by_type'][$type] ?? 0) + 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Get available resource types
+     */
+    public function getResourceTypes(): array
+    {
+        return [
+            'video' => 'Video (YouTube, Vimeo, etc.)',
+            'document' => 'Document (PDF, Word, etc.)',
+            'link' => 'External Link',
+            'download' => 'Downloadable File',
+            'interactive' => 'Interactive Content',
+            'quiz' => 'Quiz/Assessment',
+        ];
+    }
+
+    /**
+     * Validate resource data
+     */
+    public function validateResourceData(array $data): array
+    {
+        $errors = [];
+
+        // Check required fields
+        if (empty($data['title'])) {
+            $errors[] = 'Title is required';
+        }
+
+        if (empty($data['type']) || !array_key_exists($data['type'], $this->getResourceTypes())) {
+            $errors[] = 'Valid resource type is required';
+        }
+
+        // Type-specific validation
+        if (isset($data['type'])) {
+            switch ($data['type']) {
+                case 'video':
+                case 'link':
+                    if (empty($data['resource_url'])) {
+                        $errors[] = 'URL is required for ' . $data['type'] . ' resources';
+                    } elseif (!filter_var($data['resource_url'], FILTER_VALIDATE_URL)) {
+                        $errors[] = 'Invalid URL format';
+                    }
+                    break;
+
+                case 'document':
+                case 'download':
+                    if (empty($data['resource_url']) && empty($data['file'])) {
+                        $errors[] = 'Either URL or file upload is required for ' . $data['type'] . ' resources';
+                    }
+                    break;
+            }
+        }
+
+        return $errors;
     }
 
     /**

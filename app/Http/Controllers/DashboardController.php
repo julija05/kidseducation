@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ResourceService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Lesson;
@@ -12,7 +13,8 @@ class DashboardController extends Controller
 {
     public function __construct(
         private EnrollmentService $enrollmentService,
-        private LessonService $lessonService
+        private LessonService $lessonService,
+        private ResourceService $resourceService
     ) {}
 
     public function index(Request $request)
@@ -21,7 +23,15 @@ class DashboardController extends Controller
 
         // Get approved enrollment if exists
         $approvedEnrollment = $user->enrollments()
-            ->with('program')
+            ->with(['program' => function ($query) {
+                $query->with(['lessons' => function ($lessonQuery) {
+                    $lessonQuery->with(['resources' => function ($resourceQuery) {
+                        $resourceQuery->orderBy('order', 'asc');
+                    }])
+                        ->orderBy('level', 'asc')
+                        ->orderBy('order_in_level', 'asc');
+                }]);
+            }])
             ->where('status', 'active')
             ->where('approval_status', 'approved')
             ->first();
@@ -48,8 +58,26 @@ class DashboardController extends Controller
 
     private function renderApprovedDashboard($user, $enrollment)
     {
-        // Format enrollment data for dashboard
+        // Format enrollment data for dashboard with resources
         $enrolledProgramData = $this->enrollmentService->formatEnrollmentForDashboard($enrollment);
+
+        // Add lesson resources to each lesson using the ResourceService
+        if (isset($enrolledProgramData['lessons'])) {
+            foreach ($enrolledProgramData['lessons'] as $level => $lessons) {
+                $enrolledProgramData['lessons'][$level] = collect($lessons)->map(function ($lesson) {
+                    $lessonModel = \App\Models\Lesson::with(['resources' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    }])->find($lesson['id']);
+
+                    // Add resources to the lesson data
+                    $lesson['resources'] = $lessonModel && $lessonModel->resources->isNotEmpty()
+                        ? $lessonModel->resources->map(fn($resource) => $this->resourceService->formatResourceForFrontend($resource))->toArray()
+                        : [];
+
+                    return $lesson;
+                })->toArray();
+            }
+        }
 
         return Inertia::render('Dashboard', [
             'enrolledProgram' => $enrolledProgramData,
@@ -82,7 +110,7 @@ class DashboardController extends Controller
         // Still get available programs in case they want to browse
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
-        return $this->createView('Dashboard', [
+        return Inertia::render('Dashboard', [
             'enrolledProgram' => null,
             'pendingEnrollments' => $formattedPending,
             'availablePrograms' => $availablePrograms,
