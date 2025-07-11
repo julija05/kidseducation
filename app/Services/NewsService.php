@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\News;
-use App\Repositories\Contracts\NewsRepositoryInterface;
+use App\Repositories\Interfaces\NewsRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 

@@ -65,7 +65,7 @@ class DashboardController extends Controller
         if (isset($enrolledProgramData['lessons'])) {
             foreach ($enrolledProgramData['lessons'] as $level => $lessons) {
                 $enrolledProgramData['lessons'][$level] = collect($lessons)->map(function ($lesson) {
-                    $lessonModel = \App\Models\Lesson::with(['resources' => function ($query) {
+                    $lessonModel = Lesson::with(['resources' => function ($query) {
                         $query->orderBy('order', 'asc');
                     }])->find($lesson['id']);
 
@@ -79,7 +79,7 @@ class DashboardController extends Controller
             }
         }
 
-        return Inertia::render('Dashboard', [
+        return $this->createView('Dashboard', [
             'enrolledProgram' => $enrolledProgramData,
             'nextClass' => '02-10-2025 10:00 AM', // Placeholder for next class
             'pendingEnrollments' => [],
@@ -110,7 +110,7 @@ class DashboardController extends Controller
         // Still get available programs in case they want to browse
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
-        return Inertia::render('Dashboard', [
+        return $this->createView('Dashboard', [
             'enrolledProgram' => null,
             'pendingEnrollments' => $formattedPending,
             'availablePrograms' => $availablePrograms,
@@ -128,7 +128,7 @@ class DashboardController extends Controller
             session()->forget('pending_enrollment_program_id');
         }
 
-        return Inertia::render('Dashboard', [
+        return $this->createView('Dashboard', [
             'enrolledProgram' => null,
             'pendingEnrollments' => [],
             'availablePrograms' => $availablePrograms,

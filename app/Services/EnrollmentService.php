@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Enrollment;
+use App\Models\LessonProgress;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -64,7 +65,7 @@ class EnrollmentService
         $program = $enrollment->program;
 
         // Get the last lesson the user was working on
-        $lastProgress = \App\Models\LessonProgress::where('user_id', $user->id)
+        $lastProgress = LessonProgress::where('user_id', $user->id)
             ->whereHas('lesson', function ($query) use ($program) {
                 $query->where('program_id', $program->id);
             })
@@ -200,7 +201,7 @@ class EnrollmentService
         }
 
         // Count completed lessons in previous level
-        $completedCount = \App\Models\LessonProgress::where('user_id', $user->id)
+        $completedCount = LessonProgress::where('user_id', $user->id)
             ->whereIn('lesson_id', $previousLevelLessons)
             ->where('status', 'completed')
             ->count();

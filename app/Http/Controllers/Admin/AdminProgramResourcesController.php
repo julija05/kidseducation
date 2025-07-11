@@ -12,13 +12,6 @@ use Inertia\Inertia;
 
 class AdminProgramResourcesController extends Controller
 {
-    /**
-     * Create a view response.
-     */
-    protected function createView(string $component, array $props = [])
-    {
-        return Inertia::render($component, $props);
-    }
 
     /**
      * Display program resources overview
