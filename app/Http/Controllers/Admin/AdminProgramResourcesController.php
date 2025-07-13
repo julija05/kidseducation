@@ -12,13 +12,6 @@ use Inertia\Inertia;
 
 class AdminProgramResourcesController extends Controller
 {
-    /**
-     * Create a view response.
-     */
-    protected function createView(string $component, array $props = [])
-    {
-        return Inertia::render($component, $props);
-    }
 
     /**
      * Display program resources overview
@@ -68,7 +61,7 @@ class AdminProgramResourcesController extends Controller
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error in AdminProgramResourcesController@index: ' . $e->getMessage());
+            Log::error('Error in AdminProgramResourcesController@index: ' . $e->getMessage());
 
             return $this->createView('Admin/Resources/Index', [
                 'programs' => [],
@@ -204,7 +197,7 @@ class AdminProgramResourcesController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error in AdminProgramResourcesController@quickAdd: ' . $e->getMessage());
+            Log::error('Error in AdminProgramResourcesController@quickAdd: ' . $e->getMessage());
 
             return redirect()
                 ->route('admin.resources.program.show', $program)

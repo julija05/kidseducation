@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class LessonResource extends Model
 {
@@ -134,5 +135,107 @@ class LessonResource extends Model
         return $this->file_path
             ? route('lesson-resources.download', $this->id)
             : $this->resource_url;
+    }
+
+    // Additional helper methods for the dashboard
+
+    /**
+     * Check if resource can be streamed (for video/audio files)
+     */
+    public function canStream(): bool
+    {
+        return $this->file_path &&
+            $this->mime_type &&
+            (str_starts_with($this->mime_type, 'video/') ||
+                str_starts_with($this->mime_type, 'audio/'));
+    }
+
+    /**
+     * Get stream URL for media files
+     */
+    public function getStreamUrl(): ?string
+    {
+        return $this->canStream() ? route('lesson-resources.stream', $this->id) : null;
+    }
+
+    /**
+     * Check if file exists in storage
+     */
+    public function fileExists(): bool
+    {
+        return $this->file_path && Storage::exists($this->file_path);
+    }
+
+    /**
+     * Get the full URL for external resources or file access
+     */
+    public function getFullUrlAttribute(): ?string
+    {
+        if ($this->resource_url) {
+            return $this->resource_url;
+        }
+
+        if ($this->file_path && $this->fileExists()) {
+            return Storage::url($this->file_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get YouTube thumbnail URL
+     */
+    public function getYouTubeThumbnail(): ?string
+    {
+        $videoId = $this->getYouTubeVideoId();
+        return $videoId ? "https://img.youtube.com/vi/{$videoId}/maxresdefault.jpg" : null;
+    }
+
+    /**
+     * Check if this resource has been viewed by a specific user
+     * (checks lesson progress session data)
+     */
+    public function hasBeenViewedBy(User $user): bool
+    {
+        $progress = $this->lesson->userProgress($user);
+
+        if (!$progress || !isset($progress->session_data['viewed_resources'])) {
+            return false;
+        }
+
+        return in_array($this->id, $progress->session_data['viewed_resources']);
+    }
+
+    /**
+     * Get viewing statistics for this resource
+     */
+    public function getViewingStats(): array
+    {
+        $totalEnrolled = $this->lesson->program->enrollments()
+            ->where('status', 'active')
+            ->where('approval_status', 'approved')
+            ->count();
+
+        $viewedCount = 0;
+
+        // Count users who have viewed this resource
+        $progresses = \App\Models\LessonProgress::where('lesson_id', $this->lesson_id)
+            ->whereNotNull('session_data')
+            ->get();
+
+        foreach ($progresses as $progress) {
+            if (
+                isset($progress->session_data['viewed_resources']) &&
+                in_array($this->id, $progress->session_data['viewed_resources'])
+            ) {
+                $viewedCount++;
+            }
+        }
+
+        return [
+            'total_enrolled' => $totalEnrolled,
+            'viewed_count' => $viewedCount,
+            'view_percentage' => $totalEnrolled > 0 ? round(($viewedCount / $totalEnrolled) * 100, 1) : 0,
+        ];
     }
 }

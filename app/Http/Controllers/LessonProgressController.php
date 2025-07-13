@@ -5,23 +5,21 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreLessonProgressRequest;
 use App\Http\Requests\UpdateLessonProgressRequest;
 use App\Models\LessonProgress;
+use App\Repositories\Interfaces\LessonProgressRepositoryInterface;
 
 class LessonProgressController extends Controller
 {
+    public function __construct(
+        private LessonProgressRepositoryInterface $progressRepository
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        // Implement if needed
+        return response()->json(['message' => 'Not implemented'], 501);
     }
 
     /**
@@ -29,7 +27,8 @@ class LessonProgressController extends Controller
      */
     public function store(StoreLessonProgressRequest $request)
     {
-        //
+        // Handled by LessonController::start
+        return response()->json(['message' => 'Use lessons.start endpoint'], 400);
     }
 
     /**
@@ -37,15 +36,12 @@ class LessonProgressController extends Controller
      */
     public function show(LessonProgress $lessonProgress)
     {
-        //
-    }
+        // Check if user can access this progress
+        if ($lessonProgress->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(LessonProgress $lessonProgress)
-    {
-        //
+        return response()->json($lessonProgress);
     }
 
     /**
@@ -53,7 +49,14 @@ class LessonProgressController extends Controller
      */
     public function update(UpdateLessonProgressRequest $request, LessonProgress $lessonProgress)
     {
-        //
+        // Check if user can update this progress
+        if ($lessonProgress->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $updatedProgress = $this->progressRepository->updateProgress($lessonProgress, $request->validated());
+
+        return response()->json($updatedProgress);
     }
 
     /**
@@ -61,6 +64,13 @@ class LessonProgressController extends Controller
      */
     public function destroy(LessonProgress $lessonProgress)
     {
-        //
+        // Check if user can delete this progress
+        if ($lessonProgress->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $lessonProgress->delete();
+
+        return response()->json(['message' => 'Progress deleted successfully']);
     }
 }

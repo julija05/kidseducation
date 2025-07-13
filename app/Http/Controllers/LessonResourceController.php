@@ -4,32 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Models\LessonResource;
 use App\Services\ResourceService;
+use App\Services\ResourceAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LessonResourceController extends Controller
 {
     public function __construct(
-        private ResourceService $resourceService
+        private ResourceService $resourceService,
+        private ResourceAccessService $accessService
     ) {}
 
     public function download(LessonResource $lessonResource)
     {
         $user = Auth::user();
 
-        // Check if user can access this resource
-        if (!$this->resourceService->canUserAccessResource($lessonResource, $user)) {
-            abort(403, 'You do not have access to this resource.');
-        }
+        $this->accessService->validateAccess($lessonResource, $user);
 
-        // Check if resource is downloadable
         if (!$lessonResource->canDownload()) {
             abort(404, 'Resource is not available for download.');
         }
 
-        // If it's a file path, serve from storage
+        // Handle file storage
         if ($lessonResource->file_path) {
             if (!Storage::exists($lessonResource->file_path)) {
                 abort(404, 'File not found.');
@@ -41,7 +38,7 @@ class LessonResourceController extends Controller
             );
         }
 
-        // If it's an external URL, redirect
+        // Handle external URL
         if ($lessonResource->resource_url) {
             return redirect($lessonResource->resource_url);
         }
@@ -49,55 +46,74 @@ class LessonResourceController extends Controller
         abort(404, 'Resource not found.');
     }
 
+    public function preview(LessonResource $lessonResource)
+    {
+        $user = Auth::user();
+
+        $this->accessService->validateAccess($lessonResource, $user);
+
+        return $this->accessService->serveFile($lessonResource, 'inline');
+    }
+
+    public function serve(LessonResource $lessonResource, Request $request)
+    {
+        $user = Auth::user();
+
+        $this->accessService->validateAccess($lessonResource, $user);
+
+        $disposition = $this->determineDisposition($lessonResource, $request);
+
+        return $this->accessService->serveFile($lessonResource, $disposition);
+    }
+
     public function stream(LessonResource $lessonResource)
     {
         $user = Auth::user();
 
-        // Check if user can access this resource
-        if (!$this->resourceService->canUserAccessResource($lessonResource, $user)) {
-            abort(403, 'You do not have access to this resource.');
-        }
+        $this->accessService->validateAccess($lessonResource, $user);
 
-        // Only stream video/audio files
-        if (
-            !str_starts_with($lessonResource->mime_type, 'video/') &&
-            !str_starts_with($lessonResource->mime_type, 'audio/')
-        ) {
-            abort(400, 'Resource is not streamable.');
-        }
-
-        if (!$lessonResource->file_path || !Storage::exists($lessonResource->file_path)) {
-            abort(404, 'File not found.');
-        }
-
-        $path = Storage::path($lessonResource->file_path);
-        $size = filesize($path);
-        $mime = $lessonResource->mime_type;
-
-        return new StreamedResponse(function () use ($path) {
-            $stream = fopen($path, 'rb');
-            fpassthru($stream);
-            fclose($stream);
-        }, 200, [
-            'Content-Type' => $mime,
-            'Content-Length' => $size,
-            'Accept-Ranges' => 'bytes',
-            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-        ]);
+        return $this->accessService->streamFile($lessonResource);
     }
 
     public function markAsViewed(Request $request, LessonResource $lessonResource)
     {
         $user = Auth::user();
 
-        // Check if user can access this resource
         if (!$this->resourceService->canUserAccessResource($lessonResource, $user)) {
-            return response()->json(['error' => 'Not enrolled in this program'], 403);
+            if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['error' => 'Not enrolled in this program'], 403);
+            }
+
+            return back()->with('error', 'You do not have access to this resource.');
         }
 
-        // Mark resource as viewed
         $result = $this->resourceService->markResourceAsViewed($lessonResource, $user);
 
-        return response()->json($result);
+        if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return response()->json($result);
+        }
+
+        return back()->with('success', 'Resource marked as viewed');
+    }
+
+    private function determineDisposition(LessonResource $resource, Request $request): string
+    {
+        $requestedDisposition = $request->get('disposition', 'inline');
+
+        $inlineTypes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+            'text/plain',
+            'text/html'
+        ];
+
+        if (in_array($resource->mime_type, $inlineTypes)) {
+            return $requestedDisposition;
+        }
+
+        return 'attachment';
     }
 }

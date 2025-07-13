@@ -1,4 +1,4 @@
-// resources/js/Pages/Dashboard.jsx
+// resources/js/Pages/Dashboard.jsx - Clean Version
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
@@ -27,6 +27,13 @@ export default function Dashboard() {
     const student = props.auth.user;
     const [showEnrollModal, setShowEnrollModal] = useState(false);
     const [selectedProgram, setSelectedProgram] = useState(null);
+
+    // Enhanced debug logging (keeping console logs for debugging)
+    console.log("=== DASHBOARD DEBUG ===");
+    console.log("Enrolled program:", enrolledProgram);
+    console.log("Enrolled program theme:", enrolledProgram?.theme);
+    console.log("Progress:", enrolledProgram?.progress);
+    console.log("=====================");
 
     // Check if user came from program registration
     useEffect(() => {
@@ -67,7 +74,7 @@ export default function Dashboard() {
     // If student has an approved enrollment
     if (enrolledProgram && enrolledProgram.approvalStatus === "approved") {
         const ProgramIcon =
-            iconMap[enrolledProgram.theme.icon] || iconMap.BookOpen;
+            iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
 
         const customHeader = (
             <>
@@ -94,7 +101,12 @@ export default function Dashboard() {
 
                     {/* Program Content */}
                     <div
-                        className={`${enrolledProgram.theme.lightColor} ${enrolledProgram.theme.borderColor} border-2 rounded-lg p-6`}
+                        className={`${
+                            enrolledProgram.theme?.lightColor || "bg-gray-50"
+                        } ${
+                            enrolledProgram.theme?.borderColor ||
+                            "border-gray-200"
+                        } border-2 rounded-lg p-6`}
                     >
                         <ProgramContent
                             program={enrolledProgram}

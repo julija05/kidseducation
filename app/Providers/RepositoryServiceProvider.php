@@ -2,7 +2,13 @@
 
 namespace App\Providers;
 
-use App\Repositories\Contracts\NewsRepositoryInterface;
+use App\Repositories\EnrollmentRepository;
+use App\Repositories\Interfaces\EnrollmentRepositoryInterface;
+use App\Repositories\Interfaces\LessonProgressRepositoryInterface;
+use App\Repositories\Interfaces\LessonRepositoryInterface;
+use App\Repositories\Interfaces\NewsRepositoryInterface;
+use App\Repositories\LessonProgressRepository;
+use App\Repositories\LessonRepository;
 use App\Repositories\NewsRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,10 +21,9 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         // Bind the NewsRepositoryInterface to NewsRepository
         $this->app->bind(NewsRepositoryInterface::class, NewsRepository::class);
-
-        // You can add more repository bindings here as your application grows
-        // $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
-        // $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
+        $this->app->bind(LessonRepositoryInterface::class, LessonRepository::class);
+        $this->app->bind(EnrollmentRepositoryInterface::class, EnrollmentRepository::class);
+        $this->app->bind(LessonProgressRepositoryInterface::class, LessonProgressRepository::class);
     }
 
     /**

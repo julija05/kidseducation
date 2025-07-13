@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\LessonProgress;
 use App\Models\Program;
 use App\Models\User;
-use App\Repositories\Contracts\ProgramRepositoryInterface;
+use App\Repositories\Interfaces\ProgramRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection as SupportCollection;

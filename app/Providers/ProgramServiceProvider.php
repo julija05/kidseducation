@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 
-use App\Repositories\Contracts\ProgramRepositoryInterface;
+use App\Repositories\Interfaces\ProgramRepositoryInterface;
 use App\Repositories\ProgramRepository;
 use App\Services\ImageService;
 use App\Services\ProgramService;
