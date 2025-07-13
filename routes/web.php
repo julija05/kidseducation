@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
+use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
 use App\Http\Controllers\CountingOnAbacusController;
 use App\Http\Controllers\DashboardController;
@@ -57,13 +59,50 @@ Route::middleware('auth')->group(function () {
 // Admin routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Resource Management Routes - MUST BE BEFORE program routes
+    Route::prefix('resources')->name('resources.')->group(function () {
+        // Overview of all programs and their resources
+        Route::get('/', [AdminProgramResourcesController::class, 'index'])->name('index');
+
+        // Get resource templates
+        Route::get('/templates', [AdminProgramResourcesController::class, 'templates'])->name('templates');
+
+        // Program-specific resource routes
+        Route::prefix('program/{program}')->name('program.')->group(function () {
+            // View resources for a specific program
+            Route::get('/', [AdminProgramResourcesController::class, 'show'])->name('show');
+
+            // Quick add resource form
+            Route::get('/quick-add', [AdminProgramResourcesController::class, 'quickAdd'])->name('quickAdd');
+            Route::post('/quick-add', [AdminProgramResourcesController::class, 'storeQuickAdd'])->name('storeQuickAdd');
+
+            // Bulk import resources
+            Route::post('/bulk-import', [AdminProgramResourcesController::class, 'bulkImport'])->name('bulkImport');
+        });
+    });
+
+    // Program Routes - Remove the duplicate!
     Route::resource('programs', AdminProgramController::class);
     Route::resource('news', AdminNewsController::class);
 
+    // Enrollment Routes
     Route::get('/enrollments/pending', [EnrollmentApprovalController::class, 'index'])->name('enrollments.pending');
     Route::get('/enrollments', [EnrollmentApprovalController::class, 'all'])->name('enrollments.index');
     Route::post('/enrollments/{enrollment}/approve', [EnrollmentApprovalController::class, 'approve'])->name('enrollments.approve');
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
+
+    // Lesson Resources Routes
+    Route::prefix('lessons/{lesson}/resources')->name('lessons.resources.')->group(function () {
+        Route::get('/', [AdminLessonResourceController::class, 'index'])->name('index');
+        Route::get('/create', [AdminLessonResourceController::class, 'create'])->name('create');
+        Route::post('/', [AdminLessonResourceController::class, 'store'])->name('store');
+        Route::get('/{resource}/edit', [AdminLessonResourceController::class, 'edit'])->name('edit');
+        Route::put('/{resource}', [AdminLessonResourceController::class, 'update'])->name('update');
+        Route::delete('/{resource}', [AdminLessonResourceController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [AdminLessonResourceController::class, 'reorder'])->name('reorder');
+        Route::post('/add-youtube', [AdminLessonResourceController::class, 'addYouTubeVideo'])->name('add-youtube');
+    });
 });
 
 

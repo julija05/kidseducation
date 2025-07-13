@@ -51,16 +51,6 @@ class ProgramController extends Controller
      */
     public function show(Program $program)
     {
-        // Log::info('PUBLIC SHOW METHOD CALLED', [
-        //     'route' => request()->route()->getName(),
-        //     'url' => request()->url(),
-        //     'method' => request()->method(),
-        //     'user' => auth()->id()
-        // ]);
-
-        // dd('PUBLIC SHOW METHOD', request()->route()->getName(), request()->url());
-
-
         if (Auth::user() && Auth::user()->hasRole('student')) {
             $userEnrollment = Auth::user()->enrollments()
                 ->where('program_id', $program->id)
