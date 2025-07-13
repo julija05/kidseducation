@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
@@ -86,9 +87,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         });
     });
 
-    // Program Routes - Remove the duplicate!
+    // Program Routes
     Route::resource('programs', AdminProgramController::class);
     Route::resource('news', AdminNewsController::class);
+
+    // Program Lesson Management Routes
+    Route::prefix('programs/{program}/lessons')->name('programs.lessons.')->group(function () {
+        Route::get('/', [AdminLessonController::class, 'index'])->name('index');
+        Route::get('/create', [AdminLessonController::class, 'create'])->name('create');
+        Route::post('/', [AdminLessonController::class, 'store'])->name('store');
+        Route::get('/{lesson}/edit', [AdminLessonController::class, 'edit'])->name('edit');
+        Route::put('/{lesson}', [AdminLessonController::class, 'update'])->name('update');
+        Route::delete('/{lesson}', [AdminLessonController::class, 'destroy'])->name('destroy');
+        Route::post('/reorder', [AdminLessonController::class, 'reorder'])->name('reorder');
+        Route::get('/level/{level}', [AdminLessonController::class, 'getLessonsForLevel'])->name('level');
+    });
 
     // Enrollment Routes
     Route::get('/enrollments/pending', [EnrollmentApprovalController::class, 'index'])->name('enrollments.pending');

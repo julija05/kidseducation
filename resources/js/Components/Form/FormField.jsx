@@ -7,28 +7,63 @@ export default function FormField({
     onChange,
     error,
     required = false,
+    helper,
+    children,
     ...props
 }) {
-    const inputProps = {
-        type,
-        value: type === "file" ? undefined : value,
-        onChange: (e) => {
-            const newValue =
-                type === "file" ? e.target.files[0] : e.target.value;
-            onChange(name, newValue);
-        },
-        className: "mt-1 block w-full border-gray-300 rounded-md shadow-sm",
-        ...props,
+    const baseClassName = "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500";
+    
+    const handleChange = (e) => {
+        const newValue = type === "file" ? e.target.files[0] : e.target.value;
+        onChange(name, newValue);
     };
 
-    const InputComponent = type === "textarea" ? "textarea" : "input";
+    const renderInput = () => {
+        if (type === "textarea") {
+            return (
+                <textarea
+                    name={name}
+                    value={value || ""}
+                    onChange={handleChange}
+                    className={baseClassName}
+                    {...props}
+                />
+            );
+        }
+        
+        if (type === "select") {
+            return (
+                <select
+                    name={name}
+                    value={value || ""}
+                    onChange={handleChange}
+                    className={baseClassName}
+                    {...props}
+                >
+                    {children}
+                </select>
+            );
+        }
+
+        return (
+            <input
+                type={type}
+                name={name}
+                value={type === "file" ? undefined : (value || "")}
+                onChange={handleChange}
+                className={baseClassName}
+                {...props}
+            />
+        );
+    };
 
     return (
         <div>
-            <label className="block text-sm font-medium">
+            <label htmlFor={name} className="block text-sm font-medium text-gray-700">
                 {label} {required && <span className="text-red-500">*</span>}
             </label>
-            <InputComponent {...inputProps} />
+            {renderInput()}
+            {helper && <p className="text-gray-500 text-sm mt-1">{helper}</p>}
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </div>
     );
