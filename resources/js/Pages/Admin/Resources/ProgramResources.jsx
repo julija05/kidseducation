@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, Head, usePage } from "@inertiajs/react";
+import { Link, Head, usePage, router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import {
     ArrowLeft,
@@ -55,6 +55,22 @@ export default function ProgramResources() {
             newExpanded.add(lessonId);
         }
         setExpandedLessons(newExpanded);
+    };
+
+    const handleDeleteResource = (lessonId, resourceId, resourceTitle) => {
+        if (confirm(`Are you sure you want to delete "${resourceTitle}"? This action cannot be undone.`)) {
+            router.delete(route("admin.lessons.resources.destroy", [lessonId, resourceId]), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Refresh the page to update the resource list
+                    router.reload({ only: ['program', 'resourceStats'] });
+                },
+                onError: (errors) => {
+                    console.error('Delete failed:', errors);
+                    alert('Failed to delete resource. Please try again.');
+                },
+            });
+        }
     };
 
     const getLessonsByLevel = () => {
@@ -398,7 +414,14 @@ export default function ProgramResources() {
                                                                                         }
                                                                                     />
                                                                                 </Link>
-                                                                                <button className="p-1 text-gray-600 hover:text-red-600">
+                                                                                <button 
+                                                                                    onClick={(e) => {
+                                                                                        e.preventDefault();
+                                                                                        e.stopPropagation();
+                                                                                        handleDeleteResource(lesson.id, resource.id, resource.title);
+                                                                                    }}
+                                                                                    className="p-1 text-gray-600 hover:text-red-600"
+                                                                                >
                                                                                     <Trash2
                                                                                         size={
                                                                                             16

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, Head, usePage } from "@inertiajs/react";
+import { Link, Head, usePage, router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import {
     ArrowLeft,
@@ -13,16 +13,12 @@ import {
     Edit,
     Trash2,
     GripVertical,
-    ChevronDown,
-    ChevronRight,
     Upload,
-    AlertCircle,
     BookOpen,
 } from "lucide-react";
 
-export default function ProgramResources() {
-    const { program = {}, resourceStats = {} } = usePage().props;
-    const [expandedLessons, setExpandedLessons] = useState(new Set());
+export default function LessonResourcesIndex() {
+    const { lesson = {} } = usePage().props;
     const [showBulkImport, setShowBulkImport] = useState(false);
 
     const resourceTypeIcons = {
@@ -43,57 +39,48 @@ export default function ProgramResources() {
         quiz: "text-indigo-600 bg-indigo-50",
     };
 
-    const toggleLesson = (lessonId) => {
-        const newExpanded = new Set(expandedLessons);
-        if (newExpanded.has(lessonId)) {
-            newExpanded.delete(lessonId);
-        } else {
-            newExpanded.add(lessonId);
+    const handleDeleteResource = (lessonId, resourceId, resourceTitle) => {
+        if (confirm(`Are you sure you want to delete "${resourceTitle}"? This action cannot be undone.`)) {
+            console.log('Attempting to delete resource:', resourceId, 'from lesson:', lessonId);
+            console.log('Route URL:', route("admin.lessons.resources.destroy", [lessonId, resourceId]));
+            
+            router.delete(route("admin.lessons.resources.destroy", [lessonId, resourceId]), {
+                preserveScroll: true,
+                onStart: () => console.log('Delete request started'),
+                onSuccess: () => console.log('Delete successful'),
+                onError: (errors) => {
+                    console.error('Delete failed:', errors);
+                    alert('Failed to delete resource. Please try again.');
+                },
+                onFinish: () => console.log('Delete request finished'),
+            });
         }
-        setExpandedLessons(newExpanded);
     };
 
-    const getLessonsByLevel = () => {
-        const levels = {};
-
-        // Add safety check for program.lessons
-        if (!program.lessons || !Array.isArray(program.lessons)) {
-            return {};
-        }
-
-        program.lessons.forEach((lesson) => {
-            if (!levels[lesson.level]) {
-                levels[lesson.level] = [];
-            }
-            levels[lesson.level].push(lesson);
-        });
-        return levels;
-    };
-
-    const lessonsByLevel = getLessonsByLevel();
+    const hasNoResources = !lesson.resources || lesson.resources.length === 0;
 
     return (
         <AdminLayout>
-            <Head title={`Resources - ${program.name || "Program"}`} />
+            <Head title={`Resources - ${lesson.title || "Lesson"}`} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
                     <Link
-                        href={route("admin.resources.index")}
+                        href={route("admin.programs.index")}
                         className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
                     >
                         <ArrowLeft size={16} className="mr-1" />
-                        Back to All Programs
+                        Back to Programs
                     </Link>
 
                     <div className="flex justify-between items-start">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">
-                                {program.name || "Program"} Resources
+                                {lesson.title || "Lesson"} Resources
                             </h1>
                             <p className="mt-1 text-gray-600">
-                                Manage all learning resources for this program
+                                Manage all learning resources for this lesson
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -106,19 +93,13 @@ export default function ProgramResources() {
                                 <Upload size={16} className="mr-2" />
                                 Bulk Import
                             </button>
-                            {/* Make sure we have slug before creating the route */}
-                            {program.slug && (
-                                <Link
-                                    href={route(
-                                        "admin.resources.program.quickAdd",
-                                        program.slug
-                                    )}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                                >
-                                    <Plus size={16} className="mr-2" />
-                                    Quick Add Resource
-                                </Link>
-                            )}
+                            <Link
+                                href={route("admin.lessons.resources.create", lesson.id)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                            >
+                                <Plus size={16} className="mr-2" />
+                                Add Resource
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -132,7 +113,7 @@ export default function ProgramResources() {
                                     Total Resources
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {resourceStats.totalResources || 0}
+                                    {lesson.resources?.length || 0}
                                 </p>
                             </div>
                             <FileText className="h-8 w-8 text-gray-400" />
@@ -146,7 +127,7 @@ export default function ProgramResources() {
                                     Videos
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {resourceStats.videoCount || 0}
+                                    {lesson.resources?.filter(r => r.type === 'video').length || 0}
                                 </p>
                             </div>
                             <Video className="h-8 w-8 text-red-500" />
@@ -160,7 +141,7 @@ export default function ProgramResources() {
                                     Documents
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {resourceStats.documentCount || 0}
+                                    {lesson.resources?.filter(r => r.type === 'document').length || 0}
                                 </p>
                             </div>
                             <FileText className="h-8 w-8 text-blue-500" />
@@ -174,7 +155,7 @@ export default function ProgramResources() {
                                     Quizzes
                                 </p>
                                 <p className="text-2xl font-semibold text-gray-900">
-                                    {resourceStats.quizCount || 0}
+                                    {lesson.resources?.filter(r => r.type === 'quiz').length || 0}
                                 </p>
                             </div>
                             <HelpCircle className="h-8 w-8 text-indigo-500" />
@@ -217,261 +198,114 @@ export default function ProgramResources() {
                     </div>
                 )}
 
-                {/* Lessons by Level */}
-                <div className="space-y-6">
-                    {Object.entries(lessonsByLevel).map(([level, lessons]) => (
-                        <div key={level} className="bg-white rounded-lg shadow">
-                            <div className="p-6 border-b border-gray-200">
-                                <h2 className="text-xl font-semibold text-gray-900">
-                                    Level {level}
-                                </h2>
-                                <p className="text-sm text-gray-600 mt-1">
-                                    {lessons.length} lesson
-                                    {lessons.length !== 1 ? "s" : ""}
-                                </p>
-                            </div>
+                {/* Resources List */}
+                <div className="bg-white rounded-lg shadow">
+                    <div className="p-6 border-b border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-900">
+                            Lesson Resources
+                        </h2>
+                        <p className="text-sm text-gray-600 mt-1">
+                            {lesson.resources?.length || 0} resource{lesson.resources?.length !== 1 ? "s" : ""}
+                        </p>
+                    </div>
 
-                            <div className="divide-y divide-gray-200">
-                                {lessons.map((lesson) => {
-                                    const isExpanded = expandedLessons.has(
-                                        lesson.id
-                                    );
-                                    const hasNoResources =
-                                        !lesson.resources ||
-                                        lesson.resources.length === 0;
+                    <div className="divide-y divide-gray-200">
+                        {hasNoResources ? (
+                            <div className="p-8 text-center">
+                                <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                    No Resources Yet
+                                </h3>
+                                <p className="text-gray-600 mb-4">
+                                    This lesson doesn't have any resources. Add some learning materials to get started.
+                                </p>
+                                <Link
+                                    href={route("admin.lessons.resources.create", lesson.id)}
+                                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    <Plus size={16} className="mr-2" />
+                                    Add First Resource
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 p-4">
+                                {lesson.resources.map((resource) => {
+                                    const Icon = resourceTypeIcons[resource.type];
+                                    const colorClass = resourceTypeColors[resource.type];
 
                                     return (
-                                        <div key={lesson.id}>
-                                            <div
-                                                className="p-4 hover:bg-gray-50 cursor-pointer"
-                                                onClick={() =>
-                                                    toggleLesson(lesson.id)
-                                                }
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center flex-1">
-                                                        <button className="mr-3 text-gray-400 hover:text-gray-600">
-                                                            {isExpanded ? (
-                                                                <ChevronDown
-                                                                    size={20}
-                                                                />
-                                                            ) : (
-                                                                <ChevronRight
-                                                                    size={20}
-                                                                />
-                                                            )}
-                                                        </button>
-                                                        <div className="flex-1">
-                                                            <h3 className="font-medium text-gray-900">
-                                                                {lesson.title}
-                                                            </h3>
-                                                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                                                <span>
-                                                                    {lesson
-                                                                        .resources
-                                                                        ?.length ||
-                                                                        0}{" "}
-                                                                    resources
-                                                                </span>
-                                                                {hasNoResources && (
-                                                                    <span className="flex items-center text-yellow-600">
-                                                                        <AlertCircle
-                                                                            size={
-                                                                                14
-                                                                            }
-                                                                            className="mr-1"
-                                                                        />
-                                                                        No
-                                                                        resources
-                                                                        added
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Link
-                                                            href={route(
-                                                                "admin.lessons.resources.create",
-                                                                lesson.id
-                                                            )}
-                                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                                            onClick={(e) =>
-                                                                e.stopPropagation()
-                                                            }
-                                                        >
-                                                            <Plus
-                                                                size={14}
-                                                                className="inline mr-1"
-                                                            />
-                                                            Add Resource
-                                                        </Link>
+                                        <div
+                                            key={resource.id}
+                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                                        >
+                                            <div className="flex items-center">
+                                                <GripVertical
+                                                    className="text-gray-400 mr-2"
+                                                    size={16}
+                                                />
+                                                <div
+                                                    className={`p-2 rounded ${colorClass} mr-3`}
+                                                >
+                                                    <Icon size={16} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-900">
+                                                        {resource.title}
+                                                    </p>
+                                                    {resource.description && (
+                                                        <p className="text-sm text-gray-600">
+                                                            {resource.description}
+                                                        </p>
+                                                    )}
+                                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                                        <span className="capitalize">
+                                                            {resource.type}
+                                                        </span>
+                                                        <span>Order: {resource.order}</span>
+                                                        {resource.is_required && (
+                                                            <span className="text-green-600">
+                                                                Required
+                                                            </span>
+                                                        )}
+                                                        {resource.is_downloadable && (
+                                                            <span className="text-blue-600">
+                                                                Downloadable
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            {isExpanded && (
-                                                <div className="px-4 pb-4">
-                                                    {lesson.resources &&
-                                                    lesson.resources.length >
-                                                        0 ? (
-                                                        <div className="ml-8 space-y-2 mt-3">
-                                                            {lesson.resources.map(
-                                                                (resource) => {
-                                                                    const Icon =
-                                                                        resourceTypeIcons[
-                                                                            resource
-                                                                                .type
-                                                                        ];
-                                                                    const colorClass =
-                                                                        resourceTypeColors[
-                                                                            resource
-                                                                                .type
-                                                                        ];
-
-                                                                    return (
-                                                                        <div
-                                                                            key={
-                                                                                resource.id
-                                                                            }
-                                                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                                                                        >
-                                                                            <div className="flex items-center">
-                                                                                <GripVertical
-                                                                                    className="text-gray-400 mr-2"
-                                                                                    size={
-                                                                                        16
-                                                                                    }
-                                                                                />
-                                                                                <div
-                                                                                    className={`p-2 rounded ${colorClass} mr-3`}
-                                                                                >
-                                                                                    <Icon
-                                                                                        size={
-                                                                                            16
-                                                                                        }
-                                                                                    />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="font-medium text-gray-900">
-                                                                                        {
-                                                                                            resource.title
-                                                                                        }
-                                                                                    </p>
-                                                                                    {resource.description && (
-                                                                                        <p className="text-sm text-gray-600">
-                                                                                            {
-                                                                                                resource.description
-                                                                                            }
-                                                                                        </p>
-                                                                                    )}
-                                                                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                                                                                        <span className="capitalize">
-                                                                                            {
-                                                                                                resource.type
-                                                                                            }
-                                                                                        </span>
-                                                                                        {resource.is_required && (
-                                                                                            <span className="text-green-600">
-                                                                                                Required
-                                                                                            </span>
-                                                                                        )}
-                                                                                        {resource.is_downloadable && (
-                                                                                            <span className="text-blue-600">
-                                                                                                Downloadable
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-2">
-                                                                                <Link
-                                                                                    href={route(
-                                                                                        "admin.lessons.resources.edit",
-                                                                                        {
-                                                                                            lesson: lesson.id,
-                                                                                            resource:
-                                                                                                resource.id,
-                                                                                        }
-                                                                                    )}
-                                                                                    className="p-1 text-gray-600 hover:text-blue-600"
-                                                                                >
-                                                                                    <Edit
-                                                                                        size={
-                                                                                            16
-                                                                                        }
-                                                                                    />
-                                                                                </Link>
-                                                                                <button className="p-1 text-gray-600 hover:text-red-600">
-                                                                                    <Trash2
-                                                                                        size={
-                                                                                            16
-                                                                                        }
-                                                                                    />
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                }
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="ml-8 mt-3 p-4 bg-gray-50 rounded-lg text-center">
-                                                            <p className="text-gray-500 text-sm">
-                                                                No resources
-                                                                added to this
-                                                                lesson yet.
-                                                            </p>
-                                                            <Link
-                                                                href={route(
-                                                                    "admin.lessons.resources.create",
-                                                                    lesson.id
-                                                                )}
-                                                                className="mt-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-                                                            >
-                                                                <Plus
-                                                                    size={14}
-                                                                    className="mr-1"
-                                                                />
-                                                                Add your first
-                                                                resource
-                                                            </Link>
-                                                        </div>
+                                            <div className="flex items-center gap-2">
+                                                <Link
+                                                    href={route(
+                                                        "admin.lessons.resources.edit",
+                                                        {
+                                                            lesson: lesson.id,
+                                                            resource: resource.id,
+                                                        }
                                                     )}
-                                                </div>
-                                            )}
+                                                    className="p-1 text-gray-600 hover:text-blue-600"
+                                                >
+                                                    <Edit size={16} />
+                                                </Link>
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleDeleteResource(lesson.id, resource.id, resource.title);
+                                                    }}
+                                                    className="p-1 text-gray-600 hover:text-red-600"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Empty State */}
-                {(!program.lessons || program.lessons.length === 0) && (
-                    <div className="bg-white rounded-lg shadow p-8 text-center">
-                        <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            No Lessons Yet
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                            This program doesn't have any lessons. Add lessons
-                            first before adding resources.
-                        </p>
-                        {program.slug && (
-                            <Link
-                                href={route(
-                                    "admin.programs.edit",
-                                    program.slug
-                                )}
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                            >
-                                Manage Program
-                            </Link>
                         )}
                     </div>
-                )}
+                </div>
             </div>
         </AdminLayout>
     );

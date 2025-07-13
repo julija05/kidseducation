@@ -9,10 +9,11 @@ use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Tests\Traits\CreatesRoles;
 
 class DashboardTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesRoles;
 
     private User $student;
     private User $admin;
@@ -21,9 +22,8 @@ class DashboardTest extends TestCase
     {
         parent::setUp();
         
-        // Create roles
-        \Spatie\Permission\Models\Role::create(['name' => 'student']);
-        \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        // Create roles safely
+        $this->createRoles();
         
         // Create test users
         $this->student = User::factory()->create();
@@ -156,7 +156,7 @@ class DashboardTest extends TestCase
 
         $response->assertInertia(fn ($page) => 
             $page->has('enrolledProgram')
-                ->where('enrolledProgram.program.id', $program->id)
+                ->where('enrolledProgram.id', $program->id) // Fixed: program data is directly in enrolledProgram, not nested
         );
     }
 
