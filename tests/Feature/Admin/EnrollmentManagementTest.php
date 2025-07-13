@@ -7,10 +7,11 @@ use App\Models\Program;
 use App\Models\Enrollment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Tests\Traits\CreatesRoles;
 
 class EnrollmentManagementTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesRoles;
 
     private User $admin;
     private User $student;
@@ -20,9 +21,8 @@ class EnrollmentManagementTest extends TestCase
     {
         parent::setUp();
         
-        // Create roles
-        \Spatie\Permission\Models\Role::create(['name' => 'student']);
-        \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        // Create roles safely
+        $this->createRoles();
         
         // Create test users
         $this->admin = User::factory()->create();

@@ -11,10 +11,11 @@ use App\Models\LessonProgress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
+use Tests\Traits\CreatesRoles;
 
 class LessonTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesRoles;
 
     private User $student;
     private User $admin;
@@ -26,9 +27,8 @@ class LessonTest extends TestCase
     {
         parent::setUp();
         
-        // Create roles
-        \Spatie\Permission\Models\Role::create(['name' => 'student']);
-        \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        // Create roles safely
+        $this->createRoles();
         
         // Create test users
         $this->student = User::factory()->create();
