@@ -39,6 +39,12 @@ export default function AdminPrograms({ programs }) {
                         </p>
                         <div className="flex justify-end gap-4 text-sm">
                             <Link
+                                href={route("admin.programs.lessons.index", program.slug)}
+                                className="text-green-600 hover:underline"
+                            >
+                                Lessons
+                            </Link>
+                            <Link
                                 href={route("admin.programs.edit", program.id)}
                                 className="text-blue-600 hover:underline"
                             >
