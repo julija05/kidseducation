@@ -1,6 +1,6 @@
 // resources/js/Components/Dashboard/ProgramList.jsx
 import React from "react";
-import { Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 import { ArrowRight, BookOpen, Clock } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 
@@ -15,7 +15,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
         const enrollment = enrollmentMap[program.id];
 
         if (!enrollment) {
-            // Not enrolled - show View Details button
+            // Not enrolled - show View Details button that goes to dashboard program show
             return (
                 <Link
                     href={route("dashboard.programs.show", program.slug)}
@@ -41,13 +41,17 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                 );
             case "approved":
                 return (
-                    <Link
-                        href={route("dashboard.programs.show", program.slug)}
+                    <button
+                        onClick={() =>
+                            router.visit(
+                                route("dashboard.programs.show", program.slug)
+                            )
+                        }
                         className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-opacity flex items-center justify-center"
                     >
                         Continue Learning
                         <ArrowRight size={18} className="ml-2" />
-                    </Link>
+                    </button>
                 );
             case "rejected":
                 return (
@@ -131,6 +135,11 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                             <div className="p-6">
                                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                                     <span>Duration: {program.duration}</span>
+                                    {program.lessonsCount && (
+                                        <span>
+                                            {program.lessonsCount} lessons
+                                        </span>
+                                    )}
                                 </div>
 
                                 {getButtonContent(program)}

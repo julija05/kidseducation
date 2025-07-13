@@ -9,14 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Program extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProgramFactory> */
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'description',
@@ -32,23 +26,25 @@ class Program extends Model
         'duration_weeks',
         'is_active',
     ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'is_active' => 'boolean',
+    ];
+
     protected $attributes = [
         'icon' => 'BookOpen',
         'color' => 'bg-blue-600',
-        'lightColor' => 'bg-blue-100',
-        'textColor' => 'text-blue-900',
+        'light_color' => 'bg-blue-100',
+        'text_color' => 'text-blue-900',
     ];
 
+    // Relationships
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'enrollments')
-            ->withPivot(['enrolled_at', 'completed_at', 'status', 'progress'])
+            ->withPivot(['enrolled_at', 'completed_at', 'status', 'progress', 'approval_status'])
             ->withTimestamps();
-    }
-
-    public function students(): BelongsToMany
-    {
-        return $this->belongsToMany(Student::class, 'student_program');
     }
 
     public function enrollments(): HasMany
@@ -56,8 +52,32 @@ class Program extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class);
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    // Route key
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    // Basic accessors
+    public function getThemeDataAttribute(): array
+    {
+        return [
+            'icon' => $this->icon,
+            'color' => $this->color,
+            'lightColor' => $this->light_color,
+            'borderColor' => $this->border_color,
+            'textColor' => $this->text_color,
+        ];
     }
 }

@@ -2,10 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\Program;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use App\Services\LessonService;
+use App\Services\ProgramService;
+use App\Services\EnrollmentService;
+use App\Services\ResourceService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +15,30 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register services in the correct order to avoid circular dependencies
+
+        // ResourceService has no dependencies on other services
+        $this->app->singleton(ResourceService::class, function ($app) {
+            return new ResourceService();
+        });
+
+        // ProgramService depends on ImageService (which you already have)
+        // No modifications needed for your existing ProgramService registration
+        // It will be extended with the new methods
+
+        // EnrollmentService depends on ProgramService
+        $this->app->singleton(EnrollmentService::class, function ($app) {
+            return new EnrollmentService(
+                $app->make(ProgramService::class)
+            );
+        });
+
+        // LessonService depends on EnrollmentService
+        $this->app->singleton(LessonService::class, function ($app) {
+            return new LessonService(
+                $app->make(EnrollmentService::class)
+            );
+        });
     }
 
     /**
@@ -22,9 +46,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Vite::prefetch(concurrency: 3);
-        // Route::bind('program_slug', function ($value) {
-        //     return Program::where('slug', $value)->firstOrFail();
-        // });
+        //
     }
 }
