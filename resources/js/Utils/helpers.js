@@ -1,10 +1,11 @@
+import { RESOURCE_COLOR_SCHEMES } from "@/constants/resourceTypes";
+
 export const getCsrfToken = () => {
     const metaTag = document.querySelector('meta[name="csrf-token"]');
     return metaTag ? metaTag.getAttribute("content") : "";
 };
 
 export const getResourceTypeColor = (type, isSelected = false) => {
-    const { RESOURCE_COLOR_SCHEMES } = require("@/constants/resourceTypes");
     
     const defaultScheme = {
         base: "border-gray-200 text-gray-700",

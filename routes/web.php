@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
+use App\Http\Controllers\Admin\AdminQuizController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\Student\EnrollmentController;
+use App\Http\Controllers\Student\QuizController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -52,6 +54,16 @@ Route::middleware(['auth', 'role:student'])->group(function () {
 
     Route::get('/lesson-resources/{lessonResource}/serve', [LessonResourceController::class, 'serve'])
         ->name('lesson-resources.serve');
+
+    // Quiz routes for students
+    Route::prefix('quizzes')->name('student.quiz.')->group(function () {
+        Route::get('/{quiz}', [QuizController::class, 'show'])->name('show');
+        Route::post('/{quiz}/start', [QuizController::class, 'start'])->name('start');
+        Route::get('/{quiz}/attempts/{attempt}', [QuizController::class, 'take'])->name('take');
+        Route::post('/{quiz}/attempts/{attempt}/answer', [QuizController::class, 'submitAnswer'])->name('submit-answer');
+        Route::post('/{quiz}/attempts/{attempt}/submit', [QuizController::class, 'submit'])->name('submit');
+        Route::get('/{quiz}/attempts/{attempt}/result', [QuizController::class, 'result'])->name('result');
+    });
 });
 
 // Profile routes (shared)
@@ -119,6 +131,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::delete('/{resource}', [AdminLessonResourceController::class, 'destroy'])->name('destroy');
         Route::post('/reorder', [AdminLessonResourceController::class, 'reorder'])->name('reorder');
         Route::post('/add-youtube', [AdminLessonResourceController::class, 'addYouTubeVideo'])->name('add-youtube');
+    });
+
+    // Quiz Routes
+    Route::resource('quizzes', AdminQuizController::class);
+    Route::prefix('quizzes/{quiz}')->name('quizzes.')->group(function () {
+        Route::post('/questions', [AdminQuizController::class, 'addQuestion'])->name('questions.store');
+        Route::put('/questions/{question}', [AdminQuizController::class, 'updateQuestion'])->name('questions.update');
+        Route::delete('/questions/{question}', [AdminQuizController::class, 'deleteQuestion'])->name('questions.destroy');
+        Route::post('/questions/reorder', [AdminQuizController::class, 'reorderQuestions'])->name('questions.reorder');
+        Route::post('/generate-question', [AdminQuizController::class, 'generateMentalArithmeticQuestion'])->name('generate-question');
+        Route::post('/duplicate', [AdminQuizController::class, 'duplicateQuiz'])->name('duplicate');
+        Route::get('/results', [AdminQuizController::class, 'results'])->name('results');
+        Route::get('/student-results', [AdminQuizController::class, 'studentResults'])->name('student-results');
     });
 });
 

@@ -49,6 +49,11 @@ class Lesson extends Model
         return $this->hasMany(LessonResource::class);
     }
 
+    public function quizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {
