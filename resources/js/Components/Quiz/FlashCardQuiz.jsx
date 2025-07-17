@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, CheckCircle, Calculator, Timer } from 'lucide-react';
+import { Play, CheckCircle, Calculator, Timer, SkipForward, Star, Trophy, Zap } from 'lucide-react';
 
 // CSS for countdown animation
 const countdownStyle = `
@@ -17,7 +17,7 @@ if (typeof document !== 'undefined' && !document.getElementById('flashcard-quiz-
     document.head.appendChild(style);
 }
 
-export default function FlashCardQuiz({ sessions, onComplete }) {
+export default function FlashCardQuiz({ sessions, onComplete, onSkip }) {
     const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
     const [currentNumberIndex, setCurrentNumberIndex] = useState(-1); // -1 = not started
     const [sessionAnswer, setSessionAnswer] = useState('');
@@ -25,6 +25,7 @@ export default function FlashCardQuiz({ sessions, onComplete }) {
     const [showingNumbers, setShowingNumbers] = useState(false);
     const [waitingForAnswer, setWaitingForAnswer] = useState(false);
     const [allSessionsComplete, setAllSessionsComplete] = useState(false);
+    const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
     const currentSession = sessions[currentSessionIndex];
     
@@ -82,6 +83,41 @@ export default function FlashCardQuiz({ sessions, onComplete }) {
             setSessionAnswer('');
         }
     };
+    
+    const skipCurrentSession = () => {
+        const result = {
+            session_id: currentSession.session_id,
+            user_answer: null,
+            correct_answer: currentSession.correct_answer,
+            is_correct: false,
+            numbers: currentSession.numbers,
+            skipped: true,
+        };
+        
+        const newResults = [...sessionResults, result];
+        setSessionResults(newResults);
+        
+        if (currentSessionIndex === sessions.length - 1) {
+            // All sessions complete
+            setAllSessionsComplete(true);
+            onComplete(newResults);
+        } else {
+            // Move to next session
+            setCurrentSessionIndex(prev => prev + 1);
+            setCurrentNumberIndex(-1);
+            setShowingNumbers(false);
+            setWaitingForAnswer(false);
+            setSessionAnswer('');
+        }
+        
+        setShowSkipConfirm(false);
+    };
+    
+    const skipAllSessions = () => {
+        if (onSkip) {
+            onSkip();
+        }
+    };
 
     const renderSessionStart = () => (
         <div className="text-center py-12">
@@ -100,13 +136,33 @@ export default function FlashCardQuiz({ sessions, onComplete }) {
                 </p>
             </div>
             
-            <button
-                onClick={startSession}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-                <Play className="w-5 h-5 mr-2" />
-                Start Session
-            </button>
+            <div className="flex flex-col items-center space-y-4">
+                <button
+                    onClick={startSession}
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200"
+                >
+                    <Play className="w-5 h-5 mr-2" />
+                    Start Session
+                </button>
+                
+                <div className="flex space-x-3">
+                    <button
+                        onClick={() => setShowSkipConfirm(true)}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                        <SkipForward className="w-4 h-4 mr-1" />
+                        Skip This Session
+                    </button>
+                    
+                    <button
+                        onClick={skipAllSessions}
+                        className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100"
+                    >
+                        <SkipForward className="w-4 h-4 mr-1" />
+                        Skip All Sessions
+                    </button>
+                </div>
+            </div>
         </div>
     );
 
@@ -267,14 +323,34 @@ export default function FlashCardQuiz({ sessions, onComplete }) {
             </div>
             
             <div className="space-y-3">
-                <button
-                    onClick={submitSessionAnswer}
-                    disabled={!sessionAnswer.trim()}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Submit Answer
-                </button>
+                <div className="flex flex-col items-center space-y-3">
+                    <button
+                        onClick={submitSessionAnswer}
+                        disabled={!sessionAnswer.trim()}
+                        className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
+                    >
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        Submit Answer
+                    </button>
+                    
+                    <div className="flex space-x-3">
+                        <button
+                            onClick={() => setShowSkipConfirm(true)}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                            <SkipForward className="w-4 h-4 mr-1" />
+                            Skip This Session
+                        </button>
+                        
+                        <button
+                            onClick={skipAllSessions}
+                            className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100"
+                        >
+                            <SkipForward className="w-4 h-4 mr-1" />
+                            Skip All Sessions
+                        </button>
+                    </div>
+                </div>
                 
                 <div className="text-xs text-gray-400">
                     Press Enter to submit or click the button above
@@ -344,8 +420,12 @@ export default function FlashCardQuiz({ sessions, onComplete }) {
                                     </span>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <span className="text-sm text-gray-600">Your answer: <strong>{result.user_answer}</strong></span>
-                                    {result.is_correct ? (
+                                    <span className="text-sm text-gray-600">
+                                        Your answer: <strong>{result.skipped ? 'Skipped' : result.user_answer}</strong>
+                                    </span>
+                                    {result.skipped ? (
+                                        <span className="text-gray-500 font-bold">⊘</span>
+                                    ) : result.is_correct ? (
                                         <CheckCircle className="w-5 h-5 text-green-600" />
                                     ) : (
                                         <span className="text-red-600 font-bold">✗</span>
@@ -377,6 +457,43 @@ export default function FlashCardQuiz({ sessions, onComplete }) {
 
     if (waitingForAnswer) {
         return renderAnswerInput();
+    }
+
+    // Skip confirmation modal
+    if (showSkipConfirm) {
+        return (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div className="mt-3 text-center">
+                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                            <SkipForward className="h-6 w-6 text-yellow-600" />
+                        </div>
+                        <h3 className="text-lg leading-6 font-medium text-gray-900 mt-4">
+                            Skip This Session?
+                        </h3>
+                        <div className="mt-2 px-7 py-3">
+                            <p className="text-sm text-gray-500">
+                                Are you sure you want to skip this session? You won't get points for it, but you can move on to the next one.
+                            </p>
+                        </div>
+                        <div className="flex space-x-3 mt-4">
+                            <button
+                                onClick={() => setShowSkipConfirm(false)}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={skipCurrentSession}
+                                className="px-4 py-2 bg-yellow-600 text-white text-base font-medium rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            >
+                                Skip Session
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return null;

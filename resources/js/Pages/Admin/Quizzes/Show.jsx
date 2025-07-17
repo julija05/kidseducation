@@ -36,6 +36,35 @@ export default function ShowQuiz({ quiz, quiz_types }) {
         }
     };
 
+    const handleReorderQuestions = async (reorderedQuestions) => {
+        try {
+            const response = await fetch(route('admin.quizzes.questions.reorder', quiz.id), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    questions: reorderedQuestions
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Reload the quiz data to reflect the new order
+                router.reload({ only: ['quiz'] });
+            } else {
+                console.error('Failed to reorder questions:', data.message);
+                alert('Failed to reorder questions. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error reordering questions:', error);
+            alert('An error occurred while reordering questions.');
+        }
+    };
+
     const toggleQuizStatus = () => {
         router.patch(route('admin.quizzes.update', quiz.id), {
             ...quiz,
@@ -216,6 +245,7 @@ export default function ShowQuiz({ quiz, quiz_types }) {
                             quizType={quiz.type}
                             onEdit={handleEditQuestion}
                             onDelete={handleDeleteQuestion}
+                            onReorder={handleReorderQuestions}
                         />
                     )}
                 </div>

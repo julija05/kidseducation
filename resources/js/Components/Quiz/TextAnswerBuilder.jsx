@@ -1,6 +1,8 @@
 import React from 'react';
 import FormField from '@/Components/Form/FormField';
-import { Info } from 'lucide-react';
+import { Info, Code, Eye } from 'lucide-react';
+import QuestionText from './QuestionText';
+import { hasCodeBlocks } from '@/Utils/codeBlockParser';
 
 export default function TextAnswerBuilder({ formData, onChange, errors }) {
     const handleSettingsChange = (setting, value) => {
@@ -26,9 +28,24 @@ export default function TextAnswerBuilder({ formData, onChange, errors }) {
                     onChange={(e) => onChange('question_text', e.target.value)}
                     error={errors.question_text}
                     placeholder="Enter your open-ended question here..."
-                    rows={3}
+                    rows={6}
                     required
                 />
+                
+                <div className="mt-2 bg-amber-50 border border-amber-200 rounded-md p-3">
+                    <div className="flex">
+                        <Code className="w-5 h-5 text-amber-500 mr-2 mt-0.5" />
+                        <div className="text-sm text-amber-700">
+                            <p className="font-medium">Code Block Support:</p>
+                            <ul className="mt-1 list-disc list-inside space-y-1">
+                                <li>Use <code className="bg-amber-100 px-1 rounded">```language</code> for code blocks</li>
+                                <li>Use <code className="bg-amber-100 px-1 rounded">`code`</code> for inline code</li>
+                                <li>Supported languages: javascript, python, java, cpp, html, css, sql</li>
+                                <li>Example: <code className="bg-amber-100 px-1 rounded">```javascript\nconsole.log("Hello World");\n```</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
                 <div className="mt-4">
                     <FormField
@@ -125,12 +142,20 @@ export default function TextAnswerBuilder({ formData, onChange, errors }) {
             {/* Question Preview */}
             {formData.question_text && (
                 <div className="bg-blue-50 rounded-lg p-4">
-                    <h4 className="text-md font-medium text-blue-900 mb-3">Question Preview</h4>
+                    <h4 className="text-md font-medium text-blue-900 mb-3 flex items-center">
+                        <Eye className="w-5 h-5 mr-2" />
+                        Question Preview
+                        {hasCodeBlocks(formData.question_text) && (
+                            <span className="ml-2 px-2 py-1 bg-blue-200 text-blue-800 text-xs rounded-full">
+                                Contains Code
+                            </span>
+                        )}
+                    </h4>
                     <div className="bg-white border border-blue-200 rounded-md p-4">
                         <div className="mb-4">
-                            <h5 className="text-lg font-medium text-gray-900 mb-3">
-                                {formData.question_text}
-                            </h5>
+                            <div className="text-lg font-medium text-gray-900 mb-3">
+                                <QuestionText text={formData.question_text} showCopy={false} />
+                            </div>
                         </div>
                         
                         <div className="mb-4">

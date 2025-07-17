@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Clock, ArrowLeft, Send, AlertTriangle } from 'lucide-react';
+import { Clock, ArrowLeft, Send, AlertTriangle, SkipForward, Award, Star, Trophy, Zap } from 'lucide-react';
 import FlashCardQuiz from '@/Components/Quiz/FlashCardQuiz';
+import QuestionText from '@/Components/Quiz/QuestionText';
 
 export default function TakeQuiz({ quiz, attempt, questions, total_questions, current_question }) {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -10,6 +11,8 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
     const [timeRemaining, setTimeRemaining] = useState(attempt.remaining_time);
     const [questionTimeRemaining, setQuestionTimeRemaining] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [badges, setBadges] = useState([]);
+    const [showBadgeAnimation, setShowBadgeAnimation] = useState(false);
 
     const currentQuestion = questions[currentQuestionIndex];
 
@@ -57,6 +60,64 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
             ...prev,
             [currentQuestion.id]: answer
         }));
+        
+        // Award badges for different achievements
+        awardBadges(answer);
+    };
+    
+    const awardBadges = (answer) => {
+        const newBadges = [];
+        
+        // Fast answer badge
+        if (questionTimeRemaining && questionTimeRemaining > quiz.question_time_limit * 0.8) {
+            newBadges.push({
+                id: 'speed_demon',
+                name: 'Speed Demon',
+                icon: Zap,
+                color: 'yellow',
+                description: 'Answered super fast!'
+            });
+        }
+        
+        // Streak badges
+        const answeredCount = Object.keys(answers).length + 1;
+        if (answeredCount === 3) {
+            newBadges.push({
+                id: 'on_fire',
+                name: 'On Fire',
+                icon: Trophy,
+                color: 'orange',
+                description: '3 questions answered!'
+            });
+        }
+        
+        if (answeredCount === 5) {
+            newBadges.push({
+                id: 'champion',
+                name: 'Champion',
+                icon: Award,
+                color: 'purple',
+                description: '5 questions completed!'
+            });
+        }
+        
+        if (newBadges.length > 0) {
+            setBadges(prev => [...prev, ...newBadges]);
+            setShowBadgeAnimation(true);
+            setTimeout(() => setShowBadgeAnimation(false), 3000);
+        }
+    };
+    
+    const handleSkipQuestion = () => {
+        if (confirm('Are you sure you want to skip this question? You won\'t get points for it.')) {
+            // Mark as skipped
+            setAnswers(prev => ({
+                ...prev,
+                [currentQuestion.id]: '__SKIPPED__'
+            }));
+            
+            handleNextQuestion();
+        }
     };
 
     const handleNextQuestion = () => {
@@ -124,6 +185,7 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                                         percentage: percentage
                                     }));
                                 }}
+                                onSkip={handleSkipQuestion}
                             />
                             
                             {/* Show navigation only if flash card quiz is completed */}
@@ -148,14 +210,25 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                             <div className="text-3xl font-bold text-indigo-600 mb-6">
                                 {currentQuestion.question_data.display_sequence}
                             </div>
-                            <input
-                                type="number"
-                                value={answers[currentQuestion.id] || ''}
-                                onChange={(e) => handleAnswerChange(e.target.value)}
-                                placeholder="Enter your answer"
-                                className="w-32 px-4 py-2 text-center text-xl border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                autoFocus
-                            />
+                            <div className="space-y-4">
+                                <input
+                                    type="number"
+                                    value={answers[currentQuestion.id] || ''}
+                                    onChange={(e) => handleAnswerChange(e.target.value)}
+                                    placeholder="Enter your answer"
+                                    className="w-32 px-4 py-2 text-center text-xl border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    autoFocus
+                                />
+                                <div className="mt-4">
+                                    <button
+                                        onClick={handleSkipQuestion}
+                                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                                    >
+                                        <SkipForward className="w-4 h-4 mr-1" />
+                                        Skip this question
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     );
                 }
@@ -176,7 +249,7 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                 return (
                     <div>
                         <div className="text-lg font-medium text-gray-900 mb-4">
-                            {currentQuestion.question_text}
+                            <QuestionText text={currentQuestion.question_text} />
                         </div>
                         <div className="space-y-2">
                             {Object.entries(currentQuestion.answer_options || {}).map(([key, value]) => (
@@ -205,7 +278,7 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                 return (
                     <div>
                         <div className="text-lg font-medium text-gray-900 mb-4">
-                            {currentQuestion.question_text}
+                            <QuestionText text={currentQuestion.question_text} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <label
@@ -246,7 +319,7 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                 return (
                     <div>
                         <div className="text-lg font-medium text-gray-900 mb-4">
-                            {currentQuestion.question_text}
+                            <QuestionText text={currentQuestion.question_text} />
                         </div>
                         <textarea
                             value={answers[currentQuestion.id] || ''}
@@ -268,10 +341,53 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
             <Head title={`Taking Quiz: ${quiz.title}`} />
 
             <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+                {/* Badge Animation */}
+                {showBadgeAnimation && badges.length > 0 && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+                        <div className="animate-bounce">
+                            <div className="bg-white rounded-full p-6 shadow-2xl border-4 border-yellow-400">
+                                {badges[badges.length - 1].icon && 
+                                    React.createElement(badges[badges.length - 1].icon, {
+                                        className: "w-12 h-12 text-yellow-500 mx-auto mb-2"
+                                    })
+                                }
+                                <div className="text-center">
+                                    <div className="text-lg font-bold text-gray-900">Badge Earned!</div>
+                                    <div className="text-sm text-gray-600">{badges[badges.length - 1].name}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
                 {/* Header */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-2xl font-bold text-gray-900">{quiz.title}</h1>
+                        <div className="flex items-center space-x-4">
+                            <h1 className="text-2xl font-bold text-gray-900">{quiz.title}</h1>
+                            {/* Badge Display */}
+                            {badges.length > 0 && (
+                                <div className="flex items-center space-x-1">
+                                    {badges.slice(-3).map((badge, index) => (
+                                        <div
+                                            key={badge.id}
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                                badge.color === 'yellow' ? 'bg-yellow-100 text-yellow-600' :
+                                                badge.color === 'orange' ? 'bg-orange-100 text-orange-600' :
+                                                badge.color === 'purple' ? 'bg-purple-100 text-purple-600' :
+                                                'bg-gray-100 text-gray-600'
+                                            }`}
+                                            title={badge.description}
+                                        >
+                                            {badge.icon && React.createElement(badge.icon, { className: "w-4 h-4" })}
+                                        </div>
+                                    ))}
+                                    {badges.length > 3 && (
+                                        <span className="text-sm text-gray-500 ml-1">+{badges.length - 3}</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                         <div className="flex items-center space-x-4">
                             {timeRemaining && (
                                 <div className="flex items-center text-orange-600">
@@ -292,14 +408,20 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                         </div>
                     </div>
                     
-                    <div className="bg-gray-200 rounded-full h-2">
+                    <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
                         <div 
-                            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                            className="bg-gradient-to-r from-indigo-500 to-purple-600 h-3 rounded-full transition-all duration-500 relative"
                             style={{ width: `${((currentQuestionIndex + 1) / total_questions) * 100}%` }}
-                        />
+                        >
+                            <div className="absolute inset-0 bg-white opacity-30 animate-pulse rounded-full"></div>
+                        </div>
                     </div>
-                    <div className="text-sm text-gray-500 mt-1">
-                        Question {currentQuestionIndex + 1} of {total_questions}
+                    <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
+                        <span>Question {currentQuestionIndex + 1} of {total_questions}</span>
+                        <span className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                            <span>{Math.round(((currentQuestionIndex + 1) / total_questions) * 100)}% Complete</span>
+                        </span>
                     </div>
                 </div>
 
@@ -321,10 +443,19 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                         </button>
 
                         <div className="flex space-x-3">
+                            {/* Skip Button */}
+                            <button
+                                onClick={handleSkipQuestion}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                            >
+                                <SkipForward className="w-4 h-4 mr-2" />
+                                Skip
+                            </button>
+                            
                             {currentQuestionIndex < questions.length - 1 ? (
                                 <button
                                     onClick={handleNextQuestion}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200"
                                 >
                                     Next Question
                                 </button>
@@ -332,7 +463,7 @@ export default function TakeQuiz({ quiz, attempt, questions, total_questions, cu
                                 <button
                                     onClick={handleSubmitQuiz}
                                     disabled={isSubmitting}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:opacity-50 transform hover:scale-105 transition-all duration-200"
                                 >
                                     <Send className="w-4 h-4 mr-2" />
                                     {isSubmitting ? 'Submitting...' : 'Submit Quiz'}

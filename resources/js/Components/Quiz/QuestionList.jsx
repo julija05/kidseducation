@@ -1,7 +1,82 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Edit, Trash2, GripVertical, Calculator, CheckCircle, FileText, HelpCircle } from 'lucide-react';
 
-export default function QuestionList({ questions, quizType, onEdit, onDelete }) {
+export default function QuestionList({ questions, quizType, onEdit, onDelete, onReorder }) {
+    const [isDragging, setIsDragging] = useState(false);
+    const [draggedQuestionId, setDraggedQuestionId] = useState(null);
+    const [dragOverIndex, setDragOverIndex] = useState(null);
+    const [isReordering, setIsReordering] = useState(false);
+    const draggedElementRef = useRef(null);
+    
+    const handleDragStart = (e, question, index) => {
+        setIsDragging(true);
+        setDraggedQuestionId(question.id);
+        draggedElementRef.current = e.target;
+        
+        // Set drag data
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.target.outerHTML);
+        
+        // Add some visual feedback
+        e.target.style.opacity = '0.5';
+    };
+
+    const handleDragEnd = (e) => {
+        setIsDragging(false);
+        setDraggedQuestionId(null);
+        setDragOverIndex(null);
+        
+        // Reset visual feedback
+        e.target.style.opacity = '1';
+    };
+
+    const handleDragOver = (e, index) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setDragOverIndex(index);
+    };
+
+    const handleDragLeave = (e) => {
+        // Only clear drag over if we're leaving the actual drop zone
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            setDragOverIndex(null);
+        }
+    };
+
+    const handleDrop = async (e, targetIndex) => {
+        e.preventDefault();
+        setDragOverIndex(null);
+        
+        if (!draggedQuestionId || isReordering) return;
+        
+        const draggedIndex = questions.findIndex(q => q.id === draggedQuestionId);
+        if (draggedIndex === -1 || draggedIndex === targetIndex) return;
+        
+        try {
+            setIsReordering(true);
+            
+            // Create new order array
+            const newQuestions = [...questions];
+            const [draggedQuestion] = newQuestions.splice(draggedIndex, 1);
+            newQuestions.splice(targetIndex, 0, draggedQuestion);
+            
+            // Update orders
+            const reorderedQuestions = newQuestions.map((question, index) => ({
+                id: question.id,
+                order: index + 1
+            }));
+            
+            // Call parent function to handle reordering
+            if (onReorder) {
+                await onReorder(reorderedQuestions);
+            }
+        } catch (error) {
+            console.error('Error reordering questions:', error);
+        } finally {
+            setIsReordering(false);
+        }
+    };
+
     const getQuestionIcon = (type) => {
         const icons = {
             mental_arithmetic: Calculator,
@@ -57,19 +132,45 @@ export default function QuestionList({ questions, quizType, onEdit, onDelete }) 
     }
 
     return (
-        <div className="divide-y divide-gray-200">
-            {questions.map((question, index) => {
+        <div>
+            {questions.length > 1 && (
+                <div className="px-6 py-3 bg-blue-50 border-b border-blue-200">
+                    <div className="flex items-center space-x-2 text-sm text-blue-700">
+                        <GripVertical className="w-4 h-4" />
+                        <span>Drag and drop questions to reorder them</span>
+                    </div>
+                </div>
+            )}
+            
+            <div className="divide-y divide-gray-200">
+                {questions.map((question, index) => {
                 const Icon = getQuestionIcon(question.type);
+                const isBeingDragged = draggedQuestionId === question.id;
+                const isDropTarget = dragOverIndex === index;
                 
                 return (
                     <div
                         key={question.id}
-                        className="p-6 hover:bg-gray-50 transition-colors"
+                        className={`p-6 transition-colors ${
+                            isBeingDragged 
+                                ? 'opacity-50 bg-gray-100' 
+                                : isDropTarget 
+                                    ? 'bg-blue-50 border-blue-200' 
+                                    : 'hover:bg-gray-50'
+                        } ${isDropTarget ? 'border-l-4 border-blue-500' : ''}`}
+                        draggable={!isReordering}
+                        onDragStart={(e) => handleDragStart(e, question, index)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
                     >
                         <div className="flex items-start space-x-4">
                             {/* Drag Handle */}
-                            <div className="flex-shrink-0 pt-1">
-                                <GripVertical className="w-5 h-5 text-gray-400" />
+                            <div className={`flex-shrink-0 pt-1 ${isReordering ? 'opacity-50' : 'cursor-move'}`}>
+                                <GripVertical className={`w-5 h-5 ${
+                                    isReordering ? 'text-gray-300' : 'text-gray-400 hover:text-gray-600'
+                                }`} />
                             </div>
 
                             {/* Question Icon & Order */}
@@ -115,16 +216,32 @@ export default function QuestionList({ questions, quizType, onEdit, onDelete }) 
 
                             {/* Actions */}
                             <div className="flex-shrink-0 flex items-center space-x-2">
+                                {isReordering && (
+                                    <div className="flex items-center space-x-2 text-sm text-blue-600">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                        <span>Reordering...</span>
+                                    </div>
+                                )}
                                 <button
                                     onClick={() => onEdit(question)}
-                                    className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
+                                    disabled={isReordering}
+                                    className={`p-2 rounded-md ${
+                                        isReordering 
+                                            ? 'text-gray-300 cursor-not-allowed' 
+                                            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                                    }`}
                                     title="Edit question"
                                 >
                                     <Edit className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => onDelete(question)}
-                                    className="p-2 text-red-400 hover:text-red-600 rounded-md hover:bg-red-50"
+                                    disabled={isReordering}
+                                    className={`p-2 rounded-md ${
+                                        isReordering 
+                                            ? 'text-gray-300 cursor-not-allowed' 
+                                            : 'text-red-400 hover:text-red-600 hover:bg-red-50'
+                                    }`}
                                     title="Delete question"
                                 >
                                     <Trash2 className="w-4 h-4" />
@@ -134,6 +251,7 @@ export default function QuestionList({ questions, quizType, onEdit, onDelete }) 
                     </div>
                 );
             })}
+            </div>
         </div>
     );
 }

@@ -5,7 +5,7 @@ import MentalArithmeticBuilder from './MentalArithmeticBuilder';
 import MultipleChoiceBuilder from './MultipleChoiceBuilder';
 import TextAnswerBuilder from './TextAnswerBuilder';
 import TrueFalseBuilder from './TrueFalseBuilder';
-import { X, Save, RefreshCw } from 'lucide-react';
+import { X, Save, RefreshCw, CheckCircle } from 'lucide-react';
 
 export default function QuestionBuilder({ quiz, question = null, quizTypes, onSave, onCancel }) {
     const [formData, setFormData] = useState({
@@ -23,6 +23,8 @@ export default function QuestionBuilder({ quiz, question = null, quizTypes, onSa
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
 
     const isEditing = !!question;
 
@@ -46,21 +48,49 @@ export default function QuestionBuilder({ quiz, question = null, quizTypes, onSa
 
             const method = isEditing ? 'put' : 'post';
             
-            router[method](url, {
-                ...formData,
-                order: question?.order || (quiz.questions?.length || 0) + 1,
-            }, {
-                onSuccess: () => {
-                    onSave();
+            // Make direct fetch request since backend returns JSON
+            const response = await fetch(url, {
+                method: method.toUpperCase(),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
-                onError: (errors) => {
-                    setErrors(errors);
-                    setIsSubmitting(false);
-                },
-                preserveScroll: true,
+                body: JSON.stringify({
+                    ...formData,
+                    order: question?.order || (quiz.questions?.length || 0) + 1,
+                }),
             });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Show success message
+                if (data.message) {
+                    setSuccessMessage(data.message);
+                    setShowSuccess(true);
+                    
+                    // Close modal after showing success message
+                    setTimeout(() => {
+                        setShowSuccess(false);
+                        onSave();
+                    }, 1500); // Show success for 1.5 seconds
+                } else {
+                    // Close modal immediately if no message
+                    onSave();
+                }
+            } else {
+                // Handle validation errors
+                if (data.errors) {
+                    setErrors(data.errors);
+                } else {
+                    setErrors({ general: data.message || 'An error occurred while saving the question.' });
+                }
+                setIsSubmitting(false);
+            }
         } catch (error) {
             console.error('Error saving question:', error);
+            setErrors({ general: 'An error occurred while saving the question.' });
             setIsSubmitting(false);
         }
     };
@@ -138,10 +168,31 @@ export default function QuestionBuilder({ quiz, question = null, quizTypes, onSa
                     <button
                         onClick={onCancel}
                         className="text-gray-400 hover:text-gray-600"
+                        disabled={isSubmitting}
                     >
                         <X className="w-6 h-6" />
                     </button>
                 </div>
+
+                {/* Success Message */}
+                {showSuccess && (
+                    <div className="mb-6 bg-green-50 border border-green-200 rounded-md p-4">
+                        <div className="flex items-center">
+                            <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                            <span className="text-green-800 font-medium">{successMessage}</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* General Error Message */}
+                {errors.general && (
+                    <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+                        <div className="flex items-center">
+                            <X className="w-5 h-5 text-red-600 mr-2" />
+                            <span className="text-red-800">{errors.general}</span>
+                        </div>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Basic Question Settings */}
@@ -213,17 +264,18 @@ export default function QuestionBuilder({ quiz, question = null, quizTypes, onSa
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            disabled={isSubmitting || showSuccess}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || showSuccess}
                             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                         >
                             <Save className="w-4 h-4 mr-2" />
-                            {isSubmitting ? 'Saving...' : (isEditing ? 'Update Question' : 'Add Question')}
+                            {showSuccess ? 'Success!' : (isSubmitting ? 'Saving...' : (isEditing ? 'Update Question' : 'Add Question'))}
                         </button>
                     </div>
                 </form>
