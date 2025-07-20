@@ -11,11 +11,13 @@ export default function FormField({
     children,
     ...props
 }) {
-    const baseClassName = "mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500";
+    const baseClassName = `mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 ${props.disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`;
     
     const handleChange = (e) => {
-        const newValue = type === "file" ? e.target.files[0] : e.target.value;
-        onChange(name, newValue);
+        if (onChange) {
+            // Just pass the event directly - let the parent handle it
+            onChange(e);
+        }
     };
 
     const renderInput = () => {

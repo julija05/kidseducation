@@ -1,0 +1,116 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Run every Monday at 2 AM
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Analysis
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, dom, fileinfo, mysql
+
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Run Composer security audit
+      run: |
+        composer require --dev roave/security-advisories:dev-latest --no-update || true
+        composer audit || true
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Run npm security audit
+      run: |
+        npm audit --audit-level high --production
+        npm audit fix --dry-run || true
+
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript, php
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+
+    - name: Run Semgrep security scan
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/php
+          p/javascript
+      env:
+        SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+    - name: Check for hardcoded secrets
+      run: |
+        echo "Checking for hardcoded secrets..."
+        if grep -r -i "password\s*=\s*['\"][^'\"]*['\"]" --include="*.php" --include="*.js" --exclude-dir=vendor --exclude-dir=node_modules . ; then
+          echo "⚠️ Potential hardcoded passwords found"
+        fi
+        if grep -r -i "api_key\s*=\s*['\"][^'\"]*['\"]" --include="*.php" --include="*.js" --exclude-dir=vendor --exclude-dir=node_modules . ; then
+          echo "⚠️ Potential hardcoded API keys found"
+        fi
+
+    - name: Check file permissions
+      run: |
+        echo "Checking sensitive file permissions..."
+        find . -name "*.env*" -type f -perm /o+r && echo "⚠️ .env files are world-readable" || echo "✅ .env files permissions OK"
+        find . -name "*.key" -type f -perm /o+r && echo "⚠️ Key files are world-readable" || echo "✅ Key file permissions OK"
+
+    - name: Scan for exposed debug information
+      run: |
+        echo "Checking for debug information..."
+        if grep -r "APP_DEBUG=true" --include="*.env*" . ; then
+          echo "⚠️ Debug mode enabled in environment files"
+        fi
+        if grep -r "dd(" --include="*.php" --exclude-dir=vendor . ; then
+          echo "⚠️ Debug dump functions found in code"
+        fi
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    name: Dependency Vulnerability Check
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'kids-education-website'
+        path: '.'
+        format: 'ALL'
+        args: >
+          --enableRetired
+          --enableExperimental
+          --out reports
+
+    - name: Upload dependency check results
+      uses: actions/upload-artifact@v3
+      with:
+        name: dependency-check-report
+        path: reports/

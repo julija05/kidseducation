@@ -80,7 +80,7 @@ export default function Dashboard() {
             <>
                 <ProgramIcon className="mr-3" size={32} />
                 <h1 className="text-2xl font-bold">
-                    {enrolledProgram.name} - Student Dashboard
+                    🎓 {enrolledProgram.name} Learning Adventure
                 </h1>
             </>
         );
@@ -102,11 +102,11 @@ export default function Dashboard() {
                     {/* Program Content */}
                     <div
                         className={`${
-                            enrolledProgram.theme?.lightColor || "bg-gray-50"
+                            enrolledProgram.theme?.lightColor || "bg-gradient-to-br from-blue-50 to-purple-50"
                         } ${
                             enrolledProgram.theme?.borderColor ||
-                            "border-gray-200"
-                        } border-2 rounded-lg p-6`}
+                            "border-blue-200"
+                        } border-2 rounded-xl shadow-lg p-6 transform hover:shadow-xl transition-shadow duration-300`}
                     >
                         <ProgramContent
                             program={enrolledProgram}

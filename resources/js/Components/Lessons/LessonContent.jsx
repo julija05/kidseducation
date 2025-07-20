@@ -2,6 +2,7 @@ import React from "react";
 import ResourceViewer from "./Resources/Viewers/ResourceViewer";
 import ResourcesSidebar from "./Resources/ResourcesSidebar";
 import LessonActions from "./LessonActions";
+import QuizList from "./QuizList";
 
 export default function LessonContent({
     lesson,
@@ -30,6 +31,9 @@ export default function LessonContent({
                     onUpdateProgress={onUpdateProgress}
                     onCompleteLesson={onCompleteLesson}
                 />
+
+                {/* Quizzes Section */}
+                <QuizList quizzes={lesson.quizzes} />
             </div>
 
             {/* Resources Sidebar */}

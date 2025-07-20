@@ -24,6 +24,19 @@ class LessonFormatterService
             'duration_minutes' => $lesson->duration_minutes,
             'formatted_duration' => $lesson->formatted_duration,
             'resources' => $this->resourceFormatter->formatResources($lesson->resources),
+            'quizzes' => $lesson->quizzes ? $lesson->quizzes->map(fn($quiz) => [
+                'id' => $quiz->id,
+                'title' => $quiz->title,
+                'description' => $quiz->description,
+                'type' => $quiz->type,
+                'type_display' => $quiz->type_display,
+                'total_questions' => $quiz->questions->count(),
+                'total_points' => $quiz->total_points,
+                'passing_score' => $quiz->passing_score,
+                'time_limit' => $quiz->time_limit,
+                'formatted_time_limit' => $quiz->formatted_time_limit,
+                'max_attempts' => $quiz->max_attempts,
+            ])->toArray() : [],
         ];
     }
 

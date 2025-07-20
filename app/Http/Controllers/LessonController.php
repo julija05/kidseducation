@@ -44,8 +44,11 @@ class LessonController extends Controller
                 ->with('error', 'You need to complete previous level lessons to unlock this lesson.');
         }
 
-        // Load lesson with resources
+        // Load lesson with resources and quizzes
         $lesson = $this->lessonRepository->findByIdWithResources($lesson->id);
+        $lesson->load(['quizzes' => function ($query) {
+            $query->where('is_active', true)->with('questions');
+        }]);
 
         // Get or create lesson progress
         $progress = $lesson->userProgress($user) ??

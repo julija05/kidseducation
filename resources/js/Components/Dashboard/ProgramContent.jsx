@@ -19,6 +19,9 @@ import {
     File,
     Link as LinkIcon,
     Eye,
+    Star,
+    Zap,
+    Target,
 } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 
@@ -114,7 +117,11 @@ export default function ProgramContent({
         }
     };
 
-    const getLessonIcon = (status, isUnlocked) => {
+    const getLessonIcon = (status, isUnlocked, isLevelUnlocked) => {
+        if (!isLevelUnlocked) {
+            return <Lock size={16} className="text-gray-400" />;
+        }
+        
         if (!isUnlocked) {
             return <Lock size={16} className="text-gray-400" />;
         }
@@ -132,6 +139,19 @@ export default function ProgramContent({
     };
 
     const getLessonButtonConfig = (lesson) => {
+        // Check if lesson level is unlocked based on points
+        const isLevelUnlocked = lesson.level <= (program.highestUnlockedLevel || 1);
+        
+        if (!isLevelUnlocked) {
+            const pointsNeeded = program.levelRequirements?.[lesson.level] || 0;
+            return {
+                text: `Locked (${pointsNeeded} pts)`,
+                className: "bg-gray-100 text-gray-400 cursor-not-allowed",
+                onClick: () => {},
+                disabled: true,
+            };
+        }
+
         if (!lesson.is_unlocked) {
             return {
                 text: "Locked",
@@ -210,15 +230,26 @@ export default function ProgramContent({
         }
     };
 
-    const getLevelStatus = (levelData) => {
+    const getLevelStatus = (levelData, levelNumber) => {
         if (!levelData) return { status: "locked", text: "Locked" };
+
+        // Check if level is unlocked based on points
+        const isUnlocked = levelNumber <= (program.highestUnlockedLevel || 1);
+        
+        if (!isUnlocked) {
+            const pointsNeeded = program.levelRequirements?.[levelNumber] || 0;
+            return { 
+                status: "locked", 
+                text: `Locked (${pointsNeeded} points needed)` 
+            };
+        }
 
         if (levelData.isCompleted) {
             return { status: "completed", text: "Completed" };
         } else if (levelData.isUnlocked) {
             return { status: "current", text: "In Progress" };
         } else {
-            return { status: "locked", text: "Locked" };
+            return { status: "current", text: "Available" };
         }
     };
 
@@ -247,7 +278,7 @@ export default function ProgramContent({
                     Welcome to {program.name}!
                 </h3>
                 <p className={program.theme.textColor}>{program.description}</p>
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center text-sm text-gray-600">
                         <Calendar size={16} className="mr-2" />
                         <span>Enrolled on {program.enrolledAt}</span>
@@ -259,7 +290,112 @@ export default function ProgramContent({
                             {program.totalLevels}
                         </span>
                     </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                        <Star size={16} className="mr-2 text-yellow-500" />
+                        <span className="font-semibold text-yellow-600">
+                            {program.quizPoints || 0} Points
+                        </span>
+                    </div>
                 </div>
+            </div>
+            
+            {/* Points & Progress Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Current Points Card */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+                        <Star className="mr-2 text-yellow-500" size={20} />
+                        Your Points
+                    </h4>
+                    <div className="text-center">
+                        <div className="text-4xl font-bold text-blue-600 mb-2">
+                            {program.quizPoints || 0}
+                        </div>
+                        <p className="text-blue-700 font-medium">Total Points Earned</p>
+                        <p className="text-blue-600 text-sm mt-1">
+                            From completing quizzes
+                        </p>
+                    </div>
+                </div>
+
+                {/* Next Level Progress Card */}
+                {program.pointsNeededForNextLevel !== null && program.pointsNeededForNextLevel > 0 ? (
+                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
+                        <h4 className="text-lg font-semibold text-yellow-900 mb-3 flex items-center">
+                            <Target className="mr-2" size={20} />
+                            Next Level: Level {program.highestUnlockedLevel + 1}
+                        </h4>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-yellow-800 font-medium">Progress:</span>
+                                <span className="text-yellow-700 font-bold">
+                                    {program.quizPoints || 0} / {program.pointsForNextLevel || 0}
+                                </span>
+                            </div>
+                            <div className="w-full bg-yellow-200 rounded-full h-3">
+                                <div
+                                    className="h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500"
+                                    style={{ 
+                                        width: `${Math.min(100, ((program.quizPoints || 0) / (program.pointsForNextLevel || 1)) * 100)}%` 
+                                    }}
+                                ></div>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-yellow-800 font-semibold">
+                                    {program.pointsNeededForNextLevel} more points needed!
+                                </p>
+                                <p className="text-yellow-600 text-sm">
+                                    Complete quizzes to unlock Level {program.highestUnlockedLevel + 1}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    // Show congratulations only if student actually has points and unlocked levels
+                    program.quizPoints > 0 && program.highestUnlockedLevel >= program.totalLevels ? (
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+                            <h4 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
+                                <Trophy className="mr-2 text-green-600" size={20} />
+                                All Levels Unlocked!
+                            </h4>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-green-600 mb-2">
+                                    🎉 Congratulations!
+                                </div>
+                                <p className="text-green-700 font-medium">
+                                    You've unlocked all available levels
+                                </p>
+                                <p className="text-green-600 text-sm mt-1">
+                                    Keep completing quizzes to earn more points!
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        // Show getting started message for students with 0 points
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
+                            <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+                                <Zap className="mr-2 text-blue-600" size={20} />
+                                Ready to Start Learning?
+                            </h4>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-600 mb-2">
+                                    🚀 Let's Begin!
+                                </div>
+                                <p className="text-blue-700 font-medium">
+                                    Start with Level 1 and complete quizzes to earn points
+                                </p>
+                                <p className="text-blue-600 text-sm mt-1">
+                                    You need {program.levelRequirements?.['2'] || 10} points to unlock Level 2
+                                </p>
+                                <div className="mt-3 bg-blue-100 rounded-lg p-3">
+                                    <p className="text-blue-800 text-sm font-medium">
+                                        💡 Complete quizzes in your lessons to earn points and unlock new levels!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                )}
             </div>
 
             {/* Next Lesson Card */}
@@ -302,7 +438,7 @@ export default function ProgramContent({
                             const levelData = program.levelProgress?.find(
                                 (l) => l.level === parseInt(level)
                             );
-                            const levelStatus = getLevelStatus(levelData);
+                            const levelStatus = getLevelStatus(levelData, parseInt(level));
                             const isExpanded = expandedLevels.has(
                                 parseInt(level)
                             );
@@ -384,7 +520,7 @@ export default function ProgramContent({
                                                     <div
                                                         key={lesson.id}
                                                         className={`bg-gray-50 border rounded-lg transition-all ${
-                                                            lesson.is_unlocked
+                                                            lesson.is_unlocked && lesson.level <= (program.highestUnlockedLevel || 1)
                                                                 ? "hover:shadow-md hover:bg-white"
                                                                 : "opacity-60"
                                                         }`}
@@ -395,12 +531,13 @@ export default function ProgramContent({
                                                                 <div
                                                                     className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${getStatusColor(
                                                                         lesson.status,
-                                                                        lesson.is_unlocked
+                                                                        lesson.is_unlocked && lesson.level <= (program.highestUnlockedLevel || 1)
                                                                     )}`}
                                                                 >
                                                                     {getLessonIcon(
                                                                         lesson.status,
-                                                                        lesson.is_unlocked
+                                                                        lesson.is_unlocked,
+                                                                        lesson.level <= (program.highestUnlockedLevel || 1)
                                                                     )}
                                                                 </div>
                                                                 <div className="flex-1">

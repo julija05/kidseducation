@@ -37,6 +37,14 @@ export default function AdminLayout({ children }) {
                             News
                         </Link>
                     </li>
+                    <li className="mb-4">
+                        <Link
+                            href={route("admin.quizzes.index")}
+                            className="hover:text-gray-300 transition-colors"
+                        >
+                            Quizzes
+                        </Link>
+                    </li>
                 </ul>
             </aside>
 

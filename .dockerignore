@@ -1,0 +1,59 @@
+# Git
+.git
+.github
+.gitignore
+
+# Documentation
+README.md
+CLAUDE.md
+TEST_DOCUMENTATION.md
+docs/
+
+# Development files
+.env.example
+.env.local
+.env.testing
+docker-compose.yml
+docker-compose.override.yml
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+public/build/
+public/hot
+
+# Logs
+storage/logs/
+*.log
+
+# Cache
+bootstrap/cache/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+
+# Testing
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NPM
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp

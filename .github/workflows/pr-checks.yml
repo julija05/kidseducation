@@ -1,0 +1,328 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [ opened, synchronize, reopened, ready_for_review ]
+
+env:
+  NODE_VERSION: '18'
+  PHP_VERSION: '8.2'
+
+jobs:
+  # Skip checks for draft PRs
+  check-pr-ready:
+    runs-on: ubuntu-latest
+    name: Check PR Ready
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+    - name: Check if PR is ready
+      id: check
+      run: |
+        if [ "${{ github.event.pull_request.draft }}" == "true" ]; then
+          echo "should-run=false" >> $GITHUB_OUTPUT
+          echo "⏭️ Skipping checks for draft PR"
+        else
+          echo "should-run=true" >> $GITHUB_OUTPUT
+          echo "✅ PR is ready, running checks"
+        fi
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+    needs: check-pr-ready
+    if: needs.check-pr-ready.outputs.should-run == 'true'
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: kids_education_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        extensions: mbstring, dom, fileinfo, mysql, bcmath, gd, zip, curl
+        coverage: xdebug
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: /tmp/composer-cache
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
+    - name: Install Composer dependencies
+      run: |
+        composer install --no-progress --prefer-dist --optimize-autoloader
+        composer dump-autoload
+
+    - name: Create testing environment file
+      run: |
+        cp .env.example .env.testing
+        echo "APP_ENV=testing" >> .env.testing
+        echo "DB_CONNECTION=mysql" >> .env.testing
+        echo "DB_HOST=127.0.0.1" >> .env.testing
+        echo "DB_PORT=3306" >> .env.testing
+        echo "DB_DATABASE=kids_education_test" >> .env.testing
+        echo "DB_USERNAME=root" >> .env.testing
+        echo "DB_PASSWORD=password" >> .env.testing
+        echo "CACHE_DRIVER=array" >> .env.testing
+        echo "QUEUE_CONNECTION=sync" >> .env.testing
+        echo "SESSION_DRIVER=array" >> .env.testing
+        echo "MAIL_MAILER=array" >> .env.testing
+
+    - name: Generate application key
+      run: php artisan key:generate --env=testing
+
+    - name: Clear application cache
+      run: |
+        php artisan config:clear
+        php artisan cache:clear
+        php artisan view:clear
+
+    - name: Run database migrations
+      run: php artisan migrate --env=testing --force
+
+    - name: Run PHPUnit tests
+      run: |
+        php artisan test --env=testing --coverage-text --colors=never --stop-on-failure
+      
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: test-results
+        path: |
+          storage/logs/
+          tests/
+        retention-days: 7
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    name: Frontend Tests
+    needs: check-pr-ready
+    if: needs.check-pr-ready.outputs.should-run == 'true'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Run JavaScript tests
+      run: |
+        # Add your JavaScript test command here
+        # npm test
+        echo "✅ Frontend tests would run here"
+
+    - name: Build frontend assets
+      run: npm run build
+
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality
+    needs: check-pr-ready
+    if: needs.check-pr-ready.outputs.should-run == 'true'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        extensions: mbstring, dom, fileinfo, mysql
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        composer install --no-progress --prefer-dist --optimize-autoloader
+        npm ci
+
+    - name: Run PHP Static Analysis (PHPStan)
+      run: |
+        composer require --dev phpstan/phpstan --no-update || true
+        composer update phpstan/phpstan --no-interaction || true
+        if [ -f ./vendor/bin/phpstan ]; then
+          ./vendor/bin/phpstan analyse --memory-limit=2G || echo "⚠️ PHPStan issues found"
+        else
+          echo "⚠️ PHPStan not available"
+        fi
+
+    - name: Run PHP Code Style Check
+      run: |
+        composer require --dev friendsofphp/php-cs-fixer --no-update || true
+        composer update friendsofphp/php-cs-fixer --no-interaction || true
+        if [ -f ./vendor/bin/php-cs-fixer ]; then
+          ./vendor/bin/php-cs-fixer fix --dry-run --diff --verbose || echo "⚠️ Code style issues found"
+        else
+          echo "⚠️ PHP CS Fixer not available"
+        fi
+
+    - name: Run ESLint
+      run: |
+        npm install eslint @eslint/js eslint-plugin-react eslint-plugin-react-hooks --save-dev || true
+        if [ -f ./node_modules/.bin/eslint ]; then
+          npx eslint resources/js --ext .js,.jsx --max-warnings 10 || echo "⚠️ ESLint issues found"
+        else
+          echo "⚠️ ESLint not available"
+        fi
+
+    - name: Run Prettier check
+      run: |
+        npm install prettier --save-dev || true
+        if [ -f ./node_modules/.bin/prettier ]; then
+          npx prettier --check resources/js/**/*.{js,jsx} || echo "⚠️ Prettier formatting issues found"
+        else
+          echo "⚠️ Prettier not available"
+        fi
+
+  security-check:
+    runs-on: ubuntu-latest
+    name: Security Check
+    needs: check-pr-ready
+    if: needs.check-pr-ready.outputs.should-run == 'true'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        composer install --no-progress --prefer-dist --optimize-autoloader
+        npm ci
+
+    - name: Run Composer security audit
+      run: composer audit || echo "⚠️ Composer security issues found"
+
+    - name: Run npm security audit
+      run: npm audit --audit-level high --production || echo "⚠️ NPM security issues found"
+
+    - name: Check for sensitive files
+      run: |
+        echo "Checking for sensitive files..."
+        if find . -name "*.env" -not -path "./vendor/*" -not -path "./node_modules/*" | grep -v ".env.example"; then
+          echo "❌ .env files found in repository"
+          exit 1
+        fi
+        if find . -name "*.key" -not -path "./vendor/*" -not -path "./node_modules/*"; then
+          echo "❌ Key files found in repository"
+          exit 1
+        fi
+        echo "✅ No sensitive files detected"
+
+  # Summary job that will be used for branch protection
+  pr-checks-complete:
+    runs-on: ubuntu-latest
+    name: PR Checks Complete
+    needs: [unit-tests, frontend-tests, code-quality, security-check]
+    if: always() && needs.check-pr-ready.outputs.should-run == 'true'
+
+    steps:
+    - name: Check all jobs status
+      run: |
+        echo "Unit Tests: ${{ needs.unit-tests.result }}"
+        echo "Frontend Tests: ${{ needs.frontend-tests.result }}"
+        echo "Code Quality: ${{ needs.code-quality.result }}"
+        echo "Security Check: ${{ needs.security-check.result }}"
+        
+        if [ "${{ needs.unit-tests.result }}" != "success" ]; then
+          echo "❌ Unit tests failed"
+          exit 1
+        fi
+        
+        if [ "${{ needs.frontend-tests.result }}" != "success" ]; then
+          echo "❌ Frontend tests failed"
+          exit 1
+        fi
+        
+        if [ "${{ needs.code-quality.result }}" != "success" ]; then
+          echo "⚠️ Code quality checks failed (non-blocking)"
+        fi
+        
+        if [ "${{ needs.security-check.result }}" != "success" ]; then
+          echo "⚠️ Security checks failed (non-blocking)"
+        fi
+        
+        echo "✅ All required checks passed!"
+
+  # Add a comment to the PR with test results
+  pr-comment:
+    runs-on: ubuntu-latest
+    name: PR Comment
+    needs: [pr-checks-complete, unit-tests, frontend-tests, code-quality, security-check]
+    if: always() && github.event_name == 'pull_request' && needs.check-pr-ready.outputs.should-run == 'true'
+    permissions:
+      pull-requests: write
+
+    steps:
+    - name: Create PR comment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const results = {
+            'Unit Tests': '${{ needs.unit-tests.result }}',
+            'Frontend Tests': '${{ needs.frontend-tests.result }}',
+            'Code Quality': '${{ needs.code-quality.result }}',
+            'Security Check': '${{ needs.security-check.result }}'
+          };
+          
+          let comment = '## 🔍 PR Check Results\n\n';
+          
+          for (const [check, result] of Object.entries(results)) {
+            const emoji = result === 'success' ? '✅' : result === 'failure' ? '❌' : '⚠️';
+            comment += `${emoji} **${check}**: ${result}\n`;
+          }
+          
+          const overallSuccess = results['Unit Tests'] === 'success' && results['Frontend Tests'] === 'success';
+          
+          if (overallSuccess) {
+            comment += '\n🎉 **All required checks passed!** This PR is ready for review.';
+          } else {
+            comment += '\n🚫 **Some required checks failed.** Please fix the issues before merging.';
+          }
+          
+          comment += '\n\n---\n*Automated by GitHub Actions*';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

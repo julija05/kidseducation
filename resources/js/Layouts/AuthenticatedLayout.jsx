@@ -49,9 +49,12 @@ export default function AuthenticatedLayout({
                                         className="mr-3 text-white"
                                         size={32}
                                     />
-                                    <h1 className="text-2xl font-bold text-white">
+                                    <Link 
+                                        href={route("dashboard")}
+                                        className="text-2xl font-bold text-white hover:text-gray-200 transition-colors"
+                                    >
                                         {theme.name}
-                                    </h1>
+                                    </Link>
                                 </>
                             )}
                         </div>

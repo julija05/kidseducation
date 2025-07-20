@@ -62,6 +62,11 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
     public function isStudent(): bool
     {
         return $this->role === 'student';
