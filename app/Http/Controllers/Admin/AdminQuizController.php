@@ -114,6 +114,7 @@ class AdminQuizController extends Controller
             'settings.numbers_per_session' => 'nullable|integer|min:3|max:15',
             'settings.session_count' => 'nullable|integer|min:1|max:10',
             'settings.allow_negative' => 'nullable|boolean',
+            'settings.points_per_session' => 'nullable|integer|min:1|max:100',
         ]);
 
         $quiz = Quiz::create($validated);
@@ -252,6 +253,7 @@ class AdminQuizController extends Controller
             'settings.numbers_per_session' => 'nullable|integer|min:3|max:15',
             'settings.session_count' => 'nullable|integer|min:1|max:10',
             'settings.allow_negative' => 'nullable|boolean',
+            'settings.points_per_session' => 'nullable|integer|min:1|max:100',
         ]);
 
         $quiz->update($validated);
@@ -434,6 +436,7 @@ class AdminQuizController extends Controller
 
         // Auto-create a flash card question for this quiz
         $nextOrder = $quiz->questions()->max('order') + 1;
+        $pointsPerSession = $settings['points_per_session'] ?? 10;
         
         $question = $quiz->questions()->create([
             'type' => 'mental_arithmetic',
@@ -444,7 +447,7 @@ class AdminQuizController extends Controller
                 'display_type' => 'flash_cards'
             ],
             'correct_answer' => 'flash_card_sessions', // Special marker for flash card questions
-            'points' => $sessionCount * 10, // 10 points per session
+            'points' => $sessionCount * $pointsPerSession, // Configurable points per session
             'order' => $nextOrder,
         ]);
 

@@ -27,7 +27,8 @@ export default function CreateQuiz({ programs, lessons, quiz_types }) {
             display_time: 5,
             numbers_per_session: 5,
             session_count: 3,
-            allow_negative: true
+            allow_negative: true,
+            points_per_session: 10
         },
     });
 

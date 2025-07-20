@@ -137,6 +137,12 @@ class EnrollmentService
                 'title' => $nextLesson->title,
                 'level' => $nextLesson->level,
             ] : null,
+            // Points system information
+            'quizPoints' => $enrollment->quiz_points ?? 0,
+            'highestUnlockedLevel' => $enrollment->highest_unlocked_level ?? 1,
+            'levelRequirements' => $program->getEffectiveLevelRequirements(),
+            'pointsForNextLevel' => $enrollment->getPointsForNextLevel(),
+            'pointsNeededForNextLevel' => $enrollment->getPointsNeededForNextLevel(),
         ];
     }
 
@@ -184,28 +190,7 @@ class EnrollmentService
      */
     private function isLessonUnlockedForUser($lesson, User $user): bool
     {
-        // Level 1 lessons are always unlocked
-        if ($lesson->level === 1) {
-            return true;
-        }
-
-        // Check if user has completed all lessons in the previous level
-        $previousLevel = $lesson->level - 1;
-        $previousLevelLessons = $lesson->program->lessons()
-            ->byLevel($previousLevel)
-            ->active()
-            ->pluck('id');
-
-        if ($previousLevelLessons->isEmpty()) {
-            return true;
-        }
-
-        // Count completed lessons in previous level
-        $completedCount = LessonProgress::where('user_id', $user->id)
-            ->whereIn('lesson_id', $previousLevelLessons)
-            ->where('status', 'completed')
-            ->count();
-
-        return $completedCount === $previousLevelLessons->count();
+        // Use the new points-based system for level unlocking
+        return $lesson->isUnlockedForUser($user);
     }
 }

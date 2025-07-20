@@ -164,8 +164,10 @@ class QuizAttempt extends Model
 
         // Handle mental arithmetic quizzes - check if we have temp answer first
         if ($this->quiz->type === 'mental_arithmetic' && isset($this->answers['temp_mental_arithmetic'])) {
-            // For mental arithmetic quizzes with temporary questions, use fixed scoring
-            $totalPoints = 100; // Fixed total points for mental arithmetic
+            // For mental arithmetic quizzes with temporary questions, use configurable scoring
+            $sessionCount = $this->quiz->settings['session_count'] ?? 3;
+            $pointsPerSession = $this->quiz->settings['points_per_session'] ?? 10;
+            $totalPoints = $sessionCount * $pointsPerSession;
             
             $userAnswer = $this->answers['temp_mental_arithmetic']['answer'] ?? '';
             
@@ -227,6 +229,35 @@ class QuizAttempt extends Model
             'completed_at' => now(),
             'time_taken' => $timeTaken,
         ]);
+        
+        // Award points for completing quiz
+        $this->awardQuizPoints();
+    }
+    
+    // Award points to user's enrollment for completing quiz
+    private function awardQuizPoints(): void
+    {
+        $enrollment = $this->user->enrollments()
+            ->where('program_id', $this->quiz->lesson->program_id)
+            ->where('approval_status', 'approved')
+            ->first();
+            
+        if ($enrollment) {
+            // Check if this is the first time the user has passed this quiz
+            $hasPassedBefore = $this->quiz->userAttempts($this->user)
+                ->where('id', '!=', $this->id) // Exclude current attempt
+                ->where('status', 'completed')
+                ->where('score', '>=', $this->quiz->passing_score)
+                ->exists();
+            
+            // Only award points if this is the first time passing the quiz
+            if ($this->passed && !$hasPassedBefore) {
+                $pointsToAward = $this->earned_points ?? 0;
+                if ($pointsToAward > 0) {
+                    $enrollment->addQuizPoints($pointsToAward);
+                }
+            }
+        }
     }
 
     public function abandon(): void

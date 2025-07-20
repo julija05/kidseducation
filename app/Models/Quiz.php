@@ -125,11 +125,31 @@ class Quiz extends Model
 
     public function getTotalPointsAttribute(): float
     {
+        // For mental arithmetic quizzes without database questions, calculate from settings
+        if ($this->type === 'mental_arithmetic' && $this->questions()->count() === 0) {
+            $sessionCount = $this->settings['session_count'] ?? 3;
+            $pointsPerSession = $this->settings['points_per_session'] ?? 10;
+            
+            // Auto-update quiz settings if points_per_session is missing (for existing quizzes)
+            if (!isset($this->settings['points_per_session'])) {
+                $this->updateQuietly([
+                    'settings' => array_merge($this->settings ?? [], ['points_per_session' => 10])
+                ]);
+            }
+            
+            return $sessionCount * $pointsPerSession;
+        }
+        
         return $this->questions()->sum('points');
     }
 
     public function getTotalQuestionsAttribute(): int
     {
+        // For mental arithmetic quizzes without database questions, return 1 (the flash card session)
+        if ($this->type === 'mental_arithmetic' && $this->questions()->count() === 0) {
+            return 1;
+        }
+        
         return $this->questions()->count();
     }
 
@@ -341,6 +361,9 @@ class Quiz extends Model
     public function canUserTakeQuiz(User $user): bool
     {
         if (!$this->is_active) return false;
+
+        // If user has already passed the quiz, they cannot take it again
+        if ($this->hasUserPassed($user)) return false;
 
         $attemptsCount = $this->getUserAttemptsCount($user);
         return $attemptsCount < $this->max_attempts;

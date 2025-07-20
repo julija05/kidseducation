@@ -428,6 +428,44 @@ export default function MentalArithmeticBuilder({ formData, onChange, errors, on
                     </div>
                 </div>
             </div>
+
+            {/* Points Configuration */}
+            <div className="bg-yellow-50 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                    <Settings className="w-5 h-5 text-yellow-600 mr-2" />
+                    <h4 className="text-md font-medium text-yellow-900">Points Configuration</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Points per Session
+                        </label>
+                        <input
+                            type="number"
+                            value={formData.settings?.points_per_session || 10}
+                            onChange={(e) => {
+                                e.stopPropagation();
+                                handleSettingsChange('points_per_session', parseInt(e.target.value) || 10);
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            min="1"
+                            max="100"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Points awarded for completing each session</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Total Points Available
+                        </label>
+                        <div className="bg-gray-100 px-3 py-2 rounded-md text-sm font-medium text-gray-900">
+                            {(formData.settings?.points_per_session || 10) * sessionCount} points
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {sessionCount} sessions × {formData.settings?.points_per_session || 10} points each
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

@@ -25,11 +25,13 @@ class Program extends Model
         'text_color',
         'duration_weeks',
         'is_active',
+        'level_requirements',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'is_active' => 'boolean',
+        'level_requirements' => 'array',
     ];
 
     protected $attributes = [
@@ -79,5 +81,38 @@ class Program extends Model
             'borderColor' => $this->border_color,
             'textColor' => $this->text_color,
         ];
+    }
+    
+    // Check if a level is unlocked for a user
+    public function isLevelUnlockedForUser(User $user, int $level): bool
+    {
+        $enrollment = $user->enrollments()
+            ->where('program_id', $this->id)
+            ->where('approval_status', 'approved')
+            ->first();
+            
+        if (!$enrollment) {
+            return false;
+        }
+        
+        return $enrollment->isLevelUnlocked($level);
+    }
+    
+    // Get default level requirements if not set
+    public function getDefaultLevelRequirements(): array
+    {
+        return [
+            '1' => 0,    // Level 1 - always unlocked
+            '2' => 10,   // Level 2 - need 10 points
+            '3' => 25,   // Level 3 - need 25 points
+            '4' => 50,   // Level 4 - need 50 points
+            '5' => 100,  // Level 5 - need 100 points
+        ];
+    }
+    
+    // Get effective level requirements (use custom or default)
+    public function getEffectiveLevelRequirements(): array
+    {
+        return $this->level_requirements ?? $this->getDefaultLevelRequirements();
     }
 }

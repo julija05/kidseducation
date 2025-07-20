@@ -122,4 +122,10 @@ class Lesson extends Model
         $progress = $this->userProgress($user);
         return $progress && $progress->status !== 'not_started';
     }
+    
+    // Check if this lesson is unlocked for a user based on level requirements
+    public function isUnlockedForUser(User $user): bool
+    {
+        return $this->program->isLevelUnlockedForUser($user, $this->level);
+    }
 }

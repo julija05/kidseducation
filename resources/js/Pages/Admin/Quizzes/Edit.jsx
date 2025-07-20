@@ -19,13 +19,15 @@ export default function EditQuiz({ quiz, lessons, quiz_types }) {
         shuffle_questions: quiz.shuffle_questions ?? false,
         shuffle_answers: quiz.shuffle_answers ?? false,
         is_active: quiz.is_active ?? true,
-        settings: quiz.settings || {
+        settings: {
             operations: ['addition', 'subtraction'],
             number_range: { min: 1, max: 10 },
             display_time: 5,
             numbers_per_session: 5,
             session_count: 3,
-            allow_negative: true
+            allow_negative: true,
+            points_per_session: 10,
+            ...quiz.settings,  // Preserve existing settings, overriding defaults
         },
     });
 

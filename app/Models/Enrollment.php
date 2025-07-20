@@ -18,6 +18,8 @@ class Enrollment extends Model
         'approval_status',
         'status', // active, completed, paused, cancelled
         'progress', // percentage
+        'quiz_points',
+        'highest_unlocked_level',
         'rejection_reason',
         'approved_at',
         'approved_by',
@@ -29,9 +31,10 @@ class Enrollment extends Model
         'enrolled_at' => 'datetime',
         'completed_at' => 'datetime',
         'progress' => 'float',
+        'quiz_points' => 'integer',
+        'highest_unlocked_level' => 'integer',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
-
     ];
 
     public function user(): BelongsTo
@@ -124,5 +127,97 @@ class Enrollment extends Model
         }
 
         return null; // All lessons completed
+    }
+    
+    // Add quiz points and check for level unlock
+    public function addQuizPoints(int $points): void
+    {
+        $this->quiz_points += $points;
+        $this->checkLevelUnlock();
+        $this->save();
+    }
+    
+    // Check if student has earned enough points to unlock next level
+    private function checkLevelUnlock(): void
+    {
+        $requirements = $this->program->level_requirements ?? [];
+        
+        // If no requirements set, allow all levels
+        if (empty($requirements)) {
+            return;
+        }
+        
+        // Check each level requirement
+        foreach ($requirements as $level => $requiredPoints) {
+            $levelNum = intval($level);
+            
+            // If user has enough points and level is higher than current
+            if ($this->quiz_points >= $requiredPoints && $levelNum > $this->highest_unlocked_level) {
+                $this->highest_unlocked_level = $levelNum;
+            }
+        }
+    }
+    
+    // Check if a specific level is unlocked for this user
+    public function isLevelUnlocked(int $level): bool
+    {
+        return $level <= $this->highest_unlocked_level;
+    }
+    
+    // Get points required for next level
+    public function getPointsForNextLevel(): ?int
+    {
+        $requirements = $this->program->level_requirements ?? [];
+        
+        if (empty($requirements)) {
+            return null;
+        }
+        
+        $nextLevel = $this->highest_unlocked_level + 1;
+        
+        return $requirements[$nextLevel] ?? null;
+    }
+    
+    // Get points needed to unlock next level
+    public function getPointsNeededForNextLevel(): ?int
+    {
+        $nextLevelPoints = $this->getPointsForNextLevel();
+        
+        if ($nextLevelPoints === null) {
+            return null;
+        }
+        
+        return max(0, $nextLevelPoints - $this->quiz_points);
+    }
+    
+    // Recalculate quiz points based on actual quiz performance
+    public function recalculateQuizPoints(): void
+    {
+        $totalPoints = 0;
+        
+        // Load the user relationship to ensure we have the User model
+        $this->load('user');
+        
+        // Get all quizzes for this program
+        $quizzes = \App\Models\Quiz::whereHas('lesson', function ($query) {
+            $query->where('program_id', $this->program_id);
+        })->get();
+        
+        foreach ($quizzes as $quiz) {
+            // Get the best passing attempt for this user for this quiz
+            $bestPassingAttempt = $quiz->userAttempts($this->user)
+                ->where('status', 'completed')
+                ->where('score', '>=', $quiz->passing_score)
+                ->orderBy('earned_points', 'desc')
+                ->first();
+            
+            if ($bestPassingAttempt) {
+                $totalPoints += $bestPassingAttempt->earned_points ?? 0;
+            }
+        }
+        
+        $this->quiz_points = $totalPoints;
+        $this->checkLevelUnlock();
+        $this->save();
     }
 }

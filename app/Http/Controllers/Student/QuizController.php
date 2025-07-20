@@ -137,6 +137,7 @@ class QuizController extends Controller
         if ($quiz->type === 'mental_arithmetic' && $questions->isEmpty()) {
             // If no questions exist for mental arithmetic quiz, create a default one
             $sessionCount = $quiz->settings['session_count'] ?? 3;
+            $pointsPerSession = $quiz->settings['points_per_session'] ?? 10;
             $sessions = $quiz->generateMentalArithmeticSessions($sessionCount);
             
             // Create a proper QuizQuestion instance for the frontend
@@ -149,7 +150,7 @@ class QuizController extends Controller
                     'type' => 'flash_card_sessions'
                 ],
                 'correct_answer' => 'flash_card_sessions',
-                'points' => count($sessions) * 10,
+                'points' => $sessionCount * $pointsPerSession,
                 'order' => 1,
             ]);
             
@@ -318,7 +319,10 @@ class QuizController extends Controller
                             $totalSessions = $answerData['total_sessions'] ?? 0;
                             
                             $isCorrect = $percentage >= 50;
-                            $pointsEarned = ($percentage / 100) * 100; // Fixed 100 points for mental arithmetic
+                            $sessionCount = $quiz->settings['session_count'] ?? 3;
+                            $pointsPerSession = $quiz->settings['points_per_session'] ?? 10;
+                            $maxPoints = $sessionCount * $pointsPerSession;
+                            $pointsEarned = ($percentage / 100) * $maxPoints;
                             
                             // Create a user-friendly display
                             $userAnswerDisplay = "Flash Card Sessions: {$correctCount}/{$totalSessions} correct ({$percentage}%)";
@@ -333,7 +337,7 @@ class QuizController extends Controller
                             'id' => 'temp_mental_arithmetic',
                             'type' => 'mental_arithmetic',
                             'question_text' => 'Complete the mental arithmetic flash card sessions',
-                            'points' => 100
+                            'points' => $maxPoints
                         ],
                         'user_answer' => $userAnswerDisplay,
                         'is_correct' => $isCorrect,
