@@ -28,6 +28,13 @@ class ProgramSeeder extends Seeder
                 'duration' => '16 weeks',
                 'image' => 'coding.svg',
             ],
+            [
+                'name' => 'Test',
+                'description' => 'Test',
+                'price' => 150,
+                'duration' => '16 weeks',
+                'image' => 'coding.svg',
+            ],
         ];
 
         foreach ($programs as $program) {

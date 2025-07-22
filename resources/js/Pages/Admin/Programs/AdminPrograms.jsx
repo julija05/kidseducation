@@ -4,9 +4,9 @@ import { Link, useForm } from "@inertiajs/react";
 export default function AdminPrograms({ programs }) {
     const { delete: destroy } = useForm();
 
-    const handleDelete = (id) => {
+    const handleDelete = (program) => {
         if (confirm("Are you sure you want to delete this program?")) {
-            destroy(route("admin.programs.destroy", id));
+            destroy(route("admin.programs.destroy", program.slug || program.id));
         }
     };
 
@@ -45,13 +45,13 @@ export default function AdminPrograms({ programs }) {
                                 Lessons
                             </Link>
                             <Link
-                                href={route("admin.programs.edit", program.id)}
+                                href={route("admin.programs.edit", program.slug || program.id)}
                                 className="text-blue-600 hover:underline"
                             >
                                 Edit
                             </Link>
                             <button
-                                onClick={() => handleDelete(program.id)}
+                                onClick={() => handleDelete(program)}
                                 className="text-red-600 hover:underline"
                             >
                                 Delete
