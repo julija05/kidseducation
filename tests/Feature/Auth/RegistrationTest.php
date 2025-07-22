@@ -4,10 +4,19 @@ namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Tests\Traits\CreatesRoles;
 
 class RegistrationTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesRoles;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Create roles safely
+        $this->createRoles();
+    }
 
     public function test_registration_screen_can_be_rendered(): void
     {

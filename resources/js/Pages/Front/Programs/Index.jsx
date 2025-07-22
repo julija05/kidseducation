@@ -64,7 +64,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                                     🎁 1 Free Class
                                 </div>
                                 <img
-                                    src={`/${program.image}`}
+                                    src={`${program.image}`}
                                     alt={program.name}
                                     className="mb-8 mx-auto w-72 h-72 object-contain shadow-md rounded-xl mt-10"
                                 />
@@ -77,7 +77,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                                     {program.description}
                                 </p>
                                 <Link
-                                    href={route("programs.show", program.id)}
+                                    href={route("programs.show", program.slug)}
                                     className={`inline-block ${color.button} text-white text-lg px-6 py-3 rounded-full transition shadow-lg`}
                                 >
                                     Learn More

@@ -1,162 +1,154 @@
-import Card from "@/Components/Card";
-import SideNavigation from "@/Components/SideNavigation";
+// resources/js/Pages/Dashboard.jsx - Clean Version
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
-import { Circle } from "react-awesome-shapes/dist/shapes/circle";
+import { Head, usePage, router } from "@inertiajs/react";
+import { useState, useEffect } from "react";
+
+// Import Dashboard components
+import {
+    EnrollmentConfirmationModal,
+    ProgramList,
+    PendingEnrollment,
+    ProgramContent,
+    ProgressOverview,
+} from "@/Components/Dashboard";
+import { iconMap } from "@/Utils/iconMapping";
 
 export default function Dashboard() {
-    return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Introduction
-                </h2>
+    const { props } = usePage();
+    const {
+        enrolledProgram,
+        pendingEnrollments,
+        availablePrograms,
+        nextClass,
+        pendingProgramId,
+        flash,
+    } = props;
+
+    const student = props.auth.user;
+    const [showEnrollModal, setShowEnrollModal] = useState(false);
+    const [selectedProgram, setSelectedProgram] = useState(null);
+
+    // Enhanced debug logging (keeping console logs for debugging)
+    console.log("=== DASHBOARD DEBUG ===");
+    console.log("Enrolled program:", enrolledProgram);
+    console.log("Enrolled program theme:", enrolledProgram?.theme);
+    console.log("Progress:", enrolledProgram?.progress);
+    console.log("=====================");
+
+    // Check if user came from program registration
+    useEffect(() => {
+        if (pendingProgramId && availablePrograms) {
+            const program = availablePrograms.find(
+                (p) => p.id === pendingProgramId
+            );
+            if (program) {
+                setSelectedProgram(program);
+                setShowEnrollModal(true);
             }
-        >
-            <Head title="Introduction" />
+        }
+    }, [pendingProgramId, availablePrograms]);
 
-            <div className="container px-6 m-auto pt-6">
-                <h1 className="text-xl font-semibold leading-tight text-gray-800">
-                    General Facts
+    const handleStartLesson = (lessonId) => {
+        // Navigate to the lesson page
+        router.visit(route("lessons.show", lessonId));
+    };
+
+    const handleReviewLesson = (lessonId) => {
+        // Navigate to the lesson page for review
+        router.visit(route("lessons.show", lessonId));
+    };
+
+    const handleEnrollConfirm = () => {
+        router.post(
+            route("programs.enroll", selectedProgram.slug),
+            {},
+            {
+                onSuccess: () => {
+                    setShowEnrollModal(false);
+                    setSelectedProgram(null);
+                },
+            }
+        );
+    };
+
+    // If student has an approved enrollment
+    if (enrolledProgram && enrolledProgram.approvalStatus === "approved") {
+        const ProgramIcon =
+            iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
+
+        const customHeader = (
+            <>
+                <ProgramIcon className="mr-3" size={32} />
+                <h1 className="text-2xl font-bold">
+                    🎓 {enrolledProgram.name} Learning Adventure
                 </h1>
-                <div className="grid grid-cols-4 gap-6 md:grid-cols-8 lg:grid-cols-12 pt-6">
-                    <div className="col-span-4">
-                        <Card
-                            title="Something to remember"
-                            content="All components can be copied and pasted and easily implemented in your Tailwind CSS projects. You can choose which language you want to copy the desired component and just hover and click on the component you need and paste it into your project."
-                        />
-                    </div>
-                    <div className="col-span-4">
-                        <Card
-                            title="Something to remember"
-                            content="All components can be copied and pasted and easily implemented in your Tailwind CSS projects. You can choose which language you want to copy the desired component and just hover and click on the component you need and paste it into your project."
-                        />
-                    </div>
-                    <div className="col-span-4">
-                        <Card
-                            title="Something to remember"
-                            content="All components can be copied and pasted and easily implemented in your Tailwind CSS projects. You can choose which language you want to copy the desired component and just hover and click on the component you need and paste it into your project."
+            </>
+        );
+
+        return (
+            <AuthenticatedLayout
+                programConfig={enrolledProgram.theme}
+                customHeader={customHeader}
+            >
+                <Head title={`${enrolledProgram.name} Dashboard`} />
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Progress Overview */}
+                    <ProgressOverview
+                        enrolledProgram={enrolledProgram}
+                        nextClass={nextClass}
+                    />
+
+                    {/* Program Content */}
+                    <div
+                        className={`${
+                            enrolledProgram.theme?.lightColor || "bg-gradient-to-br from-blue-50 to-purple-50"
+                        } ${
+                            enrolledProgram.theme?.borderColor ||
+                            "border-blue-200"
+                        } border-2 rounded-xl shadow-lg p-6 transform hover:shadow-xl transition-shadow duration-300`}
+                    >
+                        <ProgramContent
+                            program={enrolledProgram}
+                            onStartLesson={handleStartLesson}
+                            onReviewLesson={handleReviewLesson}
                         />
                     </div>
                 </div>
+            </AuthenticatedLayout>
+        );
+    }
+
+    // Show both pending enrollments AND available programs
+    return (
+        <AuthenticatedLayout>
+            <Head title="Dashboard" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Show pending enrollment notification if exists */}
+                {pendingEnrollments && pendingEnrollments.length > 0 && (
+                    <div className="mb-8">
+                        <PendingEnrollment enrollment={pendingEnrollments[0]} />
+                    </div>
+                )}
+
+                {/* Always show available programs */}
+                <ProgramList
+                    programs={availablePrograms || []}
+                    userEnrollments={pendingEnrollments || []}
+                />
+
+                {/* Enrollment Confirmation Modal */}
+                {showEnrollModal && selectedProgram && (
+                    <EnrollmentConfirmationModal
+                        program={selectedProgram}
+                        onConfirm={handleEnrollConfirm}
+                        onCancel={() => {
+                            setShowEnrollModal(false);
+                            setSelectedProgram(null);
+                        }}
+                    />
+                )}
             </div>
-
-            <section>
-                <div class="container px-6 m-auto pt-6">
-                    <h1 className="text-xl font-semibold leading-tight text-gray-800">
-                        Course Structure
-                    </h1>
-                    <div class="grid grid-cols-4 gap-6 md:grid-cols-8 lg:grid-cols-12 pt-6">
-                        <div class="col-span-4 lg:col-span-2 ">
-                            <div className="relative w-[180px] h-[180px]">
-                                {/* Circle */}
-                                <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-300 to-indigo-600"
-                                    style={{
-                                        background:
-                                            "linear-gradient(135deg, #a5b4fc, #6366f1)",
-                                    }}
-                                ></div>
-
-                                {/* Text */}
-                                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-                                    Step 1
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-4 lg:col-span-2">
-                            {" "}
-                            <div className="relative w-[180px] h-[180px]">
-                                {/* Circle */}
-                                <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-300 to-indigo-600"
-                                    style={{
-                                        background:
-                                            "linear-gradient(135deg, #a5b4fc, #6366f1)",
-                                    }}
-                                ></div>
-
-                                {/* Text */}
-                                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-                                    Step 2
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-4 lg:col-span-2">
-                            {" "}
-                            <div className="relative w-[180px] h-[180px]">
-                                {/* Circle */}
-                                <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-300 to-indigo-600"
-                                    style={{
-                                        background:
-                                            "linear-gradient(135deg, #a5b4fc, #6366f1)",
-                                    }}
-                                ></div>
-
-                                {/* Text */}
-                                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-                                    Step 3
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-4 lg:col-span-2">
-                            {" "}
-                            <div className="relative w-[180px] h-[180px]">
-                                {/* Circle */}
-                                <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-300 to-indigo-600"
-                                    style={{
-                                        background:
-                                            "linear-gradient(135deg, #a5b4fc, #6366f1)",
-                                    }}
-                                ></div>
-
-                                {/* Text */}
-                                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-                                    Step 4
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-4 lg:col-span-2">
-                            {" "}
-                            <div className="relative w-[180px] h-[180px]">
-                                {/* Circle */}
-                                <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-300 to-indigo-600"
-                                    style={{
-                                        background:
-                                            "linear-gradient(135deg, #a5b4fc, #6366f1)",
-                                    }}
-                                ></div>
-
-                                {/* Text */}
-                                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-                                    Step 5
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-4 lg:col-span-2">
-                            {" "}
-                            <div className="relative w-[180px] h-[180px]">
-                                {/* Circle */}
-                                <div
-                                    className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-300 to-indigo-600"
-                                    style={{
-                                        background:
-                                            "linear-gradient(135deg, #a5b4fc, #6366f1)",
-                                    }}
-                                ></div>
-
-                                {/* Text */}
-                                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">
-                                    Step 6
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </AuthenticatedLayout>
     );
 }

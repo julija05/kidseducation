@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Program;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,9 +19,28 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Register');
+        // Check if there's a program enrollment intent
+        $programId = $request->query('program');
+        $program = null;
+
+        if ($programId) {
+            $program = Program::find($programId);
+            if ($program) {
+                // Store in session for after registration
+                session(['pending_enrollment_program_id' => $program->id]);
+            }
+        }
+
+        return Inertia::render('Auth/Register', [
+            'enrollmentProgram' => $program ? [
+                'id' => $program->id,
+                'name' => $program->name,
+                'description' => $program->description,
+                'price' => $program->price,
+            ] : null,
+        ]);
     }
 
     /**
@@ -32,7 +52,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -41,10 +61,17 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+        $user->assignRole('student');
+
 
         event(new Registered($user));
 
         Auth::login($user);
+
+        if (session('enrollment_program_id')) {
+            return redirect()->route('dashboard');
+        }
+
 
         return redirect(route('dashboard', absolute: false));
     }
