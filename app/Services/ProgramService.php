@@ -9,6 +9,7 @@ use App\Repositories\Interfaces\ProgramRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Str;
 
 class ProgramService
 {
@@ -38,6 +39,14 @@ class ProgramService
      */
     public function createProgram(array $data, ?UploadedFile $image = null): Program
     {
+        // Remove _method field as it's not a database field
+        unset($data['_method']);
+        
+        // Generate slug from name
+        if (isset($data['name']) && !isset($data['slug'])) {
+            $data['slug'] = Str::slug($data['name']);
+        }
+        
         if ($image) {
             $data['image'] = $this->imageService->store($image);
         }

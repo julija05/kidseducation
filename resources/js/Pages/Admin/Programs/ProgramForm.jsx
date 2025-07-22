@@ -2,11 +2,10 @@ import { useForm } from "@inertiajs/react";
 import { useEffect } from "react";
 import FormField from "@/Components/Form/FormField";
 import ImagePreview from "@/Components/ImagePreview/ImagePreview";
-import { FormSubmitHandler } from "@/Components/Handlers/FormSubmitHandler";
 
 // Single Responsibility: Manage program form state and render form fields
-export default function ProgramForm({ formData = {} }) {
-    const { data, setData, post, processing, errors } = useForm({
+export default function ProgramForm({ formData = {}, onSubmit }) {
+    const { data, setData, post, put, processing, errors } = useForm({
         name: formData.name || "",
         description: formData.description || "",
         duration: formData.duration || "",
@@ -29,30 +28,28 @@ export default function ProgramForm({ formData = {} }) {
         }
     }, [formData]);
 
-    const submitHandler = new FormSubmitHandler(post, route);
     const isUpdate = Boolean(formData.id);
 
-    const handleFieldChange = (name, value) => {
+    const handleFieldChange = (e) => {
+        const name = e.target.name;
+        const value = e.target.type === 'file' ? e.target.files[0] : e.target.value;
         setData(name, value);
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        const onSuccess = () => {
-            console.log(`${isUpdate ? "Update" : "Create"} successful`);
-            // Flash message will be handled by the backend redirect
-        };
-
-        const onError = (errors) => {
-            console.log(`${isUpdate ? "Update" : "Create"} errors:`, errors);
-            // You could add client-side error handling here if needed
-        };
-
-        if (isUpdate) {
-            submitHandler.handleUpdate(data, formData.id, onSuccess, onError);
-        } else {
-            submitHandler.handleCreate(data, onSuccess, onError);
+        e.stopPropagation();
+        
+        if (processing) {
+            return;
+        }
+        
+        if (onSubmit) {
+            onSubmit(data, post, put, {
+                forceFormData: true,
+                preserveScroll: true,
+                preserveState: false,
+            });
         }
     };
 

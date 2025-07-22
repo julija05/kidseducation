@@ -1,10 +1,9 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import ProgramForm from "./ProgramForm";
-import { router } from "@inertiajs/react";
 
 export default function Create() {
-    const handleSubmit = (data, post) => {
-        post(route("admin.programs.store"));
+    const handleSubmit = (data, post, put, options) => {
+        post(route("admin.programs.store"), options);
     };
 
     return (

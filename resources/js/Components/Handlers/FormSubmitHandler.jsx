@@ -27,9 +27,9 @@ export class FormSubmitHandler {
 
     handleCreate(data, onSuccess, onError) {
         const cleanData = this.prepareData(data, false);
+        console.log('FormSubmitHandler.handleCreate:', { data, cleanData });
 
-        this.post(this.route("admin.programs.store"), {
-            data: cleanData,
+        this.post(this.route("admin.programs.store"), cleanData, {
             ...this.getSubmissionOptions(),
             onSuccess,
             onError,
@@ -38,9 +38,9 @@ export class FormSubmitHandler {
 
     handleUpdate(data, programId, onSuccess, onError) {
         const cleanData = this.prepareData(data, true);
+        console.log('FormSubmitHandler.handleUpdate:', { data, cleanData, programId });
 
-        this.post(this.route("admin.programs.update", programId), {
-            data: cleanData,
+        this.post(this.route("admin.programs.update", programId), cleanData, {
             ...this.getSubmissionOptions(),
             onSuccess,
             onError,
