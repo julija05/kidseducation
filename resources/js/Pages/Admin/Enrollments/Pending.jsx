@@ -12,7 +12,7 @@ import {
     AlertCircle,
 } from "lucide-react";
 
-export default function PendingEnrollments({ enrollments }) {
+export default function PendingEnrollments({ enrollments, highlight_user_id }) {
     const [selectedEnrollment, setSelectedEnrollment] = useState(null);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
@@ -103,10 +103,12 @@ export default function PendingEnrollments({ enrollments }) {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {enrollments.map((enrollment) => (
+                                    {enrollments.map((enrollment) => {
+                                        const isHighlighted = highlight_user_id && enrollment.user.id == highlight_user_id;
+                                        return (
                                         <tr
                                             key={enrollment.id}
-                                            className="hover:bg-gray-50"
+                                            className={`hover:bg-gray-50 ${isHighlighted ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
@@ -184,7 +186,8 @@ export default function PendingEnrollments({ enrollments }) {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))}
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>

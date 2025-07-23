@@ -7,6 +7,7 @@ use App\Models\Enrollment;
 use App\Models\User;
 use App\Mail\EnrollmentApprovedMail;
 use App\Mail\EnrollmentRejectedMail;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,15 +19,27 @@ class EnrollmentApprovalController extends Controller
     /**
      * Display pending enrollments
      */
-    public function index()
+    public function index(Request $request)
     {
-        $pendingEnrollments = Enrollment::with(['user', 'program'])
-            ->where('approval_status', 'pending')
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $query = Enrollment::with(['user', 'program'])
+            ->where('approval_status', 'pending');
 
-        return Inertia::render('Admin/Enrollments/Pending', [
-            'enrollments' => $pendingEnrollments->toArray()
+        // Check if we need to highlight a specific user
+        $highlightUserId = $request->get('highlight_user');
+        
+        if ($highlightUserId) {
+            // Order by highlighted user first, then by creation date
+            $query->orderByRaw("CASE WHEN user_id = ? THEN 0 ELSE 1 END", [$highlightUserId])
+                  ->orderBy('created_at', 'asc');
+        } else {
+            $query->orderBy('created_at', 'asc');
+        }
+
+        $pendingEnrollments = $query->get();
+
+        return $this->createView('Admin/Enrollments/Pending', [
+            'enrollments' => $pendingEnrollments->toArray(),
+            'highlight_user_id' => $highlightUserId
         ]);
     }
 
@@ -57,7 +70,7 @@ class EnrollmentApprovalController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('Admin/Enrollments/Index', [
+        return $this->createView('Admin/Enrollments/Index', [
             'enrollments' => $enrollments,
             'currentStatus' => $request->status ?? 'all',
             'searchTerm' => $request->search ?? ''
@@ -82,6 +95,10 @@ class EnrollmentApprovalController extends Controller
                 'approved_at' => now(),
                 'approved_by' => auth()->id()
             ]);
+
+            // Create notification
+            $notificationService = new NotificationService();
+            $notificationService->createEnrollmentNotification($enrollment, 'approved');
 
             // Send approval email to student (if mail class exists)
             // try {
@@ -140,6 +157,10 @@ class EnrollmentApprovalController extends Controller
             }
 
             DB::commit();
+
+            // Create notification
+            $notificationService = new NotificationService();
+            $notificationService->createEnrollmentNotification($enrollment, 'rejected');
 
             // Send rejection email to student (if needed)
             // ... email code ...

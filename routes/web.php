@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\AdminQuizController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
@@ -120,6 +122,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/enrollments', [EnrollmentApprovalController::class, 'all'])->name('enrollments.index');
     Route::post('/enrollments/{enrollment}/approve', [EnrollmentApprovalController::class, 'approve'])->name('enrollments.approve');
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
+
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('/notifications/cleanup', [NotificationController::class, 'cleanup'])->name('notifications.cleanup');
+
+    // Test Email Route (only in non-production)
+    Route::get('/test-email', [TestEmailController::class, 'testStudentEmail'])->name('test.email');
 
     // Lesson Resources Routes
     Route::prefix('lessons/{lesson}/resources')->name('lessons.resources.')->group(function () {

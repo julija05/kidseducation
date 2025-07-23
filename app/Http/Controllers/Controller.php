@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Cache;
@@ -59,6 +60,13 @@ abstract class Controller
     protected function createView(string $templateName, array $values = [])
     {
         $template = $this->templateValues;
+        
+        // Add notifications for admin pages
+        if (str_starts_with($templateName, 'Admin/') && auth()->check()) {
+            $notificationService = new NotificationService();
+            $template['notifications'] = $notificationService->getForAdminDashboard();
+        }
+        
         return Inertia::render($templateName, array_merge($template, $values));
     }
 }
