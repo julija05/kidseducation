@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Check, X, Clock, Users, AlertCircle } from 'lucide-react';
+import { Bell, Check, X, Clock, Users, AlertCircle, Calendar } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
 export default function Notifications({ notifications = [], unreadCount = 0, onMarkAsRead, onMarkAllAsRead }) {
@@ -20,15 +20,25 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
     }, [isOpen, unreadCount, onMarkAllAsRead]);
 
     const handleNotificationClick = (notification) => {
+        // Close the dropdown first
+        setIsOpen(false);
+        
         if (notification.type === 'enrollment') {
-            // Close the dropdown
-            setIsOpen(false);
             // Navigate to pending enrollments with user ID parameter
             const userId = notification.data?.user_id;
             const url = userId 
                 ? route('admin.enrollments.pending', { highlight_user: userId })
                 : route('admin.enrollments.pending');
             router.visit(url);
+        } else if (notification.type === 'schedule') {
+            // Navigate to the specific class schedule
+            const scheduleId = notification.data?.schedule_id;
+            if (scheduleId) {
+                router.visit(route('admin.class-schedules.show', scheduleId));
+            } else {
+                // Fallback to class schedules index if no specific ID
+                router.visit(route('admin.class-schedules.index'));
+            }
         }
     };
 
@@ -36,6 +46,8 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
         switch (type) {
             case 'enrollment':
                 return <Users className="w-4 h-4 text-blue-500" />;
+            case 'schedule':
+                return <Calendar className="w-4 h-4 text-green-500" />;
             default:
                 return <AlertCircle className="w-4 h-4 text-gray-500" />;
         }
@@ -45,6 +57,8 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
         switch (type) {
             case 'enrollment':
                 return 'border-l-blue-500';
+            case 'schedule':
+                return 'border-l-green-500';
             default:
                 return 'border-l-gray-500';
         }
@@ -147,6 +161,23 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
                                                 {notification.type === 'enrollment' && notification.data && (
                                                     <div className="mt-2 text-xs text-gray-500">
                                                         Program: {notification.data.program_name}
+                                                    </div>
+                                                )}
+
+                                                {/* Additional data for schedule notifications */}
+                                                {notification.type === 'schedule' && notification.data && (
+                                                    <div className="mt-2 space-y-1">
+                                                        <div className="text-xs text-gray-500">
+                                                            Student: {notification.data.student_name}
+                                                        </div>
+                                                        {notification.data.program_name && (
+                                                            <div className="text-xs text-gray-500">
+                                                                Program: {notification.data.program_name}
+                                                            </div>
+                                                        )}
+                                                        <div className="text-xs text-gray-500">
+                                                            Duration: {notification.data.duration_minutes} minutes
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
