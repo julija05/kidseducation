@@ -139,6 +139,57 @@ class NotificationService
     }
 
     /**
+     * Create class schedule notification
+     */
+    public function createScheduleNotification(
+        \App\Models\ClassSchedule $schedule,
+        string $action = 'scheduled'
+    ): Notification {
+        $student = $schedule->student;
+        $admin = $schedule->admin;
+
+        $titles = [
+            'scheduled' => 'Class Scheduled',
+            'rescheduled' => 'Class Rescheduled',
+            'cancelled' => 'Class Cancelled',
+            'completed' => 'Class Completed',
+            'reminder' => 'Class Reminder',
+        ];
+
+        $messages = [
+            'scheduled' => "A new class '{$schedule->title}' has been scheduled with {$admin->name} on {$schedule->getFormattedScheduledTime()}.",
+            'rescheduled' => "Your class '{$schedule->title}' with {$admin->name} has been rescheduled to {$schedule->getFormattedScheduledTime()}.",
+            'cancelled' => "Your class '{$schedule->title}' with {$admin->name} scheduled for {$schedule->getFormattedScheduledTime()} has been cancelled.",
+            'completed' => "Your class '{$schedule->title}' with {$admin->name} has been completed.",
+            'reminder' => "Reminder: You have a class '{$schedule->title}' with {$admin->name} tomorrow at {$schedule->scheduled_at->format('g:i A')}.",
+        ];
+
+        return $this->create(
+            $titles[$action] ?? 'Class Update',
+            $messages[$action] ?? 'Your class schedule has been updated.',
+            'schedule',
+            [
+                'action' => $action,
+                'schedule_id' => $schedule->id,
+                'student_name' => $student->name,
+                'student_id' => $student->id,
+                'admin_name' => $admin->name,
+                'admin_id' => $admin->id,
+                'title' => $schedule->title,
+                'scheduled_at' => $schedule->scheduled_at->toISOString(),
+                'duration_minutes' => $schedule->duration_minutes,
+                'type' => $schedule->type,
+                'program_name' => $schedule->program?->name,
+                'lesson_title' => $schedule->lesson?->title,
+                'meeting_link' => $schedule->meeting_link,
+                'location' => $schedule->location,
+            ],
+            $schedule,
+            $admin
+        );
+    }
+
+    /**
      * Get notifications for admin dashboard
      */
     public function getForAdminDashboard(): array

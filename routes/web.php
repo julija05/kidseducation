@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminClassScheduleController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminLessonResourceController;
@@ -156,6 +157,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/duplicate', [AdminQuizController::class, 'duplicateQuiz'])->name('duplicate');
         Route::get('/results', [AdminQuizController::class, 'results'])->name('results');
         Route::get('/student-results', [AdminQuizController::class, 'studentResults'])->name('student-results');
+    });
+
+    // Class Schedule Routes
+    Route::prefix('class-schedules')->name('class-schedules.')->group(function () {
+        Route::get('/', [AdminClassScheduleController::class, 'index'])->name('index');
+        Route::get('/create', [AdminClassScheduleController::class, 'create'])->name('create');
+        Route::post('/', [AdminClassScheduleController::class, 'store'])->name('store');
+        Route::get('/{classSchedule}', [AdminClassScheduleController::class, 'show'])->name('show');
+        Route::get('/{classSchedule}/edit', [AdminClassScheduleController::class, 'edit'])->name('edit');
+        Route::put('/{classSchedule}', [AdminClassScheduleController::class, 'update'])->name('update');
+        Route::post('/{classSchedule}/cancel', [AdminClassScheduleController::class, 'cancel'])->name('cancel');
+        Route::post('/{classSchedule}/complete', [AdminClassScheduleController::class, 'complete'])->name('complete');
+        
+        // AJAX endpoints
+        Route::get('/programs/{program}/lessons', [AdminClassScheduleController::class, 'getLessonsForProgram'])->name('program-lessons');
+        Route::get('/programs/{program}/students', [AdminClassScheduleController::class, 'getStudentsForProgram'])->name('program-students');
+        Route::post('/check-conflicts', [AdminClassScheduleController::class, 'checkConflicts'])->name('check-conflicts');
     });
 });
 

@@ -1,7 +1,7 @@
 import { Head, Link, router } from "@inertiajs/react";
 import { useState } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { Bell, Check, Trash2, Clock, Users, AlertCircle, Filter } from "lucide-react";
+import { Bell, Check, Trash2, Clock, Users, AlertCircle, Filter, Calendar } from "lucide-react";
 
 export default function Index({ notifications, unread_count, current_type }) {
     const [selectedType, setSelectedType] = useState(current_type || 'all');
@@ -36,10 +36,29 @@ export default function Index({ notifications, unread_count, current_type }) {
         }
     };
 
+    const handleNotificationClick = (notification) => {
+        if (notification.type === 'enrollment') {
+            const userId = notification.data?.user_id;
+            const url = userId 
+                ? route('admin.enrollments.pending', { highlight_user: userId })
+                : route('admin.enrollments.pending');
+            router.visit(url);
+        } else if (notification.type === 'schedule') {
+            const scheduleId = notification.data?.schedule_id;
+            if (scheduleId) {
+                router.visit(route('admin.class-schedules.show', scheduleId));
+            } else {
+                router.visit(route('admin.class-schedules.index'));
+            }
+        }
+    };
+
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'enrollment':
                 return <Users className="w-5 h-5 text-blue-500" />;
+            case 'schedule':
+                return <Calendar className="w-5 h-5 text-green-500" />;
             default:
                 return <AlertCircle className="w-5 h-5 text-gray-500" />;
         }
@@ -50,6 +69,8 @@ export default function Index({ notifications, unread_count, current_type }) {
         switch (type) {
             case 'enrollment':
                 return `${baseColor} border-l-4 border-l-blue-500`;
+            case 'schedule':
+                return `${baseColor} border-l-4 border-l-green-500`;
             default:
                 return `${baseColor} border-l-4 border-l-gray-500`;
         }
@@ -77,6 +98,7 @@ export default function Index({ notifications, unread_count, current_type }) {
     const typeFilters = [
         { key: 'all', label: 'All', count: notifications.length },
         { key: 'enrollment', label: 'Enrollments', count: notifications.filter(n => n.type === 'enrollment').length },
+        { key: 'schedule', label: 'Class Schedules', count: notifications.filter(n => n.type === 'schedule').length },
     ];
 
     return (
@@ -145,7 +167,8 @@ export default function Index({ notifications, unread_count, current_type }) {
                             {notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`p-6 hover:bg-gray-50 transition-colors ${getNotificationColor(notification.type, notification.is_read)}`}
+                                    onClick={() => handleNotificationClick(notification)}
+                                    className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer ${getNotificationColor(notification.type, notification.is_read)}`}
                                 >
                                     <div className="flex items-start gap-4">
                                         <div className="flex-shrink-0 mt-1">
@@ -164,7 +187,10 @@ export default function Index({ notifications, unread_count, current_type }) {
                                                 <div className="flex items-center gap-2 ml-4">
                                                     {!notification.is_read && (
                                                         <button
-                                                            onClick={() => handleMarkAsRead(notification.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleMarkAsRead(notification.id);
+                                                            }}
                                                             className="text-blue-600 hover:text-blue-800 p-1 rounded"
                                                             title="Mark as read"
                                                         >
@@ -172,7 +198,10 @@ export default function Index({ notifications, unread_count, current_type }) {
                                                         </button>
                                                     )}
                                                     <button
-                                                        onClick={() => handleDelete(notification.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDelete(notification.id);
+                                                        }}
                                                         className="text-red-600 hover:text-red-800 p-1 rounded"
                                                         title="Delete"
                                                     >
@@ -195,6 +224,23 @@ export default function Index({ notifications, unread_count, current_type }) {
                                                 {notification.type === 'enrollment' && notification.data && (
                                                     <div className="text-sm text-gray-600">
                                                         <span className="font-medium">Program:</span> {notification.data.program_name}
+                                                    </div>
+                                                )}
+
+                                                {/* Additional data for schedule notifications */}
+                                                {notification.type === 'schedule' && notification.data && (
+                                                    <div className="text-sm text-gray-600 space-y-1">
+                                                        <div>
+                                                            <span className="font-medium">Student:</span> {notification.data.student_name}
+                                                        </div>
+                                                        {notification.data.program_name && (
+                                                            <div>
+                                                                <span className="font-medium">Program:</span> {notification.data.program_name}
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <span className="font-medium">Duration:</span> {notification.data.duration_minutes} minutes
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

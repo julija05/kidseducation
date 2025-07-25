@@ -67,6 +67,16 @@ class User extends Authenticatable
         return $this->hasMany(QuizAttempt::class);
     }
 
+    public function scheduledClasses(): HasMany
+    {
+        return $this->hasMany(ClassSchedule::class, 'student_id');
+    }
+
+    public function teachingClasses(): HasMany
+    {
+        return $this->hasMany(ClassSchedule::class, 'admin_id');
+    }
+
     public function isStudent(): bool
     {
         return $this->role === 'student';
