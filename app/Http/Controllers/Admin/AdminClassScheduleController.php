@@ -418,8 +418,8 @@ class AdminClassScheduleController extends Controller
      */
     public function complete(Request $request, ClassSchedule $classSchedule): RedirectResponse
     {
-        if (!$classSchedule->isUpcoming() && !$classSchedule->isConfirmed()) {
-            return back()->with('error', 'Only scheduled or confirmed classes can be marked as completed.');
+        if ($classSchedule->isCancelled() || $classSchedule->isCompleted()) {
+            return back()->with('error', 'Cannot complete a class that is already cancelled or completed.');
         }
 
         $validated = $request->validate([

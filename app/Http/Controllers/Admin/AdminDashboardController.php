@@ -27,7 +27,7 @@ class AdminDashboardController extends Controller
         ];
 
         // Get next scheduled lesson for this admin
-        $nextScheduledLesson = ClassSchedule::with(['student', 'program', 'lesson'])
+        $nextScheduledLesson = ClassSchedule::with(['student', 'students', 'program', 'lesson'])
             ->where('admin_id', $admin->id)
             ->upcoming()
             ->orderBy('scheduled_at', 'asc')
@@ -40,13 +40,26 @@ class AdminDashboardController extends Controller
             $dayName = $scheduledAt->isToday() ? 'today' : 
                       ($scheduledAt->isTomorrow() ? 'tomorrow' : $scheduledAt->format('l'));
             
+            // Get student name(s) - handle both individual and group classes
+            $studentName = 'No student assigned';
+            if ($nextScheduledLesson->is_group_class) {
+                $students = $nextScheduledLesson->students;
+                if ($students->count() > 0) {
+                    $studentName = $students->count() === 1 
+                        ? $students->first()->name 
+                        : $students->count() . ' students';
+                }
+            } elseif ($nextScheduledLesson->student) {
+                $studentName = $nextScheduledLesson->student->name;
+            }
+            
             $formattedNextLesson = [
                 'id' => $nextScheduledLesson->id,
                 'title' => $nextScheduledLesson->title,
                 'description' => $nextScheduledLesson->description,
-                'student_name' => $nextScheduledLesson->student->name,
-                'program_name' => $nextScheduledLesson->program ? $nextScheduledLesson->program->name : null,
-                'lesson_name' => $nextScheduledLesson->lesson ? $nextScheduledLesson->lesson->title : null,
+                'student_name' => $studentName,
+                'program_name' => $nextScheduledLesson->program?->name,
+                'lesson_name' => $nextScheduledLesson->lesson?->title,
                 'scheduled_at' => $nextScheduledLesson->scheduled_at,
                 'formatted_time' => $nextScheduledLesson->getFormattedScheduledTime(),
                 'day_description' => $dayName,

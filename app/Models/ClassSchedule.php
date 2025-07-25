@@ -167,12 +167,12 @@ class ClassSchedule extends Model
 
     public function canBeCancelled(): bool
     {
-        return !$this->isCancelled() && !$this->isCompleted() && !$this->isPast();
+        return !$this->isCancelled() && !$this->isCompleted();
     }
 
     public function canBeRescheduled(): bool
     {
-        return $this->canBeCancelled();
+        return !$this->isCancelled() && !$this->isCompleted() && !$this->isPast();
     }
 
     // Action methods
@@ -259,9 +259,9 @@ class ClassSchedule extends Model
     {
         return match($this->status) {
             'scheduled' => 'yellow',
-            'confirmed' => 'green',
+            'confirmed' => 'blue',
             'cancelled' => 'red',
-            'completed' => 'blue',
+            'completed' => 'green',
             default => 'gray'
         };
     }
