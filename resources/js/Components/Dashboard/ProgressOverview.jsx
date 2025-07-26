@@ -194,7 +194,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                             {enrolledProgram.name}
                         </h4>
                         <p className="text-sm text-gray-600">
-                            {nextClass ? `Next: ${nextClass}` : "Keep learning at your pace! 📚"}
+                            {nextClass ? `Next: ${nextClass.day_description} at ${nextClass.time_only}` : "Keep learning at your pace! 📚"}
                         </p>
                     </div>
                 </div>

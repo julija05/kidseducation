@@ -51,6 +51,12 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
+    
+    // Student notification actions
+    Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');
+    
+    // Student schedule routes
+    Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
 
     Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])
         ->name('lesson-resources.preview');

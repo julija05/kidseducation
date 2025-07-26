@@ -1,7 +1,8 @@
 import Dropdown from "@/Components/Dropdown";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
-import { User, ChevronDown } from "lucide-react";
+import { User, ChevronDown, Bell } from "lucide-react";
+import StudentNotifications from "@/Components/Dashboard/StudentNotifications";
 
 export default function AuthenticatedLayout({
     children,
@@ -12,6 +13,12 @@ export default function AuthenticatedLayout({
     const { props } = usePage();
     const user = props.auth.user;
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    
+    // Check if user is a student (has student role)
+    const isStudent = user.roles && user.roles.includes('student');
+    
+    // Get notification data from props if available
+    const { notifications = [], unreadNotificationCount = 0, nextClass = null } = props;
 
     // Default theme configuration if no program config is provided
     const defaultTheme = {
@@ -27,6 +34,13 @@ export default function AuthenticatedLayout({
     // Debug logging
     console.log("AuthenticatedLayout theme:", theme);
     console.log("Program config:", programConfig);
+
+    const handleMarkAllAsRead = () => {
+        router.patch('/dashboard/notifications/mark-all-read', {}, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
 
     // Ensure we have a valid background color class
     const headerBgClass =
@@ -59,9 +73,21 @@ export default function AuthenticatedLayout({
                             )}
                         </div>
 
-                        {/* User Dropdown - Fixed with better visibility */}
-                        <div className="relative">
-                            <Dropdown>
+                        <div className="flex items-center gap-4">
+                            {/* Student Notifications */}
+                            {isStudent && (
+                                <StudentNotifications
+                                    notifications={notifications}
+                                    unreadCount={unreadNotificationCount}
+                                    nextClass={null} // Don't show next class in header, only on dashboard
+                                    headerMode={true}
+                                    onMarkAllAsRead={handleMarkAllAsRead}
+                                />
+                            )}
+
+                            {/* User Dropdown - Fixed with better visibility */}
+                            <div className="relative">
+                                <Dropdown>
                                 <Dropdown.Trigger>
                                     <span className="inline-flex rounded-md">
                                         <button
@@ -97,6 +123,14 @@ export default function AuthenticatedLayout({
                                     >
                                         Dashboard
                                     </Dropdown.Link>
+                                    {isStudent && (
+                                        <Dropdown.Link
+                                            href={route("my-schedule")}
+                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            My Schedule
+                                        </Dropdown.Link>
+                                    )}
                                     <Dropdown.Link
                                         href={route("profile.edit")}
                                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -114,6 +148,7 @@ export default function AuthenticatedLayout({
                                     </Dropdown.Link>
                                 </Dropdown.Content>
                             </Dropdown>
+                            </div>
                         </div>
                     </div>
                 </div>
