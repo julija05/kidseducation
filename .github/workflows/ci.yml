@@ -68,10 +68,15 @@ jobs:
         echo "DB_DATABASE=kids_education_test" >> .env.testing
         echo "DB_USERNAME=root" >> .env.testing
         echo "DB_PASSWORD=password" >> .env.testing
-        echo "CACHE_DRIVER=array" >> .env.testing
+        echo "CACHE_STORE=array" >> .env.testing
         echo "QUEUE_CONNECTION=sync" >> .env.testing
         echo "SESSION_DRIVER=array" >> .env.testing
         echo "MAIL_MAILER=array" >> .env.testing
+
+    - name: Create temporary SQLite database for cache clearing
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
 
     - name: Generate application key
       run: php artisan key:generate --env=testing
