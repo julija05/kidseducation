@@ -1,8 +1,9 @@
 import Dropdown from "@/Components/Dropdown";
 import { Link, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
-import { User, ChevronDown, Bell } from "lucide-react";
+import { User, ChevronDown, Bell, Calculator } from "lucide-react";
 import StudentNotifications from "@/Components/Dashboard/StudentNotifications";
+import AbacusSimulator from "@/Components/AbacusSimulator";
 
 export default function AuthenticatedLayout({
     children,
@@ -13,12 +14,18 @@ export default function AuthenticatedLayout({
     const { props } = usePage();
     const user = props.auth.user;
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [showAbacus, setShowAbacus] = useState(false);
     
     // Check if user is a student (has student role)
     const isStudent = user.roles && user.roles.includes('student');
     
     // Get notification data from props if available
-    const { notifications = [], unreadNotificationCount = 0, nextClass = null } = props;
+    const { notifications = [], unreadNotificationCount = 0, nextClass = null, enrolledProgram } = props;
+    
+    // Check if student is enrolled in Mental Arithmetic program
+    const isMentalArithmeticStudent = isStudent && enrolledProgram && 
+        enrolledProgram.name === 'Mental Arithmetic Mastery' && 
+        enrolledProgram.approvalStatus === 'approved';
 
     // Default theme configuration if no program config is provided
     const defaultTheme = {
@@ -74,6 +81,18 @@ export default function AuthenticatedLayout({
                         </div>
 
                         <div className="flex items-center gap-4">
+                            {/* Abacus Icon for Mental Arithmetic students */}
+                            {isMentalArithmeticStudent && (
+                                <button
+                                    onClick={() => setShowAbacus(true)}
+                                    className="flex items-center gap-2 px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all duration-200 text-white text-sm"
+                                    title="Open Abacus Simulator"
+                                >
+                                    <Calculator size={18} />
+                                    <span className="hidden sm:inline">Abacus</span>
+                                </button>
+                            )}
+                            
                             {/* Student Notifications */}
                             {isStudent && (
                                 <StudentNotifications
@@ -156,6 +175,26 @@ export default function AuthenticatedLayout({
 
             {/* Main Content */}
             <main className="flex-1">{children}</main>
+            
+            {/* Floating Abacus Button - Only for Mental Arithmetic students */}
+            {isMentalArithmeticStudent && (
+                <div className="fixed bottom-6 right-6 z-40">
+                    <button
+                        onClick={() => setShowAbacus(true)}
+                        className="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-amber-300"
+                        title="Open Abacus Simulator"
+                        aria-label="Open Abacus Simulator"
+                    >
+                        <Calculator size={24} />
+                    </button>
+                </div>
+            )}
+            
+            {/* Abacus Simulator Modal */}
+            <AbacusSimulator 
+                isOpen={showAbacus} 
+                onClose={() => setShowAbacus(false)} 
+            />
         </div>
     );
 }

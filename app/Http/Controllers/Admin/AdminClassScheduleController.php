@@ -78,6 +78,20 @@ class AdminClassScheduleController extends Controller
 
         $admins = User::role('admin')->get(['id', 'name']);
 
+        // Return JSON response for AJAX requests
+        if ($request->expectsJson() || $request->header('Accept') === 'application/json') {
+            return response()->json([
+                'schedules' => $schedules,
+                'admins' => $admins,
+                'filters' => [
+                    'status' => $request->status ?? 'all',
+                    'date_filter' => $request->date_filter ?? 'all',
+                    'admin_id' => $request->admin_id ?? 'all',
+                    'search' => $request->search ?? '',
+                ],
+            ]);
+        }
+
         return $this->createView('Admin/ClassSchedules/Index', [
             'schedules' => $schedules,
             'admins' => $admins,
@@ -333,25 +347,11 @@ class AdminClassScheduleController extends Controller
         ]);
 
         // Check for scheduling conflicts (excluding current schedule)
-        $conflictingSchedule = ClassSchedule::where('admin_id', $validated['admin_id'])
-            ->where('id', '!=', $classSchedule->id)
-            ->where('status', '!=', 'cancelled')
-            ->where(function ($query) use ($validated) {
-                $endTime = \Carbon\Carbon::parse($validated['scheduled_at'])
-                    ->addMinutes($validated['duration_minutes']);
-                
-                $query->whereBetween('scheduled_at', [
-                    $validated['scheduled_at'],
-                    $endTime
-                ])->orWhere(function ($q) use ($validated, $endTime) {
-                    $q->where('scheduled_at', '<=', $validated['scheduled_at'])
-                      ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$validated['scheduled_at']]);
-                });
-            })
-            ->first();
-
-        if ($conflictingSchedule) {
-            return back()->withErrors(['scheduled_at' => 'The selected time conflicts with another scheduled class.']);
+        $scheduledAt = \Carbon\Carbon::parse($validated['scheduled_at']);
+        if (ClassSchedule::hasConflict($validated['admin_id'], $scheduledAt, $validated['duration_minutes'], $classSchedule->id)) {
+            $conflicts = ClassSchedule::getConflicts($validated['admin_id'], $scheduledAt, $validated['duration_minutes'], $classSchedule->id);
+            $conflictTitles = $conflicts->pluck('title')->implode(', ');
+            return back()->withErrors(['scheduled_at' => "The selected time conflicts with: {$conflictTitles}"]);
         }
 
         try {
@@ -451,8 +451,15 @@ class AdminClassScheduleController extends Controller
     /**
      * Get lessons for a specific program (AJAX endpoint)
      */
-    public function getLessonsForProgram(Program $program)
+    public function getLessonsForProgram($programId)
     {
+        // Find program by ID instead of using route model binding with slug
+        $program = Program::find($programId);
+        
+        if (!$program) {
+            return response()->json(['error' => 'Program not found'], 404);
+        }
+        
         $lessons = $program->lessons()
             ->where('is_active', true)
             ->orderBy('level')
@@ -465,8 +472,15 @@ class AdminClassScheduleController extends Controller
     /**
      * Get students enrolled in a specific program (AJAX endpoint)
      */
-    public function getStudentsForProgram(Program $program)
+    public function getStudentsForProgram($programId)
     {
+        // Find program by ID instead of using route model binding with slug
+        $program = Program::find($programId);
+        
+        if (!$program) {
+            return response()->json(['error' => 'Program not found'], 404);
+        }
+        
         $students = User::role('student')
             ->whereHas('enrollments', function ($query) use ($program) {
                 $query->where('program_id', $program->id)

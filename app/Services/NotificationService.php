@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\User;
+use App\Mail\LessonScheduled;
+use App\Jobs\SendLessonReminder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
@@ -163,6 +166,19 @@ class NotificationService
             'completed' => "Your class '{$schedule->title}' with {$admin->name} has been completed.",
             'reminder' => "Reminder: You have a class '{$schedule->title}' with {$admin->name} tomorrow at {$schedule->scheduled_at->format('g:i A')}.",
         ];
+
+        // Send email notification for scheduled lessons
+        if ($action === 'scheduled' && $student) {
+            Mail::to($student->email)->send(new LessonScheduled($schedule));
+        }
+        
+        // Schedule reminder email for 24 hours before the lesson (only once per schedule)
+        if ($action === 'scheduled' && !$schedule->reminder_sent_at) {
+            $reminderTime = $schedule->scheduled_at->copy()->subHours(24);
+            if ($reminderTime->isFuture()) {
+                SendLessonReminder::dispatch($schedule)->delay($reminderTime);
+            }
+        }
 
         return $this->create(
             $titles[$action] ?? 'Class Update',

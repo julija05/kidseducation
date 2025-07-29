@@ -491,7 +491,8 @@ class ClassScheduleTest extends TestCase
         ClassSchedule::factory()->today()->count(2)->create();
         ClassSchedule::factory()->create(['status' => 'completed']);
 
-        $this->assertEquals(5, ClassSchedule::upcoming()->count());
+        // upcoming() scope includes only future dates (after now), not today
+        $this->assertEquals(3, ClassSchedule::upcoming()->count());
         $this->assertEquals(2, ClassSchedule::today()->count());
         $this->assertEquals(1, ClassSchedule::byStatus('completed')->count());
     }

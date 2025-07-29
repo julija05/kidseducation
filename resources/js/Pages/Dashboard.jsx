@@ -31,16 +31,6 @@ export default function Dashboard() {
     const [showEnrollModal, setShowEnrollModal] = useState(false);
     const [selectedProgram, setSelectedProgram] = useState(null);
 
-    // Enhanced debug logging (keeping console logs for debugging)
-    console.log("=== DASHBOARD DEBUG ===");
-    console.log("Enrolled program:", enrolledProgram);
-    console.log("Enrolled program theme:", enrolledProgram?.theme);
-    console.log("Progress:", enrolledProgram?.progress);
-    console.log("Next class:", nextClass);
-    console.log("Notifications:", notifications);
-    console.log("Unread count:", unreadNotificationCount);
-    console.log("User:", student);
-    console.log("=====================");
 
     // Check if user came from program registration
     useEffect(() => {
