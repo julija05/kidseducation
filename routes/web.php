@@ -51,6 +51,12 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
+    
+    // Student notification actions
+    Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');
+    
+    // Student schedule routes
+    Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
 
     Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])
         ->name('lesson-resources.preview');
@@ -164,16 +170,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/', [AdminClassScheduleController::class, 'index'])->name('index');
         Route::get('/create', [AdminClassScheduleController::class, 'create'])->name('create');
         Route::post('/', [AdminClassScheduleController::class, 'store'])->name('store');
+        
+        // AJAX endpoints - MUST be before /{classSchedule} routes to avoid conflicts
+        Route::get('/programs/{program}/lessons', [AdminClassScheduleController::class, 'getLessonsForProgram'])->name('program-lessons');
+        Route::get('/programs/{program}/students', [AdminClassScheduleController::class, 'getStudentsForProgram'])->name('program-students');
+        Route::post('/check-conflicts', [AdminClassScheduleController::class, 'checkConflicts'])->name('check-conflicts');
+        
         Route::get('/{classSchedule}', [AdminClassScheduleController::class, 'show'])->name('show');
         Route::get('/{classSchedule}/edit', [AdminClassScheduleController::class, 'edit'])->name('edit');
         Route::put('/{classSchedule}', [AdminClassScheduleController::class, 'update'])->name('update');
         Route::post('/{classSchedule}/cancel', [AdminClassScheduleController::class, 'cancel'])->name('cancel');
         Route::post('/{classSchedule}/complete', [AdminClassScheduleController::class, 'complete'])->name('complete');
-        
-        // AJAX endpoints
-        Route::get('/programs/{program}/lessons', [AdminClassScheduleController::class, 'getLessonsForProgram'])->name('program-lessons');
-        Route::get('/programs/{program}/students', [AdminClassScheduleController::class, 'getStudentsForProgram'])->name('program-students');
-        Route::post('/check-conflicts', [AdminClassScheduleController::class, 'checkConflicts'])->name('check-conflicts');
     });
 });
 

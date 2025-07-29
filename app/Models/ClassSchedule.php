@@ -354,28 +354,49 @@ class ClassSchedule extends Model
         return false;
     }
 
+    /**
+     * Get database-specific datetime addition SQL
+     */
+    private static function getDateAddSql($column, $minutesColumn)
+    {
+        $connection = \DB::connection();
+        $driver = $connection->getDriverName();
+        
+        switch ($driver) {
+            case 'sqlite':
+                return "datetime({$column}, '+' || {$minutesColumn} || ' minutes')";
+            case 'mysql':
+                return "DATE_ADD({$column}, INTERVAL {$minutesColumn} MINUTE)";
+            case 'pgsql':
+                return "({$column} + INTERVAL '1 minute' * {$minutesColumn})";
+            default:
+                return "DATE_ADD({$column}, INTERVAL {$minutesColumn} MINUTE)";
+        }
+    }
+
     // Check for scheduling conflicts for an admin
     public static function hasConflict($adminId, $scheduledAt, $durationMinutes, $excludeId = null)
     {
         $startTime = $scheduledAt;
         $endTime = $scheduledAt->copy()->addMinutes($durationMinutes);
+        $endTimeSql = static::getDateAddSql('scheduled_at', 'duration_minutes');
 
         $query = static::where('admin_id', $adminId)
             ->whereIn('status', ['scheduled', 'confirmed'])
-            ->where(function ($q) use ($startTime, $endTime) {
+            ->where(function ($q) use ($startTime, $endTime, $endTimeSql) {
                 // Check for overlapping time slots
-                $q->where(function ($subQ) use ($startTime, $endTime) {
+                $q->where(function ($subQ) use ($startTime, $endTimeSql) {
                     // New class starts during existing class
                     $subQ->where('scheduled_at', '<=', $startTime)
-                         ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$startTime]);
-                })->orWhere(function ($subQ) use ($startTime, $endTime) {
+                         ->whereRaw($endTimeSql . ' > ?', [$startTime]);
+                })->orWhere(function ($subQ) use ($endTime, $endTimeSql) {
                     // New class ends during existing class
                     $subQ->where('scheduled_at', '<', $endTime)
-                         ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) >= ?', [$endTime]);
-                })->orWhere(function ($subQ) use ($startTime, $endTime) {
+                         ->whereRaw($endTimeSql . ' >= ?', [$endTime]);
+                })->orWhere(function ($subQ) use ($startTime, $endTime, $endTimeSql) {
                     // New class completely contains existing class
                     $subQ->where('scheduled_at', '>=', $startTime)
-                         ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) <= ?', [$endTime]);
+                         ->whereRaw($endTimeSql . ' <= ?', [$endTime]);
                 });
             });
 
@@ -391,20 +412,21 @@ class ClassSchedule extends Model
     {
         $startTime = $scheduledAt;
         $endTime = $scheduledAt->copy()->addMinutes($durationMinutes);
+        $endTimeSql = static::getDateAddSql('scheduled_at', 'duration_minutes');
 
         $query = static::with(['student', 'students'])
             ->where('admin_id', $adminId)
             ->whereIn('status', ['scheduled', 'confirmed'])
-            ->where(function ($q) use ($startTime, $endTime) {
-                $q->where(function ($subQ) use ($startTime, $endTime) {
+            ->where(function ($q) use ($startTime, $endTime, $endTimeSql) {
+                $q->where(function ($subQ) use ($startTime, $endTimeSql) {
                     $subQ->where('scheduled_at', '<=', $startTime)
-                         ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$startTime]);
-                })->orWhere(function ($subQ) use ($startTime, $endTime) {
+                         ->whereRaw($endTimeSql . ' > ?', [$startTime]);
+                })->orWhere(function ($subQ) use ($endTime, $endTimeSql) {
                     $subQ->where('scheduled_at', '<', $endTime)
-                         ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) >= ?', [$endTime]);
-                })->orWhere(function ($subQ) use ($startTime, $endTime) {
+                         ->whereRaw($endTimeSql . ' >= ?', [$endTime]);
+                })->orWhere(function ($subQ) use ($startTime, $endTime, $endTimeSql) {
                     $subQ->where('scheduled_at', '>=', $startTime)
-                         ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) <= ?', [$endTime]);
+                         ->whereRaw($endTimeSql . ' <= ?', [$endTime]);
                 });
             });
 

@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\User;
+use App\Mail\LessonScheduled;
+use App\Jobs\SendLessonReminder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
@@ -164,6 +167,19 @@ class NotificationService
             'reminder' => "Reminder: You have a class '{$schedule->title}' with {$admin->name} tomorrow at {$schedule->scheduled_at->format('g:i A')}.",
         ];
 
+        // Send email notification for scheduled lessons
+        if ($action === 'scheduled' && $student) {
+            Mail::to($student->email)->send(new LessonScheduled($schedule));
+        }
+        
+        // Schedule reminder email for 24 hours before the lesson (only once per schedule)
+        if ($action === 'scheduled' && !$schedule->reminder_sent_at) {
+            $reminderTime = $schedule->scheduled_at->copy()->subHours(24);
+            if ($reminderTime->isFuture()) {
+                SendLessonReminder::dispatch($schedule)->delay($reminderTime);
+            }
+        }
+
         return $this->create(
             $titles[$action] ?? 'Class Update',
             $messages[$action] ?? 'Your class schedule has been updated.',
@@ -172,7 +188,7 @@ class NotificationService
                 'action' => $action,
                 'schedule_id' => $schedule->id,
                 'student_name' => $student->name,
-                'student_id' => $student->id,
+                'student_id' => (int) $student->id,
                 'admin_name' => $admin->name,
                 'admin_id' => $admin->id,
                 'title' => $schedule->title,
@@ -187,6 +203,84 @@ class NotificationService
             $schedule,
             $admin
         );
+    }
+
+    /**
+     * Create next lesson notification for students
+     */
+    public function createNextLessonNotification(
+        User $student,
+        \App\Models\Lesson $nextLesson,
+        \App\Models\Program $program,
+        ?\App\Models\ClassSchedule $nextClass = null
+    ): Notification {
+        $message = "Your next lesson '{$nextLesson->title}' in {$program->name} is ready to start!";
+        
+        if ($nextClass && $nextClass->meeting_link) {
+            $message .= " You also have a scheduled class on {$nextClass->getFormattedScheduledTime()}.";
+        }
+
+        return $this->create(
+            'Next Lesson Available',
+            $message,
+            'lesson',
+            [
+                'lesson_id' => $nextLesson->id,
+                'lesson_title' => $nextLesson->title,
+                'program_id' => $program->id,
+                'program_name' => $program->name,
+                'student_id' => (int) $student->id,
+                'student_name' => $student->name,
+                'next_class' => $nextClass ? [
+                    'id' => $nextClass->id,
+                    'title' => $nextClass->title,
+                    'scheduled_at' => $nextClass->scheduled_at->toDateTimeString(),
+                    'meeting_link' => $nextClass->meeting_link,
+                    'admin_name' => $nextClass->admin->name,
+                ] : null,
+            ],
+            $nextLesson,
+            null
+        );
+    }
+
+    /**
+     * Get notifications for student
+     */
+    public function getForStudent(User $student): array
+    {
+        $notifications = Notification::whereIn('type', ['schedule', 'lesson'])
+            ->where(function ($query) use ($student) {
+                $query->whereJsonContains('data->student_id', (int) $student->id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        $unreadCount = Notification::whereIn('type', ['schedule', 'lesson'])
+            ->where(function ($query) use ($student) {
+                $query->whereJsonContains('data->student_id', (int) $student->id);
+            })
+            ->unread()
+            ->count();
+
+        return [
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ];
+    }
+
+    /**
+     * Mark all notifications for a specific student as read
+     */
+    public function markAllAsReadForStudent(User $student): int
+    {
+        return Notification::whereIn('type', ['schedule', 'lesson'])
+            ->where(function ($query) use ($student) {
+                $query->whereJsonContains('data->student_id', (int) $student->id);
+            })
+            ->unread()
+            ->update(['is_read' => true]);
     }
 
     /**

@@ -93,19 +93,26 @@ class ClassScheduleFactory extends Factory
 
     public function completed(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'completed',
-            'completed_at' => $this->faker->dateTimeBetween($attributes['scheduled_at'], 'now'),
-            'session_notes' => $this->faker->optional(0.7)->paragraph(2),
-            'session_data' => $this->faker->optional(0.3)->randomElement([
-                ['topics_covered' => ['Basic Math', 'Addition', 'Subtraction']],
-                ['homework_assigned' => true, 'next_topic' => 'Multiplication'],
-                ['student_progress' => 'Good', 'areas_to_improve' => 'Practice more'],
-            ]),
-            'cancelled_at' => null,
-            'cancelled_by' => null,
-            'cancellation_reason' => null,
-        ]);
+        return $this->state(function (array $attributes) {
+            // For completed classes, ensure scheduled_at is in the past
+            $scheduledAt = $this->faker->dateTimeBetween('-2 months', '-1 day');
+            $completedAt = $this->faker->dateTimeBetween($scheduledAt, 'now');
+            
+            return [
+                'scheduled_at' => $scheduledAt,
+                'status' => 'completed',
+                'completed_at' => $completedAt,
+                'session_notes' => $this->faker->optional(0.7)->paragraph(2),
+                'session_data' => $this->faker->optional(0.3)->randomElement([
+                    ['topics_covered' => ['Basic Math', 'Addition', 'Subtraction']],
+                    ['homework_assigned' => true, 'next_topic' => 'Multiplication'],
+                    ['student_progress' => 'Good', 'areas_to_improve' => 'Practice more'],
+                ]),
+                'cancelled_at' => null,
+                'cancelled_by' => null,
+                'cancellation_reason' => null,
+            ];
+        });
     }
 
     public function upcoming(): static
