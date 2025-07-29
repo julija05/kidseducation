@@ -1,0 +1,297 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Notification;
+use App\Models\User;
+use App\Mail\LessonScheduled;
+use App\Jobs\SendLessonReminder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Mail;
+
+class NotificationService
+{
+    /**
+     * Create a new notification
+     */
+    public function create(
+        string $title,
+        string $message,
+        string $type,
+        ?array $data = null,
+        ?Model $relatedModel = null,
+        ?User $createdBy = null
+    ): Notification {
+        return Notification::create([
+            'title' => $title,
+            'message' => $message,
+            'type' => $type,
+            'data' => $data,
+            'related_model_type' => $relatedModel ? get_class($relatedModel) : null,
+            'related_model_id' => $relatedModel?->id,
+            'created_by' => $createdBy?->id,
+        ]);
+    }
+
+    /**
+     * Create enrollment notification for admins
+     */
+    public function createEnrollmentNotification(
+        \App\Models\Enrollment $enrollment,
+        string $action = 'pending'
+    ): Notification {
+        $user = $enrollment->user;
+        $program = $enrollment->program;
+
+        $titles = [
+            'pending' => 'New Enrollment Request',
+            'approved' => 'Enrollment Approved',
+            'rejected' => 'Enrollment Rejected',
+        ];
+
+        $messages = [
+            'pending' => "{$user->name} has requested enrollment in the \"{$program->name}\" program.",
+            'approved' => "{$user->name}'s enrollment in \"{$program->name}\" has been approved.",
+            'rejected' => "{$user->name}'s enrollment in \"{$program->name}\" has been rejected.",
+        ];
+
+        return $this->create(
+            $titles[$action] ?? 'Enrollment Update',
+            $messages[$action] ?? 'An enrollment has been updated.',
+            'enrollment',
+            [
+                'action' => $action,
+                'user_name' => $user->name,
+                'user_id' => $user->id,
+                'program_name' => $program->name,
+                'program_id' => $program->id,
+                'enrollment_id' => $enrollment->id,
+            ],
+            $enrollment,
+            $enrollment->user
+        );
+    }
+
+    /**
+     * Get all notifications (latest first)
+     */
+    public function getAll(int $limit = 50): Collection
+    {
+        return Notification::with('createdBy')
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get unread notifications
+     */
+    public function getUnread(int $limit = 20): Collection
+    {
+        return Notification::with('createdBy')
+            ->unread()
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get notifications by type
+     */
+    public function getByType(string $type, int $limit = 20): Collection
+    {
+        return Notification::with('createdBy')
+            ->byType($type)
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markAsRead(int $notificationId): bool
+    {
+        $notification = Notification::find($notificationId);
+        return $notification ? $notification->markAsRead() : false;
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    public function markAllAsRead(): int
+    {
+        return Notification::unread()->update(['is_read' => true]);
+    }
+
+    /**
+     * Get unread count
+     */
+    public function getUnreadCount(): int
+    {
+        return Notification::unread()->count();
+    }
+
+    /**
+     * Delete old notifications (older than specified days)
+     */
+    public function deleteOld(int $days = 30): int
+    {
+        return Notification::where('created_at', '<', now()->subDays($days))->delete();
+    }
+
+    /**
+     * Create class schedule notification
+     */
+    public function createScheduleNotification(
+        \App\Models\ClassSchedule $schedule,
+        string $action = 'scheduled'
+    ): Notification {
+        $student = $schedule->student;
+        $admin = $schedule->admin;
+
+        $titles = [
+            'scheduled' => 'Class Scheduled',
+            'rescheduled' => 'Class Rescheduled',
+            'cancelled' => 'Class Cancelled',
+            'completed' => 'Class Completed',
+            'reminder' => 'Class Reminder',
+        ];
+
+        $messages = [
+            'scheduled' => "A new class '{$schedule->title}' has been scheduled with {$admin->name} on {$schedule->getFormattedScheduledTime()}.",
+            'rescheduled' => "Your class '{$schedule->title}' with {$admin->name} has been rescheduled to {$schedule->getFormattedScheduledTime()}.",
+            'cancelled' => "Your class '{$schedule->title}' with {$admin->name} scheduled for {$schedule->getFormattedScheduledTime()} has been cancelled.",
+            'completed' => "Your class '{$schedule->title}' with {$admin->name} has been completed.",
+            'reminder' => "Reminder: You have a class '{$schedule->title}' with {$admin->name} tomorrow at {$schedule->scheduled_at->format('g:i A')}.",
+        ];
+
+        // Send email notification for scheduled lessons
+        if ($action === 'scheduled' && $student) {
+            Mail::to($student->email)->send(new LessonScheduled($schedule));
+        }
+        
+        // Schedule reminder email for 24 hours before the lesson (only once per schedule)
+        if ($action === 'scheduled' && !$schedule->reminder_sent_at) {
+            $reminderTime = $schedule->scheduled_at->copy()->subHours(24);
+            if ($reminderTime->isFuture()) {
+                SendLessonReminder::dispatch($schedule)->delay($reminderTime);
+            }
+        }
+
+        return $this->create(
+            $titles[$action] ?? 'Class Update',
+            $messages[$action] ?? 'Your class schedule has been updated.',
+            'schedule',
+            [
+                'action' => $action,
+                'schedule_id' => $schedule->id,
+                'student_name' => $student->name,
+                'student_id' => (int) $student->id,
+                'admin_name' => $admin->name,
+                'admin_id' => $admin->id,
+                'title' => $schedule->title,
+                'scheduled_at' => $schedule->scheduled_at->toISOString(),
+                'duration_minutes' => $schedule->duration_minutes,
+                'type' => $schedule->type,
+                'program_name' => $schedule->program?->name,
+                'lesson_title' => $schedule->lesson?->title,
+                'meeting_link' => $schedule->meeting_link,
+                'location' => $schedule->location,
+            ],
+            $schedule,
+            $admin
+        );
+    }
+
+    /**
+     * Create next lesson notification for students
+     */
+    public function createNextLessonNotification(
+        User $student,
+        \App\Models\Lesson $nextLesson,
+        \App\Models\Program $program,
+        ?\App\Models\ClassSchedule $nextClass = null
+    ): Notification {
+        $message = "Your next lesson '{$nextLesson->title}' in {$program->name} is ready to start!";
+        
+        if ($nextClass && $nextClass->meeting_link) {
+            $message .= " You also have a scheduled class on {$nextClass->getFormattedScheduledTime()}.";
+        }
+
+        return $this->create(
+            'Next Lesson Available',
+            $message,
+            'lesson',
+            [
+                'lesson_id' => $nextLesson->id,
+                'lesson_title' => $nextLesson->title,
+                'program_id' => $program->id,
+                'program_name' => $program->name,
+                'student_id' => (int) $student->id,
+                'student_name' => $student->name,
+                'next_class' => $nextClass ? [
+                    'id' => $nextClass->id,
+                    'title' => $nextClass->title,
+                    'scheduled_at' => $nextClass->scheduled_at->toDateTimeString(),
+                    'meeting_link' => $nextClass->meeting_link,
+                    'admin_name' => $nextClass->admin->name,
+                ] : null,
+            ],
+            $nextLesson,
+            null
+        );
+    }
+
+    /**
+     * Get notifications for student
+     */
+    public function getForStudent(User $student): array
+    {
+        $notifications = Notification::whereIn('type', ['schedule', 'lesson'])
+            ->where(function ($query) use ($student) {
+                $query->whereJsonContains('data->student_id', (int) $student->id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        $unreadCount = Notification::whereIn('type', ['schedule', 'lesson'])
+            ->where(function ($query) use ($student) {
+                $query->whereJsonContains('data->student_id', (int) $student->id);
+            })
+            ->unread()
+            ->count();
+
+        return [
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ];
+    }
+
+    /**
+     * Mark all notifications for a specific student as read
+     */
+    public function markAllAsReadForStudent(User $student): int
+    {
+        return Notification::whereIn('type', ['schedule', 'lesson'])
+            ->where(function ($query) use ($student) {
+                $query->whereJsonContains('data->student_id', (int) $student->id);
+            })
+            ->unread()
+            ->update(['is_read' => true]);
+    }
+
+    /**
+     * Get notifications for admin dashboard
+     */
+    public function getForAdminDashboard(): array
+    {
+        return [
+            'recent' => $this->getAll(10),
+            'unread_count' => $this->getUnreadCount(),
+            'pending_enrollments' => $this->getByType('enrollment')->where('data.action', 'pending'),
+        ];
+    }
+}

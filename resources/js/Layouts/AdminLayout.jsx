@@ -1,8 +1,23 @@
-import { Link, usePage } from "@inertiajs/react";
+import { Link, usePage, router } from "@inertiajs/react";
 import FlashMessage from "@/Components/FlashMessage";
+import Notifications from "@/Components/Admin/Notifications";
 
 export default function AdminLayout({ children }) {
-    const { auth } = usePage().props;
+    const { auth, notifications } = usePage().props;
+
+    const handleMarkAsRead = (notificationId) => {
+        router.patch(`/admin/notifications/${notificationId}/read`, {}, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
+
+    const handleMarkAllAsRead = () => {
+        router.patch('/admin/notifications/mark-all-read', {}, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
 
     return (
         <div className="flex h-screen">
@@ -45,6 +60,14 @@ export default function AdminLayout({ children }) {
                             Quizzes
                         </Link>
                     </li>
+                    <li className="mb-4">
+                        <Link
+                            href={route("admin.class-schedules.index")}
+                            className="hover:text-gray-300 transition-colors"
+                        >
+                            Class Schedules
+                        </Link>
+                    </li>
                 </ul>
             </aside>
 
@@ -56,14 +79,22 @@ export default function AdminLayout({ children }) {
                         Welcome,{" "}
                         <span className="font-semibold">{auth.user.name}</span>
                     </div>
-                    <Link
-                        href={route("logout")}
-                        method="post"
-                        as="button"
-                        className="text-red-600 hover:text-red-800 hover:underline transition-colors"
-                    >
-                        Logout
-                    </Link>
+                    <div className="flex items-center gap-4">
+                        <Notifications
+                            notifications={notifications?.recent || []}
+                            unreadCount={notifications?.unread_count || 0}
+                            onMarkAsRead={handleMarkAsRead}
+                            onMarkAllAsRead={handleMarkAllAsRead}
+                        />
+                        <Link
+                            href={route("logout")}
+                            method="post"
+                            as="button"
+                            className="text-red-600 hover:text-red-800 hover:underline transition-colors"
+                        >
+                            Logout
+                        </Link>
+                    </div>
                 </nav>
 
                 {/* Page content */}

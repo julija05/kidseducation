@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEnrollmentRequest;
 use App\Http\Requests\UpdateEnrollmentRequest;
-use App\Mail\CompanyNotificationMail;
+use App\Mail\AdminEnrollmentNotification;
+use App\Mail\StudentEnrollmentConfirmation;
 use App\Models\Enrollment;
 use App\Models\Program;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
@@ -66,25 +68,36 @@ class EnrollmentController extends Controller
             'progress' => 0,
         ]);
 
-        // Send email to student
-        // if (class_exists(EnrollmentRequestMail::class)) {
-        //     Mail::to($user->email)->send(
-        //         new EnrollmentRequestMail($user, $program)
-        //     );
-        // }
+        // Create notification for admins
+        $notificationService = new NotificationService();
+        $notificationService->createEnrollmentNotification($enrollment, 'pending');
 
-        // Send notification to company email
-        // Mail::to('abacoding@abacoding.com')->send(
-        //     new CompanyNotificationMail($enrollment)
-        // );
+        // Send email to admin
+        try {
+            Mail::send(new AdminEnrollmentNotification($enrollment));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send admin enrollment notification email: ' . $e->getMessage());
+        }
 
-        // Notify all admins
-        $admins = User::role('admin')->get();
-        // foreach ($admins as $admin) {
-        //     Mail::to($admin->email)->send(
-        //         new CompanyNotificationMail($enrollment)
-        //     );
-        // }
+        // Send confirmation email to student
+        \Log::info('Attempting to send student email', [
+            'student_email' => $user->email,
+            'student_name' => $user->name,
+            'program_name' => $program->name,
+            'enrollment_id' => $enrollment->id
+        ]);
+
+        try {
+            $mail = new StudentEnrollmentConfirmation($enrollment);
+            Mail::to($user->email)->send($mail);
+            \Log::info('Student enrollment email sent successfully to: ' . $user->email);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send student enrollment confirmation email', [
+                'error' => $e->getMessage(),
+                'student_email' => $user->email,
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
 
         return back()->with('success', 'Your enrollment request has been submitted! We\'ll notify you once it\'s approved.');
     }

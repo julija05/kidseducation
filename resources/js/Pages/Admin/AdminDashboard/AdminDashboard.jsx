@@ -11,10 +11,14 @@ import {
     FileText,
     Video,
     HelpCircle,
+    Calendar,
+    User,
+    MapPin,
+    ExternalLink,
 } from "lucide-react";
 
 export default function AdminDashboard() {
-    const { pendingEnrollmentsCount = 0, stats = {} } = usePage().props;
+    const { pendingEnrollmentsCount = 0, stats = {}, nextScheduledLesson = null } = usePage().props;
 
     return (
         <AdminLayout>
@@ -24,6 +28,84 @@ export default function AdminDashboard() {
                 <h1 className="text-3xl font-bold text-gray-900 mb-8">
                     Admin Dashboard
                 </h1>
+
+                {/* Next Scheduled Lesson */}
+                {nextScheduledLesson && (
+                    <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <div className="flex items-center mb-2">
+                                    <Calendar className="h-5 w-5 text-blue-600 mr-2" />
+                                    <h3 className="text-lg font-semibold text-blue-900">
+                                        Next Lesson
+                                    </h3>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <div className="flex items-center text-blue-800">
+                                        <Clock className="h-4 w-4 mr-2" />
+                                        <span className="font-medium">
+                                            {nextScheduledLesson.day_description} at {nextScheduledLesson.time_only}
+                                        </span>
+                                        <span className="ml-2 text-sm text-blue-600">
+                                            ({nextScheduledLesson.duration})
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="flex items-center text-blue-800">
+                                        <User className="h-4 w-4 mr-2" />
+                                        <span>with <strong>{nextScheduledLesson.student_name}</strong></span>
+                                    </div>
+                                    
+                                    <div className="text-blue-900">
+                                        <p className="font-medium text-base">
+                                            {nextScheduledLesson.title}
+                                        </p>
+                                        {nextScheduledLesson.lesson_name && (
+                                            <p className="text-sm text-blue-700 mt-1">
+                                                Lesson: {nextScheduledLesson.lesson_name}
+                                            </p>
+                                        )}
+                                        {nextScheduledLesson.program_name && (
+                                            <p className="text-sm text-blue-700">
+                                                Program: {nextScheduledLesson.program_name}
+                                            </p>
+                                        )}
+                                        {nextScheduledLesson.description && (
+                                            <p className="text-sm text-blue-700 mt-1">
+                                                {nextScheduledLesson.description}
+                                            </p>
+                                        )}
+                                    </div>
+                                    
+                                    {(nextScheduledLesson.location || nextScheduledLesson.meeting_link) && (
+                                        <div className="flex items-center text-blue-800 mt-2">
+                                            <MapPin className="h-4 w-4 mr-2" />
+                                            <span>{nextScheduledLesson.location || 'Online'}</span>
+                                            {nextScheduledLesson.meeting_link && (
+                                                <a
+                                                    href={nextScheduledLesson.meeting_link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="ml-2 text-blue-600 hover:text-blue-800 flex items-center"
+                                                >
+                                                    <ExternalLink className="h-3 w-3" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <Link
+                                href={route("admin.class-schedules.show", nextScheduledLesson.id)}
+                                className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                            >
+                                View Details
+                            </Link>
+                        </div>
+                    </div>
+                )}
 
                 {/* Pending Enrollments Alert */}
                 {pendingEnrollmentsCount > 0 && (

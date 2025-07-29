@@ -11,6 +11,7 @@ import {
     ProgramContent,
     ProgressOverview,
 } from "@/Components/Dashboard";
+import NextClassCard from "@/Components/Dashboard/NextClassCard";
 import { iconMap } from "@/Utils/iconMapping";
 
 export default function Dashboard() {
@@ -21,6 +22,8 @@ export default function Dashboard() {
         availablePrograms,
         nextClass,
         pendingProgramId,
+        notifications,
+        unreadNotificationCount,
         flash,
     } = props;
 
@@ -28,12 +31,6 @@ export default function Dashboard() {
     const [showEnrollModal, setShowEnrollModal] = useState(false);
     const [selectedProgram, setSelectedProgram] = useState(null);
 
-    // Enhanced debug logging (keeping console logs for debugging)
-    console.log("=== DASHBOARD DEBUG ===");
-    console.log("Enrolled program:", enrolledProgram);
-    console.log("Enrolled program theme:", enrolledProgram?.theme);
-    console.log("Progress:", enrolledProgram?.progress);
-    console.log("=====================");
 
     // Check if user came from program registration
     useEffect(() => {
@@ -93,6 +90,9 @@ export default function Dashboard() {
                 <Head title={`${enrolledProgram.name} Dashboard`} />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Next Class Card */}
+                    <NextClassCard nextClass={nextClass} />
+
                     {/* Progress Overview */}
                     <ProgressOverview
                         enrolledProgram={enrolledProgram}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminClassScheduleController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminLessonResourceController;
@@ -8,6 +9,8 @@ use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\AdminQuizController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
@@ -48,6 +51,12 @@ Route::middleware(['auth', 'role:student'])->group(function () {
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
+    
+    // Student notification actions
+    Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');
+    
+    // Student schedule routes
+    Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
 
     Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])
         ->name('lesson-resources.preview');
@@ -121,6 +130,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/enrollments/{enrollment}/approve', [EnrollmentApprovalController::class, 'approve'])->name('enrollments.approve');
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
 
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('/notifications/cleanup', [NotificationController::class, 'cleanup'])->name('notifications.cleanup');
+
+    // Test Email Route (only in non-production)
+    Route::get('/test-email', [TestEmailController::class, 'testStudentEmail'])->name('test.email');
+
     // Lesson Resources Routes
     Route::prefix('lessons/{lesson}/resources')->name('lessons.resources.')->group(function () {
         Route::get('/', [AdminLessonResourceController::class, 'index'])->name('index');
@@ -144,6 +163,24 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('/duplicate', [AdminQuizController::class, 'duplicateQuiz'])->name('duplicate');
         Route::get('/results', [AdminQuizController::class, 'results'])->name('results');
         Route::get('/student-results', [AdminQuizController::class, 'studentResults'])->name('student-results');
+    });
+
+    // Class Schedule Routes
+    Route::prefix('class-schedules')->name('class-schedules.')->group(function () {
+        Route::get('/', [AdminClassScheduleController::class, 'index'])->name('index');
+        Route::get('/create', [AdminClassScheduleController::class, 'create'])->name('create');
+        Route::post('/', [AdminClassScheduleController::class, 'store'])->name('store');
+        
+        // AJAX endpoints - MUST be before /{classSchedule} routes to avoid conflicts
+        Route::get('/programs/{program}/lessons', [AdminClassScheduleController::class, 'getLessonsForProgram'])->name('program-lessons');
+        Route::get('/programs/{program}/students', [AdminClassScheduleController::class, 'getStudentsForProgram'])->name('program-students');
+        Route::post('/check-conflicts', [AdminClassScheduleController::class, 'checkConflicts'])->name('check-conflicts');
+        
+        Route::get('/{classSchedule}', [AdminClassScheduleController::class, 'show'])->name('show');
+        Route::get('/{classSchedule}/edit', [AdminClassScheduleController::class, 'edit'])->name('edit');
+        Route::put('/{classSchedule}', [AdminClassScheduleController::class, 'update'])->name('update');
+        Route::post('/{classSchedule}/cancel', [AdminClassScheduleController::class, 'cancel'])->name('cancel');
+        Route::post('/{classSchedule}/complete', [AdminClassScheduleController::class, 'complete'])->name('complete');
     });
 });
 

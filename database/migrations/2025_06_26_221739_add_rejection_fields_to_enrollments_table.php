@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::table('enrollments', function (Blueprint $table) {
             // Add missing rejection fields
-            $table->timestamp('rejected_at')->nullable()->after('approved_by');
-            $table->foreignId('rejected_by')->nullable()->after('rejected_at')->constrained('users');
+            if (!Schema::hasColumn('enrollments', 'rejected_at')) {
+                $table->timestamp('rejected_at')->nullable()->after('approved_by');
+            }
+            if (!Schema::hasColumn('enrollments', 'rejected_by')) {
+                $table->foreignId('rejected_by')->nullable()->after('rejected_at')->constrained('users');
+            }
         });
     }
 
@@ -24,8 +28,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('enrollments', function (Blueprint $table) {
-            $table->dropForeign(['rejected_by']);
-            $table->dropColumn(['rejected_at', 'rejected_by']);
+            if (Schema::hasColumn('enrollments', 'rejected_by')) {
+                $table->dropForeign(['rejected_by']);
+                $table->dropColumn('rejected_by');
+            }
+            if (Schema::hasColumn('enrollments', 'rejected_at')) {
+                $table->dropColumn('rejected_at');
+            }
         });
     }
 };
