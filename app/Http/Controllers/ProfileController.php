@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,15 +30,37 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $validated = $request->validated();
+        
+        // Debug: Log the validated data
+        \Log::info('Profile update validated data:', $validated);
+        
+        $user->fill($validated);
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        // If language preference is being updated, mark as selected
+        if (isset($validated['language_preference']) && $validated['language_preference']) {
+            $user->language_selected = true;
+            
+            // Update session locale for immediate effect
+            Session::put('locale', $validated['language_preference']);
+            
+            // Debug: Log the language change
+            \Log::info('Language preference updated:', [
+                'user_id' => $user->id,
+                'old_language' => $user->getOriginal('language_preference'),
+                'new_language' => $validated['language_preference'],
+                'session_locale' => Session::get('locale')
+            ]);
+        }
 
-        return Redirect::route('profile.edit');
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**

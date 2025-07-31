@@ -2,6 +2,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Import Dashboard components
 import {
@@ -12,10 +13,12 @@ import {
     ProgressOverview,
 } from "@/Components/Dashboard";
 import NextClassCard from "@/Components/Dashboard/NextClassCard";
+import FirstTimeLanguageSelector from "@/Components/FirstTimeLanguageSelector";
 import { iconMap } from "@/Utils/iconMapping";
 
 export default function Dashboard() {
     const { props } = usePage();
+    const { t } = useTranslation();
     const {
         enrolledProgram,
         pendingEnrollments,
@@ -24,12 +27,14 @@ export default function Dashboard() {
         pendingProgramId,
         notifications,
         unreadNotificationCount,
+        showLanguageSelector,
         flash,
     } = props;
 
     const student = props.auth.user;
     const [showEnrollModal, setShowEnrollModal] = useState(false);
     const [selectedProgram, setSelectedProgram] = useState(null);
+    const [showLanguageModal, setShowLanguageModal] = useState(showLanguageSelector || false);
 
 
     // Check if user came from program registration
@@ -77,7 +82,7 @@ export default function Dashboard() {
             <>
                 <ProgramIcon className="mr-3" size={32} />
                 <h1 className="text-2xl font-bold">
-                    🎓 {enrolledProgram.name} Learning Adventure
+                    🎓 {t('dashboard.learning_adventure', { program: enrolledProgram.name })}
                 </h1>
             </>
         );
@@ -88,6 +93,12 @@ export default function Dashboard() {
                 customHeader={customHeader}
             >
                 <Head title={`${enrolledProgram.name} Dashboard`} />
+
+                {/* First Time Language Selector */}
+                <FirstTimeLanguageSelector
+                    show={showLanguageModal}
+                    onClose={() => setShowLanguageModal(false)}
+                />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Next Class Card */}
@@ -122,7 +133,14 @@ export default function Dashboard() {
     // Show both pending enrollments AND available programs
     return (
         <AuthenticatedLayout>
-            <Head title="Dashboard" />
+            <Head title={t('nav.dashboard')} />
+            
+            {/* First Time Language Selector */}
+            <FirstTimeLanguageSelector
+                show={showLanguageModal}
+                onClose={() => setShowLanguageModal(false)}
+            />
+            
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Show pending enrollment notification if exists */}
                 {pendingEnrollments && pendingEnrollments.length > 0 && (

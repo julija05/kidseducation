@@ -15,6 +15,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\SignUpKidController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonResourceController;
@@ -25,7 +26,9 @@ use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\QuizController;
 use Illuminate\Support\Facades\Route;
 
-
+// Language switching
+Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
+Route::post('/language/set-preference', [LanguageController::class, 'setPreference'])->name('language.set-preference')->middleware('auth');
 
 // Student dashboard
 Route::middleware(['auth', 'role:student'])->group(function () {

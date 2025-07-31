@@ -156,6 +156,7 @@ class DashboardController extends Controller
             'availablePrograms' => [],
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => !$user->language_selected,
         ]);
     }
 
@@ -189,6 +190,7 @@ class DashboardController extends Controller
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => !$user->language_selected,
         ]);
     }
 
@@ -210,6 +212,7 @@ class DashboardController extends Controller
             'pendingProgramId' => $pendingProgramId,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => !$user->language_selected,
         ]);
     }
 

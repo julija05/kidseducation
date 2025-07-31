@@ -24,12 +24,14 @@ import {
     Target,
 } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramContent({
     program,
     onStartLesson,
     onReviewLesson,
 }) {
+    const { t } = useTranslation();
     const [expandedLevels, setExpandedLevels] = useState(
         new Set([program.currentLevel])
     );

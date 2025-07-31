@@ -9,6 +9,7 @@ use App\Jobs\SendLessonReminder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
@@ -169,14 +170,31 @@ class NotificationService
 
         // Send email notification for scheduled lessons
         if ($action === 'scheduled' && $student) {
-            Mail::to($student->email)->send(new LessonScheduled($schedule));
+            try {
+                Mail::to($student->email)->send(new LessonScheduled($schedule));
+            } catch (\Exception $e) {
+                \Log::warning('Failed to send lesson scheduled email', [
+                    'student_email' => $student->email,
+                    'schedule_id' => $schedule->id,
+                    'error' => $e->getMessage()
+                ]);
+                // Continue execution even if email fails
+            }
         }
         
         // Schedule reminder email for 24 hours before the lesson (only once per schedule)
         if ($action === 'scheduled' && !$schedule->reminder_sent_at) {
-            $reminderTime = $schedule->scheduled_at->copy()->subHours(24);
-            if ($reminderTime->isFuture()) {
-                SendLessonReminder::dispatch($schedule)->delay($reminderTime);
+            try {
+                $reminderTime = $schedule->scheduled_at->copy()->subHours(24);
+                if ($reminderTime->isFuture()) {
+                    SendLessonReminder::dispatch($schedule)->delay($reminderTime);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to schedule lesson reminder', [
+                    'schedule_id' => $schedule->id,
+                    'error' => $e->getMessage()
+                ]);
+                // Continue execution even if reminder scheduling fails
             }
         }
 

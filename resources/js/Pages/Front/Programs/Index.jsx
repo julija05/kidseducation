@@ -2,8 +2,10 @@ import React from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const ProgramsIndex = ({ auth, programs }) => {
+    const { t } = useTranslation();
     // const { programs, pageTitle, content } = usePage().props;
     const colors = [
         {
@@ -41,7 +43,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                     transition={{ duration: 1 }}
                 >
                     <span className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text drop-shadow-md p-3">
-                        Programs
+                        {t('programs_page.title')}
                     </span>
                 </motion.h2>
 
@@ -61,7 +63,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                                 transition={{ duration: 1 }}
                             >
                                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-6 py-2 rounded-full shadow-lg border-2 border-yellow-500 z-20 animate-bounce">
-                                    🎁 1 Free Class
+                                    {t('programs_page.free_class')}
                                 </div>
                                 <img
                                     src={`${program.image}`}
@@ -80,7 +82,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                                     href={route("programs.show", program.slug)}
                                     className={`inline-block ${color.button} text-white text-lg px-6 py-3 rounded-full transition shadow-lg`}
                                 >
-                                    Learn More
+                                    {t('programs_page.learn_more')}
                                 </Link>
                             </motion.div>
                         );

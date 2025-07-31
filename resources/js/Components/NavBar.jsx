@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import Logo from "../../assets/logo.png";
 import { Menu, X } from "lucide-react";
+import LanguageSelector from "./LanguageSelector";
+import { useTranslation } from "../hooks/useTranslation";
 
 const NavBar = React.memo(() => {
     const { auth } = usePage().props;
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleMenu = () => setIsOpen(!isOpen);
@@ -49,31 +52,31 @@ const NavBar = React.memo(() => {
                             href={route("landing.index")}
                             className="hover:text-purple-600 transition"
                         >
-                            Home
+                            {t('nav.home')}
                         </Link>
                         <Link
                             href={route("programs.index")}
                             className="hover:text-purple-600 transition"
                         >
-                            Programs
+                            {t('nav.programs')}
                         </Link>
                         <Link
                             href={route("about.index")}
                             className="hover:text-purple-600 transition"
                         >
-                            About
+                            {t('nav.about')}
                         </Link>
                         <Link
                             href={""}
                             className="hover:text-purple-600 transition"
                         >
-                            News
+                            {t('nav.news')}
                         </Link>
                         <Link
                             href={route("contact.index")}
                             className="hover:text-purple-600 transition"
                         >
-                            Contact
+                            {t('nav.contact')}
                         </Link>
                         {/* <Link
                             href={route("signupkid.index")}
@@ -86,7 +89,7 @@ const NavBar = React.memo(() => {
                                 href={route("dashboard")}
                                 className="hover:text-purple-600 transition"
                             >
-                                Dashboard
+                                {t('nav.dashboard')}
                             </Link>
                         ) : (
                             <>
@@ -94,16 +97,19 @@ const NavBar = React.memo(() => {
                                     href={route("login")}
                                     className="hover:text-purple-600 transition"
                                 >
-                                    Log in
+                                    {t('nav.login')}
                                 </Link>
                                 <Link
                                     href={route("register")}
                                     className="hover:text-purple-600 transition"
                                 >
-                                    Register
+                                    {t('nav.register')}
                                 </Link>
                             </>
                         )}
+                        
+                        {/* Language Selector */}
+                        <LanguageSelector className="mt-4 md:mt-0" />
                     </nav>
                 </div>
             </div>
