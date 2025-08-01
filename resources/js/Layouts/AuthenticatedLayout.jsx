@@ -4,6 +4,7 @@ import { useState } from "react";
 import { User, ChevronDown, Bell, Calculator } from "lucide-react";
 import StudentNotifications from "@/Components/Dashboard/StudentNotifications";
 import AbacusSimulator from "@/Components/AbacusSimulator";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AuthenticatedLayout({
     children,
@@ -13,6 +14,7 @@ export default function AuthenticatedLayout({
 }) {
     const { props } = usePage();
     const user = props.auth.user;
+    const { t } = useTranslation();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [showAbacus, setShowAbacus] = useState(false);
     
@@ -86,10 +88,10 @@ export default function AuthenticatedLayout({
                                 <button
                                     onClick={() => setShowAbacus(true)}
                                     className="flex items-center gap-2 px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all duration-200 text-white text-sm"
-                                    title="Open Abacus Simulator"
+                                    title={t('dashboard.open_abacus_simulator')}
                                 >
                                     <Calculator size={18} />
-                                    <span className="hidden sm:inline">Abacus</span>
+                                    <span className="hidden sm:inline">{t('dashboard.abacus')}</span>
                                 </button>
                             )}
                             
@@ -115,7 +117,7 @@ export default function AuthenticatedLayout({
                                         >
                                             <div className="text-right">
                                                 <p className="text-xs opacity-90">
-                                                    Welcome back,
+                                                    {t('dashboard.welcome_back')},
                                                 </p>
                                                 <p className="font-semibold text-sm text-white">
                                                     {user.name}
@@ -140,21 +142,21 @@ export default function AuthenticatedLayout({
                                         href={route("dashboard")}
                                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
-                                        Dashboard
+                                        {t('nav.dashboard')}
                                     </Dropdown.Link>
                                     {isStudent && (
                                         <Dropdown.Link
                                             href={route("my-schedule")}
                                             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
-                                            My Schedule
+                                            {t('nav.my_schedule')}
                                         </Dropdown.Link>
                                     )}
                                     <Dropdown.Link
                                         href={route("profile.edit")}
                                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
-                                        Profile Settings
+                                        {t('nav.profile_settings')}
                                     </Dropdown.Link>
                                     <div className="border-t border-gray-100 my-1"></div>
                                     <Dropdown.Link
@@ -163,7 +165,7 @@ export default function AuthenticatedLayout({
                                         as="button"
                                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                     >
-                                        Log Out
+                                        {t('nav.log_out')}
                                     </Dropdown.Link>
                                 </Dropdown.Content>
                             </Dropdown>
@@ -182,8 +184,8 @@ export default function AuthenticatedLayout({
                     <button
                         onClick={() => setShowAbacus(true)}
                         className="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-amber-300"
-                        title="Open Abacus Simulator"
-                        aria-label="Open Abacus Simulator"
+                        title={t('dashboard.open_abacus_simulator')}
+                        aria-label={t('dashboard.open_abacus_simulator')}
                     >
                         <Calculator size={24} />
                     </button>
