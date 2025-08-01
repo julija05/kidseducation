@@ -98,9 +98,11 @@ class LessonController extends Controller
             'lesson' => [
                 'id' => $lesson->id,
                 'title' => $lesson->title,
+                'translated_title' => $lesson->translated_title,
                 'content_type' => $lesson->content_type,
                 'content_url' => $lesson->content_url,
                 'content_body' => $lesson->content_body,
+                'translated_content_body' => $lesson->translated_content_body,
             ]
         ]);
     }
@@ -180,6 +182,7 @@ class LessonController extends Controller
                 'next_lesson' => $nextLesson ? [
                     'id' => $nextLesson->id,
                     'title' => $nextLesson->title,
+                    'translated_title' => $nextLesson->translated_title,
                     'level' => $nextLesson->level,
                     'url' => route('lessons.show', $nextLesson->id)
                 ] : null,

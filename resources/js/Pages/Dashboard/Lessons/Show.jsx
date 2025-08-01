@@ -58,7 +58,7 @@ export default function LessonShow({
         if (result) {
             if (nextLesson) {
                 const confirmNext = confirm(
-                    `Lesson completed! Would you like to proceed to the next lesson: "${nextLesson.title}"?`
+                    `Lesson completed! Would you like to proceed to the next lesson: "${nextLesson.translated_title || nextLesson.title}"?`
                 );
                 if (confirmNext) {
                     router.visit(route("lessons.show", nextLesson.id));
@@ -76,7 +76,7 @@ export default function LessonShow({
 
     return (
         <AuthenticatedLayout>
-            <Head title={`${lesson.title} - ${program?.name || "Program"}`} />
+            <Head title={`${lesson.translated_title || lesson.title} - ${program?.translated_name || program?.name || "Program"}`} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <LessonHeader

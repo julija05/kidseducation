@@ -1,6 +1,7 @@
 import React from "react";
 import { router } from "@inertiajs/react";
 import { ArrowLeft, BookOpen, Clock, Eye } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function LessonHeader({
     lesson,
@@ -8,6 +9,8 @@ export default function LessonHeader({
     progress,
     hasResources,
 }) {
+    const { t } = useTranslation();
+    
     return (
         <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -23,7 +26,7 @@ export default function LessonHeader({
                     className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
                 >
                     <ArrowLeft size={20} className="mr-2" />
-                    Back to Program
+                    {t('lessons.back_to_program')}
                 </button>
 
                 <div className="text-sm text-gray-500">
@@ -33,11 +36,11 @@ export default function LessonHeader({
 
             <div className="flex items-center mb-2">
                 <BookOpen size={20} className="mr-2" />
-                <h1 className="text-2xl font-bold">{lesson.title}</h1>
+                <h1 className="text-2xl font-bold">{lesson.translated_title || lesson.title}</h1>
             </div>
 
-            {lesson.description && (
-                <p className="text-gray-600 mb-4">{lesson.description}</p>
+            {(lesson.translated_description || lesson.description) && (
+                <p className="text-gray-600 mb-4">{lesson.translated_description || lesson.description}</p>
             )}
 
             <div className="flex items-center justify-between">

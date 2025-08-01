@@ -194,7 +194,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                     </div>
                     <div className="space-y-2">
                         <h4 className="font-bold text-gray-900 text-sm leading-tight">
-                            {enrolledProgram.name}
+                            {enrolledProgram.translated_name || enrolledProgram.name}
                         </h4>
                         <p className="text-sm text-gray-600">
                             {nextClass && nextClass.day_description && nextClass.time_only 

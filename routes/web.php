@@ -199,4 +199,5 @@ Route::get('/programs', [ProgramController::class, 'index'])->name('programs.ind
 Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name('programs.show');
 Route::get('/news', [NewsController::class, 'index']);
 
+
 require __DIR__ . '/auth.php';

@@ -82,16 +82,16 @@ class DashboardController extends Controller
         $formattedNextClass = null;
         if ($nextScheduledClass) {
             $scheduledAt = $nextScheduledClass->scheduled_at;
-            $dayName = $scheduledAt->isToday() ? 'today' : 
-                      ($scheduledAt->isTomorrow() ? 'tomorrow' : $scheduledAt->format('l'));
+            $dayName = $scheduledAt->isToday() ? __('app.time.today') : 
+                      ($scheduledAt->isTomorrow() ? __('app.time.tomorrow') : $scheduledAt->format('l'));
             
             $formattedNextClass = [
                 'id' => $nextScheduledClass->id,
                 'title' => $nextScheduledClass->title,
                 'description' => $nextScheduledClass->description,
                 'admin_name' => $nextScheduledClass->admin->name,
-                'program_name' => $nextScheduledClass->program?->name,
-                'lesson_name' => $nextScheduledClass->lesson?->title,
+                'program_name' => $nextScheduledClass->program?->translated_name ?? $nextScheduledClass->program?->name,
+                'lesson_name' => $nextScheduledClass->lesson?->translated_title ?? $nextScheduledClass->lesson?->title,
                 'scheduled_at' => $nextScheduledClass->scheduled_at,
                 'formatted_time' => $nextScheduledClass->getFormattedScheduledTime(),
                 'day_description' => $dayName,
@@ -169,8 +169,10 @@ class DashboardController extends Controller
                 'program' => [
                     'id' => $enrollment->program->id,
                     'name' => $enrollment->program->name,
+                    'translated_name' => $enrollment->program->translated_name,
                     'slug' => $enrollment->program->slug,
                     'description' => $enrollment->program->description,
+                    'translated_description' => $enrollment->program->translated_description,
                     'icon' => $enrollment->program->icon,
                     'color' => $enrollment->program->color,
                     'lightColor' => $enrollment->program->light_color,

@@ -55,6 +55,24 @@ return [
         'not_started' => 'Not Started',
         'resources' => 'Resources',
         'no_lessons' => 'No lessons available',
+        
+        // Lesson page UI
+        'select_resource' => 'Select a Resource',
+        'choose_resource_to_begin' => 'Choose a learning resource from the list to begin',
+        'no_resources_available' => 'No resources available yet',
+        'progress_complete' => 'Progress: :progress% complete',
+        'mark_75_complete' => 'Mark 75% Complete',
+        'complete_lesson' => 'Complete Lesson',
+        'completing' => 'Completing...',
+        'required' => 'Required',
+        'download' => 'Download',
+        'download_file' => 'Download File',
+        'open_link' => 'Open Link',
+        'start_quiz' => 'Start Quiz',
+        'interactive_content_coming_soon' => 'Interactive content coming soon',
+        'resource_preview_not_available' => 'Resource preview not available',
+        'file' => 'File',
+        'back_to_program' => 'Back to Program',
     ],
 
     // Dashboard
@@ -364,9 +382,9 @@ return [
 
     // Time
     'time' => [
-        'today' => 'Today',
+        'today' => 'today',
         'yesterday' => 'Yesterday',
-        'tomorrow' => 'Tomorrow',
+        'tomorrow' => 'tomorrow',
         'this_week' => 'This Week',
         'last_week' => 'Last Week',
         'this_month' => 'This Month',

@@ -16,11 +16,14 @@ class LessonFormatterService
             'id' => $lesson->id,
             'title' => $lesson->title,
             'description' => $lesson->description,
+            'translated_title' => $lesson->translated_title,
+            'translated_description' => $lesson->translated_description,
             'level' => $lesson->level,
             'order_in_level' => $lesson->order_in_level,
             'content_type' => $lesson->content_type,
             'content_url' => $lesson->content_url,
             'content_body' => $lesson->content_body,
+            'translated_content_body' => $lesson->translated_content_body,
             'duration_minutes' => $lesson->duration_minutes,
             'formatted_duration' => $lesson->formatted_duration,
             'resources' => $this->resourceFormatter->formatResources($lesson->resources),
@@ -49,6 +52,7 @@ class LessonFormatterService
         return [
             'id' => $lesson->id,
             'title' => $lesson->title,
+            'translated_title' => $lesson->translated_title,
             'level' => $lesson->level,
         ];
     }
@@ -60,6 +64,8 @@ class LessonFormatterService
             'name' => $program->name,
             'slug' => $program->slug,
             'description' => $program->description,
+            'translated_name' => $program->translated_name,
+            'translated_description' => $program->translated_description,
         ];
     }
 }

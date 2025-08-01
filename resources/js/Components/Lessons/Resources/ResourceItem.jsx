@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import * as Icons from "lucide-react";
 import { RESOURCE_ICONS } from "@/constants/resourceTypes";
 import { getResourceTypeColor } from "@/Utils/helpers";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ResourceItem({
     resource,
@@ -10,6 +11,7 @@ export default function ResourceItem({
     onSelect,
     onDownload,
 }) {
+    const { t } = useTranslation();
     const iconConfig = RESOURCE_ICONS[resource.type] || {
         icon: "File",
         color: "text-gray-600",
@@ -30,7 +32,7 @@ export default function ResourceItem({
                 </div>
                 <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">
-                        {resource.title}
+                        {resource.translated_title || resource.title}
                     </h4>
                     <div className="flex items-center justify-between mt-1">
                         <span className="text-xs font-medium capitalize">
@@ -38,7 +40,7 @@ export default function ResourceItem({
                         </span>
                         {resource.is_required && (
                             <span className="text-xs bg-red-100 text-red-600 px-1 rounded">
-                                Required
+                                {t('lessons.required')}
                             </span>
                         )}
                     </div>
@@ -49,7 +51,7 @@ export default function ResourceItem({
                             className="mt-2 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded flex items-center"
                         >
                             <Download size={12} className="mr-1" />
-                            Download
+                            {t('lessons.download')}
                         </button>
                     )}
                 </div>

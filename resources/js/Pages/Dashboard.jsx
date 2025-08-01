@@ -82,7 +82,7 @@ export default function Dashboard() {
             <>
                 <ProgramIcon className="mr-3" size={32} />
                 <h1 className="text-2xl font-bold">
-                    🎓 {t('dashboard.learning_adventure', { program: enrolledProgram.name })}
+                    🎓 {t('dashboard.learning_adventure', { program: enrolledProgram.translated_name || enrolledProgram.name })}
                 </h1>
             </>
         );
@@ -92,7 +92,7 @@ export default function Dashboard() {
                 programConfig={enrolledProgram.theme}
                 customHeader={customHeader}
             >
-                <Head title={`${enrolledProgram.name} Dashboard`} />
+                <Head title={`${enrolledProgram.translated_name || enrolledProgram.name} Dashboard`} />
 
                 {/* First Time Language Selector */}
                 <FirstTimeLanguageSelector

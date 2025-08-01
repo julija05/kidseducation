@@ -26,7 +26,8 @@ export default function AuthenticatedLayout({
     
     // Check if student is enrolled in Mental Arithmetic program
     const isMentalArithmeticStudent = isStudent && enrolledProgram && 
-        enrolledProgram.name === 'Mental Arithmetic Mastery' && 
+        (enrolledProgram.name === 'Mental Arithmetic Mastery' || 
+         enrolledProgram.translated_name === 'Ментална Аритметика') && 
         enrolledProgram.approvalStatus === 'approved';
 
     // Default theme configuration if no program config is provided

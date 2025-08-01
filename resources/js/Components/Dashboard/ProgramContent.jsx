@@ -33,14 +33,8 @@ export default function ProgramContent({
 }) {
     const { t } = useTranslation();
     
-    // Helper function to get translated program description
-    const getTranslatedDescription = (programName, fallbackDescription) => {
-        const translatedDesc = t(`dashboard.program_descriptions.${programName}`);
-        // If translation key is returned as-is, use fallback description
-        return translatedDesc.startsWith('dashboard.program_descriptions.') 
-            ? fallbackDescription 
-            : translatedDesc;
-    };
+    // Note: Translation is now handled by the backend models
+    // program.translated_name and program.translated_description are automatically localized
     const [expandedLevels, setExpandedLevels] = useState(
         new Set([program.currentLevel])
     );
@@ -286,10 +280,10 @@ export default function ProgramContent({
                 <h3
                     className={`text-xl font-semibold ${program.theme.textColor} mb-3`}
                 >
-                    {t('dashboard.welcome_to_program', { program: program.name })}
+                    {t('dashboard.welcome_to_program', { program: program.translated_name || program.name })}
                 </h3>
                 <p className={program.theme.textColor}>
-                    {getTranslatedDescription(program.name, program.description)}
+                    {program.translated_description || program.description}
                 </p>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center text-sm text-gray-600">
@@ -419,7 +413,7 @@ export default function ProgramContent({
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-blue-800 font-medium">
-                                {program.nextLesson.title}
+                                {program.nextLesson.translated_title || program.nextLesson.title}
                             </p>
                             <p className="text-blue-600 text-sm">
                                 Level {program.nextLesson.level}
@@ -556,7 +550,7 @@ export default function ProgramContent({
                                                                     <div className="flex items-center justify-between">
                                                                         <h6 className="font-medium">
                                                                             {
-                                                                                lesson.title
+                                                                                lesson.translated_title || lesson.title
                                                                             }
                                                                         </h6>
                                                                         {hasResources && (

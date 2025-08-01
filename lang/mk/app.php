@@ -58,6 +58,24 @@ return [
         'not_started' => 'Не е започнато',
         'resources' => 'Ресурси',
         'no_lessons' => 'Нема достапни лекции',
+        
+        // Lesson page UI
+        'select_resource' => 'Избери ресурс',
+        'choose_resource_to_begin' => 'Избери учебен ресурс од листата за да почнеш',
+        'no_resources_available' => 'Сè уште нема достапни ресурси',
+        'progress_complete' => 'Напредок: :progress% завршено',
+        'mark_75_complete' => 'Означи 75% завршено',
+        'complete_lesson' => 'Заврши лекција',
+        'completing' => 'Завршувам...',
+        'required' => 'Задолжително',
+        'download' => 'Преземи',
+        'download_file' => 'Преземи датотека',
+        'open_link' => 'Отвори врска',
+        'start_quiz' => 'Започни квиз',
+        'interactive_content_coming_soon' => 'Интерактивната содржина наскоро доаѓа',
+        'resource_preview_not_available' => 'Прегледот на ресурсот не е достапен',
+        'file' => 'Датотека',
+        'back_to_program' => 'Назад во програмата',
     ],
 
     // Dashboard
@@ -375,9 +393,9 @@ return [
 
     // Time
     'time' => [
-        'today' => 'Денес',
+        'today' => 'денес',
         'yesterday' => 'Вчера',
-        'tomorrow' => 'Утре',
+        'tomorrow' => 'утре',
         'this_week' => 'Оваа недела',
         'last_week' => 'Минатата недела',
         'this_month' => 'Овој месец',

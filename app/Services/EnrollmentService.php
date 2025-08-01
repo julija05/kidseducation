@@ -123,6 +123,8 @@ class EnrollmentService
             'slug' => $program->slug,
             'name' => $program->name,
             'description' => $program->description,
+            'translated_name' => $program->translated_name,
+            'translated_description' => $program->translated_description,
             'theme' => $program->theme_data,
             'progress' => round($enrollment->progress, 0),
             'status' => $enrollment->status,
@@ -135,6 +137,7 @@ class EnrollmentService
             'nextLesson' => $nextLesson ? [
                 'id' => $nextLesson->id,
                 'title' => $nextLesson->title,
+                'translated_title' => $nextLesson->translated_title,
                 'level' => $nextLesson->level,
             ] : null,
             // Points system information
