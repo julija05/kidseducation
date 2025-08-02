@@ -291,12 +291,30 @@ return [
         'theme_note_description' => 'Your theme selection will apply to your dashboard, but individual lessons may use their own program-specific colors.',
         'avatar_selection' => 'Avatar Selection',
         'avatar_selection_description' => 'Choose an avatar that represents you',
+        'choose_your_avatar' => 'Choose Your Avatar',
+        'select_avatar_that_represents' => 'Select an avatar that represents you best',
+        'avatar_tip' => 'Tip',
+        'avatar_tip_description' => 'Your avatar will appear in the header and throughout the platform',
         'active_student' => 'Active Student',
         'learning_enthusiast' => 'Learning Enthusiast',
         'member_since' => 'Member since',
         'study_hours' => 'Study Hours',
         'streak' => 'Streak',
         'days' => 'days',
+        
+        // Avatar names
+        'avatars' => [
+            'initial' => 'Initial',
+            'student' => 'Student',
+            'reader' => 'Reader',
+            'star' => 'Star',
+            'explorer' => 'Explorer',
+            'thinker' => 'Thinker',
+            'creative' => 'Creative',
+            'winner' => 'Winner',
+            'problem_solver' => 'Problem Solver',
+            'default' => 'Default',
+        ],
     ],
 
     // Forms

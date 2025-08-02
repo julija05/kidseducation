@@ -292,12 +292,30 @@ return [
         'theme_note_description' => 'Вашиот избор на тема ќе се примени на вашата контролна табла, но поединечните лекции можат да користат свои специфични бои за програмата.',
         'avatar_selection' => 'Избор на Аватар',
         'avatar_selection_description' => 'Изберете аватар кој ве претставува',
+        'choose_your_avatar' => 'Изберете го вашиот Аватар',
+        'select_avatar_that_represents' => 'Изберете аватар кој најдобро ве претставува',
+        'avatar_tip' => 'Совет',
+        'avatar_tip_description' => 'Вашиот аватар ќе се појавува во заглавјето и низ целата платформа',
         'active_student' => 'Активен ученик',
         'learning_enthusiast' => 'Ентузијаст за учење',
         'member_since' => 'Член од',
         'study_hours' => 'Часови на учење',
         'streak' => 'Низа',
         'days' => 'дена',
+        
+        // Avatar names
+        'avatars' => [
+            'initial' => 'Иницијални',
+            'student' => 'Ученик',
+            'reader' => 'Читач',
+            'star' => 'Ѕвезда',
+            'explorer' => 'Истражувач',
+            'thinker' => 'Мислител',
+            'creative' => 'Креативен',
+            'winner' => 'Победник',
+            'problem_solver' => 'Решавач на проблеми',
+            'default' => 'Стандарден',
+        ],
     ],
 
     // Forms

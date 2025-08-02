@@ -200,7 +200,11 @@ export default function Edit({ mustVerifyEmail, status }) {
                                                 ⭐ {t('profile.learning_enthusiast')}
                                             </span>
                                             <span className="rounded-full bg-white bg-opacity-20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
-                                                📅 {t('profile.member_since')} {new Date(user.created_at).getFullYear()}
+                                                📅 {t('profile.member_since')} {(() => {
+                                                    if (!user.created_at) return 'N/A';
+                                                    const date = new Date(user.created_at);
+                                                    return isNaN(date.getTime()) ? 'N/A' : date.getFullYear();
+                                                })()}
                                             </span>
                                         </div>
                                     </div>

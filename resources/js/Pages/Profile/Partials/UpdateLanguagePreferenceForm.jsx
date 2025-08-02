@@ -43,9 +43,10 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
             language: selectedLanguage,
             first_time: false
         }, {
+            preserveScroll: true,
             onSuccess: () => {
-                // Reload the page to apply the new language
-                window.location.reload();
+                // Don't reload at all - let Inertia handle the response
+                // The language change will take effect on the next page request
             },
             onError: (errors) => {
                 console.error('Error updating language preference:', errors);

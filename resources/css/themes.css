@@ -155,3 +155,36 @@
 /* Focus states */
 .focus\:border-primary-500:focus { border-color: rgb(var(--primary-500)); }
 .focus\:ring-primary-500:focus { --tw-ring-color: rgb(var(--primary-500)); }
+
+/* Global Theme Classes - Apply theme colors to common elements */
+.btn-primary, 
+button[class*="bg-gray-800"], 
+button[class*="bg-blue-"], 
+button[class*="bg-indigo-"],
+.bg-gray-800,
+.bg-blue-600,
+.bg-indigo-600 {
+    background-color: rgb(var(--primary-600)) !important;
+}
+
+.btn-primary:hover,
+button[class*="bg-gray-800"]:hover,
+button[class*="bg-blue-"]:hover,
+button[class*="bg-indigo-"]:hover,
+.bg-gray-800:hover,
+.bg-blue-600:hover,
+.bg-indigo-600:hover {
+    background-color: rgb(var(--primary-700)) !important;
+}
+
+/* Apply theme colors to text */
+.text-blue-600,
+.text-indigo-600 {
+    color: rgb(var(--primary-600)) !important;
+}
+
+/* Apply theme colors to borders */
+.border-blue-500,
+.border-indigo-500 {
+    border-color: rgb(var(--primary-500)) !important;
+}

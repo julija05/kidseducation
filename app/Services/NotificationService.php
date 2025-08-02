@@ -36,6 +36,35 @@ class NotificationService
     }
 
     /**
+     * Create a new notification with translation keys (preferred method)
+     */
+    public function createWithTranslationKeys(
+        string $titleKey,
+        string $messageKey,
+        string $type,
+        ?array $translationData = null,
+        ?array $additionalData = null,
+        ?Model $relatedModel = null,
+        ?User $createdBy = null
+    ): Notification {
+        $data = array_merge($additionalData ?? [], [
+            'title_key' => $titleKey,
+            'message_key' => $messageKey,
+            'translation_data' => $translationData ?? [],
+        ]);
+
+        return Notification::create([
+            'title' => $titleKey, // Store key as fallback
+            'message' => $messageKey, // Store key as fallback
+            'type' => $type,
+            'data' => $data,
+            'related_model_type' => $relatedModel ? get_class($relatedModel) : null,
+            'related_model_id' => $relatedModel?->id,
+            'created_by' => $createdBy?->id,
+        ]);
+    }
+
+    /**
      * Create enrollment notification for admins
      */
     public function createEnrollmentNotification(
@@ -161,39 +190,27 @@ class NotificationService
         $student = $schedule->student;
         $admin = $schedule->admin;
 
-        $titles = [
-            'scheduled' => __('app.notifications.class_scheduled'),
-            'rescheduled' => __('app.notifications.class_rescheduled'),
-            'cancelled' => __('app.notifications.class_cancelled'),
-            'completed' => __('app.notifications.class_completed'),
-            'reminder' => __('app.notifications.class_reminder'),
+        $titleKeys = [
+            'scheduled' => 'notifications.class_scheduled',
+            'rescheduled' => 'notifications.class_rescheduled',
+            'cancelled' => 'notifications.class_cancelled',
+            'completed' => 'notifications.class_completed',
+            'reminder' => 'notifications.class_reminder',
         ];
 
-        $messages = [
-            'scheduled' => __('app.notifications.class_scheduled_message', [
-                'title' => $schedule->title,
-                'admin' => $admin->name,
-                'time' => $schedule->getFormattedScheduledTime()
-            ]),
-            'rescheduled' => __('app.notifications.class_rescheduled_message', [
-                'title' => $schedule->title,
-                'admin' => $admin->name,
-                'time' => $schedule->getFormattedScheduledTime()
-            ]),
-            'cancelled' => __('app.notifications.class_cancelled_message', [
-                'title' => $schedule->title,
-                'admin' => $admin->name,
-                'time' => $schedule->getFormattedScheduledTime()
-            ]),
-            'completed' => __('app.notifications.class_completed_message', [
-                'title' => $schedule->title,
-                'admin' => $admin->name
-            ]),
-            'reminder' => __('app.notifications.class_reminder_message', [
-                'title' => $schedule->title,
-                'admin' => $admin->name,
-                'time' => $schedule->scheduled_at->format('g:i A')
-            ]),
+        $messageKeys = [
+            'scheduled' => 'notifications.class_scheduled_message',
+            'rescheduled' => 'notifications.class_rescheduled_message',
+            'cancelled' => 'notifications.class_cancelled_message',
+            'completed' => 'notifications.class_completed_message',
+            'reminder' => 'notifications.class_reminder_message',
+        ];
+
+        // Translation data for message placeholders
+        $translationData = [
+            'title' => $schedule->title,
+            'admin' => $admin->name,
+            'time' => $schedule->getFormattedScheduledTime()
         ];
 
         // Send email notification for scheduled lessons
@@ -226,10 +243,11 @@ class NotificationService
             }
         }
 
-        return $this->create(
-            $titles[$action] ?? __('app.notifications.class_update'),
-            $messages[$action] ?? __('app.notifications.class_schedule_updated'),
+        return $this->createWithTranslationKeys(
+            $titleKeys[$action] ?? 'notifications.class_update',
+            $messageKeys[$action] ?? 'notifications.class_schedule_updated',
             'schedule',
+            $translationData,
             [
                 'action' => $action,
                 'schedule_id' => $schedule->id,

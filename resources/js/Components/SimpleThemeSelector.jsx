@@ -86,6 +86,11 @@ export default function SimpleThemeSelector({ className = '' }) {
             const styles = getComputedStyle(document.documentElement);
             const primaryColor = styles.getPropertyValue('--primary-600');
             console.log('Current --primary-600 value:', primaryColor);
+            
+            // Dispatch custom event for other components to listen to
+            window.dispatchEvent(new CustomEvent('themeChanged', { 
+                detail: { themeId } 
+            }));
         } catch (error) {
             console.error('Failed to save theme preference:', error);
         } finally {
