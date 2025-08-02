@@ -35,8 +35,13 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ env.PHP_VERSION }}
-        extensions: mbstring, dom, fileinfo, mysql, bcmath, gd, zip, curl
+        extensions: mbstring, dom, fileinfo, mysql, bcmath, gd, zip, curl, pdo_mysql
         coverage: xdebug
+
+    - name: Install MySQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mysql-client
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -58,19 +63,32 @@ jobs:
     - name: Install NPM dependencies
       run: npm ci
 
-    - name: Wait for MySQL to be ready
+    - name: Wait for MySQL to be ready and create database
       run: |
-        until nc -z 127.0.0.1 3306; do
-          echo "Waiting for MySQL..."
-          sleep 1
+        echo "Waiting for MySQL service to be ready..."
+        for i in {30..0}; do
+          if mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e 'SELECT 1' &> /dev/null; then
+            echo "MySQL is ready!"
+            break
+          fi
+          echo "MySQL is unavailable - sleeping for 2 seconds"
+          sleep 2
         done
-        echo "MySQL is ready!"
+        
+        if [ "$i" = 0 ]; then
+          echo "MySQL did not become ready in time"
+          exit 1
+        fi
+        
+        # Create the test database
+        mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e "CREATE DATABASE IF NOT EXISTS kids_education_test;"
+        mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e "SHOW DATABASES;" | grep kids_education_test
 
     - name: Create environment files with MySQL
       run: |
         # Create storage directories
         mkdir -p storage/framework/cache/data
-        mkdir -p storage/framework/sessions
+        mkdir -p storage/framework/sessions  
         mkdir -p storage/framework/views
         mkdir -p bootstrap/cache
         
@@ -102,22 +120,11 @@ jobs:
         php artisan key:generate
         php artisan key:generate --env=testing
 
-    - name: Skip cache operations and go straight to migrations
+    - name: Skip cache operations
       run: |
-        # Debug: Show environment
-        echo "=== Environment Check ==="
-        echo "DB_CONNECTION: $(grep DB_CONNECTION .env)"
-        echo "CACHE_STORE: $(grep CACHE_STORE .env)"
-        
-        # Test database connection without cache operations
-        echo "=== Direct Database Test ==="
-        mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e "CREATE DATABASE IF NOT EXISTS kids_education_test;"
-        mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e "SHOW DATABASES;" | grep kids_education_test
-        
-        # Remove any cached files
+        # Remove any cached files that might cause issues
         rm -rf bootstrap/cache/*
-        
-        echo "=== Skipping cache:clear operations that cause SQLite issues ==="
+        echo "=== Skipping problematic cache operations ==="
 
     - name: Run database migrations
       run: |
