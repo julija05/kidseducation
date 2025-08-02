@@ -102,30 +102,32 @@ jobs:
         php artisan key:generate
         php artisan key:generate --env=testing
 
-    - name: Debug and clear caches
+    - name: Skip cache operations and go straight to migrations
       run: |
         # Debug: Show environment
         echo "=== Environment Check ==="
         echo "DB_CONNECTION: $(grep DB_CONNECTION .env)"
         echo "CACHE_STORE: $(grep CACHE_STORE .env)"
         
-        # Test database connection
-        echo "=== Database Connection Test ==="
-        DB_CONNECTION=mysql php artisan tinker --execute="echo 'DB Connection: ' . config('database.default'); echo '\nCache Driver: ' . config('cache.default');"
+        # Test database connection without cache operations
+        echo "=== Direct Database Test ==="
+        mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e "CREATE DATABASE IF NOT EXISTS kids_education_test;"
+        mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e "SHOW DATABASES;" | grep kids_education_test
         
         # Remove any cached files
         rm -rf bootstrap/cache/*
         
-        # Set environment explicitly and clear caches
-        DB_CONNECTION=mysql CACHE_STORE=array php artisan config:clear
-        DB_CONNECTION=mysql CACHE_STORE=array php artisan cache:clear  
-        DB_CONNECTION=mysql CACHE_STORE=array php artisan view:clear
+        echo "=== Skipping cache:clear operations that cause SQLite issues ==="
 
     - name: Run database migrations
-      run: php artisan migrate --env=testing --force
+      run: |
+        echo "=== Running migrations ==="
+        DB_CONNECTION=mysql DB_DATABASE=kids_education_test php artisan migrate --env=testing --force
 
     - name: Seed database
-      run: php artisan db:seed --env=testing --force
+      run: |
+        echo "=== Seeding database ==="  
+        DB_CONNECTION=mysql DB_DATABASE=kids_education_test php artisan db:seed --env=testing --force
 
     - name: Build frontend assets
       run: npm run build
@@ -139,8 +141,39 @@ jobs:
 
     - name: Run PHP tests
       run: |
+        # Create a minimal phpunit config that avoids cache operations
+        cat > phpunit.minimal.xml << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+                 bootstrap="vendor/autoload.php"
+                 colors="true">
+            <testsuites>
+                <testsuite name="Unit">
+                    <directory>tests/Unit</directory>
+                </testsuite>
+                <testsuite name="Feature">
+                    <directory>tests/Feature</directory>
+                </testsuite>
+            </testsuites>
+            <php>
+                <env name="APP_ENV" value="testing"/>
+                <env name="DB_CONNECTION" value="mysql"/>
+                <env name="DB_HOST" value="127.0.0.1"/>
+                <env name="DB_PORT" value="3306"/>
+                <env name="DB_DATABASE" value="kids_education_test"/>
+                <env name="DB_USERNAME" value="root"/>
+                <env name="DB_PASSWORD" value="password"/>
+                <env name="CACHE_STORE" value="array"/>
+                <env name="SESSION_DRIVER" value="array"/>
+                <env name="QUEUE_CONNECTION" value="sync"/>
+                <env name="MAIL_MAILER" value="array"/>
+            </php>
+        </phpunit>
+        EOF
+        
         # Run tests with explicit environment variables
-        DB_CONNECTION=mysql DB_DATABASE=kids_education_test ./vendor/bin/phpunit --configuration=phpunit.ci.xml --coverage-text --colors=never
+        DB_CONNECTION=mysql DB_DATABASE=kids_education_test CACHE_STORE=array ./vendor/bin/phpunit --configuration=phpunit.minimal.xml --colors=never
 
     - name: Run PHP Static Analysis (PHPStan)
       run: |
