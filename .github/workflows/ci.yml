@@ -60,6 +60,10 @@ jobs:
 
     - name: Create testing environment file
       run: |
+        # Create SQLite file as fallback to prevent errors during config operations
+        mkdir -p database
+        touch database/database.sqlite
+        
         # Create .env.testing
         cp .env.example .env.testing
         sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/' .env.testing
@@ -90,8 +94,13 @@ jobs:
         done
         echo "MySQL is ready!"
 
-    - name: Clear application cache
+    - name: Clear any existing caches
       run: |
+        # Remove any cached configuration files that might reference SQLite
+        rm -f bootstrap/cache/config.php
+        rm -f bootstrap/cache/packages.php
+        rm -f bootstrap/cache/services.php
+        # Clear application caches
         php artisan config:clear
         php artisan cache:clear
         php artisan view:clear
