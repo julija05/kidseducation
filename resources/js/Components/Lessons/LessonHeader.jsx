@@ -1,6 +1,7 @@
 import React from "react";
 import { router } from "@inertiajs/react";
 import { ArrowLeft, BookOpen, Clock, Eye } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function LessonHeader({
     lesson,
@@ -8,36 +9,23 @@ export default function LessonHeader({
     progress,
     hasResources,
 }) {
+    const { t } = useTranslation();
+    
     return (
         <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-                <button
-                    onClick={() =>
-                        router.visit(
-                            route(
-                                "dashboard.programs.show",
-                                program?.slug || "dashboard"
-                            )
-                        )
-                    }
-                    className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                    <ArrowLeft size={20} className="mr-2" />
-                    Back to Program
-                </button>
-
+            <div className="flex items-center justify-end mb-4">
                 <div className="text-sm text-gray-500">
-                    Level {lesson.level} • Lesson {lesson.order_in_level}
+                    {t('lessons.level')} {lesson.level} • {t('lessons.lesson')} {lesson.order_in_level}
                 </div>
             </div>
 
             <div className="flex items-center mb-2">
                 <BookOpen size={20} className="mr-2" />
-                <h1 className="text-2xl font-bold">{lesson.title}</h1>
+                <h1 className="text-2xl font-bold">{lesson.translated_title || lesson.title}</h1>
             </div>
 
-            {lesson.description && (
-                <p className="text-gray-600 mb-4">{lesson.description}</p>
+            {(lesson.translated_description || lesson.description) && (
+                <p className="text-gray-600 mb-4">{lesson.translated_description || lesson.description}</p>
             )}
 
             <div className="flex items-center justify-between">

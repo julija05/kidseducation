@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function AbacusSimulator({ isOpen, onClose }) {
+    const { t } = useTranslation();
     const [columns, setColumns] = useState(7); // Number of columns (digits)
     const [beadStates, setBeadStates] = useState({});
     const [soundEnabled, setSoundEnabled] = useState(true);
@@ -145,7 +147,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200">
                     <div className="flex items-center gap-4">
-                        <h2 className="text-2xl font-bold text-gray-900">Abacus Simulator</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.abacus_simulator')}</h2>
                         {showValue && (
                             <div className="bg-blue-100 px-4 py-2 rounded-lg">
                                 <span className="text-lg font-mono font-bold text-blue-900">
@@ -160,7 +162,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
                             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                            title={soundEnabled ? "Disable Sound" : "Enable Sound"}
+                            title={soundEnabled ? t('dashboard.disable_sound') : t('dashboard.enable_sound')}
                         >
                             {soundEnabled ? (
                                 <Volume2 className="w-5 h-5 text-gray-600" />
@@ -173,7 +175,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                             onClick={() => setShowValue(!showValue)}
                             className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
                         >
-                            {showValue ? "Hide Value" : "Show Value"}
+                            {showValue ? t('dashboard.hide_value') : t('dashboard.show_value')}
                         </button>
                         
                         <button
@@ -181,7 +183,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                             className="flex items-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
                         >
                             <RotateCcw className="w-4 h-4" />
-                            Reset
+                            {t('dashboard.reset')}
                         </button>
                         
                         <button
@@ -196,7 +198,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                 {/* Quick Number Input */}
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-gray-600">Quick set:</span>
+                        <span className="text-sm text-gray-600">{t('dashboard.quick_set')}</span>
                         {[0, 123, 456, 789, 1234, 5678, 9999].map(num => (
                             <button
                                 key={num}
@@ -259,7 +261,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                                                             ? 'bg-gradient-to-b from-red-400 to-red-600 border-red-800 shadow-red-400/50 transform translate-y-4'
                                                             : 'bg-gradient-to-b from-red-300 to-red-500 border-red-700 hover:from-red-400 hover:to-red-600'
                                                     }`}
-                                                    title={`Heaven bead (5) - Column ${col + 1}`}
+                                                    title={t('dashboard.heaven_bead', { column: col + 1 })}
                                                 >
                                                     <div className="w-full h-full rounded-full bg-gradient-to-t from-transparent to-white/30"></div>
                                                 </button>
@@ -292,7 +294,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                                                                 ? 'bg-gradient-to-b from-blue-400 to-blue-600 border-blue-800 shadow-blue-400/50 transform -translate-y-2'
                                                                 : 'bg-gradient-to-b from-blue-300 to-blue-500 border-blue-700 hover:from-blue-400 hover:to-blue-600'
                                                         }`}
-                                                        title={`Earth bead ${beadIndex + 1} (1) - Column ${col + 1}`}
+                                                        title={t('dashboard.earth_bead', { bead: beadIndex + 1, column: col + 1 })}
                                                     >
                                                         <div className="w-full h-full rounded-full bg-gradient-to-t from-transparent to-white/30"></div>
                                                     </button>
@@ -316,22 +318,22 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                 <div className="p-4 bg-gray-50 text-sm text-gray-600">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <h4 className="font-semibold text-gray-800 mb-2">How to use:</h4>
+                            <h4 className="font-semibold text-gray-800 mb-2">{t('dashboard.how_to_use')}</h4>
                             <ul className="space-y-1">
-                                <li>• Click red beads (heaven) to add/subtract 5</li>
-                                <li>• Click blue beads (earth) to add/subtract 1</li>
-                                <li>• Each column has 4 earth beads (1-4)</li>
-                                <li>• Earth beads move together naturally</li>
-                                <li>• Each column represents a digit position</li>
+                                <li>• {t('dashboard.click_red_beads')}</li>
+                                <li>• {t('dashboard.click_blue_beads')}</li>
+                                <li>• {t('dashboard.each_column_earth')}</li>
+                                <li>• {t('dashboard.earth_beads_move')}</li>
+                                <li>• {t('dashboard.each_column_digit')}</li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-semibold text-gray-800 mb-2">Tips:</h4>
+                            <h4 className="font-semibold text-gray-800 mb-2">{t('dashboard.tips')}</h4>
                             <ul className="space-y-1">
-                                <li>• Use heaven beads for numbers 5-9</li>
-                                <li>• Practice addition and subtraction</li>
-                                <li>• Try the quick set numbers to learn</li>
-                                <li>• Sound can be toggled on/off</li>
+                                <li>• {t('dashboard.use_heaven_beads')}</li>
+                                <li>• {t('dashboard.practice_addition')}</li>
+                                <li>• {t('dashboard.try_quick_set')}</li>
+                                <li>• {t('dashboard.sound_toggle')}</li>
                             </ul>
                         </div>
                     </div>

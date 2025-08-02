@@ -8,8 +8,10 @@ import TextInput from "@/Components/TextInput";
 import NavBar from "@/Components/NavBar";
 import { UserPlus, Mail, Lock, User } from "lucide-react";
 import registerIllustration from "../../../assets/kid-no-bg.png";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Register({ auth }) {
+    const { t } = useTranslation();
     const { data, setData, post, processing, errors, reset } = useForm({
         name: "",
         email: "",
@@ -53,16 +55,16 @@ export default function Register({ auth }) {
                     {/* Registration Form */}
                     <div className="p-10">
                         <h2 className="text-4xl font-extrabold text-pink-600 text-center mb-4">
-                            Join Abacoding!
+                            {t('auth.register.title')}
                         </h2>
                         <p className="text-md text-gray-600 text-center mb-6">
-                            Start your learning adventure today
+                            {t('auth.register.subtitle')}
                         </p>
 
                         <form onSubmit={submit} className="space-y-6">
                             {/* Name Field */}
                             <div>
-                                <InputLabel htmlFor="name" value="Full Name" />
+                                <InputLabel htmlFor="name" value={t('auth.register.full_name')} />
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                                     <TextInput
@@ -73,7 +75,7 @@ export default function Register({ auth }) {
                                         autoComplete="name"
                                         isFocused={true}
                                         onChange={(e) => setData("name", e.target.value)}
-                                        placeholder="Enter your full name"
+                                        placeholder={t('auth.register.name_placeholder')}
                                         required
                                     />
                                 </div>
@@ -82,7 +84,7 @@ export default function Register({ auth }) {
 
                             {/* Email Field */}
                             <div>
-                                <InputLabel htmlFor="email" value="Email Address" />
+                                <InputLabel htmlFor="email" value={t('auth.register.email_address')} />
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                                     <TextInput
@@ -93,7 +95,7 @@ export default function Register({ auth }) {
                                         className="pl-10 mt-1 block w-full"
                                         autoComplete="username"
                                         onChange={(e) => setData("email", e.target.value)}
-                                        placeholder="Enter your email address"
+                                        placeholder={t('auth.register.email_placeholder')}
                                         required
                                     />
                                 </div>
@@ -102,7 +104,7 @@ export default function Register({ auth }) {
 
                             {/* Password Field */}
                             <div>
-                                <InputLabel htmlFor="password" value="Password" />
+                                <InputLabel htmlFor="password" value={t('auth.register.password')} />
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                                     <TextInput
@@ -113,7 +115,7 @@ export default function Register({ auth }) {
                                         className="pl-10 mt-1 block w-full"
                                         autoComplete="new-password"
                                         onChange={(e) => setData("password", e.target.value)}
-                                        placeholder="Create a strong password"
+                                        placeholder={t('auth.register.password_placeholder')}
                                         required
                                     />
                                 </div>
@@ -124,7 +126,7 @@ export default function Register({ auth }) {
                             <div>
                                 <InputLabel
                                     htmlFor="password_confirmation"
-                                    value="Confirm Password"
+                                    value={t('auth.register.confirm_password')}
                                 />
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -138,7 +140,7 @@ export default function Register({ auth }) {
                                         onChange={(e) =>
                                             setData("password_confirmation", e.target.value)
                                         }
-                                        placeholder="Confirm your password"
+                                        placeholder={t('auth.register.confirm_password_placeholder')}
                                         required
                                     />
                                 </div>
@@ -154,18 +156,18 @@ export default function Register({ auth }) {
                                 disabled={processing}
                             >
                                 <UserPlus className="w-5 h-5" />
-                                {processing ? "Creating Account..." : "Create My Account"}
+                                {processing ? t('auth.register.creating_account') : t('auth.register.create_account')}
                             </PrimaryButton>
                         </form>
 
                         {/* Footer */}
                         <p className="mt-6 text-center text-sm text-gray-600">
-                            Already have an account?{" "}
+                            {t('auth.register.already_have_account')}{" "}
                             <Link
                                 href={route("login")}
                                 className="text-pink-500 font-semibold hover:underline"
                             >
-                                Sign in here
+                                {t('auth.register.sign_in_here')}
                             </Link>
                         </p>
                     </div>

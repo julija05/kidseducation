@@ -6,16 +6,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\HasTranslations;
 
 class Lesson extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     protected $fillable = [
         'program_id',
         'level',
         'title',
         'description',
+        'title_translations',
+        'description_translations',
+        'content_body_translations',
         'content_type',
         'content_url',
         'content_body',
@@ -31,6 +35,9 @@ class Lesson extends Model
         'duration_minutes' => 'integer',
         'level' => 'integer',
         'order_in_level' => 'integer',
+        'title_translations' => 'array',
+        'description_translations' => 'array',
+        'content_body_translations' => 'array',
     ];
 
     // Relationships
@@ -127,5 +134,21 @@ class Lesson extends Model
     public function isUnlockedForUser(User $user): bool
     {
         return $this->program->isLevelUnlockedForUser($user, $this->level);
+    }
+    
+    // Translation accessors
+    public function getTranslatedTitleAttribute(): string
+    {
+        return $this->getTranslatedAttribute('title');
+    }
+    
+    public function getTranslatedDescriptionAttribute(): ?string
+    {
+        return $this->getTranslatedAttribute('description');
+    }
+    
+    public function getTranslatedContentBodyAttribute(): ?string
+    {
+        return $this->getTranslatedAttribute('content_body');
     }
 }

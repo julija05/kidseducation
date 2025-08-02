@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function LessonActions({
     currentProgress,
@@ -6,11 +7,13 @@ export default function LessonActions({
     onUpdateProgress,
     onCompleteLesson,
 }) {
+    const { t } = useTranslation();
+    
     return (
         <div className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
             <div>
                 <p className="text-sm text-gray-600">
-                    Progress: {Math.round(currentProgress)}% complete
+                    {t('lessons.progress_complete', { progress: Math.round(currentProgress) })}
                 </p>
             </div>
             <div className="space-x-4">
@@ -20,14 +23,14 @@ export default function LessonActions({
                             onClick={() => onUpdateProgress(75)}
                             className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
                         >
-                            Mark 75% Complete
+                            {t('lessons.mark_75_complete')}
                         </button>
                         <button
                             onClick={() => onCompleteLesson()}
                             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                             disabled={isLoading}
                         >
-                            {isLoading ? "Completing..." : "Complete Lesson"}
+                            {isLoading ? t('lessons.completing') : t('lessons.complete_lesson')}
                         </button>
                     </>
                 )}

@@ -82,16 +82,16 @@ class DashboardController extends Controller
         $formattedNextClass = null;
         if ($nextScheduledClass) {
             $scheduledAt = $nextScheduledClass->scheduled_at;
-            $dayName = $scheduledAt->isToday() ? 'today' : 
-                      ($scheduledAt->isTomorrow() ? 'tomorrow' : $scheduledAt->format('l'));
+            $dayName = $scheduledAt->isToday() ? __('app.time.today') : 
+                      ($scheduledAt->isTomorrow() ? __('app.time.tomorrow') : $scheduledAt->format('l'));
             
             $formattedNextClass = [
                 'id' => $nextScheduledClass->id,
                 'title' => $nextScheduledClass->title,
                 'description' => $nextScheduledClass->description,
                 'admin_name' => $nextScheduledClass->admin->name,
-                'program_name' => $nextScheduledClass->program?->name,
-                'lesson_name' => $nextScheduledClass->lesson?->title,
+                'program_name' => $nextScheduledClass->program?->translated_name ?? $nextScheduledClass->program?->name,
+                'lesson_name' => $nextScheduledClass->lesson?->translated_title ?? $nextScheduledClass->lesson?->title,
                 'scheduled_at' => $nextScheduledClass->scheduled_at,
                 'formatted_time' => $nextScheduledClass->getFormattedScheduledTime(),
                 'day_description' => $dayName,
@@ -156,6 +156,7 @@ class DashboardController extends Controller
             'availablePrograms' => [],
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => !$user->language_selected,
         ]);
     }
 
@@ -168,8 +169,10 @@ class DashboardController extends Controller
                 'program' => [
                     'id' => $enrollment->program->id,
                     'name' => $enrollment->program->name,
+                    'translated_name' => $enrollment->program->translated_name,
                     'slug' => $enrollment->program->slug,
                     'description' => $enrollment->program->description,
+                    'translated_description' => $enrollment->program->translated_description,
                     'icon' => $enrollment->program->icon,
                     'color' => $enrollment->program->color,
                     'lightColor' => $enrollment->program->light_color,
@@ -189,6 +192,7 @@ class DashboardController extends Controller
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => !$user->language_selected,
         ]);
     }
 
@@ -210,6 +214,7 @@ class DashboardController extends Controller
             'pendingProgramId' => $pendingProgramId,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => !$user->language_selected,
         ]);
     }
 
@@ -279,6 +284,41 @@ class DashboardController extends Controller
         }
 
         return back();
+    }
+
+    public function showProgram(Request $request, $programSlug)
+    {
+        $user = $request->user();
+        $program = \App\Models\Program::where('slug', $programSlug)->firstOrFail();
+        
+        // Get user's enrollment status for this program
+        $userEnrollment = $user->enrollments()
+            ->where('program_id', $program->id)
+            ->first();
+            
+        // Get enrollment data for the specific program
+        $enrolledProgram = null;
+        if ($userEnrollment && $userEnrollment->approval_status === 'approved') {
+            $enrolledProgram = $this->enrollmentService->formatEnrollmentForDashboard($userEnrollment);
+        }
+        
+        // Get student data
+        $studentData = $this->getStudentData($user);
+        
+        return $this->createView('Dashboard/Programs/Show', [
+            'program' => [
+                'id' => $program->id,
+                'name' => $program->name,
+                'translated_name' => $program->translated_name,
+                'slug' => $program->slug,
+                'description' => $program->description,
+                'translated_description' => $program->translated_description,
+            ],
+            'userEnrollment' => $userEnrollment,
+            'enrolledProgram' => $enrolledProgram,
+            'enrollmentStatus' => $userEnrollment?->approval_status,
+            'nextClass' => $studentData['nextScheduledClass'] ?? null,
+        ]);
     }
 
     public function mySchedule(Request $request)

@@ -51,6 +51,8 @@ class ClassScheduleTest extends TestCase
             'meeting_link',
             'status',
             'type',
+            'is_group_class',
+            'max_students',
             'cancellation_reason',
             'cancelled_at',
             'cancelled_by',
@@ -189,9 +191,9 @@ class ClassScheduleTest extends TestCase
 
     public function test_this_week_scope(): void
     {
-        // Create schedule for this week
+        // Create schedule for this week (ensure it's within current week)
         ClassSchedule::factory()->create([
-            'scheduled_at' => now()->addDays(2),
+            'scheduled_at' => now()->startOfWeek()->addDays(1), // Monday + 1 day
         ]);
 
         // Create schedule for next week

@@ -4,8 +4,10 @@ import undrawImage from "../../../../assets/people.png";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import ourMission from "../../../../assets/Mission.png";
 import whyUs from "../../../../assets/kids-happy.png";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function About({ auth }) {
+    const { t } = useTranslation();
     const [missionRef, missionInView] = useInView({
         triggerOnce: true,
         threshold: 0.2,
@@ -25,7 +27,7 @@ export default function About({ auth }) {
                             transition={{ duration: 1 }}
                         >
                             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Who we are
+                                {t('about.who_we_are')}
                             </span>
                         </motion.h2>
                         <motion.p
@@ -34,10 +36,7 @@ export default function About({ auth }) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3, duration: 1 }}
                         >
-                            We’re passionate about helping kids develop
-                            problem-solving and creative thinking skills from a
-                            young age. Our programs are carefully designed to
-                            make learning fun, engaging, and meaningful.
+                            {t('about.who_we_are_description')}
                         </motion.p>
                     </div>
 
@@ -99,14 +98,10 @@ export default function About({ auth }) {
                             className="w-full md:w-1/2 text-center md:text-left"
                         >
                             <h2 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent drop-shadow">
-                                Our Mission
+                                {t('about.our_mission')}
                             </h2>
                             <p className="text-lg text-gray-800 leading-relaxed">
-                                We are dedicated to nurturing young minds
-                                through interactive and engaging learning
-                                experiences. Our mission is to foster
-                                creativity, critical thinking, and a lifelong
-                                love of learning in every child.
+                                {t('about.mission_description')}
                             </p>
                         </motion.div>
                     </div>
@@ -137,31 +132,17 @@ export default function About({ auth }) {
                             transition={{ duration: 1 }}
                         >
                             <h2 className="text-5xl font-extrabold mb-6 p-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent drop-shadow">
-                                Why Choose Us?
+                                {t('about.why_choose_us')}
                             </h2>
                             <div className="text-lg text-gray-800 leading-relaxed space-y-6">
                                 <p>
-                                    At our learning center, we don't just teach
-                                    – we inspire. Whether your child is learning
-                                    mental math with our proven{" "}
-                                    <strong>Abacus method</strong> or exploring
-                                    the world of{" "}
-                                    <strong>coding through Scratch</strong>,
-                                    they’ll gain skills that boost confidence
-                                    and spark curiosity.
+                                    {t('about.why_choose_description1')}
                                 </p>
                                 <p>
-                                    Our experienced educators use fun, hands-on
-                                    techniques to turn learning into an
-                                    adventure. Every lesson is crafted to keep
-                                    kids engaged, empowered, and excited to come
-                                    back.
+                                    {t('about.why_choose_description2')}
                                 </p>
                                 <p>
-                                    With small group sizes, personalized
-                                    attention, and a focus on developing
-                                    real-world skills, we help kids thrive
-                                    academically and personally.
+                                    {t('about.why_choose_description3')}
                                 </p>
                             </div>
                         </motion.div>
@@ -207,7 +188,7 @@ export default function About({ auth }) {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1 }}
                     >
-                        Frequently Asked Questions
+                        {t('about.faq_title')}
                     </motion.h2>
 
                     <div className="max-w-4xl mx-auto space-y-8">
@@ -218,15 +199,10 @@ export default function About({ auth }) {
                             transition={{ delay: 0.1, duration: 0.8 }}
                         >
                             <h3 className="text-xl font-semibold mb-2">
-                                What is Abacus learning?
+                                {t('about.faq_abacus_q')}
                             </h3>
                             <p>
-                                Abacus learning is a fun and effective way to
-                                develop strong mental arithmetic skills.
-                                Children use a physical or visual abacus to
-                                perform complex calculations using only their
-                                minds—boosting focus, memory, and brain
-                                development.
+                                {t('about.faq_abacus_a')}
                             </p>
                         </motion.div>
 
@@ -237,13 +213,10 @@ export default function About({ auth }) {
                             transition={{ delay: 0.2, duration: 0.8 }}
                         >
                             <h3 className="text-xl font-semibold mb-2">
-                                What age is best for starting the programs?
+                                {t('about.faq_age_q')}
                             </h3>
                             <p>
-                                Our Abacus and Scratch coding programs are
-                                designed for kids aged 5 to 12. We adjust our
-                                teaching approach to suit your child’s age and
-                                learning pace.
+                                {t('about.faq_age_a')}
                             </p>
                         </motion.div>
 
@@ -254,13 +227,10 @@ export default function About({ auth }) {
                             transition={{ delay: 0.3, duration: 0.8 }}
                         >
                             <h3 className="text-xl font-semibold mb-2">
-                                Do kids need any prior experience?
+                                {t('about.faq_experience_q')}
                             </h3>
                             <p>
-                                Not at all! Both programs are beginner-friendly.
-                                Whether your child is completely new to math or
-                                has never written a line of code, they’ll start
-                                at the perfect level for them.
+                                {t('about.faq_experience_a')}
                             </p>
                         </motion.div>
 
@@ -271,18 +241,10 @@ export default function About({ auth }) {
                             transition={{ delay: 0.4, duration: 0.8 }}
                         >
                             <h3 className="text-xl font-semibold mb-2">
-                                How can I enroll my child?
+                                {t('about.faq_enroll_q')}
                             </h3>
                             <p>
-                                It’s simple! Just head over to our{" "}
-                                <a
-                                    href="/programs"
-                                    className="text-blue-600 underline hover:text-blue-800"
-                                >
-                                    Programs
-                                </a>{" "}
-                                page and fill out the enrollment form. We’ll
-                                contact you shortly with the next steps.
+                                {t('about.faq_enroll_a')}
                             </p>
                         </motion.div>
                     </div>

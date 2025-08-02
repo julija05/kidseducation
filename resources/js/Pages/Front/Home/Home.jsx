@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import kid from "../../../../assets/Abacoding.png";
 import learningMap from "../../../../assets/learning_map.png";
 import learningMapCoding from "../../../../assets/lerning-map-coding.png";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 
 const Home = ({ auth }) => {
     const { programs, pageTitle, content } = usePage().props;
-    const fullText = "Where kids learn to think fast and build the future.";
+    const { t } = useTranslation();
+    const fullText = t('home.hero_tagline');
     const [displayedText, setDisplayedText] = useState("");
 
     useEffect(() => {
@@ -56,11 +58,11 @@ const Home = ({ auth }) => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4, duration: 1 }}
                         >
-                            Explore the{" "}
+                            {t('home.explore_magical_world')}{" "}
                             <span className="text-pink-600 font-semibold">
-                                magical world
+                                {t('home.magical_world')}
                             </span>{" "}
-                            of learning with our{" "}
+                            {t('home.of_learning')}{" "}
                             <span className="text-blue-500 font-semibold">
                                 Abacus
                             </span>{" "}
@@ -68,11 +70,11 @@ const Home = ({ auth }) => {
                             <span className="text-pink-600 font-semibold">
                                 Coding
                             </span>{" "}
-                            programs for{" "}
+                            {t('home.abacus_and_coding')}{" "}
                             <span className="text-blue-500 font-semibold">
-                                curious & creative
+                                {t('home.curious_creative')}
                             </span>{" "}
-                            young minds.
+                            {t('home.young_minds')}
                         </motion.p>
 
                         {/* Stats */}
@@ -82,7 +84,7 @@ const Home = ({ auth }) => {
                                     1896+
                                 </h3>
                                 <p className="text-sm text-blue-500 font-medium">
-                                    Happy Learners
+                                    {t('home.happy_learners')}
                                 </p>
                             </div>
                             <div className="flex-1 bg-white/70 backdrop-blur-md shadow-lg rounded-xl px-6 py-4 text-center">
@@ -90,7 +92,7 @@ const Home = ({ auth }) => {
                                     2000+
                                 </h3>
                                 <p className="text-sm text-blue-500 font-medium">
-                                    Active Users
+                                    {t('home.active_users')}
                                 </p>
                             </div>
                             <div className="flex-1 bg-white/70 backdrop-blur-md shadow-lg rounded-xl px-6 py-4 text-center">
@@ -98,7 +100,7 @@ const Home = ({ auth }) => {
                                     98%
                                 </h3>
                                 <p className="text-sm text-blue-500 font-medium">
-                                    Parent Satisfaction
+                                    {t('home.parent_satisfaction')}
                                 </p>
                             </div>
                         </div>
@@ -153,7 +155,7 @@ const Home = ({ auth }) => {
                         transition={{ duration: 1 }}
                     >
                         <span className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text drop-shadow-md p-3">
-                            Mental Arithmetic Program
+                            {t('home.mental_arithmetic_program')}
                         </span>
                     </motion.h2>
 
@@ -178,7 +180,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
-                                What is Abacus?
+                                {t('home.what_is_abacus')}
                             </motion.h3>
                             <motion.p
                                 className="text-lg text-gray-700 leading-relaxed mb-6"
@@ -186,7 +188,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
-                                The abacus is an ancient calculating tool...
+                                {t('home.abacus_description')}
                             </motion.p>
 
                             <motion.h3
@@ -195,7 +197,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
-                                Why Learn Abacus?
+                                {t('home.why_learn_abacus')}
                             </motion.h3>
                             <motion.ul
                                 className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2"
@@ -203,17 +205,12 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
-                                <li>Develops strong mental math skills...</li>
-                                <li>
-                                    Improves memory, concentration, and focus.
-                                </li>
-                                <li>
-                                    Enhances visualization and imaginative
-                                    thinking.
-                                </li>
-                                <li>Boosts self-confidence...</li>
-                                <li>Strengthens brain development...</li>
-                                <li>Helps children love math...</li>
+                                <li>{t('home.develop_mental_math')}</li>
+                                <li>{t('home.improves_memory')}</li>
+                                <li>{t('home.enhances_visualization')}</li>
+                                <li>{t('home.boosts_confidence')}</li>
+                                <li>{t('home.strengthens_brain')}</li>
+                                <li>{t('home.helps_love_math')}</li>
                             </motion.ul>
 
                             <motion.h3
@@ -222,7 +219,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
-                                When Should a Child Start Learning Abacus?
+                                {t('home.when_start_abacus')}
                             </motion.h3>
                             <motion.p
                                 className="text-lg text-gray-700 leading-relaxed mb-12"
@@ -230,8 +227,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
-                                Children can start learning abacus as early as 4
-                                to 5 years old...
+                                {t('home.abacus_age_description')}
                             </motion.p>
 
                             <motion.div
@@ -241,8 +237,7 @@ const Home = ({ auth }) => {
                                 transition={{ duration: 0.6, delay: 0.3 }}
                             >
                                 <p className="text-xl text-blue-600 font-semibold mb-4">
-                                    Ready to get started? Join now and enjoy the
-                                    first lesson for free!
+                                    {t('home.ready_to_start')}
                                 </p>
                             </motion.div>
                         </div>
@@ -258,7 +253,7 @@ const Home = ({ auth }) => {
                         transition={{ duration: 1 }}
                     >
                         <span className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text drop-shadow-md p-3">
-                            Coding for Kids (Scratch)
+                            {t('home.coding_for_kids')}
                         </span>
                     </motion.h2>
 
@@ -283,7 +278,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
-                                What is Scratch Programming?
+                                {t('home.what_is_scratch')}
                             </motion.h3>
                             <motion.p
                                 className="text-lg text-gray-700 leading-relaxed mb-6"
@@ -291,8 +286,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
-                                Scratch is a beginner-friendly programming
-                                platform...
+                                {t('home.scratch_description')}
                             </motion.p>
 
                             <motion.h3
@@ -301,7 +295,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
-                                Why Learn Coding at a Young Age?
+                                {t('home.why_learn_coding')}
                             </motion.h3>
                             <motion.ul
                                 className="list-disc list-inside text-lg text-gray-700 leading-relaxed mb-6 space-y-2"
@@ -309,17 +303,12 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
-                                <li>Strengthens problem-solving skills.</li>
-                                <li>Encourages creativity and storytelling.</li>
-                                <li>
-                                    Helps kids express themselves through tech.
-                                </li>
-                                <li>Improves persistence and resilience.</li>
-                                <li>Builds early tech confidence.</li>
-                                <li>
-                                    Creates a strong foundation for future
-                                    coding.
-                                </li>
+                                <li>{t('home.strengthens_problem_solving')}</li>
+                                <li>{t('home.encourages_creativity')}</li>
+                                <li>{t('home.helps_express_tech')}</li>
+                                <li>{t('home.improves_persistence')}</li>
+                                <li>{t('home.builds_tech_confidence')}</li>
+                                <li>{t('home.creates_foundation')}</li>
                             </motion.ul>
 
                             <motion.h3
@@ -328,7 +317,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
-                                When Should a Child Start Learning Scratch?
+                                {t('home.when_start_scratch')}
                             </motion.h3>
                             <motion.p
                                 className="text-lg text-gray-700 leading-relaxed mb-12"
@@ -336,8 +325,7 @@ const Home = ({ auth }) => {
                                 whileInView={{ opacity: 1 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
-                                Children aged 6 and above can start learning
-                                Scratch...
+                                {t('home.scratch_age_description')}
                             </motion.p>
 
                             <motion.div
@@ -347,8 +335,7 @@ const Home = ({ auth }) => {
                                 transition={{ duration: 0.6, delay: 0.3 }}
                             >
                                 <p className="text-xl text-blue-600 font-semibold mb-4">
-                                    Ready to get started? Join now and enjoy the
-                                    first lesson for free!
+                                    {t('home.ready_to_start')}
                                 </p>
                             </motion.div>
                         </div>
@@ -363,7 +350,7 @@ const Home = ({ auth }) => {
                         whileInView={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 1 }}
                     >
-                        Ready to Get Started?
+                        {t('home.ready_get_started')}
                     </motion.h2>
                     <motion.p
                         className="text-lg mb-8"
@@ -371,15 +358,14 @@ const Home = ({ auth }) => {
                         whileInView={{ opacity: 1 }}
                         transition={{ delay: 0.3, duration: 1 }}
                     >
-                        Join hundreds of happy parents who are building a better
-                        future for their kids.
+                        {t('home.join_happy_parents')}
                     </motion.p>
                     <motion.button
                         className="bg-yellow-400 hover:bg-yellow-300 text-white font-semibold py-3 px-8 rounded-2xl text-lg transition"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        <Link href={route("programs.index")}>Enroll Now</Link>
+                        <Link href={route("programs.index")}>{t('home.enroll_now')}</Link>
                     </motion.button>
                 </section>
             </div>
