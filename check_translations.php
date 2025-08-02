@@ -8,8 +8,14 @@ use Illuminate\Database\Capsule\Manager as DB;
 // Database configuration - update with your settings
 $database = new DB;
 $database->addConnection([
-    'driver' => 'sqlite',
-    'database' => database_path('database.sqlite'),
+    'driver' => 'mysql',
+    'host' => '127.0.0.1',
+    'port' => '3306',
+    'database' => 'kids_education',
+    'username' => 'root',
+    'password' => '',
+    'charset' => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
 ]);
 
 $database->setAsGlobal();
