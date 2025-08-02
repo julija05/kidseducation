@@ -353,6 +353,9 @@ return [
         'email' => 'Email',
         'contact_us_email' => 'Or you can contact us at:',
         'connect_with_us' => 'Connect with us',
+        'message_sent_success' => 'Message sent successfully!',
+        'something_went_wrong' => 'Something went wrong. Please try again later.',
+        'contact_illustration_alt' => 'Contact Illustration',
     ],
 
     // Home page

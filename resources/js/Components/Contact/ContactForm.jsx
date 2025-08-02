@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import axios from "@/config/axios";
 import AlertMessage from "./AlertMessage";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ContactForm() {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -25,7 +27,7 @@ export default function ContactForm() {
         try {
             const response = await axios.post("/contact", formData);
             setSuccessMessage(
-                response.data.message || "Message sent successfully!"
+                response.data.message || t('contact.message_sent_success')
             );
             setFormData({ name: "", email: "", message: "" });
 
@@ -35,7 +37,7 @@ export default function ContactForm() {
                 setErrors(error.response.data.errors);
             } else {
                 setErrorMessage(
-                    "Something went wrong. Please try again later."
+                    t('contact.something_went_wrong')
                 );
             }
         }
@@ -48,7 +50,7 @@ export default function ContactForm() {
 
             <div className="mb-4">
                 <label className="block text-sm font-semibold text-gray-700">
-                    Name
+                    {t('forms.name')}
                 </label>
                 <input
                     type="text"
@@ -65,7 +67,7 @@ export default function ContactForm() {
 
             <div className="mb-4">
                 <label className="block text-sm font-semibold text-gray-700">
-                    Email
+                    {t('forms.email')}
                 </label>
                 <input
                     type="email"
@@ -82,7 +84,7 @@ export default function ContactForm() {
 
             <div className="mb-4">
                 <label className="block text-sm font-semibold text-gray-700">
-                    Message
+                    {t('forms.message')}
                 </label>
                 <textarea
                     name="message"
@@ -103,7 +105,7 @@ export default function ContactForm() {
                 type="submit"
                 className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
             >
-                Send Message
+                {t('contact.send_message')}
             </button>
         </form>
     );

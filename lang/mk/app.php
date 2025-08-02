@@ -353,6 +353,9 @@ return [
         'email' => 'Е-пошта',
         'contact_us_email' => 'Или можете да не контактирате на:',
         'connect_with_us' => 'Поврзете се со нас',
+        'message_sent_success' => 'Пораката е успешно испратена!',
+        'something_went_wrong' => 'Нешто тргна наопаку. Ве молиме обидете се повторно подоцна.',
+        'contact_illustration_alt' => 'Илустрација за контакт',
     ],
 
     // Home page
