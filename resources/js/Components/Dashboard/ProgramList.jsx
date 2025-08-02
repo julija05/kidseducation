@@ -3,8 +3,11 @@ import React from "react";
 import { Link, router } from "@inertiajs/react";
 import { ArrowRight, BookOpen, Clock, Star, Sparkles } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramList({ programs, userEnrollments = [] }) {
+    const { t } = useTranslation();
+    
     // Create a map of program enrollments for quick lookup
     const enrollmentMap = userEnrollments.reduce((acc, enrollment) => {
         acc[enrollment.program?.id || enrollment.program_id] = enrollment;
@@ -21,7 +24,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                     href={route("dashboard.programs.show", program.slug)}
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
-                    🔍 Explore This Adventure!
+                    🔍 {t('dashboard.explore_adventure')}
                     <ArrowRight size={20} className="ml-2" />
                 </Link>
             );
@@ -36,7 +39,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                         className="w-full bg-gradient-to-r from-yellow-300 to-orange-400 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-75"
                     >
                         <Clock size={20} className="mr-2" />
-                        ⏳ Waiting for Approval!
+                        ⏳ {t('dashboard.pending_approval')}
                     </button>
                 );
             case "approved":
@@ -49,7 +52,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                         }
                         className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                        🚀 Continue Learning!
+                        🚀 {t('dashboard.continue_learning')}
                         <ArrowRight size={20} className="ml-2" />
                     </button>
                 );
@@ -59,7 +62,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                         disabled
                         className="w-full bg-gradient-to-r from-red-300 to-pink-400 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-75"
                     >
-                        😞 Enrollment Not Approved
+                        😞 {t('dashboard.rejected')}
                     </button>
                 );
             default:
@@ -68,7 +71,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                         href={route("dashboard.programs.show", program.slug)}
                         className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
-                        🔍 Explore This Adventure!
+                        🔍 {t('dashboard.explore_adventure')}
                         <ArrowRight size={20} className="ml-2" />
                     </Link>
                 );
@@ -80,11 +83,11 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
             <div className="text-center mb-8">
                 <h2 className="text-4xl font-bold text-gray-800 mb-3 flex items-center justify-center">
                     <Sparkles className="mr-3 text-yellow-500" size={36} />
-                    Amazing Learning Adventures!
+                    {t('dashboard.available_programs')}
                     <Sparkles className="ml-3 text-yellow-500" size={36} />
                 </h2>
                 <p className="text-xl text-gray-600">
-                    Pick your favorite adventure and let's start learning! 🚀
+                    {t('dashboard.pick_adventure')} 🚀
                 </p>
             </div>
 
@@ -109,13 +112,13 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                                     {isPending && (
                                         <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse flex items-center">
                                             <Clock size={16} className="mr-1" />
-                                            Pending ⏳
+                                            {t('dashboard.pending')} ⏳
                                         </span>
                                     )}
                                     {isApproved && (
                                         <span className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center">
                                             <Star size={16} className="mr-1" />
-                                            Enrolled! ✨
+                                            {t('dashboard.approved')}! ✨
                                         </span>
                                     )}
                                 </div>
@@ -130,7 +133,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                                         <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
                                             ${program.price}
                                         </span>
-                                        <div className="text-sm text-gray-600 mt-1">Super Value! 💎</div>
+                                        <div className="text-sm text-gray-600 mt-1">{t('dashboard.super_value')} 💎</div>
                                     </div>
                                 </div>
                                 <h3 className="text-3xl font-bold text-gray-800 mb-3 leading-tight">
@@ -150,7 +153,7 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                                     {program.lessonsCount && (
                                         <div className="flex items-center">
                                             <BookOpen size={20} className="mr-2 text-green-500" />
-                                            <span className="font-medium">{program.lessonsCount} lessons</span>
+                                            <span className="font-medium">{program.lessonsCount} {t('lessons.title')}</span>
                                         </div>
                                     )}
                                 </div>

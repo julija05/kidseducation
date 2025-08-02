@@ -1,12 +1,15 @@
 import React from "react";
 import { router } from "@inertiajs/react";
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function LessonNavigation({
     previousLesson,
     nextLesson,
     currentProgress,
 }) {
+    const { t } = useTranslation();
+    
     return (
         <div className="mt-6 flex items-center justify-between">
             <div>
@@ -20,7 +23,7 @@ export default function LessonNavigation({
                         className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                         <ArrowLeft size={16} className="mr-2" />
-                        Previous Lesson
+                        {t('lessons.previous_lesson')}
                     </button>
                 )}
             </div>
@@ -29,7 +32,7 @@ export default function LessonNavigation({
                 {currentProgress >= 100 && (
                     <div className="flex items-center text-green-600">
                         <CheckCircle size={20} className="mr-2" />
-                        <span className="font-medium">Completed</span>
+                        <span className="font-medium">{t('lessons.completed')}</span>
                     </div>
                 )}
 
@@ -40,7 +43,7 @@ export default function LessonNavigation({
                         }
                         className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                        Next Lesson
+                        {t('lessons.next_lesson')}
                         <ArrowRight size={16} className="ml-2" />
                     </button>
                 )}

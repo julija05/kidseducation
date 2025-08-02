@@ -2,8 +2,11 @@
 import React from "react";
 import { Calendar, Star, Target, Zap, Trophy, Rocket } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgressOverview({ enrolledProgram, nextClass }) {
+    const { t } = useTranslation();
+    
     const ProgramIcon =
         iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
 
@@ -51,12 +54,12 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
 
     // Fun messages for different progress levels
     const getProgressMessage = () => {
-        if (progressPercentage === 0) return { text: "Let's start your adventure!", emoji: "🚀" };
-        if (progressPercentage < 25) return { text: "You're doing great!", emoji: "🌟" };
-        if (progressPercentage < 50) return { text: "Awesome progress!", emoji: "💪" };
-        if (progressPercentage < 75) return { text: "You're halfway there!", emoji: "🎯" };
-        if (progressPercentage < 100) return { text: "Almost done, superstar!", emoji: "⭐" };
-        return { text: "You're a champion!", emoji: "🎉" };
+        if (progressPercentage === 0) return { text: t('dashboard.lets_start_adventure'), emoji: "🚀" };
+        if (progressPercentage < 25) return { text: t('dashboard.doing_great'), emoji: "🌟" };
+        if (progressPercentage < 50) return { text: t('dashboard.awesome_progress'), emoji: "💪" };
+        if (progressPercentage < 75) return { text: t('dashboard.halfway_there'), emoji: "🎯" };
+        if (progressPercentage < 100) return { text: t('dashboard.almost_done'), emoji: "⭐" };
+        return { text: t('dashboard.champion'), emoji: "🎉" };
     };
 
     const progressMessage = getProgressMessage();
@@ -64,12 +67,12 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
     // Achievement badges based on progress
     const getAchievements = () => {
         const achievements = [];
-        if (progressPercentage >= 25) achievements.push({ name: "Getting Started", emoji: "🌱" });
-        if (progressPercentage >= 50) achievements.push({ name: "Half Way Hero", emoji: "🏅" });
-        if (progressPercentage >= 75) achievements.push({ name: "Almost There", emoji: "🚀" });
-        if (progressPercentage === 100) achievements.push({ name: "Course Master", emoji: "👑" });
-        if (quizPoints >= 50) achievements.push({ name: "Quiz Warrior", emoji: "⚔️" });
-        if (quizPoints >= 100) achievements.push({ name: "Point Collector", emoji: "💎" });
+        if (progressPercentage >= 25) achievements.push({ name: t('dashboard.getting_started'), emoji: "🌱" });
+        if (progressPercentage >= 50) achievements.push({ name: t('dashboard.halfway_hero'), emoji: "🏅" });
+        if (progressPercentage >= 75) achievements.push({ name: t('dashboard.almost_there'), emoji: "🚀" });
+        if (progressPercentage === 100) achievements.push({ name: t('dashboard.course_master'), emoji: "👑" });
+        if (quizPoints >= 50) achievements.push({ name: t('dashboard.quiz_warrior'), emoji: "⚔️" });
+        if (quizPoints >= 100) achievements.push({ name: t('dashboard.point_collector'), emoji: "💎" });
         return achievements;
     };
 
@@ -81,7 +84,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
             <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 rounded-xl shadow-lg p-6 text-white">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold mb-2">Hi there, Super Learner! 👋</h2>
+                        <h2 className="text-2xl font-bold mb-2">{t('dashboard.hi_super_learner')} 👋</h2>
                         <p className="text-lg opacity-90">{progressMessage.text} {progressMessage.emoji}</p>
                     </div>
                     <div className="text-6xl animate-bounce">
@@ -95,7 +98,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 {/* Progress Card */}
                 <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-800">Your Progress</h3>
+                        <h3 className="text-lg font-bold text-gray-800">{t('dashboard.progress')}</h3>
                         <Target className="text-blue-500" size={24} />
                     </div>
                     <div className="space-y-3">
@@ -103,7 +106,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                             <span className="text-3xl font-bold" style={{ color: progressBarColor }}>
                                 {Math.round(progressPercentage)}%
                             </span>
-                            <span className="text-sm text-gray-500">Complete</span>
+                            <span className="text-sm text-gray-500">{t('dashboard.complete')}</span>
                         </div>
                         <div className="relative">
                             <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -128,7 +131,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 {/* Quiz Points Card */}
                 <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-800">Quiz Points</h3>
+                        <h3 className="text-lg font-bold text-gray-800">{t('dashboard.quiz_points')}</h3>
                         <Zap className="text-yellow-500" size={24} />
                     </div>
                     <div className="space-y-2">
@@ -138,12 +141,12 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                         </div>
                         {pointsNeededForNextLevel !== null && pointsNeededForNextLevel > 0 && (
                             <p className="text-sm text-gray-600">
-                                {pointsNeededForNextLevel} more to unlock Level {currentLevel + 1}! 🔓
+                                {t('dashboard.points_to_next_level', { points: pointsNeededForNextLevel, level: currentLevel + 1 })} 🔓
                             </p>
                         )}
                         {pointsNeededForNextLevel === 0 && (
                             <p className="text-sm text-green-600 font-medium">
-                                New level unlocked! 🎉
+                                {t('dashboard.new_level_unlocked')} 🎉
                             </p>
                         )}
                     </div>
@@ -152,7 +155,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 {/* Current Level Card */}
                 <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-800">Your Level</h3>
+                        <h3 className="text-lg font-bold text-gray-800">{t('dashboard.current_level')}</h3>
                         <Trophy className="text-purple-500" size={24} />
                     </div>
                     <div className="space-y-2">
@@ -163,7 +166,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                             <span className="ml-2 text-lg">🏆</span>
                         </div>
                         <p className="text-sm text-gray-600">
-                            of {totalLevels} levels
+                            {t('dashboard.level_progress', { current: currentLevel, total: totalLevels })}
                         </p>
                         <div className="flex space-x-1">
                             {Array.from({ length: totalLevels }, (_, i) => (
@@ -183,7 +186,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 {/* Program Card */}
                 <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-800">Learning</h3>
+                        <h3 className="text-lg font-bold text-gray-800">{t('dashboard.learning')}</h3>
                         <ProgramIcon 
                             size={24} 
                             style={{ color: progressBarColor }}
@@ -191,12 +194,12 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                     </div>
                     <div className="space-y-2">
                         <h4 className="font-bold text-gray-900 text-sm leading-tight">
-                            {enrolledProgram.name}
+                            {enrolledProgram.translated_name || enrolledProgram.name}
                         </h4>
                         <p className="text-sm text-gray-600">
                             {nextClass && nextClass.day_description && nextClass.time_only 
-                                ? `Next: ${nextClass.day_description} at ${nextClass.time_only}` 
-                                : "Your next class will be scheduled soon! 📅"}
+                                ? `${t('dashboard.next')}: ${nextClass.day_description} ${t('dashboard.at')} ${nextClass.time_only}` 
+                                : t('dashboard.class_scheduled_soon') + " 📅"}
                         </p>
                     </div>
                 </div>
@@ -207,7 +210,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 <div className="bg-white rounded-xl shadow-lg p-6">
                     <div className="flex items-center mb-4">
                         <Star className="text-yellow-500 mr-2" size={24} />
-                        <h3 className="text-xl font-bold text-gray-800">Your Achievements</h3>
+                        <h3 className="text-xl font-bold text-gray-800">{t('dashboard.your_achievements')}</h3>
                     </div>
                     <div className="flex flex-wrap gap-3">
                         {achievements.map((achievement, index) => (

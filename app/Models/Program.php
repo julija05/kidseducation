@@ -6,14 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\HasTranslations;
 
 class Program extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTranslations;
 
     protected $fillable = [
         'name',
         'description',
+        'name_translations',
+        'description_translations',
         'duration',
         'price',
         'image',
@@ -32,6 +35,8 @@ class Program extends Model
         'price' => 'decimal:2',
         'is_active' => 'boolean',
         'level_requirements' => 'array',
+        'name_translations' => 'array',
+        'description_translations' => 'array',
     ];
 
     protected $attributes = [
@@ -114,5 +119,16 @@ class Program extends Model
     public function getEffectiveLevelRequirements(): array
     {
         return $this->level_requirements ?? $this->getDefaultLevelRequirements();
+    }
+    
+    // Translation accessors
+    public function getTranslatedNameAttribute(): string
+    {
+        return $this->getTranslatedAttribute('name');
+    }
+    
+    public function getTranslatedDescriptionAttribute(): string
+    {
+        return $this->getTranslatedAttribute('description');
     }
 }

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AdminClassScheduleController extends Controller
 {
@@ -159,6 +160,7 @@ class AdminClassScheduleController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+
         $validated = $request->validate([
             'student_id' => 'nullable|exists:users,id',
             'student_ids' => 'nullable|array|max:5',
@@ -174,25 +176,31 @@ class AdminClassScheduleController extends Controller
             'meeting_link' => 'nullable|url',
             'type' => 'required|in:lesson,assessment,consultation,review',
             'is_group_class' => 'boolean',
-            'max_students' => 'integer|min:1|max:5',
+            'max_students' => 'nullable|integer|min:1|max:5',
         ]);
+
+        // Clean up empty strings to null for optional fields
+        foreach (['program_id', 'lesson_id', 'description', 'location', 'meeting_link'] as $field) {
+            if (isset($validated[$field]) && $validated[$field] === '') {
+                $validated[$field] = null;
+            }
+        }
 
         // Determine if it's a group class
         $isGroupClass = $request->boolean('is_group_class') || !empty($validated['student_ids']);
-        $studentIds = $isGroupClass ? ($validated['student_ids'] ?? []) : [$validated['student_id']];
+        $studentIds = $isGroupClass ? ($validated['student_ids'] ?? []) : (isset($validated['student_id']) ? [$validated['student_id']] : []);
         
         // Validate student selection
-        if (empty($studentIds) || (count($studentIds) === 1 && $studentIds[0] === null)) {
-            return back()->withErrors(['student_id' => 'At least one student must be selected.']);
+        $studentIds = array_filter($studentIds); // Remove null values
+        if (empty($studentIds)) {
+            $errorField = $isGroupClass ? 'student_ids' : 'student_id';
+            return back()->withErrors([$errorField => 'At least one student must be selected.']);
         }
 
         if ($isGroupClass && count($studentIds) > 5) {
             return back()->withErrors(['student_ids' => 'Group classes cannot have more than 5 students.']);
         }
 
-        // Remove null values
-        $studentIds = array_filter($studentIds);
-        
         $validated['is_group_class'] = $isGroupClass;
         $validated['max_students'] = $isGroupClass ? min(count($studentIds), $validated['max_students'] ?? 5) : 1;
 
@@ -265,6 +273,11 @@ class AdminClassScheduleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            \Log::error('Failed to create class schedule', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
             return back()->withErrors(['error' => 'Failed to create schedule: ' . $e->getMessage()]);
         }
     }

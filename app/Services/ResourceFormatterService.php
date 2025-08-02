@@ -14,6 +14,8 @@ class ResourceFormatterService
             'id' => $resource->id,
             'title' => $resource->title,
             'description' => $resource->description,
+            'translated_title' => $resource->translated_title,
+            'translated_description' => $resource->translated_description,
             'type' => $resource->type,
             'file_name' => $resource->file_name,
             'mime_type' => $resource->mime_type,

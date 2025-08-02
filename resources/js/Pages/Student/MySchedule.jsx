@@ -1,8 +1,35 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { Calendar, Clock, User, ExternalLink, MapPin, Users, BookOpen, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function MySchedule({ schedules, upcoming_count, total_count }) {
+    const { t } = useTranslation();
+
+    // Create branded navigation theme similar to lessons
+    const scheduleTheme = {
+        name: "Abacoding",
+        color: "bg-gradient-to-r from-blue-600 to-indigo-600",
+        lightColor: "bg-gradient-to-br from-blue-50 to-indigo-50",
+        borderColor: "border-blue-300",
+        textColor: "text-blue-700",
+        icon: "Calendar"
+    };
+
+    const customHeader = (
+        <>
+            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
+                <Calendar className="text-white" size={24} />
+            </div>
+            <button
+                onClick={() => router.visit(route("dashboard"))}
+                className="flex flex-col text-left hover:opacity-80 transition-opacity"
+            >
+                <span className="text-2xl font-bold">Abacoding</span>
+                <span className="text-xs opacity-75 -mt-1">schedule panel</span>
+            </button>
+        </>
+    );
     const getStatusIcon = (status) => {
         switch (status) {
             case 'scheduled':
@@ -38,11 +65,11 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
         const now = new Date();
         
         if (date.toDateString() === now.toDateString()) {
-            return 'Today';
+            return t('time.today');
         } else if (date.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString()) {
-            return 'Tomorrow';
+            return t('time.tomorrow');
         } else if (date.toDateString() === new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString()) {
-            return 'Yesterday';
+            return t('time.yesterday');
         } else {
             return date.toLocaleDateString('en-US', {
                 weekday: 'short',
@@ -66,7 +93,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                             {schedule.is_group_class && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
                                     <Users className="w-3 h-3" />
-                                    Group ({schedule.student_count})
+                                    {t('schedule.group')} ({schedule.student_count})
                                 </span>
                             )}
                         </div>
@@ -76,7 +103,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                     </div>
                     <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadgeColor(schedule.status)}`}>
                         {getStatusIcon(schedule.status)}
-                        {schedule.status.charAt(0).toUpperCase() + schedule.status.slice(1)}
+                        {t(`schedule.status.${schedule.status}`)}
                     </div>
                 </div>
 
@@ -100,7 +127,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                     
                     <div className="flex items-center text-gray-700">
                         <User className="w-4 h-4 mr-2 text-purple-500" />
-                        <span className="text-sm">with {schedule.admin.name}</span>
+                        <span className="text-sm">{t('schedule.with_teacher', { teacher: schedule.admin.name })}</span>
                     </div>
                     
                     {schedule.type_label && (
@@ -116,18 +143,18 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                         {schedule.program && (
                             <div className="mb-2">
-                                <span className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Program</span>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide font-semibold">{t('schedule.program')}</span>
                                 <p className="text-sm font-medium text-gray-900">{schedule.program.name}</p>
                             </div>
                         )}
                         {schedule.lesson && (
                             <div>
-                                <span className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Lesson</span>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide font-semibold">{t('schedule.lesson')}</span>
                                 <p className="text-sm font-medium text-gray-900">
                                     {schedule.lesson.title}
                                     {schedule.lesson.level && (
                                         <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                            Level {schedule.lesson.level}
+                                            {t('schedule.level', { level: schedule.lesson.level })}
                                         </span>
                                     )}
                                 </p>
@@ -153,7 +180,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                         >
                             <ExternalLink className="w-4 h-4" />
-                            Join Meeting
+                            {t('schedule.join_meeting')}
                         </a>
                     )}
                 </div>
@@ -162,7 +189,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                 {schedule.status === 'cancelled' && schedule.cancellation_reason && (
                     <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p className="text-sm text-red-800">
-                            <strong>Cancellation Reason:</strong> {schedule.cancellation_reason}
+                            <strong>{t('schedule.cancellation_reason')}</strong> {schedule.cancellation_reason}
                         </p>
                     </div>
                 )}
@@ -171,7 +198,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                 {schedule.status === 'completed' && schedule.session_notes && (
                     <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <p className="text-sm text-green-800">
-                            <strong>Session Notes:</strong> {schedule.session_notes}
+                            <strong>{t('schedule.session_notes')}</strong> {schedule.session_notes}
                         </p>
                     </div>
                 )}
@@ -202,15 +229,18 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
     );
 
     return (
-        <AuthenticatedLayout>
-            <Head title="My Schedule" />
+        <AuthenticatedLayout 
+            programConfig={scheduleTheme}
+            customHeader={customHeader}
+        >
+            <Head title={t('schedule.my_schedule')} />
             
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">My Schedule</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('schedule.my_schedule')}</h1>
                     <p className="text-gray-600">
-                        View all your scheduled classes and sessions. You have {upcoming_count} upcoming classes.
+                        {t('schedule.page_description', { count: upcoming_count })}
                     </p>
                 </div>
 
@@ -222,7 +252,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                                 <Calendar className="w-6 h-6 text-blue-600" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-blue-600">Upcoming Classes</p>
+                                <p className="text-sm font-medium text-blue-600">{t('schedule.upcoming_classes')}</p>
                                 <p className="text-2xl font-bold text-blue-900">{upcoming_count}</p>
                             </div>
                         </div>
@@ -234,7 +264,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                                 <CheckCircle className="w-6 h-6 text-green-600" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-green-600">Completed Classes</p>
+                                <p className="text-sm font-medium text-green-600">{t('schedule.completed_classes')}</p>
                                 <p className="text-2xl font-bold text-green-900">{schedules.past?.length || 0}</p>
                             </div>
                         </div>
@@ -246,7 +276,7 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
                                 <BookOpen className="w-6 h-6 text-gray-600" />
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">Total Classes</p>
+                                <p className="text-sm font-medium text-gray-600">{t('schedule.total_classes')}</p>
                                 <p className="text-2xl font-bold text-gray-900">{total_count}</p>
                             </div>
                         </div>
@@ -255,22 +285,22 @@ export default function MySchedule({ schedules, upcoming_count, total_count }) {
 
                 {/* Schedule Sections */}
                 <ScheduleSection
-                    title="Upcoming Classes"
+                    title={t('schedule.upcoming_classes')}
                     schedules={schedules.upcoming || []}
-                    emptyMessage="No upcoming classes scheduled."
+                    emptyMessage={t('schedule.no_upcoming_classes')}
                 />
 
                 <ScheduleSection
-                    title="Past Classes"
+                    title={t('schedule.past_classes')}
                     schedules={schedules.past || []}
-                    emptyMessage="No past classes to show."
+                    emptyMessage={t('schedule.no_past_classes')}
                 />
 
                 {schedules.cancelled && schedules.cancelled.length > 0 && (
                     <ScheduleSection
-                        title="Cancelled Classes"
+                        title={t('schedule.cancelled_classes')}
                         schedules={schedules.cancelled}
-                        emptyMessage="No cancelled classes."
+                        emptyMessage={t('schedule.no_cancelled_classes')}
                     />
                 )}
             </div>

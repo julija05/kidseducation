@@ -8,8 +8,10 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
 import NavBar from "@/Components/NavBar";
 import loginIllustration from "../../../assets/kid-no-bg.png";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function Login({ status, canResetPassword, auth }) {
+    const { t } = useTranslation();
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
@@ -53,10 +55,10 @@ export default function Login({ status, canResetPassword, auth }) {
                     {/* Login Form */}
                     <div className="p-10">
                         <h2 className="text-4xl font-extrabold text-pink-600 text-center mb-4">
-                            Welcome Back!
+                            {t('auth.login.title')}
                         </h2>
                         <p className="text-md text-gray-600 text-center mb-6">
-                            Let’s help you access your account.
+                            {t('auth.login.subtitle')}
                         </p>
 
                         {status && (
@@ -67,7 +69,7 @@ export default function Login({ status, canResetPassword, auth }) {
 
                         <form onSubmit={submit} className="space-y-6">
                             <div>
-                                <InputLabel htmlFor="email" value="Email" />
+                                <InputLabel htmlFor="email" value={t('auth.login.email')} />
                                 <TextInput
                                     id="email"
                                     type="email"
@@ -89,7 +91,7 @@ export default function Login({ status, canResetPassword, auth }) {
                             <div>
                                 <InputLabel
                                     htmlFor="password"
-                                    value="Password"
+                                    value={t('auth.login.password')}
                                 />
                                 <TextInput
                                     id="password"
@@ -119,7 +121,7 @@ export default function Login({ status, canResetPassword, auth }) {
                                             }
                                         />
                                         <span className="text-gray-600">
-                                            Remember me
+                                            {t('auth.login.remember_me')}
                                         </span>
                                     </label>
                                 </div>
@@ -131,7 +133,7 @@ export default function Login({ status, canResetPassword, auth }) {
                                         href={route("password.request")}
                                         className="text-sm text-blue-500 hover:underline"
                                     >
-                                        Forgot your password?
+                                        {t('auth.login.forgot_password')}
                                     </Link>
                                 )}
                             </div>
@@ -140,7 +142,7 @@ export default function Login({ status, canResetPassword, auth }) {
                                 className="w-full justify-center bg-gradient-to-r from-pink-500 to-yellow-400 hover:from-yellow-400 hover:to-pink-500 text-white text-lg rounded-xl py-3"
                                 disabled={processing}
                             >
-                                Log in
+                                {t('auth.login.login_button')}
                             </PrimaryButton>
                         </form>
 

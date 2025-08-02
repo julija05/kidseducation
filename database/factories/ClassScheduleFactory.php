@@ -118,7 +118,7 @@ class ClassScheduleFactory extends Factory
     public function upcoming(): static
     {
         return $this->state(fn (array $attributes) => [
-            'scheduled_at' => $this->faker->dateTimeBetween('now', '+1 month'),
+            'scheduled_at' => $this->faker->dateTimeBetween('+1 minute', '+1 month'),
             'status' => $this->faker->randomElement(['scheduled', 'confirmed']),
         ]);
     }
@@ -127,6 +127,7 @@ class ClassScheduleFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'scheduled_at' => $this->faker->dateTimeBetween('today', 'today +23 hours'),
+            'status' => $this->faker->randomElement(['scheduled', 'confirmed']),
         ]);
     }
 

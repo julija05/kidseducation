@@ -11,6 +11,7 @@ import VideoViewer from "./VideoViewer";
 import DocumentViewer from "./DocumentViewer";
 import GenericViewer from "./GenericViewer";
 import { RESOURCE_TYPES } from "@/constants/resourceTypes";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const VIEWER_CONFIGS = {
     [RESOURCE_TYPES.DOWNLOAD]: {
@@ -48,6 +49,8 @@ const VIEWER_CONFIGS = {
 };
 
 export default function ResourceViewer({ selectedResource, onDownload }) {
+    const { t } = useTranslation();
+    
     if (!selectedResource) {
         return (
             <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -57,10 +60,10 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                         className="mx-auto mb-4 text-gray-400"
                     />
                     <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                        Select a Resource
+                        {t('lessons.select_resource')}
                     </h3>
                     <p className="text-gray-500">
-                        Choose a learning resource from the list to begin
+                        {t('lessons.choose_resource_to_begin')}
                     </p>
                 </div>
             </div>
@@ -90,7 +93,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                             <>
                                 {selectedResource.file_name && (
                                     <p className="text-sm text-indigo-600 mb-4">
-                                        File: {selectedResource.file_name}
+                                        {t('lessons.file')}: {selectedResource.file_name}
                                     </p>
                                 )}
                                 <button
@@ -100,7 +103,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                                     className="inline-flex items-center px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                                 >
                                     <Download size={16} className="mr-2" />
-                                    Download File
+                                    {t('lessons.download_file')}
                                 </button>
                             </>
                         ),
@@ -129,7 +132,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                         ...VIEWER_CONFIGS[RESOURCE_TYPES.INTERACTIVE],
                         action: (
                             <p className="text-orange-600">
-                                Interactive content coming soon
+                                {t('lessons.interactive_content_coming_soon')}
                             </p>
                         ),
                     }}
@@ -145,7 +148,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                         ...VIEWER_CONFIGS[RESOURCE_TYPES.QUIZ],
                         action: (
                             <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition-colors">
-                                Start Quiz
+                                {t('lessons.start_quiz')}
                             </button>
                         ),
                     }}
@@ -165,7 +168,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                                 className="inline-flex items-center px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                             >
                                 <ExternalLink size={16} className="mr-2" />
-                                Open Link
+                                {t('lessons.open_link')}
                             </button>
                         ),
                     }}
@@ -181,15 +184,15 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                             className="mx-auto mb-4 text-gray-400"
                         />
                         <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                            {selectedResource.title}
+                            {selectedResource.translated_title || selectedResource.title}
                         </h3>
-                        {selectedResource.description && (
+                        {(selectedResource.translated_description || selectedResource.description) && (
                             <p className="text-gray-500 mb-4">
-                                {selectedResource.description}
+                                {selectedResource.translated_description || selectedResource.description}
                             </p>
                         )}
                         <p className="text-gray-500">
-                            Resource preview not available
+                            {t('lessons.resource_preview_not_available')}
                         </p>
                     </div>
                 </div>

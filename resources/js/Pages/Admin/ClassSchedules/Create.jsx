@@ -220,28 +220,16 @@ export default function CreateClassSchedule({
             submitData.meeting_link = null;
         }
         
-        // Basic validation check
-        if (!submitData.title || !submitData.admin_id || !submitData.scheduled_at) {
-            console.error('Missing required fields:', {
-                title: submitData.title,
-                admin_id: submitData.admin_id,
-                scheduled_at: submitData.scheduled_at
-            });
-            return;
-        }
-        
-        if (!isGroupClass && !submitData.student_id) {
-            console.error('Missing student_id for individual class');
-            return;
-        }
-        
-        if (isGroupClass && (!submitData.student_ids || submitData.student_ids.length === 0)) {
-            console.error('Missing student_ids for group class');
-            return;
-        }
-        
-        // Submit the form
-        post(route('admin.class-schedules.store'));
+        // Submit the form with better error handling
+        post(route('admin.class-schedules.store'), submitData, {
+            onError: (errors) => {
+                console.error('Form submission errors:', errors);
+                // You can add user-friendly error messages here
+            },
+            onSuccess: () => {
+                console.log('Form submitted successfully');
+            }
+        });
     };
 
     const handleStudentChange = (studentId) => {

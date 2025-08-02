@@ -5,8 +5,10 @@ import undrawImage from "../../../../assets/contact-us.svg";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import axios from "@/config/axios";
 import ContactForm from "@/Components/Contact/ContactForm";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ContactUs({ auth }) {
+    const { t } = useTranslation();
     const [contactRef, contactInView] = useInView({
         triggerOnce: true,
         threshold: 0.2,
@@ -80,7 +82,7 @@ export default function ContactUs({ auth }) {
                         ref={contactRef}
                         className="text-5xl font-extrabold bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-transparent bg-clip-text drop-shadow mb-12"
                     >
-                        Get in Touch
+                        {t('contact.get_in_touch')}
                     </motion.h2>
 
                     {/* Contact Section */}
@@ -92,7 +94,7 @@ export default function ContactUs({ auth }) {
                             {/* Email Section */}
                             <div className="mt-8 text-center sm:text-center">
                                 <p className="text-gray-700">
-                                    Or you can contact us at:
+                                    {t('contact.contact_us_email')}
                                 </p>
                                 <p className="font-semibold text-blue-600 break-words">
                                     abacoding@abacoding.com
@@ -111,14 +113,14 @@ export default function ContactUs({ auth }) {
                         >
                             <img
                                 src={undrawImage}
-                                alt="Contact Illustration"
+                                alt={t('contact.contact_illustration_alt')}
                                 className="w-full max-w-lg mx-auto rounded-xl shadow-xl"
                             />
 
                             {/* Social Media Links under Illustration */}
                             <div className="mt-8 text-center">
                                 <h3 className="text-2xl font-bold mb-4 text-gray-800">
-                                    Connect with us
+                                    {t('contact.connect_with_us')}
                                 </h3>
                                 <div className="flex justify-center space-x-8 text-3xl">
                                     <a

@@ -1,6 +1,7 @@
 import React from "react";
 import { BookOpen, FileText } from "lucide-react";
 import ResourceItem from "./ResourceItem";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ResourcesSidebar({
     resources,
@@ -8,13 +9,14 @@ export default function ResourcesSidebar({
     onResourceSelect,
     onResourceDownload,
 }) {
+    const { t } = useTranslation();
     const hasResources = resources && resources.length > 0;
 
     return (
         <div className="bg-white rounded-lg shadow-lg p-4 sticky top-4">
             <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <BookOpen className="mr-2" size={18} />
-                Resources
+                {t('lessons.resources')}
             </h3>
 
             {hasResources ? (
@@ -36,7 +38,7 @@ export default function ResourcesSidebar({
                         className="mx-auto mb-2 text-gray-400"
                     />
                     <p className="text-sm text-gray-500">
-                        No resources available yet
+                        {t('lessons.no_resources_available')}
                     </p>
                 </div>
             )}

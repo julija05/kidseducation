@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Calendar, Clock, User, X, Check, BookOpen, ExternalLink, Play } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function StudentNotifications({ notifications = [], unreadCount = 0, nextClass = null, headerMode = false, onMarkAllAsRead }) {
     const [showNotifications, setShowNotifications] = useState(false);
+    const { t } = useTranslation();
     
     // Auto-mark all as read when dropdown opens
     useEffect(() => {
@@ -88,9 +90,9 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                         </div>
                         <div className="flex-1">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-xl font-bold text-blue-900">Next Class</h3>
+                                <h3 className="text-xl font-bold text-blue-900">{t('dashboard.next_class')}</h3>
                                 <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full uppercase tracking-wide">
-                                    Upcoming
+                                    {t('dashboard.upcoming')}
                                 </span>
                             </div>
                             
@@ -98,7 +100,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                 <div>
                                     <h4 className="font-semibold text-blue-800 text-lg">{nextClass.title}</h4>
                                     {nextClass.program_name && (
-                                        <p className="text-blue-600 text-sm">Program: {nextClass.program_name}</p>
+                                        <p className="text-blue-600 text-sm">{t('dashboard.program')}: {nextClass.program_name}</p>
                                     )}
                                 </div>
                                 
@@ -112,12 +114,12 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                     
                                     <div className="flex items-center text-blue-700">
                                         <User className="w-4 h-4 mr-2" />
-                                        <span className="text-sm">with {nextClass.admin_name}</span>
+                                        <span className="text-sm">{t('dashboard.with_teacher', { teacher: nextClass.admin_name })}</span>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-center text-blue-600 text-sm">
-                                    <span>Duration: {nextClass.duration}</span>
+                                    <span>{t('dashboard.duration')}: {nextClass.duration}</span>
                                 </div>
                                 
                                 {nextClass.meeting_link && (
@@ -129,7 +131,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium text-sm rounded-lg hover:bg-blue-700 transition-colors"
                                         >
                                             <ExternalLink className="w-4 h-4" />
-                                            Join Meeting
+                                            {t('dashboard.join_meeting')}
                                         </a>
                                     </div>
                                 )}
@@ -162,10 +164,10 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                     <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                         <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                                <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.notifications')}</h3>
                                 <div className="flex items-center gap-2">
                                     {unreadCount > 0 && (
-                                        <span className="text-sm text-gray-500">{unreadCount} unread</span>
+                                        <span className="text-sm text-gray-500">{unreadCount} {t('dashboard.unread')}</span>
                                     )}
                                     <button
                                         onClick={() => setShowNotifications(false)}
@@ -216,7 +218,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                     {notification.type === 'lesson' && notification.data && (
                                                         <div className="mt-2 space-y-1">
                                                             <div className="text-xs text-gray-500">
-                                                                Program: {notification.data.program_name}
+                                                                {t('dashboard.program')}: {notification.data.program_name}
                                                             </div>
                                                             {notification.data.next_class && notification.data.next_class.meeting_link && (
                                                                 <div className="flex items-center gap-2 mt-2">
@@ -228,7 +230,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                                         onClick={(e) => e.stopPropagation()}
                                                                     >
                                                                         <ExternalLink className="w-3 h-3" />
-                                                                        Join Class
+                                                                        {t('dashboard.join_class')}
                                                                     </a>
                                                                 </div>
                                                             )}
@@ -240,11 +242,11 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                         <div className="mt-2 space-y-1">
                                                             {notification.data.program_name && (
                                                                 <div className="text-xs text-gray-500">
-                                                                    Program: {notification.data.program_name}
+                                                                    {t('dashboard.program')}: {notification.data.program_name}
                                                                 </div>
                                                             )}
                                                             <div className="text-xs text-gray-500">
-                                                                Duration: {notification.data.duration_minutes} minutes
+                                                                {t('dashboard.duration')}: {notification.data.duration_minutes} minutes
                                                             </div>
                                                             {notification.data.meeting_link && (
                                                                 <div className="flex items-center gap-2 mt-2">
@@ -256,7 +258,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                                         onClick={(e) => e.stopPropagation()}
                                                                     >
                                                                         <ExternalLink className="w-3 h-3" />
-                                                                        Join Meeting
+                                                                        {t('dashboard.join_meeting')}
                                                                     </a>
                                                                 </div>
                                                             )}
@@ -270,7 +272,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                             ) : (
                                 <div className="p-8 text-center text-gray-500">
                                     <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                    <p>No notifications yet</p>
+                                    <p>{t('dashboard.no_notifications')}</p>
                                 </div>
                             )}
                         </div>

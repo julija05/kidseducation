@@ -24,12 +24,17 @@ import {
     Target,
 } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramContent({
     program,
     onStartLesson,
     onReviewLesson,
 }) {
+    const { t } = useTranslation();
+    
+    // Note: Translation is now handled by the backend models
+    // program.translated_name and program.translated_description are automatically localized
     const [expandedLevels, setExpandedLevels] = useState(
         new Set([program.currentLevel])
     );
@@ -145,7 +150,7 @@ export default function ProgramContent({
         if (!isLevelUnlocked) {
             const pointsNeeded = program.levelRequirements?.[lesson.level] || 0;
             return {
-                text: `Locked (${pointsNeeded} pts)`,
+                text: t('dashboard.locked_points_needed', { points: pointsNeeded }),
                 className: "bg-gray-100 text-gray-400 cursor-not-allowed",
                 onClick: () => {},
                 disabled: true,
@@ -154,7 +159,7 @@ export default function ProgramContent({
 
         if (!lesson.is_unlocked) {
             return {
-                text: "Locked",
+                text: t('dashboard.locked_generic'),
                 className: "bg-gray-100 text-gray-400 cursor-not-allowed",
                 onClick: () => {},
                 disabled: true,
@@ -164,21 +169,21 @@ export default function ProgramContent({
         switch (lesson.status) {
             case "completed":
                 return {
-                    text: "Review",
+                    text: t('dashboard.review'),
                     className: "bg-gray-100 text-gray-600 hover:bg-gray-200",
                     onClick: () => handleLessonClick(lesson, "review"),
                     disabled: false,
                 };
             case "in_progress":
                 return {
-                    text: "Continue",
+                    text: t('dashboard.continue'),
                     className: `${program.theme.color} text-white hover:opacity-90`,
                     onClick: () => handleLessonClick(lesson, "continue"),
                     disabled: false,
                 };
             default:
                 return {
-                    text: "Start",
+                    text: t('dashboard.start'),
                     className: `${program.theme.color} text-white hover:opacity-90`,
                     onClick: () => handleLessonClick(lesson, "start"),
                     disabled: false,
@@ -231,7 +236,7 @@ export default function ProgramContent({
     };
 
     const getLevelStatus = (levelData, levelNumber) => {
-        if (!levelData) return { status: "locked", text: "Locked" };
+        if (!levelData) return { status: "locked", text: t('dashboard.locked_generic') };
 
         // Check if level is unlocked based on points
         const isUnlocked = levelNumber <= (program.highestUnlockedLevel || 1);
@@ -240,16 +245,16 @@ export default function ProgramContent({
             const pointsNeeded = program.levelRequirements?.[levelNumber] || 0;
             return { 
                 status: "locked", 
-                text: `Locked (${pointsNeeded} points needed)` 
+                text: t('dashboard.locked_points_needed', { points: pointsNeeded }) 
             };
         }
 
         if (levelData.isCompleted) {
-            return { status: "completed", text: "Completed" };
+            return { status: "completed", text: t('dashboard.completed') };
         } else if (levelData.isUnlocked) {
-            return { status: "current", text: "In Progress" };
+            return { status: "current", text: t('dashboard.in_progress') };
         } else {
-            return { status: "current", text: "Available" };
+            return { status: "current", text: t('dashboard.available') };
         }
     };
 
@@ -275,25 +280,26 @@ export default function ProgramContent({
                 <h3
                     className={`text-xl font-semibold ${program.theme.textColor} mb-3`}
                 >
-                    Welcome to {program.name}!
+                    {t('dashboard.welcome_to_program', { program: program.translated_name || program.name })}
                 </h3>
-                <p className={program.theme.textColor}>{program.description}</p>
+                <p className={program.theme.textColor}>
+                    {program.translated_description || program.description}
+                </p>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex items-center text-sm text-gray-600">
                         <Calendar size={16} className="mr-2" />
-                        <span>Enrolled on {program.enrolledAt}</span>
+                        <span>{t('dashboard.enrolled_on', { date: program.enrolledAt })}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                         <BookOpen size={16} className="mr-2" />
                         <span>
-                            Level {program.currentLevel} of{" "}
-                            {program.totalLevels}
+                            {t('dashboard.level_of', { current: program.currentLevel, total: program.totalLevels })}
                         </span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                         <Star size={16} className="mr-2 text-yellow-500" />
                         <span className="font-semibold text-yellow-600">
-                            {program.quizPoints || 0} Points
+                            {program.quizPoints || 0} {t('dashboard.points')}
                         </span>
                     </div>
                 </div>
@@ -305,15 +311,15 @@ export default function ProgramContent({
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
                         <Star className="mr-2 text-yellow-500" size={20} />
-                        Your Points
+                        {t('dashboard.your_points')}
                     </h4>
                     <div className="text-center">
                         <div className="text-4xl font-bold text-blue-600 mb-2">
                             {program.quizPoints || 0}
                         </div>
-                        <p className="text-blue-700 font-medium">Total Points Earned</p>
+                        <p className="text-blue-700 font-medium">{t('dashboard.total_points_earned')}</p>
                         <p className="text-blue-600 text-sm mt-1">
-                            From completing quizzes
+                            {t('dashboard.from_completing_quizzes')}
                         </p>
                     </div>
                 </div>
@@ -323,11 +329,11 @@ export default function ProgramContent({
                     <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
                         <h4 className="text-lg font-semibold text-yellow-900 mb-3 flex items-center">
                             <Target className="mr-2" size={20} />
-                            Next Level: Level {program.highestUnlockedLevel + 1}
+                            {t('dashboard.next_level', { level: program.highestUnlockedLevel + 1 })}
                         </h4>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-yellow-800 font-medium">Progress:</span>
+                                <span className="text-yellow-800 font-medium">{t('dashboard.progress_label')}:</span>
                                 <span className="text-yellow-700 font-bold">
                                     {program.quizPoints || 0} / {program.pointsForNextLevel || 0}
                                 </span>
@@ -342,10 +348,10 @@ export default function ProgramContent({
                             </div>
                             <div className="text-center">
                                 <p className="text-yellow-800 font-semibold">
-                                    {program.pointsNeededForNextLevel} more points needed!
+                                    {t('dashboard.more_points_needed', { points: program.pointsNeededForNextLevel })}
                                 </p>
                                 <p className="text-yellow-600 text-sm">
-                                    Complete quizzes to unlock Level {program.highestUnlockedLevel + 1}
+                                    {t('dashboard.complete_quizzes_unlock', { level: program.highestUnlockedLevel + 1 })}
                                 </p>
                             </div>
                         </div>
@@ -356,17 +362,17 @@ export default function ProgramContent({
                         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
                             <h4 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
                                 <Trophy className="mr-2 text-green-600" size={20} />
-                                All Levels Unlocked!
+                                {t('dashboard.all_levels_unlocked')}
                             </h4>
                             <div className="text-center">
                                 <div className="text-2xl font-bold text-green-600 mb-2">
-                                    🎉 Congratulations!
+                                    {t('dashboard.congratulations_all_unlocked')}
                                 </div>
                                 <p className="text-green-700 font-medium">
-                                    You've unlocked all available levels
+                                    {t('dashboard.unlocked_all_levels')}
                                 </p>
                                 <p className="text-green-600 text-sm mt-1">
-                                    Keep completing quizzes to earn more points!
+                                    {t('dashboard.keep_completing_quizzes')}
                                 </p>
                             </div>
                         </div>
@@ -375,21 +381,21 @@ export default function ProgramContent({
                         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
                             <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
                                 <Zap className="mr-2 text-blue-600" size={20} />
-                                Ready to Start Learning?
+                                {t('dashboard.ready_to_start_learning')}
                             </h4>
                             <div className="text-center">
                                 <div className="text-2xl font-bold text-blue-600 mb-2">
-                                    🚀 Let's Begin!
+                                    {t('dashboard.lets_begin')}
                                 </div>
                                 <p className="text-blue-700 font-medium">
-                                    Start with Level 1 and complete quizzes to earn points
+                                    {t('dashboard.start_with_level_1')}
                                 </p>
                                 <p className="text-blue-600 text-sm mt-1">
-                                    You need {program.levelRequirements?.['2'] || 10} points to unlock Level 2
+                                    {t('dashboard.you_need_points_unlock', { points: program.levelRequirements?.['2'] || 10, level: 2 })}
                                 </p>
                                 <div className="mt-3 bg-blue-100 rounded-lg p-3">
                                     <p className="text-blue-800 text-sm font-medium">
-                                        💡 Complete quizzes in your lessons to earn points and unlock new levels!
+                                        {t('dashboard.complete_quizzes_earn_points')}
                                     </p>
                                 </div>
                             </div>
@@ -402,15 +408,15 @@ export default function ProgramContent({
             {program.nextLesson && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-blue-900 mb-2">
-                        Continue Your Learning
+                        {t('dashboard.continue_your_learning')}
                     </h4>
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-blue-800 font-medium">
-                                {program.nextLesson.title}
+                                {program.nextLesson.translated_title || program.nextLesson.title}
                             </p>
                             <p className="text-blue-600 text-sm">
-                                Level {program.nextLesson.level}
+                                {t('dashboard.level')} {program.nextLesson.level}
                             </p>
                         </div>
                         <button
@@ -419,7 +425,7 @@ export default function ProgramContent({
                             }
                             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                         >
-                            Continue
+                            {t('dashboard.continue')}
                         </button>
                     </div>
                 </div>
@@ -429,7 +435,7 @@ export default function ProgramContent({
             <div>
                 <h4 className="text-lg font-semibold mb-4 flex items-center">
                     <BookOpen className="mr-2" size={20} />
-                    Your Learning Path
+                    {t('dashboard.your_learning_path')}
                 </h4>
 
                 <div className="space-y-4">
@@ -468,7 +474,7 @@ export default function ProgramContent({
                                                 />
                                             )}
                                             <h5 className="text-lg font-semibold">
-                                                Level {level}
+                                                {t('dashboard.level')} {level}
                                             </h5>
                                             <span
                                                 className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${getLevelBadgeClass(
@@ -483,7 +489,7 @@ export default function ProgramContent({
                                             {levelData && (
                                                 <div className="text-sm text-gray-600 mr-4">
                                                     {levelData.completed}/
-                                                    {levelData.total} lessons
+                                                    {levelData.total} {t('dashboard.lessons')}
                                                 </div>
                                             )}
                                             {levelData &&
@@ -544,7 +550,7 @@ export default function ProgramContent({
                                                                     <div className="flex items-center justify-between">
                                                                         <h6 className="font-medium">
                                                                             {
-                                                                                lesson.title
+                                                                                lesson.translated_title || lesson.title
                                                                             }
                                                                         </h6>
                                                                         {hasResources && (
@@ -614,13 +620,7 @@ export default function ProgramContent({
                                                                                             .resources
                                                                                             .length
                                                                                     }{" "}
-                                                                                    resource
-                                                                                    {lesson
-                                                                                        .resources
-                                                                                        .length !==
-                                                                                    1
-                                                                                        ? "s"
-                                                                                        : ""}
+                                                                                    {lesson.resources.length === 1 ? t('dashboard.resource') : t('dashboard.resources')}
                                                                                 </span>
                                                                             </>
                                                                         )}
@@ -669,8 +669,7 @@ export default function ProgramContent({
                                                             hasResources && (
                                                                 <div className="px-4 pb-4">
                                                                     <h6 className="text-sm font-semibold text-gray-700 mb-3">
-                                                                        Learning
-                                                                        Resources:
+                                                                        {t('dashboard.learning_resources')}:
                                                                     </h6>
                                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                                                         {lesson.resources.map(
@@ -717,7 +716,7 @@ export default function ProgramContent({
                                                                                                 </span>
                                                                                                 {resource.is_required && (
                                                                                                     <span className="text-xs bg-red-100 text-red-600 px-1 rounded">
-                                                                                                        Required
+                                                                                                        {t('dashboard.required')}
                                                                                                     </span>
                                                                                                 )}
                                                                                             </div>
@@ -755,19 +754,10 @@ export default function ProgramContent({
                                                                             className="mx-auto text-gray-400 mb-2"
                                                                         />
                                                                         <p className="text-sm text-gray-500">
-                                                                            Learning
-                                                                            materials
-                                                                            coming
-                                                                            soon!
+                                                                            {t('dashboard.coming_soon')}
                                                                         </p>
                                                                         <p className="text-xs text-gray-400 mt-1">
-                                                                            Resources
-                                                                            for
-                                                                            this
-                                                                            lesson
-                                                                            are
-                                                                            being
-                                                                            prepared
+                                                                            {t('dashboard.resources_being_prepared')}
                                                                         </p>
                                                                     </div>
                                                                 </div>
