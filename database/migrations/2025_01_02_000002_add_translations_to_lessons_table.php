@@ -11,12 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('lessons', function (Blueprint $table) {
-            // Add JSON translation columns
-            $table->json('title_translations')->nullable()->after('title');
-            $table->json('description_translations')->nullable()->after('description');
-            $table->json('content_body_translations')->nullable()->after('content_body');
-        });
+        // Check if lessons table exists before trying to modify it
+        if (Schema::hasTable('lessons')) {
+            Schema::table('lessons', function (Blueprint $table) {
+                // Only add columns if they don't already exist
+                if (!Schema::hasColumn('lessons', 'title_translations')) {
+                    $table->json('title_translations')->nullable()->after('title');
+                }
+                if (!Schema::hasColumn('lessons', 'description_translations')) {
+                    $table->json('description_translations')->nullable()->after('description');
+                }
+                if (!Schema::hasColumn('lessons', 'content_body_translations')) {
+                    $table->json('content_body_translations')->nullable()->after('content_body');
+                }
+            });
+        }
         
         // Migrate existing data to translations (will be done after models are updated)
     }
@@ -26,8 +35,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('lessons', function (Blueprint $table) {
-            $table->dropColumn(['title_translations', 'description_translations', 'content_body_translations']);
-        });
+        // Check if lessons table exists before trying to modify it
+        if (Schema::hasTable('lessons')) {
+            Schema::table('lessons', function (Blueprint $table) {
+                if (Schema::hasColumn('lessons', 'title_translations')) {
+                    $table->dropColumn('title_translations');
+                }
+                if (Schema::hasColumn('lessons', 'description_translations')) {
+                    $table->dropColumn('description_translations');
+                }
+                if (Schema::hasColumn('lessons', 'content_body_translations')) {
+                    $table->dropColumn('content_body_translations');
+                }
+            });
+        }
     }
 };

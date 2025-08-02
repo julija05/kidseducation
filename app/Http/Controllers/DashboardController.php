@@ -286,6 +286,41 @@ class DashboardController extends Controller
         return back();
     }
 
+    public function showProgram(Request $request, $programSlug)
+    {
+        $user = $request->user();
+        $program = \App\Models\Program::where('slug', $programSlug)->firstOrFail();
+        
+        // Get user's enrollment status for this program
+        $userEnrollment = $user->enrollments()
+            ->where('program_id', $program->id)
+            ->first();
+            
+        // Get enrollment data for the specific program
+        $enrolledProgram = null;
+        if ($userEnrollment && $userEnrollment->approval_status === 'approved') {
+            $enrolledProgram = $this->enrollmentService->formatEnrollmentForDashboard($userEnrollment);
+        }
+        
+        // Get student data
+        $studentData = $this->getStudentData($user);
+        
+        return $this->createView('Dashboard/Programs/Show', [
+            'program' => [
+                'id' => $program->id,
+                'name' => $program->name,
+                'translated_name' => $program->translated_name,
+                'slug' => $program->slug,
+                'description' => $program->description,
+                'translated_description' => $program->translated_description,
+            ],
+            'userEnrollment' => $userEnrollment,
+            'enrolledProgram' => $enrolledProgram,
+            'enrollmentStatus' => $userEnrollment?->approval_status,
+            'nextClass' => $studentData['nextScheduledClass'] ?? null,
+        ]);
+    }
+
     public function mySchedule(Request $request)
     {
         $user = $request->user();

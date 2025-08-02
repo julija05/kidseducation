@@ -33,10 +33,8 @@ Route::post('/language/set-preference', [LanguageController::class, 'setPreferen
 // Student dashboard
 Route::middleware(['auth', 'role:student'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    // Redirect program-specific dashboard to main dashboard (simplified UX)
-    Route::get('/dashboard/programs/{program:slug}', function() {
-        return redirect()->route('dashboard');
-    })->name('dashboard.programs.show');
+    // Program-specific dashboard
+    Route::get('/dashboard/programs/{program:slug}', [DashboardController::class, 'showProgram'])->name('dashboard.programs.show');
 
     Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
     Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');

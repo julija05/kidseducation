@@ -167,7 +167,7 @@ class ClassSchedule extends Model
 
     public function canBeCancelled(): bool
     {
-        return !$this->isCancelled() && !$this->isCompleted();
+        return !$this->isCancelled() && !$this->isCompleted() && !$this->isPast();
     }
 
     public function canBeRescheduled(): bool
@@ -259,9 +259,9 @@ class ClassSchedule extends Model
     {
         return match($this->status) {
             'scheduled' => 'yellow',
-            'confirmed' => 'blue',
+            'confirmed' => 'green',
             'cancelled' => 'red',
-            'completed' => 'green',
+            'completed' => 'blue',
             default => 'gray'
         };
     }
@@ -284,8 +284,9 @@ class ClassSchedule extends Model
             return false;
         }
 
-        $reminderTime = $this->scheduled_at->subHours(24);
-        return now()->gte($reminderTime);
+        // Send reminder between 12-48 hours before class
+        $hoursUntilClass = now()->diffInHours($this->scheduled_at, false);
+        return $hoursUntilClass >= 12 && $hoursUntilClass <= 48;
     }
 
     // Get enrollment for this class (if tied to a program)
