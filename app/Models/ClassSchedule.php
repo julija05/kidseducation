@@ -103,6 +103,7 @@ class ClassSchedule extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('scheduled_at', '>', now())
+                    ->whereDate('scheduled_at', '>', today())
                     ->whereIn('status', ['scheduled', 'confirmed']);
     }
 
