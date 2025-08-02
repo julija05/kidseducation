@@ -16,6 +16,24 @@ export default function Edit({ mustVerifyEmail, status }) {
     const user = auth.user;
     const { avatarData, renderAvatar } = useAvatar();
     
+    // Generate full name from first/last name or fallback to existing name
+    const getFullName = () => {
+        if (user.first_name && user.last_name) {
+            // If both first and last name exist, combine them
+            return `${user.first_name} ${user.last_name}`.trim();
+        }
+        
+        // If no separate fields, use the existing name field
+        if (user.name && user.name.trim()) {
+            return user.name.trim();
+        }
+        
+        // Last fallback
+        return 'User';
+    };
+    
+    const fullName = getFullName();
+    
     // Create branded navigation theme similar to lessons
     const profileTheme = {
         name: "Abacoding",
@@ -51,8 +69,8 @@ export default function Edit({ mustVerifyEmail, status }) {
         },
         {
             id: 'avatar-selection',
-            title: 'Avatar Selection',
-            description: 'Choose an avatar that represents you',
+            title: t('profile.avatar_selection'),
+            description: t('profile.avatar_selection_description'),
             icon: User,
             component: <AvatarSelector currentAvatar={(() => {
                 try {
@@ -150,19 +168,19 @@ export default function Edit({ mustVerifyEmail, status }) {
                                             ) : user.avatar_path && !user.avatar_path.startsWith('{') ? (
                                                 <img 
                                                     src={user.avatar_path} 
-                                                    alt={user.name}
+                                                    alt={fullName}
                                                     className="h-full w-full object-cover"
                                                 />
                                             ) : (
                                                 <div className="flex h-full w-full items-center justify-center text-5xl font-bold text-white">
-                                                    {user.name.charAt(0).toUpperCase()}
+                                                    {fullName.charAt(0).toUpperCase()}
                                                 </div>
                                             )}
                                         </div>
                                         <div className="absolute bottom-2 right-2 rounded-full bg-white p-2 shadow-lg">
                                             <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
                                                 <span className="text-white text-xs font-bold">
-                                                    {user.name.charAt(0).toUpperCase()}
+                                                    {fullName.charAt(0).toUpperCase()}
                                                 </span>
                                             </div>
                                         </div>
@@ -172,17 +190,17 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 {/* User Info */}
                                 <div className="flex-1 space-y-4">
                                     <div>
-                                        <h1 className="text-4xl font-bold text-white lg:text-5xl">{user.name}</h1>
+                                        <h1 className="text-4xl font-bold text-white lg:text-5xl">{fullName}</h1>
                                         <p className="text-xl text-purple-100">{user.email}</p>
                                         <div className="mt-4 flex flex-wrap justify-center gap-3 lg:justify-start">
                                             <span className="rounded-full bg-white bg-opacity-20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
-                                                🎓 Active Student
+                                                🎓 {t('profile.active_student')}
                                             </span>
                                             <span className="rounded-full bg-white bg-opacity-20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
-                                                ⭐ Learning Enthusiast
+                                                ⭐ {t('profile.learning_enthusiast')}
                                             </span>
                                             <span className="rounded-full bg-white bg-opacity-20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
-                                                📅 Member since {new Date(user.created_at).getFullYear()}
+                                                📅 {t('profile.member_since')} {new Date(user.created_at).getFullYear()}
                                             </span>
                                         </div>
                                     </div>
@@ -216,7 +234,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-gray-600">Programs</p>
+                                        <p className="text-sm font-medium text-gray-600">{t('nav.programs')}</p>
                                         <p className="text-2xl font-bold text-gray-900">3</p>
                                     </div>
                                 </div>
@@ -228,7 +246,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         <Trophy className="h-6 w-6 text-primary-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-gray-600">Completed</p>
+                                        <p className="text-sm font-medium text-gray-600">{t('lessons.completed')}</p>
                                         <p className="text-2xl font-bold text-gray-900">12</p>
                                     </div>
                                 </div>
@@ -240,7 +258,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         <Clock className="h-6 w-6 text-primary-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-gray-600">Study Hours</p>
+                                        <p className="text-sm font-medium text-gray-600">{t('profile.study_hours')}</p>
                                         <p className="text-2xl font-bold text-gray-900">24</p>
                                     </div>
                                 </div>
@@ -252,8 +270,8 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         <Target className="h-6 w-6 text-primary-600" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-gray-600">Streak</p>
-                                        <p className="text-2xl font-bold text-gray-900">7 days</p>
+                                        <p className="text-sm font-medium text-gray-600">{t('profile.streak')}</p>
+                                        <p className="text-2xl font-bold text-gray-900">7 {t('profile.days')}</p>
                                     </div>
                                 </div>
                             </div>

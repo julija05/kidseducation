@@ -36,7 +36,23 @@ class ProfileController extends Controller
         // Debug: Log the validated data
         \Log::info('Profile update validated data:', $validated);
         
-        $user->fill($validated);
+        // Generate full name from first and last name
+        if (isset($validated['first_name']) && isset($validated['last_name'])) {
+            $validated['name'] = trim($validated['first_name'] . ' ' . $validated['last_name']);
+        }
+        
+        // Check if new fields exist in database before trying to save them
+        $allowedFields = [];
+        $userTable = $user->getTable();
+        $columns = \Schema::getColumnListing($userTable);
+        
+        foreach ($validated as $key => $value) {
+            if (in_array($key, $columns)) {
+                $allowedFields[$key] = $value;
+            }
+        }
+        
+        $user->fill($allowedFields);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
