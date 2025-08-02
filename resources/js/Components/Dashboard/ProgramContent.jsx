@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useTheme, useThemeClasses } from "@/hooks/useTheme.jsx";
 
 export default function ProgramContent({
     program,
@@ -32,6 +33,11 @@ export default function ProgramContent({
     onReviewLesson,
 }) {
     const { t } = useTranslation();
+    // Temporarily disable theme system
+    // const { theme } = useTheme();
+    // const themeClasses = useThemeClasses();
+    // Theme colors are now handled by CSS variables
+    // Theme colors are now handled by CSS variables and inline styles
     
     // Note: Translation is now handled by the backend models
     // program.translated_name and program.translated_description are automatically localized
@@ -63,7 +69,7 @@ export default function ProgramContent({
     const getResourceIcon = (type) => {
         switch (type) {
             case "video":
-                return <Video size={16} className="text-blue-600" />;
+                return <Video size={16} style={{ color: 'rgb(var(--primary-600, 37 99 235))' }} />;
             case "document":
                 return <FileText size={16} className="text-green-600" />;
             case "link":
@@ -82,7 +88,8 @@ export default function ProgramContent({
     const getResourceTypeColor = (type) => {
         switch (type) {
             case "video":
-                return "bg-blue-50 border-blue-200 text-blue-700";
+                return "border";
+                // Use inline styles for theme colors instead of classes
             case "document":
                 return "bg-green-50 border-green-200 text-green-700";
             case "link":
@@ -200,7 +207,7 @@ export default function ProgramContent({
             case "completed":
                 return "bg-green-500";
             case "in_progress":
-                return "bg-yellow-500";
+                return 'bg-[rgb(var(--primary-600,37_99_235))]';
             default:
                 return "bg-gray-300";
         }
@@ -263,7 +270,8 @@ export default function ProgramContent({
             case "completed":
                 return "bg-green-100 text-green-800";
             case "current":
-                return "bg-blue-100 text-blue-800";
+                return 'border';
+                // Use inline styles for theme colors
             case "locked":
                 return "bg-gray-100 text-gray-500";
             default:
@@ -275,14 +283,19 @@ export default function ProgramContent({
         <div className="space-y-6">
             {/* Program Overview */}
             <div
-                className={`${program.theme.lightColor} border ${program.theme.borderColor} rounded-lg p-6`}
+                className="border rounded-lg p-6"
+                style={{ 
+                    backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
+                    borderColor: 'rgb(var(--primary-200, 191 219 254))'
+                }}
             >
                 <h3
-                    className={`text-xl font-semibold ${program.theme.textColor} mb-3`}
+                    className="text-xl font-semibold mb-3"
+                    style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
                 >
                     {t('dashboard.welcome_to_program', { program: program.translated_name || program.name })}
                 </h3>
-                <p className={program.theme.textColor}>
+                <p style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}>
                     {program.translated_description || program.description}
                 </p>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -308,17 +321,37 @@ export default function ProgramContent({
             {/* Points & Progress Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Current Points Card */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+                <div 
+                    className="border rounded-lg p-6"
+                    style={{ 
+                        backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
+                        borderColor: 'rgb(var(--primary-200, 191 219 254))'
+                    }}
+                >
+                    <h4 
+                        className="text-lg font-semibold mb-3 flex items-center"
+                        style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
+                    >
                         <Star className="mr-2 text-yellow-500" size={20} />
                         {t('dashboard.your_points')}
                     </h4>
                     <div className="text-center">
-                        <div className="text-4xl font-bold text-blue-600 mb-2">
+                        <div 
+                            className="text-4xl font-bold mb-2"
+                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                        >
                             {program.quizPoints || 0}
                         </div>
-                        <p className="text-blue-700 font-medium">{t('dashboard.total_points_earned')}</p>
-                        <p className="text-blue-600 text-sm mt-1">
+                        <p 
+                            className="font-medium"
+                            style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
+                        >
+                            {t('dashboard.total_points_earned')}
+                        </p>
+                        <p 
+                            className="text-sm mt-1"
+                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                        >
                             {t('dashboard.from_completing_quizzes')}
                         </p>
                     </div>
@@ -378,23 +411,48 @@ export default function ProgramContent({
                         </div>
                     ) : (
                         // Show getting started message for students with 0 points
-                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6">
-                            <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
-                                <Zap className="mr-2 text-blue-600" size={20} />
+                        <div 
+                            className="border rounded-lg p-6"
+                            style={{ 
+                                backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
+                                borderColor: 'rgb(var(--primary-200, 191 219 254))'
+                            }}
+                        >
+                            <h4 
+                                className="text-lg font-semibold mb-3 flex items-center"
+                                style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
+                            >
+                                <Zap 
+                                    className="mr-2" 
+                                    size={20} 
+                                    style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                                />
                                 {t('dashboard.ready_to_start_learning')}
                             </h4>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-blue-600 mb-2">
+                                <div 
+                                    className="text-2xl font-bold mb-2"
+                                    style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                                >
                                     {t('dashboard.lets_begin')}
                                 </div>
-                                <p className="text-blue-700 font-medium">
+                                <p 
+                                    className="font-medium"
+                                    style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
+                                >
                                     {t('dashboard.start_with_level_1')}
                                 </p>
                                 <p className="text-blue-600 text-sm mt-1">
                                     {t('dashboard.you_need_points_unlock', { points: program.levelRequirements?.['2'] || 10, level: 2 })}
                                 </p>
-                                <div className="mt-3 bg-blue-100 rounded-lg p-3">
-                                    <p className="text-blue-800 text-sm font-medium">
+                                <div 
+                                    className="mt-3 rounded-lg p-3 border"
+                                    style={{ backgroundColor: 'rgb(var(--primary-100, 219 234 254))' }}
+                                >
+                                    <p 
+                                        className="text-sm font-medium"
+                                        style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
+                                    >
                                         {t('dashboard.complete_quizzes_earn_points')}
                                     </p>
                                 </div>
@@ -406,16 +464,31 @@ export default function ProgramContent({
 
             {/* Next Lesson Card */}
             {program.nextLesson && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-blue-900 mb-2">
+                <div 
+                    className="border rounded-lg p-6"
+                    style={{ 
+                        backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
+                        borderColor: 'rgb(var(--primary-200, 191 219 254))'
+                    }}
+                >
+                    <h4 
+                        className="text-lg font-semibold mb-2"
+                        style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
+                    >
                         {t('dashboard.continue_your_learning')}
                     </h4>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-blue-800 font-medium">
+                            <p 
+                                className="font-medium"
+                                style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
+                            >
                                 {program.nextLesson.translated_title || program.nextLesson.title}
                             </p>
-                            <p className="text-blue-600 text-sm">
+                            <p 
+                                className="text-sm"
+                                style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                            >
                                 {t('dashboard.level')} {program.nextLesson.level}
                             </p>
                         </div>
@@ -423,7 +496,8 @@ export default function ProgramContent({
                             onClick={() =>
                                 handleLessonClick(program.nextLesson, "start")
                             }
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            className="text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            style={{ backgroundColor: 'rgb(var(--primary-600, 37 99 235))' }}
                         >
                             {t('dashboard.continue')}
                         </button>

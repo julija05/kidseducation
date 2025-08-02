@@ -169,6 +169,7 @@ return [
         'click_to_join' => 'Click the button to join your virtual classroom',
         'join_meeting' => 'Join Meeting',
         'hi_super_learner' => 'Hi there, Super Learner!',
+        'welcome_back_message' => 'Ready to continue your amazing learning journey?',
         'complete' => 'Complete',
         'new_level_unlocked' => 'New level unlocked!',
         'learning' => 'Learning',
@@ -285,6 +286,10 @@ return [
         'language_saved' => 'Language preference saved!',
         'language_note' => 'Note',
         'language_note_description' => 'The page will reload automatically to apply your new language preference.',
+        'dashboard_theme' => 'Dashboard Theme',
+        'dashboard_theme_description' => 'Choose your preferred color theme for the dashboard and learning interface.',
+        'theme_note_title' => 'Note',
+        'theme_note_description' => 'Your theme selection will apply to your dashboard, but individual lessons may use their own program-specific colors.',
     ],
 
     // Forms

@@ -22,7 +22,10 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
             return (
                 <Link
                     href={route("dashboard.programs.show", program.slug)}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
+                    style={{
+                        background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                    }}
                 >
                     🔍 {t('dashboard.explore_adventure')}
                     <ArrowRight size={20} className="ml-2" />
@@ -69,7 +72,10 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                 return (
                     <Link
                         href={route("dashboard.programs.show", program.slug)}
-                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                        className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
+                    style={{
+                        background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                    }}
                     >
                         🔍 {t('dashboard.explore_adventure')}
                         <ArrowRight size={20} className="ml-2" />
@@ -127,10 +133,18 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                             <div className="bg-gradient-to-br from-blue-100 via-purple-50 to-pink-100 p-8">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="bg-white rounded-full p-4 shadow-lg">
-                                        <Icon className="text-blue-600" size={48} />
+                                        <Icon 
+                                            size={48} 
+                                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                                        />
                                     </div>
                                     <div className="text-right">
-                                        <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+                                        <span 
+                                            className="text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg"
+                                            style={{
+                                                background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                                            }}
+                                        >
                                             ${program.price}
                                         </span>
                                         <div className="text-sm text-gray-600 mt-1">{t('dashboard.super_value')} 💎</div>

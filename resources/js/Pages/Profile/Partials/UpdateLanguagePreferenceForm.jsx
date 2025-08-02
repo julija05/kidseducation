@@ -57,7 +57,10 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
         <section className={className}>
             <header>
                 <div className="flex items-center mb-4">
-                    <Globe className="w-6 h-6 text-blue-600 mr-3" />
+                    <Globe 
+                        className="w-6 h-6 mr-3" 
+                        style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                    />
                     <div>
                         <h2 className="text-lg font-medium text-gray-900">
                             {t('profile.language_preference')}
@@ -76,11 +79,28 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
                             key={language.code}
                             type="button"
                             onClick={() => handleLanguageSelect(language.code)}
-                            className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
-                                selectedLanguage === language.code
-                                    ? 'border-blue-500 bg-blue-50 shadow-md'
-                                    : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                            }`}
+                            className="w-full text-left p-4 rounded-lg border-2 transition-all duration-200"
+                            style={{
+                                borderColor: selectedLanguage === language.code 
+                                    ? 'rgb(var(--primary-500, 59 130 246))' 
+                                    : '#e5e7eb',
+                                backgroundColor: selectedLanguage === language.code 
+                                    ? 'rgb(var(--primary-100, 219 234 254))' 
+                                    : 'transparent',
+                                boxShadow: selectedLanguage === language.code ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (selectedLanguage !== language.code) {
+                                    e.target.style.backgroundColor = '#f9fafb';
+                                    e.target.style.borderColor = 'rgb(var(--primary-300, 147 197 253))';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (selectedLanguage !== language.code) {
+                                    e.target.style.backgroundColor = 'transparent';
+                                    e.target.style.borderColor = '#e5e7eb';
+                                }
+                            }}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
@@ -95,8 +115,11 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
                                     </div>
                                 </div>
                                 {selectedLanguage === language.code && (
-                                    <div className="text-blue-500">
-                                        <Check className="w-5 h-5" />
+                                    <div>
+                                        <Check 
+                                            className="w-5 h-5" 
+                                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -114,11 +137,27 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                            processing
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
-                        }`}
+                        className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-white"
+                        style={{
+                            backgroundColor: processing 
+                                ? '#d1d5db' 
+                                : 'rgb(var(--primary-600, 37 99 235))',
+                            color: processing ? '#6b7280' : 'white',
+                            cursor: processing ? 'not-allowed' : 'pointer',
+                            boxShadow: processing ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (!processing) {
+                                e.target.style.backgroundColor = 'rgb(var(--primary-700, 29 78 216))';
+                                e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (!processing) {
+                                e.target.style.backgroundColor = 'rgb(var(--primary-600, 37 99 235))';
+                                e.target.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                            }
+                        }}
                     >
                         {processing ? (
                             <div className="flex items-center">
@@ -138,9 +177,20 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
                     )}
                 </div>
 
-                <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div 
+                    className="text-sm text-gray-600 border rounded-lg p-3"
+                    style={{
+                        backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
+                        borderColor: 'rgb(var(--primary-200, 191 219 254))'
+                    }}
+                >
                     <div className="flex items-start">
-                        <div className="text-blue-500 mr-2">💡</div>
+                        <div 
+                            className="mr-2"
+                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                        >
+                            💡
+                        </div>
                         <div>
                             <strong>{t('profile.language_note')}:</strong> {t('profile.language_note_description')}
                         </div>

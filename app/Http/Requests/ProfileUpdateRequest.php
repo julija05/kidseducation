@@ -27,6 +27,10 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'language_preference' => ['nullable', 'string', 'in:en,mk'],
             'language_selected' => ['nullable', 'boolean'],
+            'theme_preference' => ['nullable', 'string', 'in:default,purple,green,orange,teal,dark'],
+            'avatar_path' => ['nullable', 'string', 'max:255'],
+            'avatar_type' => ['nullable', 'string', 'in:initial,emoji'],
+            'avatar_value' => ['nullable', 'string', 'max:10'],
         ];
     }
 }

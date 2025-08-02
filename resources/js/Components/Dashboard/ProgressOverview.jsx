@@ -79,31 +79,66 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
     const achievements = getAchievements();
 
     return (
-        <div className="space-y-6 mb-8">
+        <div className="space-y-0">
             {/* Welcome Message */}
-            <div className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 rounded-xl shadow-lg p-6 text-white">
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8 mb-8">
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">{t('dashboard.hi_super_learner')} 👋</h2>
-                        <p className="text-lg opacity-90">{progressMessage.text} {progressMessage.emoji}</p>
-                    </div>
-                    <div className="text-6xl animate-bounce">
-                        {progressMessage.emoji}
+                    <div className="flex-1">
+                        <div className="flex items-center mb-4">
+                            <div 
+                                className="w-12 h-12 rounded-full flex items-center justify-center mr-4"
+                                style={{ backgroundColor: 'rgb(var(--primary-100, 219 234 254))' }}
+                            >
+                                <span className="text-2xl">👋</span>
+                            </div>
+                            <div>
+                                <h1 
+                                    className="text-2xl font-bold"
+                                    style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
+                                >
+                                    {t('dashboard.hi_super_learner')}
+                                </h1>
+                                <p className="text-gray-600 text-sm mt-1">
+                                    {t('dashboard.welcome_back_message')}
+                                </p>
+                            </div>
+                        </div>
+                        <div 
+                            className="flex items-center p-4 rounded-lg border-l-4"
+                            style={{ 
+                                backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
+                                borderLeftColor: 'rgb(var(--primary-400, 96 165 250))'
+                            }}
+                        >
+                            <span className="text-2xl mr-3">{progressMessage.emoji}</span>
+                            <p 
+                                className="text-lg font-medium"
+                                style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
+                            >
+                                {progressMessage.text}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Main Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {/* Progress Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-bold text-gray-800">{t('dashboard.progress')}</h3>
-                        <Target className="text-blue-500" size={24} />
+                        <Target 
+                            size={24} 
+                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                        />
                     </div>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-3xl font-bold" style={{ color: progressBarColor }}>
+                            <span 
+                                className="text-3xl font-bold" 
+                                style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                            >
                                 {Math.round(progressPercentage)}%
                             </span>
                             <span className="text-sm text-gray-500">{t('dashboard.complete')}</span>
@@ -129,14 +164,22 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 </div>
 
                 {/* Quiz Points Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-bold text-gray-800">{t('dashboard.quiz_points')}</h3>
-                        <Zap className="text-yellow-500" size={24} />
+                        <Zap 
+                            size={24} 
+                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                        />
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center">
-                            <span className="text-3xl font-bold text-yellow-600">{quizPoints}</span>
+                            <span 
+                                className="text-3xl font-bold" 
+                                style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                            >
+                                {quizPoints}
+                            </span>
                             <span className="ml-2 text-lg">⚡</span>
                         </div>
                         {pointsNeededForNextLevel !== null && pointsNeededForNextLevel > 0 && (
@@ -153,14 +196,20 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 </div>
 
                 {/* Current Level Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-bold text-gray-800">{t('dashboard.current_level')}</h3>
-                        <Trophy className="text-purple-500" size={24} />
+                        <Trophy 
+                            size={24} 
+                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                        />
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center">
-                            <span className="text-3xl font-bold text-purple-600">
+                            <span 
+                                className="text-3xl font-bold" 
+                                style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                            >
                                 {currentLevel}
                             </span>
                             <span className="ml-2 text-lg">🏆</span>
@@ -172,11 +221,12 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                             {Array.from({ length: totalLevels }, (_, i) => (
                                 <div
                                     key={i}
-                                    className={`w-3 h-3 rounded-full ${
-                                        i < currentLevel 
-                                            ? 'bg-purple-500' 
-                                            : 'bg-gray-200'
-                                    }`}
+                                    className="w-3 h-3 rounded-full bg-gray-200"
+                                    style={{
+                                        backgroundColor: i < currentLevel 
+                                            ? 'rgb(var(--primary-600, 147 51 234))' 
+                                            : '#e5e7eb'
+                                    }}
                                 />
                             ))}
                         </div>
@@ -184,12 +234,12 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                 </div>
 
                 {/* Program Card */}
-                <div className="bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-200">
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-bold text-gray-800">{t('dashboard.learning')}</h3>
                         <ProgramIcon 
                             size={24} 
-                            style={{ color: progressBarColor }}
+                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
                         />
                     </div>
                     <div className="space-y-2">
@@ -207,20 +257,28 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
 
             {/* Achievements Section */}
             {achievements.length > 0 && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="flex items-center mb-4">
-                        <Star className="text-yellow-500 mr-2" size={24} />
-                        <h3 className="text-xl font-bold text-gray-800">{t('dashboard.your_achievements')}</h3>
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 mt-8">
+                    <div className="flex items-center mb-6">
+                        <div 
+                            className="p-2 rounded-lg mr-3"
+                            style={{ backgroundColor: 'rgb(var(--primary-100, 219 234 254))' }}
+                        >
+                            <Star 
+                                size={20} 
+                                style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                            />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('dashboard.your_achievements')}</h3>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {achievements.map((achievement, index) => (
                             <div
                                 key={index}
-                                className="bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-yellow-300 rounded-lg px-4 py-2 transform hover:scale-105 transition-transform duration-200"
+                                className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg px-4 py-3"
                             >
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-2xl">{achievement.emoji}</span>
-                                    <span className="font-bold text-gray-800 text-sm">
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-xl">{achievement.emoji}</span>
+                                    <span className="font-medium text-gray-700 text-sm">
                                         {achievement.name}
                                     </span>
                                 </div>

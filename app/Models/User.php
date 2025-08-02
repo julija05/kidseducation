@@ -27,6 +27,10 @@ class User extends Authenticatable
         'password',
         'language_preference',
         'language_selected',
+        'theme_preference',
+        'avatar_path',
+        'avatar_type',
+        'avatar_value',
     ];
 
     /**

@@ -62,14 +62,22 @@ export default function FirstTimeLanguageSelector({ show, onClose }) {
             <div className="flex min-h-full items-center justify-center p-4">
                 <div className="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all w-full max-w-md">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-8 text-center">
+                    <div 
+                        className="px-6 py-8 text-center"
+                        style={{
+                            background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                        }}
+                    >
                         <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4">
-                            <Globe className="w-8 h-8 text-blue-500" />
+                            <Globe 
+                                className="w-8 h-8" 
+                                style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                            />
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-2">
                             Welcome to Abacoding!
                         </h2>
-                        <p className="text-blue-100">
+                        <p className="text-white opacity-90">
                             Choose your preferred language to get started
                         </p>
                     </div>
@@ -81,11 +89,15 @@ export default function FirstTimeLanguageSelector({ show, onClose }) {
                                 <button
                                     key={language.code}
                                     onClick={() => handleLanguageSelect(language)}
-                                    className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                                        selectedLanguage?.code === language.code
-                                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                                    }`}
+                                    className="w-full text-left p-4 rounded-xl border-2 transition-all duration-200"
+                                    style={{
+                                        borderColor: selectedLanguage?.code === language.code 
+                                            ? 'rgb(var(--primary-500, 59 130 246))' 
+                                            : '#e5e7eb',
+                                        backgroundColor: selectedLanguage?.code === language.code 
+                                            ? 'rgb(var(--primary-50, 239 246 255))' 
+                                            : 'transparent'
+                                    }}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-4">
@@ -100,8 +112,11 @@ export default function FirstTimeLanguageSelector({ show, onClose }) {
                                             </div>
                                         </div>
                                         {selectedLanguage?.code === language.code && (
-                                            <div className="text-blue-500">
-                                                <Check className="w-6 h-6" />
+                                            <div>
+                                                <Check 
+                                                    className="w-6 h-6" 
+                                                    style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                                                />
                                             </div>
                                         )}
                                     </div>
@@ -114,11 +129,14 @@ export default function FirstTimeLanguageSelector({ show, onClose }) {
                             <button
                                 onClick={handleSubmit}
                                 disabled={!selectedLanguage || isSubmitting}
-                                className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 ${
-                                    selectedLanguage && !isSubmitting
-                                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
+                                className="w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200"
+                                style={{
+                                    background: selectedLanguage && !isSubmitting 
+                                        ? 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))' 
+                                        : '#d1d5db',
+                                    color: selectedLanguage && !isSubmitting ? 'white' : '#6b7280',
+                                    cursor: selectedLanguage && !isSubmitting ? 'pointer' : 'not-allowed'
+                                }}
                             >
                                 {isSubmitting ? (
                                     <div className="flex items-center justify-center">
