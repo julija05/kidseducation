@@ -150,7 +150,7 @@ export default function ProgramContent({
         if (!isLevelUnlocked) {
             const pointsNeeded = program.levelRequirements?.[lesson.level] || 0;
             return {
-                text: `Locked (${pointsNeeded} pts)`,
+                text: t('dashboard.locked_points_needed', { points: pointsNeeded }),
                 className: "bg-gray-100 text-gray-400 cursor-not-allowed",
                 onClick: () => {},
                 disabled: true,
@@ -159,7 +159,7 @@ export default function ProgramContent({
 
         if (!lesson.is_unlocked) {
             return {
-                text: "Locked",
+                text: t('dashboard.locked_generic'),
                 className: "bg-gray-100 text-gray-400 cursor-not-allowed",
                 onClick: () => {},
                 disabled: true,
@@ -169,7 +169,7 @@ export default function ProgramContent({
         switch (lesson.status) {
             case "completed":
                 return {
-                    text: "Review",
+                    text: t('dashboard.review'),
                     className: "bg-gray-100 text-gray-600 hover:bg-gray-200",
                     onClick: () => handleLessonClick(lesson, "review"),
                     disabled: false,
@@ -236,7 +236,7 @@ export default function ProgramContent({
     };
 
     const getLevelStatus = (levelData, levelNumber) => {
-        if (!levelData) return { status: "locked", text: "Locked" };
+        if (!levelData) return { status: "locked", text: t('dashboard.locked_generic') };
 
         // Check if level is unlocked based on points
         const isUnlocked = levelNumber <= (program.highestUnlockedLevel || 1);
@@ -245,16 +245,16 @@ export default function ProgramContent({
             const pointsNeeded = program.levelRequirements?.[levelNumber] || 0;
             return { 
                 status: "locked", 
-                text: `Locked (${pointsNeeded} points needed)` 
+                text: t('dashboard.locked_points_needed', { points: pointsNeeded }) 
             };
         }
 
         if (levelData.isCompleted) {
-            return { status: "completed", text: "Completed" };
+            return { status: "completed", text: t('dashboard.completed') };
         } else if (levelData.isUnlocked) {
-            return { status: "current", text: "In Progress" };
+            return { status: "current", text: t('dashboard.in_progress') };
         } else {
-            return { status: "current", text: "Available" };
+            return { status: "current", text: t('dashboard.available') };
         }
     };
 
@@ -333,7 +333,7 @@ export default function ProgramContent({
                         </h4>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-yellow-800 font-medium">Progress:</span>
+                                <span className="text-yellow-800 font-medium">{t('dashboard.progress_label')}:</span>
                                 <span className="text-yellow-700 font-bold">
                                     {program.quizPoints || 0} / {program.pointsForNextLevel || 0}
                                 </span>
@@ -348,10 +348,10 @@ export default function ProgramContent({
                             </div>
                             <div className="text-center">
                                 <p className="text-yellow-800 font-semibold">
-                                    {program.pointsNeededForNextLevel} more points needed!
+                                    {t('dashboard.more_points_needed', { points: program.pointsNeededForNextLevel })}
                                 </p>
                                 <p className="text-yellow-600 text-sm">
-                                    Complete quizzes to unlock Level {program.highestUnlockedLevel + 1}
+                                    {t('dashboard.complete_quizzes_unlock', { level: program.highestUnlockedLevel + 1 })}
                                 </p>
                             </div>
                         </div>
@@ -362,17 +362,17 @@ export default function ProgramContent({
                         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
                             <h4 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
                                 <Trophy className="mr-2 text-green-600" size={20} />
-                                All Levels Unlocked!
+                                {t('dashboard.all_levels_unlocked')}
                             </h4>
                             <div className="text-center">
                                 <div className="text-2xl font-bold text-green-600 mb-2">
-                                    🎉 Congratulations!
+                                    {t('dashboard.congratulations_all_unlocked')}
                                 </div>
                                 <p className="text-green-700 font-medium">
-                                    You've unlocked all available levels
+                                    {t('dashboard.unlocked_all_levels')}
                                 </p>
                                 <p className="text-green-600 text-sm mt-1">
-                                    Keep completing quizzes to earn more points!
+                                    {t('dashboard.keep_completing_quizzes')}
                                 </p>
                             </div>
                         </div>
@@ -416,7 +416,7 @@ export default function ProgramContent({
                                 {program.nextLesson.translated_title || program.nextLesson.title}
                             </p>
                             <p className="text-blue-600 text-sm">
-                                Level {program.nextLesson.level}
+                                {t('dashboard.level')} {program.nextLesson.level}
                             </p>
                         </div>
                         <button
@@ -474,7 +474,7 @@ export default function ProgramContent({
                                                 />
                                             )}
                                             <h5 className="text-lg font-semibold">
-                                                Level {level}
+                                                {t('dashboard.level')} {level}
                                             </h5>
                                             <span
                                                 className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${getLevelBadgeClass(
@@ -489,7 +489,7 @@ export default function ProgramContent({
                                             {levelData && (
                                                 <div className="text-sm text-gray-600 mr-4">
                                                     {levelData.completed}/
-                                                    {levelData.total} lessons
+                                                    {levelData.total} {t('dashboard.lessons')}
                                                 </div>
                                             )}
                                             {levelData &&
@@ -620,13 +620,7 @@ export default function ProgramContent({
                                                                                             .resources
                                                                                             .length
                                                                                     }{" "}
-                                                                                    resource
-                                                                                    {lesson
-                                                                                        .resources
-                                                                                        .length !==
-                                                                                    1
-                                                                                        ? "s"
-                                                                                        : ""}
+                                                                                    {lesson.resources.length === 1 ? t('dashboard.resource') : t('dashboard.resources')}
                                                                                 </span>
                                                                             </>
                                                                         )}
@@ -675,8 +669,7 @@ export default function ProgramContent({
                                                             hasResources && (
                                                                 <div className="px-4 pb-4">
                                                                     <h6 className="text-sm font-semibold text-gray-700 mb-3">
-                                                                        Learning
-                                                                        Resources:
+                                                                        {t('dashboard.learning_resources')}:
                                                                     </h6>
                                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                                                         {lesson.resources.map(
@@ -723,7 +716,7 @@ export default function ProgramContent({
                                                                                                 </span>
                                                                                                 {resource.is_required && (
                                                                                                     <span className="text-xs bg-red-100 text-red-600 px-1 rounded">
-                                                                                                        Required
+                                                                                                        {t('dashboard.required')}
                                                                                                     </span>
                                                                                                 )}
                                                                                             </div>
@@ -761,19 +754,10 @@ export default function ProgramContent({
                                                                             className="mx-auto text-gray-400 mb-2"
                                                                         />
                                                                         <p className="text-sm text-gray-500">
-                                                                            Learning
-                                                                            materials
-                                                                            coming
-                                                                            soon!
+                                                                            {t('dashboard.coming_soon')}
                                                                         </p>
                                                                         <p className="text-xs text-gray-400 mt-1">
-                                                                            Resources
-                                                                            for
-                                                                            this
-                                                                            lesson
-                                                                            are
-                                                                            being
-                                                                            prepared
+                                                                            {t('dashboard.resources_being_prepared')}
                                                                         </p>
                                                                     </div>
                                                                 </div>

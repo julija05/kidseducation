@@ -75,9 +75,12 @@ export default function AuthenticatedLayout({
                                     />
                                     <Link 
                                         href={route("dashboard")}
-                                        className="text-2xl font-bold text-white hover:text-gray-200 transition-colors"
+                                        className="text-white hover:text-gray-200 transition-colors"
                                     >
-                                        {theme.name}
+                                        <div className="flex flex-col">
+                                            <span className="text-2xl font-bold">Abacoding</span>
+                                            <span className="text-xs opacity-75 -mt-1">program panel</span>
+                                        </div>
                                     </Link>
                                 </>
                             )}

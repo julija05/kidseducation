@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
+import { BookOpen } from "lucide-react";
 import LessonHeader from "@/Components/Lessons/LessonHeader";
 import StartLessonPrompt from "@/Components/Lessons/StartLessonPrompt";
 import LessonContent from "@/Components/Lessons/LessonContent";
 import LessonNavigation from "@/Components/Lessons/LessonNavigation";
+import LessonCompletionModal from "@/Components/Lessons/LessonCompletionModal";
 import useLessonProgress from "@/hooks/useLessonProgress";
 import useResourceSelection from "@/hooks/useResourceSelection";
 
@@ -52,30 +54,71 @@ export default function LessonShow({
     const { selectedResource, handleResourceSelect, handleResourceDownload } =
         useResourceSelection(lesson.resources);
 
+    const [showCompletionModal, setShowCompletionModal] = useState(false);
+    const [completionData, setCompletionData] = useState(null);
+
     const handleCompleteLesson = async (score = null) => {
         const result = await completeLesson(score);
 
         if (result) {
-            if (nextLesson) {
-                const confirmNext = confirm(
-                    `Lesson completed! Would you like to proceed to the next lesson: "${nextLesson.translated_title || nextLesson.title}"?`
-                );
-                if (confirmNext) {
-                    router.visit(route("lessons.show", nextLesson.id));
-                }
-            } else {
-                alert(
-                    "Congratulations! You have completed all available lessons in this program."
-                );
-                router.visit(route("dashboard.programs.show", program.slug));
-            }
+            // Show the completion modal instead of alert/confirm
+            setCompletionData({ nextLesson, program });
+            setShowCompletionModal(true);
+        }
+    };
+
+    const handleProceedToNext = () => {
+        setShowCompletionModal(false);
+        if (completionData?.nextLesson) {
+            router.visit(route("lessons.show", completionData.nextLesson.id));
+        }
+    };
+
+    const handleStayHere = () => {
+        setShowCompletionModal(false);
+        // Stay on current lesson page
+    };
+
+    const handleCloseModal = () => {
+        setShowCompletionModal(false);
+        if (!completionData?.nextLesson) {
+            // If no next lesson (all completed), go back to dashboard
+            router.visit(route("dashboard"));
         }
     };
 
     const hasResources = lesson.resources && lesson.resources.length > 0;
 
+    // Create a vibrant lesson theme
+    const lessonTheme = program?.theme || {
+        name: "Learning Session",
+        color: "bg-gradient-to-r from-purple-600 to-blue-600",
+        lightColor: "bg-gradient-to-br from-purple-50 to-blue-50",
+        borderColor: "border-purple-300",
+        textColor: "text-purple-700",
+        icon: "BookOpen"
+    };
+
+    const customHeader = (
+        <>
+            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
+                <BookOpen className="text-white" size={24} />
+            </div>
+            <button
+                onClick={() => router.visit(route("dashboard"))}
+                className="flex flex-col text-left hover:opacity-80 transition-opacity"
+            >
+                <span className="text-2xl font-bold">Learning Session</span>
+                <span className="text-xs opacity-75 -mt-1">{program?.translated_name || program?.name || "lesson mode"}</span>
+            </button>
+        </>
+    );
+
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout 
+            programConfig={lessonTheme}
+            customHeader={customHeader}
+        >
             <Head title={`${lesson.translated_title || lesson.title} - ${program?.translated_name || program?.name || "Program"}`} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -110,6 +153,15 @@ export default function LessonShow({
                     currentProgress={currentProgress}
                 />
             </div>
+
+            {/* Lesson Completion Modal */}
+            <LessonCompletionModal
+                show={showCompletionModal}
+                nextLesson={completionData?.nextLesson}
+                onProceed={handleProceedToNext}
+                onStay={handleStayHere}
+                onClose={handleCloseModal}
+            />
         </AuthenticatedLayout>
     );
 }

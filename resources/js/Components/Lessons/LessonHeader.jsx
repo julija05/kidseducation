@@ -13,24 +13,9 @@ export default function LessonHeader({
     
     return (
         <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-                <button
-                    onClick={() =>
-                        router.visit(
-                            route(
-                                "dashboard.programs.show",
-                                program?.slug || "dashboard"
-                            )
-                        )
-                    }
-                    className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                    <ArrowLeft size={20} className="mr-2" />
-                    {t('lessons.back_to_program')}
-                </button>
-
+            <div className="flex items-center justify-end mb-4">
                 <div className="text-sm text-gray-500">
-                    Level {lesson.level} • Lesson {lesson.order_in_level}
+                    {t('lessons.level')} {lesson.level} • {t('lessons.lesson')} {lesson.order_in_level}
                 </div>
             </div>
 
