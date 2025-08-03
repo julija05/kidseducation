@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('theme_preference')->nullable()->default('default')->after('avatar_path');
-            $table->string('avatar_preference')->nullable()->default('default')->after('theme_preference');
+            // Only add columns if they don't exist
+            if (!Schema::hasColumn('users', 'theme_preference')) {
+                $table->string('theme_preference')->nullable()->default('default');
+            }
+            if (!Schema::hasColumn('users', 'avatar_preference')) {
+                $table->string('avatar_preference')->nullable()->default('default');
+            }
         });
     }
 

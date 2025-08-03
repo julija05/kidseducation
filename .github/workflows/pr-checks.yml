@@ -139,7 +139,10 @@ jobs:
     - name: Run database migrations
       run: |
         echo "=== Running migrations ==="
-        DB_CONNECTION=mysql DB_DATABASE=kids_education_test php artisan migrate --env=testing --force
+        DB_CONNECTION=mysql DB_DATABASE=kids_education_test php artisan migrate --env=testing --force --verbose
+        
+        echo "=== Checking table structure ==="
+        mysql -h 127.0.0.1 -P 3306 -u root -ppassword kids_education_test -e "DESCRIBE users;"
 
     - name: Run PHPUnit tests
       run: |
@@ -154,11 +157,12 @@ jobs:
                 <env name="DB_USERNAME" value="root"/>\
                 <env name="DB_PASSWORD" value="password"/>' phpunit.xml
         
-        # Run tests with explicit environment variables
-        DB_CONNECTION=mysql DB_DATABASE=kids_education_test CACHE_STORE=array ./vendor/bin/phpunit --coverage-text --colors=never --stop-on-failure
+        # Run tests with explicit environment variables and better error reporting
+        echo "=== Running PHPUnit tests ==="
+        DB_CONNECTION=mysql DB_DATABASE=kids_education_test CACHE_STORE=array ./vendor/bin/phpunit --coverage-text --colors=never --stop-on-failure --verbose
       
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: test-results
@@ -295,21 +299,38 @@ jobs:
     - name: Check for sensitive files
       run: |
         echo "Checking for sensitive files..."
-        if find . -name "*.env" -not -path "./vendor/*" -not -path "./node_modules/*" | grep -v ".env.example"; then
-          echo "❌ .env files found in repository"
+        
+        # Check for actual .env files (exclude .env.example and known safe files)
+        SENSITIVE_ENV_FILES=$(find . -name ".env" -o -name ".env.local" -o -name ".env.production" -o -name ".env.staging" | grep -v "./vendor/" | grep -v "./node_modules/" | grep -v ".env.example" || true)
+        
+        if [ -n "$SENSITIVE_ENV_FILES" ]; then
+          echo "❌ Sensitive .env files found in repository:"
+          echo "$SENSITIVE_ENV_FILES"
           exit 1
         fi
-        if find . -name "*.key" -not -path "./vendor/*" -not -path "./node_modules/*"; then
-          echo "❌ Key files found in repository"
+        
+        # Check for private key files (exclude test keys and known safe files)
+        SENSITIVE_KEY_FILES=$(find . -name "*.key" -o -name "*.pem" -o -name "id_rsa" -o -name "id_ed25519" | grep -v "./vendor/" | grep -v "./node_modules/" | grep -v "./tests/" | grep -v ".pub" || true)
+        
+        if [ -n "$SENSITIVE_KEY_FILES" ]; then
+          echo "❌ Private key files found in repository:"
+          echo "$SENSITIVE_KEY_FILES"
           exit 1
         fi
+        
+        # Check for AWS credentials
+        if find . -name ".aws" -type d | grep -v "./vendor/" | grep -v "./node_modules/" | head -1; then
+          echo "❌ AWS credential files found in repository"
+          exit 1
+        fi
+        
         echo "✅ No sensitive files detected"
 
   # Summary job that will be used for branch protection
   pr-checks-complete:
     runs-on: ubuntu-latest
     name: PR Checks Complete
-    needs: [unit-tests, frontend-tests, code-quality, security-check]
+    needs: [check-pr-ready, unit-tests, frontend-tests, code-quality, security-check]
     if: always() && needs.check-pr-ready.outputs.should-run == 'true'
 
     steps:
@@ -344,7 +365,7 @@ jobs:
   pr-comment:
     runs-on: ubuntu-latest
     name: PR Comment
-    needs: [pr-checks-complete, unit-tests, frontend-tests, code-quality, security-check]
+    needs: [check-pr-ready, pr-checks-complete, unit-tests, frontend-tests, code-quality, security-check]
     if: always() && github.event_name == 'pull_request' && needs.check-pr-ready.outputs.should-run == 'true'
     permissions:
       pull-requests: write
