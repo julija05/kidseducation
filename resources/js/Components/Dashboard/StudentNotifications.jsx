@@ -7,6 +7,22 @@ export default function StudentNotifications({ notifications = [], unreadCount =
     const [showNotifications, setShowNotifications] = useState(false);
     const { t } = useTranslation();
     
+    // Helper function to get translated notification title
+    const getTranslatedTitle = (notification) => {
+        if (notification.data?.title_key) {
+            return t(notification.data.title_key);
+        }
+        return notification.title;
+    };
+    
+    // Helper function to get translated notification message
+    const getTranslatedMessage = (notification) => {
+        if (notification.data?.message_key && notification.data?.translation_data) {
+            return t(notification.data.message_key, notification.data.translation_data);
+        }
+        return notification.message;
+    };
+    
     // Auto-mark all as read when dropdown opens
     useEffect(() => {
         if (showNotifications && unreadCount > 0 && onMarkAllAsRead) {
@@ -198,7 +214,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between mb-1">
                                                         <p className="text-sm font-medium text-gray-900 truncate">
-                                                            {notification.title}
+                                                            {getTranslatedTitle(notification)}
                                                             {!notification.is_read && (
                                                                 <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full inline-block"></span>
                                                             )}
@@ -206,7 +222,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                     </div>
                                                     
                                                     <p className="text-sm text-gray-600 mb-2">
-                                                        {notification.message}
+                                                        {getTranslatedMessage(notification)}
                                                     </p>
                                                     
                                                     <div className="flex items-center text-xs text-gray-500">

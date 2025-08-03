@@ -36,7 +36,23 @@ class ProfileController extends Controller
         // Debug: Log the validated data
         \Log::info('Profile update validated data:', $validated);
         
-        $user->fill($validated);
+        // Generate full name from first and last name
+        if (isset($validated['first_name']) && isset($validated['last_name'])) {
+            $validated['name'] = trim($validated['first_name'] . ' ' . $validated['last_name']);
+        }
+        
+        // Check if new fields exist in database before trying to save them
+        $allowedFields = [];
+        $userTable = $user->getTable();
+        $columns = \Schema::getColumnListing($userTable);
+        
+        foreach ($validated as $key => $value) {
+            if (in_array($key, $columns)) {
+                $allowedFields[$key] = $value;
+            }
+        }
+        
+        $user->fill($allowedFields);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -82,5 +98,57 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Update the user's theme preference.
+     */
+    public function updateTheme(Request $request)
+    {
+        $request->validate([
+            'theme' => 'required|string|in:default,purple,green,orange,teal,dark'
+        ]);
+
+        $user = $request->user();
+        
+        // Check if theme_preference column exists before trying to save
+        $userTable = $user->getTable();
+        $columns = \Schema::getColumnListing($userTable);
+        
+        if (in_array('theme_preference', $columns)) {
+            $user->theme_preference = $request->theme;
+            $user->save();
+            return response()->json(['success' => true, 'saved_to_db' => true]);
+        } else {
+            // If database field doesn't exist yet, just return success
+            // The frontend will continue to use localStorage
+            return response()->json(['success' => true, 'saved_to_db' => false, 'message' => 'Database field not available, using localStorage']);
+        }
+    }
+
+    /**
+     * Update the user's avatar preference.
+     */
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|string|in:default,student,book,star,rocket,brain,lightbulb,trophy,puzzle'
+        ]);
+
+        $user = $request->user();
+        
+        // Check if avatar_preference column exists before trying to save
+        $userTable = $user->getTable();
+        $columns = \Schema::getColumnListing($userTable);
+        
+        if (in_array('avatar_preference', $columns)) {
+            $user->avatar_preference = $request->avatar;
+            $user->save();
+            return response()->json(['success' => true, 'saved_to_db' => true]);
+        } else {
+            // If database field doesn't exist yet, just return success
+            // The frontend will continue to use localStorage
+            return response()->json(['success' => true, 'saved_to_db' => false, 'message' => 'Database field not available, using localStorage']);
+        }
     }
 }

@@ -41,6 +41,10 @@ class HandleInertiaRequests extends Middleware
                     'roles' => $request->user()->roles->pluck('name'),
                     'language_preference' => $request->user()->language_preference,
                     'language_selected' => $request->user()->language_selected,
+                    'created_at' => $request->user()->created_at,
+                    'first_name' => $request->user()->first_name,
+                    'last_name' => $request->user()->last_name,
+                    'avatar_path' => $request->user()->avatar_path,
                 ] : null,
             ],
             'flash' => [

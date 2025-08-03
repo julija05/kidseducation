@@ -79,12 +79,22 @@ export default function Dashboard() {
             iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
 
         const customHeader = (
-            <>
-                <ProgramIcon className="mr-3" size={32} />
-                <h1 className="text-2xl font-bold">
-                    🎓 {t('dashboard.learning_adventure', { program: enrolledProgram.translated_name || enrolledProgram.name })}
-                </h1>
-            </>
+            <div className="flex items-center">
+                <div 
+                    className="p-2 rounded-lg mr-4"
+                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                >
+                    <ProgramIcon size={28} className="text-white" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-bold text-white">
+                        {enrolledProgram.translated_name || enrolledProgram.name}
+                    </h1>
+                    <p className="text-sm text-white opacity-90">
+                        {t('dashboard.learning_adventure_subtitle')}
+                    </p>
+                </div>
+            </div>
         );
 
         return (
@@ -100,7 +110,7 @@ export default function Dashboard() {
                     onClose={() => setShowLanguageModal(false)}
                 />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
                     {/* Next Class Card */}
                     <NextClassCard nextClass={nextClass} />
 
@@ -111,14 +121,7 @@ export default function Dashboard() {
                     />
 
                     {/* Program Content */}
-                    <div
-                        className={`${
-                            enrolledProgram.theme?.lightColor || "bg-gradient-to-br from-blue-50 to-purple-50"
-                        } ${
-                            enrolledProgram.theme?.borderColor ||
-                            "border-blue-200"
-                        } border-2 rounded-xl shadow-lg p-6 transform hover:shadow-xl transition-shadow duration-300`}
-                    >
+                    <div className="bg-white border border-gray-200 rounded-lg shadow-md p-8">
                         <ProgramContent
                             program={enrolledProgram}
                             onStartLesson={handleStartLesson}
@@ -141,12 +144,10 @@ export default function Dashboard() {
                 onClose={() => setShowLanguageModal(false)}
             />
             
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
                 {/* Show pending enrollment notification if exists */}
                 {pendingEnrollments && pendingEnrollments.length > 0 && (
-                    <div className="mb-8">
-                        <PendingEnrollment enrollment={pendingEnrollments[0]} />
-                    </div>
+                    <PendingEnrollment enrollment={pendingEnrollments[0]} />
                 )}
 
                 {/* Always show available programs */}

@@ -15,8 +15,11 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => ['required', 'string', 'max:255'],
+        // Check if new fields exist in database
+        $userTable = (new User())->getTable();
+        $columns = \Schema::getColumnListing($userTable);
+        
+        $rules = [
             'email' => [
                 'required',
                 'string',
@@ -27,6 +30,25 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'language_preference' => ['nullable', 'string', 'in:en,mk'],
             'language_selected' => ['nullable', 'boolean'],
+            'theme_preference' => ['nullable', 'string', 'in:default,purple,green,orange,teal,dark'],
+            'avatar_path' => ['nullable', 'string', 'max:255'],
+            'avatar_type' => ['nullable', 'string', 'in:initial,emoji'],
+            'avatar_value' => ['nullable', 'string', 'max:10'],
         ];
+
+        // Add new field validation only if columns exist
+        if (in_array('first_name', $columns)) {
+            $rules['first_name'] = ['required', 'string', 'max:255'];
+        }
+        
+        if (in_array('last_name', $columns)) {
+            $rules['last_name'] = ['required', 'string', 'max:255'];
+        }
+        
+        if (in_array('address', $columns)) {
+            $rules['address'] = ['nullable', 'string', 'max:500'];
+        }
+
+        return $rules;
     }
 }

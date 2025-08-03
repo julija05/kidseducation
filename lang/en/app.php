@@ -80,7 +80,6 @@ return [
         'lesson' => 'Lesson',
         'next_lesson' => 'Next Lesson',
         'previous_lesson' => 'Previous Lesson',
-        'completed' => 'Completed',
         'lesson_completed_title' => 'Lesson Completed!',
         'lesson_completed_message' => 'Great job! Would you like to proceed to the next lesson?',
         'next_lesson_title' => 'Next Lesson:',
@@ -169,6 +168,7 @@ return [
         'click_to_join' => 'Click the button to join your virtual classroom',
         'join_meeting' => 'Join Meeting',
         'hi_super_learner' => 'Hi there, Super Learner!',
+        'welcome_back_message' => 'Ready to continue your amazing learning journey?',
         'complete' => 'Complete',
         'new_level_unlocked' => 'New level unlocked!',
         'learning' => 'Learning',
@@ -285,11 +285,43 @@ return [
         'language_saved' => 'Language preference saved!',
         'language_note' => 'Note',
         'language_note_description' => 'The page will reload automatically to apply your new language preference.',
+        'dashboard_theme' => 'Dashboard Theme',
+        'dashboard_theme_description' => 'Choose your preferred color theme for the dashboard and learning interface.',
+        'theme_note_title' => 'Note',
+        'theme_note_description' => 'Your theme selection will apply to your dashboard, but individual lessons may use their own program-specific colors.',
+        'avatar_selection' => 'Avatar Selection',
+        'avatar_selection_description' => 'Choose an avatar that represents you',
+        'choose_your_avatar' => 'Choose Your Avatar',
+        'select_avatar_that_represents' => 'Select an avatar that represents you best',
+        'avatar_tip' => 'Tip',
+        'avatar_tip_description' => 'Your avatar will appear in the header and throughout the platform',
+        'active_student' => 'Active Student',
+        'learning_enthusiast' => 'Learning Enthusiast',
+        'member_since' => 'Member since',
+        'study_hours' => 'Study Hours',
+        'streak' => 'Streak',
+        'days' => 'days',
+        
+        // Avatar names
+        'avatars' => [
+            'initial' => 'Initial',
+            'student' => 'Student',
+            'reader' => 'Reader',
+            'star' => 'Star',
+            'explorer' => 'Explorer',
+            'thinker' => 'Thinker',
+            'creative' => 'Creative',
+            'winner' => 'Winner',
+            'problem_solver' => 'Problem Solver',
+            'default' => 'Default',
+        ],
     ],
 
     // Forms
     'forms' => [
-        'name' => 'Name',
+        'name' => 'Full Name',
+        'first_name' => 'First Name',
+        'last_name' => 'Last Name',
         'email' => 'Email',
         'password' => 'Password',
         'confirm_password' => 'Confirm Password',
@@ -298,6 +330,7 @@ return [
         'phone' => 'Phone',
         'date_of_birth' => 'Date of Birth',
         'address' => 'Address',
+        'address_placeholder' => 'Enter your full address (street, city, postal code, country)',
     ],
 
     // Messages
@@ -485,5 +518,39 @@ return [
             'cancelled' => 'Cancelled',
             'completed' => 'Completed',
         ],
+    ],
+
+    // Notifications
+    'notifications' => [
+        // Class/Schedule notifications
+        'class_scheduled' => 'Class Scheduled',
+        'class_rescheduled' => 'Class Rescheduled',
+        'class_cancelled' => 'Class Cancelled',
+        'class_completed' => 'Class Completed',
+        'class_reminder' => 'Class Reminder',
+        'class_update' => 'Class Update',
+        'class_schedule_updated' => 'Your class schedule has been updated.',
+        
+        'class_scheduled_message' => "A new class ':title' has been scheduled with :admin on :time.",
+        'class_rescheduled_message' => "Your class ':title' with :admin has been rescheduled to :time.",
+        'class_cancelled_message' => "Your class ':title' with :admin scheduled for :time has been cancelled.",
+        'class_completed_message' => "Your class ':title' with :admin has been completed.",
+        'class_reminder_message' => "Reminder: You have a class ':title' with :admin tomorrow at :time.",
+        
+        // Enrollment notifications
+        'new_enrollment_request' => 'New Enrollment Request',
+        'enrollment_approved' => 'Enrollment Approved',
+        'enrollment_rejected' => 'Enrollment Rejected',
+        'enrollment_update' => 'Enrollment Update',
+        'enrollment_updated' => 'An enrollment has been updated.',
+        
+        'enrollment_pending_message' => ":user has requested enrollment in the \":program\" program.",
+        'enrollment_approved_message' => ":user's enrollment in \":program\" has been approved.",
+        'enrollment_rejected_message' => ":user's enrollment in \":program\" has been rejected.",
+        
+        // Lesson notifications
+        'next_lesson_available' => 'Next Lesson Available',
+        'next_lesson_message' => "Your next lesson ':lesson' in :program is ready to start!",
+        'next_lesson_with_class' => "You also have a scheduled class on :time.",
     ],
 ];

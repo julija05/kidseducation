@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class LanguageController extends Controller
 {
@@ -50,7 +51,7 @@ class LanguageController extends Controller
         // Also store in session for immediate effect
         Session::put('locale', $request->language);
 
-        // Return back to dashboard with success message
-        return redirect()->back()->with('success', 'Language preference updated successfully');
+        // Return Inertia response to preserve scroll position
+        return back()->with('success', 'Language preference updated successfully');
     }
 }

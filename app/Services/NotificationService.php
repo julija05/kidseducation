@@ -36,6 +36,35 @@ class NotificationService
     }
 
     /**
+     * Create a new notification with translation keys (preferred method)
+     */
+    public function createWithTranslationKeys(
+        string $titleKey,
+        string $messageKey,
+        string $type,
+        ?array $translationData = null,
+        ?array $additionalData = null,
+        ?Model $relatedModel = null,
+        ?User $createdBy = null
+    ): Notification {
+        $data = array_merge($additionalData ?? [], [
+            'title_key' => $titleKey,
+            'message_key' => $messageKey,
+            'translation_data' => $translationData ?? [],
+        ]);
+
+        return Notification::create([
+            'title' => $titleKey, // Store key as fallback
+            'message' => $messageKey, // Store key as fallback
+            'type' => $type,
+            'data' => $data,
+            'related_model_type' => $relatedModel ? get_class($relatedModel) : null,
+            'related_model_id' => $relatedModel?->id,
+            'created_by' => $createdBy?->id,
+        ]);
+    }
+
+    /**
      * Create enrollment notification for admins
      */
     public function createEnrollmentNotification(
@@ -46,20 +75,29 @@ class NotificationService
         $program = $enrollment->program;
 
         $titles = [
-            'pending' => 'New Enrollment Request',
-            'approved' => 'Enrollment Approved',
-            'rejected' => 'Enrollment Rejected',
+            'pending' => __('app.notifications.new_enrollment_request'),
+            'approved' => __('app.notifications.enrollment_approved'),
+            'rejected' => __('app.notifications.enrollment_rejected'),
         ];
 
         $messages = [
-            'pending' => "{$user->name} has requested enrollment in the \"{$program->name}\" program.",
-            'approved' => "{$user->name}'s enrollment in \"{$program->name}\" has been approved.",
-            'rejected' => "{$user->name}'s enrollment in \"{$program->name}\" has been rejected.",
+            'pending' => __('app.notifications.enrollment_pending_message', [
+                'user' => $user->name,
+                'program' => $program->name
+            ]),
+            'approved' => __('app.notifications.enrollment_approved_message', [
+                'user' => $user->name,
+                'program' => $program->name
+            ]),
+            'rejected' => __('app.notifications.enrollment_rejected_message', [
+                'user' => $user->name,
+                'program' => $program->name
+            ]),
         ];
 
         return $this->create(
-            $titles[$action] ?? 'Enrollment Update',
-            $messages[$action] ?? 'An enrollment has been updated.',
+            $titles[$action] ?? __('app.notifications.enrollment_update'),
+            $messages[$action] ?? __('app.notifications.enrollment_updated'),
             'enrollment',
             [
                 'action' => $action,
@@ -152,20 +190,27 @@ class NotificationService
         $student = $schedule->student;
         $admin = $schedule->admin;
 
-        $titles = [
-            'scheduled' => 'Class Scheduled',
-            'rescheduled' => 'Class Rescheduled',
-            'cancelled' => 'Class Cancelled',
-            'completed' => 'Class Completed',
-            'reminder' => 'Class Reminder',
+        $titleKeys = [
+            'scheduled' => 'notifications.class_scheduled',
+            'rescheduled' => 'notifications.class_rescheduled',
+            'cancelled' => 'notifications.class_cancelled',
+            'completed' => 'notifications.class_completed',
+            'reminder' => 'notifications.class_reminder',
         ];
 
-        $messages = [
-            'scheduled' => "A new class '{$schedule->title}' has been scheduled with {$admin->name} on {$schedule->getFormattedScheduledTime()}.",
-            'rescheduled' => "Your class '{$schedule->title}' with {$admin->name} has been rescheduled to {$schedule->getFormattedScheduledTime()}.",
-            'cancelled' => "Your class '{$schedule->title}' with {$admin->name} scheduled for {$schedule->getFormattedScheduledTime()} has been cancelled.",
-            'completed' => "Your class '{$schedule->title}' with {$admin->name} has been completed.",
-            'reminder' => "Reminder: You have a class '{$schedule->title}' with {$admin->name} tomorrow at {$schedule->scheduled_at->format('g:i A')}.",
+        $messageKeys = [
+            'scheduled' => 'notifications.class_scheduled_message',
+            'rescheduled' => 'notifications.class_rescheduled_message',
+            'cancelled' => 'notifications.class_cancelled_message',
+            'completed' => 'notifications.class_completed_message',
+            'reminder' => 'notifications.class_reminder_message',
+        ];
+
+        // Translation data for message placeholders
+        $translationData = [
+            'title' => $schedule->title,
+            'admin' => $admin->name,
+            'time' => $schedule->getFormattedScheduledTime()
         ];
 
         // Send email notification for scheduled lessons
@@ -198,10 +243,11 @@ class NotificationService
             }
         }
 
-        return $this->create(
-            $titles[$action] ?? 'Class Update',
-            $messages[$action] ?? 'Your class schedule has been updated.',
+        return $this->createWithTranslationKeys(
+            $titleKeys[$action] ?? 'notifications.class_update',
+            $messageKeys[$action] ?? 'notifications.class_schedule_updated',
             'schedule',
+            $translationData,
             [
                 'action' => $action,
                 'schedule_id' => $schedule->id,
@@ -232,14 +278,19 @@ class NotificationService
         \App\Models\Program $program,
         ?\App\Models\ClassSchedule $nextClass = null
     ): Notification {
-        $message = "Your next lesson '{$nextLesson->title}' in {$program->name} is ready to start!";
+        $message = __('app.notifications.next_lesson_message', [
+            'lesson' => $nextLesson->title,
+            'program' => $program->name
+        ]);
         
         if ($nextClass && $nextClass->meeting_link) {
-            $message .= " You also have a scheduled class on {$nextClass->getFormattedScheduledTime()}.";
+            $message .= ' ' . __('app.notifications.next_lesson_with_class', [
+                'time' => $nextClass->getFormattedScheduledTime()
+            ]);
         }
 
         return $this->create(
-            'Next Lesson Available',
+            __('app.notifications.next_lesson_available'),
             $message,
             'lesson',
             [

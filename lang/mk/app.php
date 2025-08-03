@@ -169,6 +169,7 @@ return [
         'click_to_join' => 'Кликни на копчето за да се приклучиш во виртуелната училница',
         'join_meeting' => 'Приклучи се на состанок',
         'hi_super_learner' => 'Здраво, супер ученик!',
+        'welcome_back_message' => 'Подготвен си да го продолжиш своето неверојатно учење?',
         'complete' => 'Завршено',
         'new_level_unlocked' => 'Ново ниво е отклучено!',
         'learning' => 'Учење',
@@ -285,11 +286,43 @@ return [
         'language_saved' => 'Јазичката преференца е зачувана!',
         'language_note' => 'Забелешка',
         'language_note_description' => 'Страницата автоматски ќе се освежи за да се примени вашата нова јазична преференца.',
+        'dashboard_theme' => 'Тема на контролната табла',
+        'dashboard_theme_description' => 'Изберете ја вашата претпочитана боена тема за контролната табла и интерфејсот за учење.',
+        'theme_note_title' => 'Забелешка',
+        'theme_note_description' => 'Вашиот избор на тема ќе се примени на вашата контролна табла, но поединечните лекции можат да користат свои специфични бои за програмата.',
+        'avatar_selection' => 'Избор на Аватар',
+        'avatar_selection_description' => 'Изберете аватар кој ве претставува',
+        'choose_your_avatar' => 'Изберете го вашиот Аватар',
+        'select_avatar_that_represents' => 'Изберете аватар кој најдобро ве претставува',
+        'avatar_tip' => 'Совет',
+        'avatar_tip_description' => 'Вашиот аватар ќе се појавува во заглавјето и низ целата платформа',
+        'active_student' => 'Активен ученик',
+        'learning_enthusiast' => 'Ентузијаст за учење',
+        'member_since' => 'Член од',
+        'study_hours' => 'Часови на учење',
+        'streak' => 'Низа',
+        'days' => 'дена',
+        
+        // Avatar names
+        'avatars' => [
+            'initial' => 'Иницијални',
+            'student' => 'Ученик',
+            'reader' => 'Читач',
+            'star' => 'Ѕвезда',
+            'explorer' => 'Истражувач',
+            'thinker' => 'Мислител',
+            'creative' => 'Креативен',
+            'winner' => 'Победник',
+            'problem_solver' => 'Решавач на проблеми',
+            'default' => 'Стандарден',
+        ],
     ],
 
     // Forms
     'forms' => [
-        'name' => 'Име',
+        'name' => 'Полно име',
+        'first_name' => 'Име',
+        'last_name' => 'Презиме',
         'email' => 'Е-пошта',
         'password' => 'Лозинка',
         'confirm_password' => 'Потврди лозинка',
@@ -298,6 +331,7 @@ return [
         'phone' => 'Телефон',
         'date_of_birth' => 'Датум на раѓање',
         'address' => 'Адреса',
+        'address_placeholder' => 'Внесете ја вашата полна адреса (улица, град, поштенски број, држава)',
     ],
 
     // Messages
@@ -485,5 +519,39 @@ return [
             'cancelled' => 'Откажано',
             'completed' => 'Завршено',
         ],
+    ],
+
+    // Notifications
+    'notifications' => [
+        // Class/Schedule notifications
+        'class_scheduled' => 'Час закажан',
+        'class_rescheduled' => 'Час прераспореден',
+        'class_cancelled' => 'Час откажан',
+        'class_completed' => 'Час завршен',
+        'class_reminder' => 'Потсетник за час',
+        'class_update' => 'Ажурирање на час',
+        'class_schedule_updated' => 'Вашиот распоред на часовите е ажуриран.',
+        
+        'class_scheduled_message' => "Нов час ':title' е закажан со :admin на :time.",
+        'class_rescheduled_message' => "Вашиот час ':title' со :admin е прераспореден за :time.",
+        'class_cancelled_message' => "Вашиот час ':title' со :admin закажан за :time е откажан.",
+        'class_completed_message' => "Вашиот час ':title' со :admin е завршен.",
+        'class_reminder_message' => "Потсетник: Имате час ':title' со :admin утре во :time.",
+        
+        // Enrollment notifications
+        'new_enrollment_request' => 'Ново барање за запишување',
+        'enrollment_approved' => 'Запишување одобрено',
+        'enrollment_rejected' => 'Запишување одбиено',
+        'enrollment_update' => 'Ажурирање на запишување',
+        'enrollment_updated' => 'Запишувањето е ажурирано.',
+        
+        'enrollment_pending_message' => ":user побара запишување во програмата \":program\".",
+        'enrollment_approved_message' => "Запишувањето на :user во \":program\" е одобрено.",
+        'enrollment_rejected_message' => "Запишувањето на :user во \":program\" е одбиено.",
+        
+        // Lesson notifications
+        'next_lesson_available' => 'Следна лекција достапна',
+        'next_lesson_message' => "Вашата следна лекција ':lesson' во :program е готова да започне!",
+        'next_lesson_with_class' => "Исто така имате закажан час на :time.",
     ],
 ];
