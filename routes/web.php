@@ -31,7 +31,7 @@ Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('l
 Route::post('/language/set-preference', [LanguageController::class, 'setPreference'])->name('language.set-preference')->middleware('auth');
 
 // Student dashboard
-Route::middleware(['auth', 'role:student'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // Program-specific dashboard
     Route::get('/dashboard/programs/{program:slug}', [DashboardController::class, 'showProgram'])->name('dashboard.programs.show');

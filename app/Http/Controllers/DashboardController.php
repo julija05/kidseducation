@@ -296,10 +296,19 @@ class DashboardController extends Controller
             ->where('program_id', $program->id)
             ->first();
             
-        // Get enrollment data for the specific program
+        // Determine enrollment status
+        $enrollmentStatus = 'not_enrolled';
         $enrolledProgram = null;
-        if ($userEnrollment && $userEnrollment->approval_status === 'approved') {
-            $enrolledProgram = $this->enrollmentService->formatEnrollmentForDashboard($userEnrollment);
+
+        if ($userEnrollment) {
+            if ($userEnrollment->approval_status === 'approved' && $userEnrollment->status === 'active') {
+                $enrollmentStatus = 'approved';
+                $enrolledProgram = $this->enrollmentService->formatEnrollmentForDashboard($userEnrollment);
+            } elseif ($userEnrollment->approval_status === 'pending') {
+                $enrollmentStatus = 'pending';
+            } elseif ($userEnrollment->approval_status === 'rejected') {
+                $enrollmentStatus = 'rejected';
+            }
         }
         
         // Get student data
@@ -316,7 +325,7 @@ class DashboardController extends Controller
             ],
             'userEnrollment' => $userEnrollment,
             'enrolledProgram' => $enrolledProgram,
-            'enrollmentStatus' => $userEnrollment?->approval_status,
+            'enrollmentStatus' => $enrollmentStatus,
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
         ]);
     }
