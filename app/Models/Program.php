@@ -19,7 +19,6 @@ class Program extends Model
         'description_translations',
         'duration',
         'price',
-        'image',
         'slug',
         'icon',
         'color',

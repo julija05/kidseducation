@@ -14,8 +14,7 @@ use Illuminate\Support\Str;
 class ProgramService
 {
     public function __construct(
-        private ProgramRepositoryInterface $programRepository,
-        private ImageService $imageService
+        private ProgramRepositoryInterface $programRepository
     ) {}
 
     /**
@@ -37,7 +36,7 @@ class ProgramService
     /**
      * Create a new program
      */
-    public function createProgram(array $data, ?UploadedFile $image = null): Program
+    public function createProgram(array $data): Program
     {
         // Remove _method field as it's not a database field
         unset($data['_method']);
@@ -46,10 +45,6 @@ class ProgramService
         if (isset($data['name']) && !isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
-        
-        if ($image) {
-            $data['image'] = $this->imageService->store($image);
-        }
 
         return $this->programRepository->create($data);
     }
@@ -57,12 +52,8 @@ class ProgramService
     /**
      * Update an existing program
      */
-    public function updateProgram(Program $program, array $data, ?UploadedFile $image = null): bool
+    public function updateProgram(Program $program, array $data): bool
     {
-        if ($image) {
-            $data['image'] = $this->imageService->replace($program->image, $image);
-        }
-
         return $this->programRepository->update($program, $data);
     }
 
@@ -71,26 +62,7 @@ class ProgramService
      */
     public function deleteProgram(Program $program): bool
     {
-        // Delete associated image first
-        if ($program->image) {
-            $this->imageService->delete($program->image);
-        }
-
         return $this->programRepository->delete($program);
-    }
-
-    /**
-     * Get program with image URL
-     */
-    public function getProgramWithImageUrl(Program $program): array
-    {
-        $programArray = $program->toArray();
-
-        if ($program->image) {
-            $programArray['image_url'] = $this->imageService->getUrl($program->image);
-        }
-
-        return $programArray;
     }
 
     /**
@@ -320,11 +292,6 @@ class ProgramService
             'price' => $program->price,
             'theme' => $program->theme_data,
         ];
-
-        // Add image URL if exists
-        if ($program->image) {
-            $data['image_url'] = $this->imageService->getUrl($program->image);
-        }
 
         if ($user) {
             $data['lessonsCount'] = $this->getTotalLessonsCount($program);
