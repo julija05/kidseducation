@@ -12,6 +12,7 @@ use App\Models\Program;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EnrollmentController extends Controller
@@ -39,12 +40,27 @@ class EnrollmentController extends Controller
     {
         $user = $request->user();
 
+        Log::info('Enrollment attempt started', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'program_id' => $program->id,
+            'program_slug' => $program->slug,
+            'user_verified' => $user->hasVerifiedEmail()
+        ]);
+
         // Check if already enrolled
         $existingEnrollment = $user->enrollments()
             ->where('program_id', $program->id)
             ->first();
 
         if ($existingEnrollment) {
+            Log::warning('User already has enrollment for this program', [
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+                'existing_enrollment_id' => $existingEnrollment->id,
+                'existing_status' => $existingEnrollment->status,
+                'existing_approval' => $existingEnrollment->approval_status
+            ]);
             return back()->with('error', 'You already have an enrollment request for this program.');
         }
 
@@ -59,14 +75,32 @@ class EnrollmentController extends Controller
         }
 
         // Create new enrollment with pending approval status
-        $enrollment = Enrollment::create([
-            'user_id' => $user->id,
-            'program_id' => $program->id,
-            'enrolled_at' => now(),
-            'status' => 'paused', // Will become active after approval
-            'approval_status' => 'pending',
-            'progress' => 0,
-        ]);
+        try {
+            $enrollment = Enrollment::create([
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+                'enrolled_at' => now(),
+                'status' => 'paused', // Will become active after approval
+                'approval_status' => 'pending',
+                'progress' => 0,
+            ]);
+
+            Log::info('Enrollment created successfully', [
+                'enrollment_id' => $enrollment->id,
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+                'status' => $enrollment->status,
+                'approval_status' => $enrollment->approval_status
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create enrollment', [
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Failed to create enrollment. Please try again.');
+        }
 
         // Create notification for admins
         $notificationService = new NotificationService();

@@ -30,10 +30,10 @@ export default function ResetPassword({ token, email, auth }) {
     };
 
     const passwordRequirements = [
-        { text: "At least 8 characters", met: data.password.length >= 8 },
-        { text: "Contains uppercase letter", met: /[A-Z]/.test(data.password) },
-        { text: "Contains lowercase letter", met: /[a-z]/.test(data.password) },
-        { text: "Contains number", met: /\d/.test(data.password) },
+        { text: t('auth.reset_password.requirement_length'), met: data.password.length >= 8 },
+        { text: t('auth.reset_password.requirement_uppercase'), met: /[A-Z]/.test(data.password) },
+        { text: t('auth.reset_password.requirement_lowercase'), met: /[a-z]/.test(data.password) },
+        { text: t('auth.reset_password.requirement_number'), met: /\d/.test(data.password) },
     ];
 
     return (
@@ -68,17 +68,17 @@ export default function ResetPassword({ token, email, auth }) {
                                 <Key className="w-8 h-8 text-white" />
                             </div>
                             <h2 className="text-4xl font-extrabold text-gray-900 mb-2">
-                                Reset Password
+                                {t('auth.reset_password.title')}
                             </h2>
                             <p className="text-md text-gray-600">
-                                Create a new secure password for your account
+                                {t('auth.reset_password.subtitle')}
                             </p>
                         </div>
 
                         <form onSubmit={submit} className="space-y-6">
                             {/* Email Field (Read-only) */}
                             <div>
-                                <InputLabel htmlFor="email" value="Email Address" className="text-gray-700 font-medium" />
+                                <InputLabel htmlFor="email" value={t('auth.reset_password.email_address')} className="text-gray-700 font-medium" />
                                 <div className="mt-2 relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Shield className="h-5 w-5 text-gray-400" />
@@ -99,7 +99,7 @@ export default function ResetPassword({ token, email, auth }) {
 
                             {/* New Password Field */}
                             <div>
-                                <InputLabel htmlFor="password" value="New Password" className="text-gray-700 font-medium" />
+                                <InputLabel htmlFor="password" value={t('auth.reset_password.new_password')} className="text-gray-700 font-medium" />
                                 <div className="mt-2 relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Lock className="h-5 w-5 text-gray-400" />
@@ -132,7 +132,7 @@ export default function ResetPassword({ token, email, auth }) {
                                 {/* Password Requirements */}
                                 {data.password && (
                                     <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                                        <p className="text-xs font-medium text-gray-700 mb-2">Password Requirements:</p>
+                                        <p className="text-xs font-medium text-gray-700 mb-2">{t('auth.reset_password.password_requirements')}</p>
                                         <div className="space-y-1">
                                             {passwordRequirements.map((req, index) => (
                                                 <div key={index} className="flex items-center text-xs">
@@ -151,7 +151,7 @@ export default function ResetPassword({ token, email, auth }) {
 
                             {/* Confirm Password Field */}
                             <div>
-                                <InputLabel htmlFor="password_confirmation" value="Confirm New Password" className="text-gray-700 font-medium" />
+                                <InputLabel htmlFor="password_confirmation" value={t('auth.reset_password.confirm_new_password')} className="text-gray-700 font-medium" />
                                 <div className="mt-2 relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Lock className="h-5 w-5 text-gray-400" />
@@ -196,8 +196,8 @@ export default function ResetPassword({ token, email, auth }) {
                                                 : 'text-red-600'
                                         }>
                                             {data.password === data.password_confirmation 
-                                                ? 'Passwords match' 
-                                                : 'Passwords do not match'
+                                                ? t('auth.reset_password.passwords_match')
+                                                : t('auth.reset_password.passwords_no_match')
                                             }
                                         </span>
                                     </div>
@@ -211,12 +211,12 @@ export default function ResetPassword({ token, email, auth }) {
                                 {processing ? (
                                     <div className="flex items-center">
                                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                        Resetting Password...
+                                        {t('auth.reset_password.resetting_password')}
                                     </div>
                                 ) : (
                                     <div className="flex items-center">
                                         <Key className="w-5 h-5 mr-2" />
-                                        Reset Password
+                                        {t('auth.reset_password.reset_password_button')}
                                     </div>
                                 )}
                             </PrimaryButton>
@@ -227,11 +227,10 @@ export default function ResetPassword({ token, email, auth }) {
                                 <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
                                 <div className="ml-3">
                                     <h3 className="text-sm font-medium text-blue-800">
-                                        Security Tips
+                                        {t('auth.reset_password.security_tips_title')}
                                     </h3>
                                     <p className="text-sm text-blue-700 mt-1">
-                                        Choose a strong, unique password that you haven't used elsewhere. 
-                                        Consider using a password manager for better security.
+                                        {t('auth.reset_password.security_tips_text')}
                                     </p>
                                 </div>
                             </div>

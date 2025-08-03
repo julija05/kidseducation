@@ -116,6 +116,14 @@ class ProgramController extends Controller
         $enrolledProgramData = null;
 
         if ($userEnrollment) {
+            // Log for debugging
+            Log::info('User enrollment found', [
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+                'approval_status' => $userEnrollment->approval_status,
+                'status' => $userEnrollment->status
+            ]);
+
             if ($userEnrollment->approval_status === 'approved' && $userEnrollment->status === 'active') {
                 $enrollmentStatus = 'approved';
                 // Only format enrollment data if approved
@@ -124,6 +132,16 @@ class ProgramController extends Controller
                 $enrollmentStatus = 'pending';
             } elseif ($userEnrollment->approval_status === 'rejected') {
                 $enrollmentStatus = 'rejected';
+            } else {
+                // Handle any unexpected status combinations
+                Log::warning('Unexpected enrollment status combination', [
+                    'user_id' => $user->id,
+                    'program_id' => $program->id,
+                    'approval_status' => $userEnrollment->approval_status,
+                    'status' => $userEnrollment->status
+                ]);
+                // Default to pending if status is unclear
+                $enrollmentStatus = 'pending';
             }
         }
 

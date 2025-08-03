@@ -53,10 +53,10 @@ export default function ForgotPassword({ status, auth }) {
                                 <Mail className="w-8 h-8 text-white" />
                             </div>
                             <h2 className="text-4xl font-extrabold text-gray-900 mb-2">
-                                Forgot Password?
+                                {t('auth.forgot_password.title')}
                             </h2>
                             <p className="text-md text-gray-600">
-                                No worries! Enter your email and we'll send you a reset link.
+                                {t('auth.forgot_password.subtitle')}
                             </p>
                         </div>
 
@@ -72,7 +72,7 @@ export default function ForgotPassword({ status, auth }) {
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm font-medium text-green-800">
-                                            Email Sent Successfully!
+                                            {t('auth.forgot_password.email_sent_title')}
                                         </p>
                                         <p className="text-sm text-green-700 mt-1">
                                             {status}
@@ -84,7 +84,7 @@ export default function ForgotPassword({ status, auth }) {
 
                         <form onSubmit={submit} className="space-y-6">
                             <div>
-                                <InputLabel htmlFor="email" value="Email Address" className="text-gray-700 font-medium" />
+                                <InputLabel htmlFor="email" value={t('auth.forgot_password.email_address')} className="text-gray-700 font-medium" />
                                 <div className="mt-2 relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Mail className="h-5 w-5 text-gray-400" />
@@ -97,7 +97,7 @@ export default function ForgotPassword({ status, auth }) {
                                         className="pl-10 block w-full border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
                                         autoComplete="email"
                                         isFocused={true}
-                                        placeholder="Enter your email address"
+                                        placeholder={t('auth.forgot_password.email_placeholder')}
                                         onChange={(e) => setData("email", e.target.value)}
                                     />
                                 </div>
@@ -112,12 +112,12 @@ export default function ForgotPassword({ status, auth }) {
                                     {processing ? (
                                         <div className="flex items-center">
                                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                            Sending Email...
+                                            {t('auth.forgot_password.sending_email')}
                                         </div>
                                     ) : (
                                         <div className="flex items-center">
                                             <Mail className="w-5 h-5 mr-2" />
-                                            Send Reset Link
+                                            {t('auth.forgot_password.send_reset_link')}
                                         </div>
                                     )}
                                 </PrimaryButton>
@@ -127,7 +127,7 @@ export default function ForgotPassword({ status, auth }) {
                                     className="w-full inline-flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200 font-medium"
                                 >
                                     <ArrowLeft className="w-5 h-5 mr-2" />
-                                    Back to Login
+                                    {t('auth.forgot_password.back_to_login')}
                                 </Link>
                             </div>
                         </form>
@@ -137,11 +137,10 @@ export default function ForgotPassword({ status, auth }) {
                                 <Shield className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
                                 <div className="ml-3">
                                     <h3 className="text-sm font-medium text-blue-800">
-                                        Security Information
+                                        {t('auth.forgot_password.security_info_title')}
                                     </h3>
                                     <p className="text-sm text-blue-700 mt-1">
-                                        The reset link will expire in 60 minutes for your security. 
-                                        If you don't receive the email, check your spam folder.
+                                        {t('auth.forgot_password.security_info_text')}
                                     </p>
                                 </div>
                             </div>
