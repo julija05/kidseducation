@@ -271,6 +271,7 @@ return [
         'resend_verification' => 'Click here to re-send the verification email.',
         'verification_sent' => 'A new verification link has been sent to your email address.',
         'saved' => 'Saved.',
+        'email_status' => 'Email Status',
         'update_password' => 'Update Password',
         'update_password_description' => 'Ensure your account is using a long, random password to stay secure.',
         'current_password' => 'Current Password',
@@ -552,5 +553,23 @@ return [
         'next_lesson_available' => 'Next Lesson Available',
         'next_lesson_message' => "Your next lesson ':lesson' in :program is ready to start!",
         'next_lesson_with_class' => "You also have a scheduled class on :time.",
+    ],
+
+    // Email Verification
+    'verification' => [
+        'email_verified_title' => 'Email Successfully Verified!',
+        'email_verified_message' => 'Thank you for verifying your email address. You now have full access to all platform features.',
+        'email_verified_badge' => 'Email Verified',
+        'email_unverified_badge' => 'Email Unverified',
+        'verified' => 'Verified',
+        'verify' => 'Verify Email',
+        'email_verification_required' => 'Email Verification Required',
+        'email_verified_description' => 'Your email address has been verified and you have full access to all platform features.',
+        'email_unverified_description' => 'Your email address needs to be verified to access all platform features.',
+        'already_verified_help' => 'If you believe your email is already verified, try clicking "Resend Email" to refresh your verification status.',
+        'resend_email' => 'Resend Email',
+        'check_email_instructions' => 'Please check your email inbox and click the verification link we just sent you.',
+        'already_verified_message' => 'Your email is already verified!',
+        'refresh_page_instruction' => 'Please refresh the page to see the updated verification status.',
     ],
 ];

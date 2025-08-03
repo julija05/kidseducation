@@ -71,11 +71,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        if (session('enrollment_program_id')) {
-            return redirect()->route('dashboard');
-        }
-
-
-        return redirect(route('dashboard', absolute: false));
+        // Redirect to email verification notice instead of dashboard
+        return redirect()->route('verification.notice');
     }
 }
