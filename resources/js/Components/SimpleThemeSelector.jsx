@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Palette } from 'lucide-react';
 import { router, usePage } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -54,19 +54,28 @@ export default function SimpleThemeSelector({ className = '' }) {
     const { auth } = usePage().props;
     const user = auth.user;
     
-    // Get current theme from localStorage or default
+    // Get current theme from user preference, fallback to localStorage, then default
     const [currentTheme, setCurrentTheme] = useState(() => {
-        try {
-            return localStorage.getItem('user_theme_preference') || 'default';
-        } catch {
-            return 'default';
+        // First try user's database preference (only if field exists)
+        if (user?.theme_preference && SIMPLE_THEMES[user.theme_preference]) {
+            return user.theme_preference;
         }
+        // Fallback to localStorage for backwards compatibility
+        try {
+            const stored = localStorage.getItem('user_theme_preference');
+            if (stored && SIMPLE_THEMES[stored]) {
+                return stored;
+            }
+        } catch (error) {
+            console.error('Error reading localStorage theme:', error);
+        }
+        return 'default';
     });
     
     const [isChanging, setIsChanging] = useState(false);
     const themes = Object.values(SIMPLE_THEMES);
 
-    const handleThemeChange = (themeId) => {
+    const handleThemeChange = async (themeId) => {
         if (isChanging || themeId === currentTheme) return;
         
         setIsChanging(true);
@@ -76,16 +85,33 @@ export default function SimpleThemeSelector({ className = '' }) {
             // Apply theme immediately to DOM
             document.documentElement.setAttribute('data-theme', themeId);
             
-            // Save to localStorage immediately
+            // Save to localStorage for immediate persistence
             localStorage.setItem('user_theme_preference', themeId);
             
-            console.log('Theme saved successfully to localStorage:', themeId);
-            console.log('Document data-theme attribute:', document.documentElement.getAttribute('data-theme'));
+            // Save to database for user-specific persistence
+            try {
+                const response = await fetch('/profile/theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ theme: themeId })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    console.log('Theme saved successfully to database:', themeId);
+                } else {
+                    console.warn('Theme save response:', data);
+                }
+            } catch (error) {
+                console.error('Failed to save theme to database:', error);
+                // Don't revert UI state as localStorage still works
+            }
             
-            // Debug: Check if CSS variables are being applied
-            const styles = getComputedStyle(document.documentElement);
-            const primaryColor = styles.getPropertyValue('--primary-600');
-            console.log('Current --primary-600 value:', primaryColor);
+            console.log('Theme applied to DOM:', themeId);
             
             // Dispatch custom event for other components to listen to
             window.dispatchEvent(new CustomEvent('themeChanged', { 

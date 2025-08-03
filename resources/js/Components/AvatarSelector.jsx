@@ -56,16 +56,21 @@ export default function AvatarSelector({ currentAvatar, className = '' }) {
     
     const [themeColors, setThemeColors] = useState(getThemeColors);
     const [selectedAvatar, setSelectedAvatar] = useState(() => {
+        // First try user's database preference (only if field exists)
+        if (user?.avatar_preference) {
+            return user.avatar_preference;
+        }
+        // Fallback to localStorage for backwards compatibility
         try {
             const localAvatar = localStorage.getItem('user_avatar_preference');
             if (localAvatar) {
                 const avatarData = JSON.parse(localAvatar);
                 return avatarData?.id || 'default';
             }
-            return currentAvatar || 'default';
         } catch (e) {
-            return currentAvatar || 'default';
+            console.error('Error reading localStorage avatar:', e);
         }
+        return currentAvatar || 'default';
     });
     const [isChanging, setIsChanging] = useState(false);
 
@@ -98,7 +103,7 @@ export default function AvatarSelector({ currentAvatar, className = '' }) {
         };
     }, []);
 
-    const handleAvatarChange = (avatarId) => {
+    const handleAvatarChange = async (avatarId) => {
         if (isChanging || avatarId === selectedAvatar) return;
         
         setIsChanging(true);
@@ -106,15 +111,39 @@ export default function AvatarSelector({ currentAvatar, className = '' }) {
         
         try {
             const avatarData = AVATAR_OPTIONS.find(avatar => avatar.id === avatarId);
-            // Store avatar info in localStorage for now (until database migration can be run)
+            
+            // Store in localStorage for immediate persistence
             const avatarString = JSON.stringify({
                 type: avatarData.type,
                 value: avatarData.value,
                 id: avatarData.id
             });
-            
             localStorage.setItem('user_avatar_preference', avatarString);
-            console.log('Avatar updated successfully in localStorage');
+            
+            // Save to database for user-specific persistence
+            try {
+                const response = await fetch('/profile/avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ avatar: avatarId })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    console.log('Avatar saved successfully to database:', avatarId);
+                } else {
+                    console.warn('Avatar save response:', data);
+                }
+            } catch (error) {
+                console.error('Failed to save avatar to database:', error);
+                // Don't revert UI state as localStorage still works
+            }
+            
+            console.log('Avatar updated successfully');
             
             // Trigger a custom event to notify other components
             window.dispatchEvent(new CustomEvent('avatarChanged', { 
