@@ -1,7 +1,5 @@
 import { useForm } from "@inertiajs/react";
-import { useEffect } from "react";
 import FormField from "@/Components/Form/FormField";
-import { FormSubmitHandler } from "@/Components/Handlers/FormSubmitHandler";
 
 export default function LessonForm({ 
     formData = {}, 
@@ -23,27 +21,9 @@ export default function LessonForm({
         _method: isUpdate ? "PUT" : "POST",
     });
 
-    // Update form data when formData prop changes
-    useEffect(() => {
-        if (formData.id) {
-            setData({
-                title: formData.title || "",
-                description: formData.description || "",
-                level: formData.level || 1,
-                content_type: formData.content_type || "text",
-                content_url: formData.content_url || "",
-                content_body: formData.content_body || "",
-                duration_minutes: formData.duration_minutes || 30,
-                order_in_level: formData.order_in_level || 1,
-                is_active: formData.is_active !== undefined ? formData.is_active : true,
-                _method: "PUT",
-            });
-        }
-    }, [formData]);
-
-    const submitHandler = new FormSubmitHandler(isUpdate ? put : post, route);
-
-    const handleFieldChange = (name, value) => {
+    const handleFieldChange = (e) => {
+        const name = e.target.name;
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
         setData(name, value);
     };
 
@@ -220,8 +200,9 @@ export default function LessonForm({
                 <input
                     type="checkbox"
                     id="is_active"
+                    name="is_active"
                     checked={data.is_active}
-                    onChange={(e) => handleFieldChange('is_active', e.target.checked)}
+                    onChange={handleFieldChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">

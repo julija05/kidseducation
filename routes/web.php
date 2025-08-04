@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\AdminQuizController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
@@ -88,7 +89,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Admin routes
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Resource Management Routes - MUST BE BEFORE program routes
@@ -186,6 +187,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::put('/{classSchedule}', [AdminClassScheduleController::class, 'update'])->name('update');
         Route::post('/{classSchedule}/cancel', [AdminClassScheduleController::class, 'cancel'])->name('cancel');
         Route::post('/{classSchedule}/complete', [AdminClassScheduleController::class, 'complete'])->name('complete');
+    });
+
+    // Translation Routes
+    Route::prefix('translations')->name('translations.')->group(function () {
+        Route::get('/', [TranslationController::class, 'index'])->name('index');
+        Route::get('/programs/{program:id}', [TranslationController::class, 'showProgram'])->name('programs.show');
+        Route::post('/programs/{program:id}', [TranslationController::class, 'updateProgram'])->name('programs.update');
+        Route::post('/lessons/{lesson:id}', [TranslationController::class, 'updateLesson'])->name('lessons.update');
+        Route::post('/resources/{resource:id}', [TranslationController::class, 'updateResource'])->name('resources.update');
     });
 });
 

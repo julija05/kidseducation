@@ -22,7 +22,21 @@ class ProgramController extends Controller
      */
     public function index()
     {
-        $programs = Program::active()->get();
+        $programs = Program::active()->get()->map(function ($program) {
+            return [
+                'id' => $program->id,
+                'name' => $program->translated_name,
+                'description' => $program->translated_description,
+                'slug' => $program->slug,
+                'icon' => $program->icon,
+                'color' => $program->color,
+                'light_color' => $program->light_color,
+                'text_color' => $program->text_color,
+                'duration' => $program->duration,
+                'duration_weeks' => $program->duration_weeks,
+                'price' => $program->price,
+            ];
+        });
 
         return $this->createView('Front/Programs/Index', [
             'programs' => $programs,
@@ -72,8 +86,20 @@ class ProgramController extends Controller
         }
 
         return $this->createView('Front/Programs/Show', [
-            'program' => $program,
-            'pageTitle' => $program->name,
+            'program' => [
+                'id' => $program->id,
+                'name' => $program->translated_name,
+                'description' => $program->translated_description,
+                'slug' => $program->slug,
+                'icon' => $program->icon,
+                'color' => $program->color,
+                'light_color' => $program->light_color,
+                'text_color' => $program->text_color,
+                'duration' => $program->duration,
+                'duration_weeks' => $program->duration_weeks,
+                'price' => $program->price,
+            ],
+            'pageTitle' => $program->translated_name,
             'userEnrollment' => $userEnrollment,
         ]);
     }

@@ -1,14 +1,14 @@
 import React from "react";
 import { Link, Head, usePage } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import LessonForm from "./LessonForm";
+import LessonFormSimple from "./LessonFormSimple";
 import { ArrowLeft } from "lucide-react";
 
 export default function EditLesson() {
     const { program, lesson, availableLevels, contentTypes } = usePage().props;
 
     const handleSubmit = (data, put) => {
-        put(route("admin.programs.lessons.update", [program.slug, lesson.id]));
+        put(route("admin.programs.lessons.update", [program.slug, lesson.id]), data);
     };
 
     return (
@@ -39,7 +39,7 @@ export default function EditLesson() {
                 {/* Form */}
                 <div className="bg-white rounded-lg shadow">
                     <div className="p-6">
-                        <LessonForm 
+                        <LessonFormSimple 
                             formData={lesson}
                             availableLevels={availableLevels}
                             contentTypes={contentTypes}

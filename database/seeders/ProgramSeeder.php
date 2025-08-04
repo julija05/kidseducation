@@ -17,6 +17,14 @@ class ProgramSeeder extends Seeder
             [
                 'name' => 'Mental Arithmetic Mastery',
                 'description' => 'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 6-12.',
+                'name_translations' => [
+                    'en' => 'Mental Arithmetic Mastery',
+                    'mk' => 'Мајсторство во ментална аритметика'
+                ],
+                'description_translations' => [
+                    'en' => 'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 6-12.',
+                    'mk' => 'Развивај исклучителна брзина и точност во пресметки користејќи техники со абакус. Подобрува концентрација, меморија и аналитички вештини за деца од 6-12 години.'
+                ],
                 'price' => 100,
                 'duration' => '12 weeks',
                 'image' => 'math.svg',
@@ -25,6 +33,14 @@ class ProgramSeeder extends Seeder
             [
                 'name' => 'Coding for Kids(Scratch)',
                 'description' => 'Introduce your child to the exciting world of programming through our fun and interactive Scratch coding program! Designed especially for young learners, this course teaches the basics of coding by letting kids build their own games, animations, and stories using colorful drag-and-drop blocks. No prior experience needed — just imagination!',
+                'name_translations' => [
+                    'en' => 'Coding for Kids(Scratch)',
+                    'mk' => 'Програмирање за деца (Scratch)'
+                ],
+                'description_translations' => [
+                    'en' => 'Introduce your child to the exciting world of programming through our fun and interactive Scratch coding program! Designed especially for young learners, this course teaches the basics of coding by letting kids build their own games, animations, and stories using colorful drag-and-drop blocks. No prior experience needed — just imagination!',
+                    'mk' => 'Запознајте го вашето дете со возбудливиот свет на програмирање преку нашата забавна и интерактивна Scratch програма! Дизајнирана специјално за млади ученици, овој курс ги учи основите на програмирањето преку создавање на сопствени игри, анимации и приказни користејќи шарени блокови што се повлекуваат. Не е потребно претходно искуство — само фантазија!'
+                ],
                 'price' => 150,
                 'duration' => '16 weeks',
                 'image' => 'coding.svg',
@@ -33,6 +49,14 @@ class ProgramSeeder extends Seeder
             [
                 'name' => 'Test',
                 'description' => 'Test',
+                'name_translations' => [
+                    'en' => 'Test',
+                    'mk' => 'Тест'
+                ],
+                'description_translations' => [
+                    'en' => 'Test',
+                    'mk' => 'Тест'
+                ],
                 'price' => 150,
                 'duration' => '16 weeks',
                 'image' => 'coding.svg',
