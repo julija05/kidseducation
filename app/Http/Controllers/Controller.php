@@ -36,7 +36,7 @@ abstract class Controller
                     'description' => $program->description,
                     'price' => number_format($program->price, 2),
                     'duration' => $program->duration,
-                    'image' => $program->image ? asset('storage/' . $program->image) : null,
+                    'icon' => $program->icon,
                 ];
             });
         });

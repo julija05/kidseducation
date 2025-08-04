@@ -42,9 +42,8 @@ class AdminProgramController extends BaseAdminController
     {
         try {
             $validatedData = $request->validated();
-            $image = $request->file('image');
 
-            $this->programService->createProgram($validatedData, $image);
+            $this->programService->createProgram($validatedData);
 
             return redirect()
                 ->route('admin.programs.index')
@@ -68,9 +67,8 @@ class AdminProgramController extends BaseAdminController
     {
         try {
             $validatedData = $request->validated();
-            $image = $request->file('image');
 
-            $this->programService->updateProgram($program, $validatedData, $image);
+            $this->programService->updateProgram($program, $validatedData);
 
             return redirect()
                 ->route('admin.programs.index')

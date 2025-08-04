@@ -24,7 +24,11 @@ abstract class BaseProgramRequest extends FormRequest
             'description' => 'string',
             'duration' => 'string|max:255',
             'price' => 'numeric|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'icon' => 'string|max:255',
+            'color' => 'string|max:255',
+            'light_color' => 'string|max:255',
+            'border_color' => 'string|max:255',
+            'text_color' => 'string|max:255',
             '_method' => 'sometimes|string'
         ];
     }
@@ -50,9 +54,11 @@ abstract class BaseProgramRequest extends FormRequest
             'price.numeric' => 'The program price must be a valid number.',
             'price.min' => 'The program price must be at least 0.',
 
-            'image.image' => 'The uploaded file must be an image.',
-            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif, svg.',
-            'image.max' => 'The image size cannot exceed 2MB.',
+            'icon.string' => 'The program icon must be text.',
+            'icon.max' => 'The program icon cannot exceed 255 characters.',
+
+            'color.string' => 'The program color must be text.',
+            'color.max' => 'The program color cannot exceed 255 characters.',
         ];
     }
 }
