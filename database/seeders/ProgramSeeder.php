@@ -20,6 +20,7 @@ class ProgramSeeder extends Seeder
                 'price' => 100,
                 'duration' => '12 weeks',
                 'image' => 'math.svg',
+                'icon' => 'Calculator',
             ],
             [
                 'name' => 'Coding for Kids(Scratch)',
@@ -27,6 +28,7 @@ class ProgramSeeder extends Seeder
                 'price' => 150,
                 'duration' => '16 weeks',
                 'image' => 'coding.svg',
+                'icon' => 'Code',
             ],
             [
                 'name' => 'Test',
@@ -34,6 +36,7 @@ class ProgramSeeder extends Seeder
                 'price' => 150,
                 'duration' => '16 weeks',
                 'image' => 'coding.svg',
+                'icon' => 'BookOpen',
             ],
         ];
 

@@ -2,15 +2,17 @@
 import React from "react";
 import { iconMap } from "@/Utils/iconMapping";
 import { BookOpen, Clock, DollarSign, Star, Sparkles, Users, Award, PlayCircle, CheckCircle, Target, TrendingUp } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramDetailsSection({ program }) {
+    const { t } = useTranslation();
     const Icon = iconMap[program.icon] || BookOpen;
     
     const features = [
-        { icon: PlayCircle, title: "Interactive Lessons", description: "Engaging video content and hands-on activities" },
-        { icon: Award, title: "Certificate", description: "Complete the program and earn your certificate" },
-        { icon: Users, title: "Expert Support", description: "Get help from our experienced instructors" },
-        { icon: Target, title: "Skill Building", description: "Progressive learning with clear milestones" }
+        { icon: PlayCircle, titleKey: "interactive_lessons", descKey: "interactive_lessons_desc" },
+        { icon: Award, titleKey: "certificate", descKey: "certificate_desc" },
+        { icon: Users, titleKey: "expert_support", descKey: "expert_support_desc" },
+        { icon: Target, titleKey: "skill_building", descKey: "skill_building_desc" }
     ];
     
     return (
@@ -32,7 +34,7 @@ export default function ProgramDetailsSection({ program }) {
                                 <div>
                                     <div className="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full mb-4">
                                         <Star size={16} className="mr-2" />
-                                        Most Popular
+                                        {t('programs_page.most_popular')}
                                     </div>
                                     <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                                         {program.name}
@@ -49,22 +51,22 @@ export default function ProgramDetailsSection({ program }) {
                                             <Star key={i} size={20} className="text-yellow-400 fill-current" />
                                         ))}
                                     </div>
-                                    <span className="text-gray-600 font-medium">4.9 (127 reviews)</span>
+                                    <span className="text-gray-600 font-medium">4.9 (127 {t('programs_page.reviews')})</span>
                                 </div>
                                 
                                 {/* Quick Stats */}
                                 <div className="grid grid-cols-3 gap-6">
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-blue-600">{program.duration}</div>
-                                        <div className="text-sm text-gray-500">Duration</div>
+                                        <div className="text-sm text-gray-500">{t('programs_page.duration')}</div>
                                     </div>
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-green-600">€{program.price}</div>
-                                        <div className="text-sm text-gray-500">Total Price</div>
+                                        <div className="text-sm text-gray-500">{t('programs_page.total_price')}</div>
                                     </div>
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-purple-600">24/7</div>
-                                        <div className="text-sm text-gray-500">Support</div>
+                                        <div className="text-sm text-gray-500">{t('programs_page.support')}</div>
                                     </div>
                                 </div>
                             </div>
@@ -98,8 +100,8 @@ export default function ProgramDetailsSection({ program }) {
                         <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl p-4 w-fit mb-4">
                             <feature.icon size={32} className="text-blue-600" />
                         </div>
-                        <h3 className="font-bold text-gray-900 mb-2">{feature.title}</h3>
-                        <p className="text-sm text-gray-600">{feature.description}</p>
+                        <h3 className="font-bold text-gray-900 mb-2">{t(`programs_page.${feature.titleKey}`)}</h3>
+                        <p className="text-sm text-gray-600">{t(`programs_page.${feature.descKey}`)}</p>
                     </div>
                 ))}
             </div>
@@ -111,22 +113,22 @@ export default function ProgramDetailsSection({ program }) {
                         <div className="bg-green-100 rounded-full p-4 w-fit mx-auto mb-4">
                             <CheckCircle size={32} className="text-green-600" />
                         </div>
-                        <h3 className="font-bold text-gray-900 mb-2">Step-by-Step Learning</h3>
-                        <p className="text-sm text-gray-600">Structured curriculum designed for optimal learning progression</p>
+                        <h3 className="font-bold text-gray-900 mb-2">{t('programs_page.step_by_step')}</h3>
+                        <p className="text-sm text-gray-600">{t('programs_page.step_by_step_desc')}</p>
                     </div>
                     <div className="text-center">
                         <div className="bg-blue-100 rounded-full p-4 w-fit mx-auto mb-4">
                             <TrendingUp size={32} className="text-blue-600" />
                         </div>
-                        <h3 className="font-bold text-gray-900 mb-2">Track Progress</h3>
-                        <p className="text-sm text-gray-600">Monitor your child's learning journey with detailed progress reports</p>
+                        <h3 className="font-bold text-gray-900 mb-2">{t('programs_page.track_progress')}</h3>
+                        <p className="text-sm text-gray-600">{t('programs_page.track_progress_desc')}</p>
                     </div>
                     <div className="text-center">
                         <div className="bg-purple-100 rounded-full p-4 w-fit mx-auto mb-4">
                             <Award size={32} className="text-purple-600" />
                         </div>
-                        <h3 className="font-bold text-gray-900 mb-2">Earn Rewards</h3>
-                        <p className="text-sm text-gray-600">Celebrate achievements with certificates and digital badges</p>
+                        <h3 className="font-bold text-gray-900 mb-2">{t('programs_page.earn_rewards')}</h3>
+                        <p className="text-sm text-gray-600">{t('programs_page.earn_rewards_desc')}</p>
                     </div>
                 </div>
             </div>

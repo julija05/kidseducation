@@ -48,10 +48,10 @@ const ProgramsIndex = ({ auth, programs }) => {
                         className="mb-8"
                     >
                         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                            Discover Our <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">Learning Programs</span>
+                            {t('programs_page.discover_title')} <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">{t('programs_page.learning_programs')}</span>
                         </h1>
                         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                            Interactive, engaging, and designed for young minds. Start your child's learning journey today.
+                            {t('programs_page.subtitle')}
                         </p>
                     </motion.div>
                 </div>
@@ -95,8 +95,8 @@ const ProgramsIndex = ({ auth, programs }) => {
                                                 </div>
                                                 
                                                 {/* Badge */}
-                                                <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-yellow-500">
-                                                    NEW
+                                                <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-yellow-500">
+                                                    {t('programs_page.new_badge')}
                                                 </div>
                                             </div>
 
@@ -125,17 +125,17 @@ const ProgramsIndex = ({ auth, programs }) => {
                                                     <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
                                                         <div className="flex items-center space-x-1">
                                                             <Users size={12} />
-                                                            <span>All Ages</span>
+                                                            <span>{t('programs_page.all_ages')}</span>
                                                         </div>
                                                         <div className="flex items-center space-x-1">
                                                             <Award size={12} />
-                                                            <span>Certificate</span>
+                                                            <span>{t('programs_page.certificate')}</span>
                                                         </div>
                                                     </div>
                                                     
                                                     {/* CTA Button */}
                                                     <div className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}>
-                                                        <span>Start Learning</span>
+                                                        <span>{t('programs_page.start_learning')}</span>
                                                         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
                                                     </div>
                                                 </div>
