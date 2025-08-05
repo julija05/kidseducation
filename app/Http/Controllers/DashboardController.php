@@ -26,11 +26,18 @@ class DashboardController extends Controller
         $user = $request->user();
 
         // Get approved enrollment if exists
+        $currentLocale = app()->getLocale();
         $approvedEnrollment = $user->enrollments()
-            ->with(['program' => function ($query) {
-                $query->with(['lessons' => function ($lessonQuery) {
-                    $lessonQuery->with(['resources' => function ($resourceQuery) {
-                        $resourceQuery->orderBy('order', 'asc');
+            ->with(['program' => function ($query) use ($currentLocale) {
+                $query->with(['lessons' => function ($lessonQuery) use ($currentLocale) {
+                    $lessonQuery->with(['resources' => function ($resourceQuery) use ($currentLocale) {
+                        // Temporarily disable language filtering until migration is run
+                        try {
+                            $resourceQuery->where('language', $currentLocale)->orderBy('order', 'asc');
+                        } catch (\Exception $e) {
+                            // Fallback: load all resources without language filter
+                            $resourceQuery->orderBy('order', 'asc');
+                        }
                     }])
                         ->orderBy('level', 'asc')
                         ->orderBy('order_in_level', 'asc');
@@ -133,10 +140,17 @@ class DashboardController extends Controller
 
         // Add lesson resources to each lesson using the ResourceService
         if (isset($enrolledProgramData['lessons'])) {
+            $currentLocale = app()->getLocale();
             foreach ($enrolledProgramData['lessons'] as $level => $lessons) {
-                $enrolledProgramData['lessons'][$level] = collect($lessons)->map(function ($lesson) {
-                    $lessonModel = Lesson::with(['resources' => function ($query) {
-                        $query->orderBy('order', 'asc');
+                $enrolledProgramData['lessons'][$level] = collect($lessons)->map(function ($lesson) use ($currentLocale) {
+                    $lessonModel = Lesson::with(['resources' => function ($query) use ($currentLocale) {
+                        // Temporarily disable language filtering until migration is run
+                        try {
+                            $query->where('language', $currentLocale)->orderBy('order', 'asc');
+                        } catch (\Exception $e) {
+                            // Fallback: load all resources without language filter
+                            $query->orderBy('order', 'asc');
+                        }
                     }])->find($lesson['id']);
 
                     // Add resources to the lesson data

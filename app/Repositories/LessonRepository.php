@@ -14,10 +14,18 @@ class LessonRepository implements LessonRepositoryInterface
         return Lesson::find($id);
     }
 
-    public function findByIdWithResources(int $id): ?Lesson
+    public function findByIdWithResources(int $id, string $language = null): ?Lesson
     {
-        return Lesson::with(['resources' => function ($query) {
-            $query->ordered();
+        $language = $language ?? app()->getLocale();
+        
+        return Lesson::with(['resources' => function ($query) use ($language) {
+            // Temporarily disable language filtering until migration is run
+            try {
+                $query->byLanguage($language)->ordered();
+            } catch (\Exception $e) {
+                // Fallback: load all resources without language filter
+                $query->ordered();
+            }
         }])->find($id);
     }
 

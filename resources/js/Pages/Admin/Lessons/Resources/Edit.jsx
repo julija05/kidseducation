@@ -25,16 +25,17 @@ export default function EditLessonResource() {
         title: resource.title || "",
         description: resource.description || "",
         type: resource.type || "video",
+        language: resource.language || "en",
         resource_url: resource.resource_url || "",
         file: null,
-        order: resource.order || 1,
-        is_required: resource.is_required || true,
-        is_downloadable: resource.is_downloadable || false,
+        order: resource.order ? parseInt(resource.order) : 1,
+        is_required: resource.is_required !== undefined ? resource.is_required : true,
+        is_downloadable: resource.is_downloadable !== undefined ? resource.is_downloadable : false,
         // Quiz specific fields
         quiz_type: resource.metadata?.quiz_type || "multiple_choice",
-        passing_score: resource.metadata?.passing_score || 70,
-        time_limit: resource.metadata?.time_limit || null,
-        attempts_allowed: resource.metadata?.attempts_allowed || 3,
+        passing_score: resource.metadata?.passing_score ? parseInt(resource.metadata.passing_score) : 70,
+        time_limit: resource.metadata?.time_limit ? parseInt(resource.metadata.time_limit) : null,
+        attempts_allowed: resource.metadata?.attempts_allowed ? parseInt(resource.metadata.attempts_allowed) : 3,
     });
 
     const resourceTypes = {
@@ -57,7 +58,18 @@ export default function EditLessonResource() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Clean up form data before submission
+        const submitData = {
+            ...data,
+            order: data.order === "" ? 1 : parseInt(data.order) || 1,
+            passing_score: data.passing_score === "" ? 70 : parseInt(data.passing_score) || 70,
+            time_limit: data.time_limit === "" ? null : (parseInt(data.time_limit) || null),
+            attempts_allowed: data.attempts_allowed === "" ? 3 : parseInt(data.attempts_allowed) || 3,
+        };
+        
         put(route("admin.lessons.resources.update", [lesson.id, resource.id]), {
+            data: submitData,
             preserveScroll: true,
         });
     };
@@ -323,7 +335,7 @@ export default function EditLessonResource() {
                                     onChange={(e) =>
                                         setData(
                                             "passing_score",
-                                            parseInt(e.target.value)
+                                            e.target.value === "" ? "" : parseInt(e.target.value) || 0
                                         )
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -341,9 +353,7 @@ export default function EditLessonResource() {
                                     onChange={(e) =>
                                         setData(
                                             "time_limit",
-                                            e.target.value
-                                                ? parseInt(e.target.value)
-                                                : null
+                                            e.target.value === "" ? null : parseInt(e.target.value) || 0
                                         )
                                     }
                                     placeholder="No limit"
@@ -362,7 +372,7 @@ export default function EditLessonResource() {
                                     onChange={(e) =>
                                         setData(
                                             "attempts_allowed",
-                                            parseInt(e.target.value)
+                                            e.target.value === "" ? "" : parseInt(e.target.value) || 1
                                         )
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -548,6 +558,34 @@ export default function EditLessonResource() {
                                 />
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Language *
+                                </label>
+                                <select
+                                    value={data.language}
+                                    onChange={(e) =>
+                                        setData("language", e.target.value)
+                                    }
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                        errors.language
+                                            ? "border-red-500"
+                                            : "border-gray-300"
+                                    }`}
+                                >
+                                    <option value="en">English</option>
+                                    <option value="mk">Македонски (Macedonian)</option>
+                                </select>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Select the language for this resource. Students will see resources matching their selected language.
+                                </p>
+                                {errors.language && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.language}
+                                    </p>
+                                )}
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -560,7 +598,7 @@ export default function EditLessonResource() {
                                         onChange={(e) =>
                                             setData(
                                                 "order",
-                                                parseInt(e.target.value)
+                                                e.target.value === "" ? "" : parseInt(e.target.value) || 1
                                             )
                                         }
                                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${

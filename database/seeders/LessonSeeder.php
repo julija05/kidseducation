@@ -28,6 +28,14 @@ class LessonSeeder extends Seeder
             [
                 'title' => 'Welcome to ' . $program->name,
                 'description' => 'Introduction to the program and what you will learn',
+                'title_translations' => [
+                    'en' => 'Welcome to ' . $program->name,
+                    'mk' => 'Добредојдовте во ' . ($program->name_translations['mk'] ?? $program->name)
+                ],
+                'description_translations' => [
+                    'en' => 'Introduction to the program and what you will learn',
+                    'mk' => 'Вовед во програмата и она што ќе научите'
+                ],
                 'content_type' => 'video',
                 'content_url' => 'https://example.com/video1.mp4',
                 'duration_minutes' => 15,
@@ -36,8 +44,20 @@ class LessonSeeder extends Seeder
             [
                 'title' => 'Understanding the Basics',
                 'description' => 'Fundamental concepts you need to know',
+                'title_translations' => [
+                    'en' => 'Understanding the Basics',
+                    'mk' => 'Разбирање на основите'
+                ],
+                'description_translations' => [
+                    'en' => 'Fundamental concepts you need to know',
+                    'mk' => 'Основни концепти што треба да ги знаете'
+                ],
                 'content_type' => 'text',
                 'content_body' => 'This is the content for understanding the basics...',
+                'content_body_translations' => [
+                    'en' => 'This is the content for understanding the basics...',
+                    'mk' => 'Ова е содржината за разбирање на основите...'
+                ],
                 'duration_minutes' => 30,
                 'order_in_level' => 2,
             ],

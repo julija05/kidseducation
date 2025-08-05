@@ -8,7 +8,7 @@ export default function CreateLesson() {
     const { program, selectedLevel, nextOrderInLevel, availableLevels, contentTypes } = usePage().props;
 
     const handleSubmit = (data, post) => {
-        post(route("admin.programs.lessons.store", program.slug));
+        post(route("admin.programs.lessons.store", program.slug), data);
     };
 
     const formData = {
