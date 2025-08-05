@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, Head, usePage } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import TestForm from "./TestForm";
+import LessonForm from "./LessonForm";
 import { ArrowLeft } from "lucide-react";
 
 export default function CreateLesson() {
@@ -45,7 +45,13 @@ export default function CreateLesson() {
                 {/* Form */}
                 <div className="bg-white rounded-lg shadow">
                     <div className="p-6">
-                        <TestForm />
+                        <LessonForm 
+                            formData={formData}
+                            availableLevels={availableLevels}
+                            contentTypes={contentTypes}
+                            onSubmit={handleSubmit}
+                            isUpdate={false}
+                        />
                     </div>
                 </div>
             </div>

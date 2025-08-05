@@ -56,6 +56,12 @@ class Lesson extends Model
         return $this->hasMany(LessonResource::class);
     }
 
+    public function resourcesByLanguage(string $language = null): HasMany
+    {
+        $language = $language ?? app()->getLocale();
+        return $this->hasMany(LessonResource::class)->where('language', $language);
+    }
+
     public function quizzes(): HasMany
     {
         return $this->hasMany(Quiz::class);

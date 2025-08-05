@@ -44,6 +44,7 @@ class AdminLessonResourceController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:video,document,link,download,interactive,quiz',
+            'language' => 'nullable|string|in:en,mk',
             'resource_url' => 'nullable|url',
             'file' => 'nullable|file|max:102400', // 100MB max
             'order' => 'required|integer|min:1',
@@ -56,6 +57,7 @@ class AdminLessonResourceController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'type' => $validated['type'],
+            'language' => $validated['language'] ?? 'en',
             'resource_url' => $validated['resource_url'],
             'order' => $validated['order'],
             'is_downloadable' => $validated['is_downloadable'] ?? false,
@@ -82,6 +84,11 @@ class AdminLessonResourceController extends Controller
 
     public function edit(Lesson $lesson, LessonResource $resource)
     {
+        // Ensure resource has language field for backwards compatibility
+        if (!isset($resource->language)) {
+            $resource->language = 'en';
+        }
+
         return $this->createView('Admin/Lessons/Resources/Edit', [
             'lesson' => $lesson,
             'resource' => $resource,
@@ -94,6 +101,7 @@ class AdminLessonResourceController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:video,document,link,download,interactive,quiz',
+            'language' => 'nullable|string|in:en,mk',
             'resource_url' => 'nullable|url',
             'file' => 'nullable|file|max:102400',
             'order' => 'required|integer|min:1',
@@ -105,6 +113,7 @@ class AdminLessonResourceController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'type' => $validated['type'],
+            'language' => $validated['language'] ?? 'en',
             'resource_url' => $validated['resource_url'],
             'order' => $validated['order'],
             'is_downloadable' => $validated['is_downloadable'] ?? false,

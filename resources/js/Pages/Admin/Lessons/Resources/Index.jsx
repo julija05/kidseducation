@@ -15,6 +15,7 @@ import {
     GripVertical,
     Upload,
     BookOpen,
+    Info,
 } from "lucide-react";
 
 export default function LessonResourcesIndex() {
@@ -104,62 +105,70 @@ export default function LessonResourcesIndex() {
                     </div>
                 </div>
 
-                {/* Resource Statistics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">
-                                    Total Resources
-                                </p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {lesson.resources?.length || 0}
-                                </p>
+                {/* Language Overview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                                <h3 className="text-lg font-medium text-gray-900">English Resources</h3>
                             </div>
-                            <FileText className="h-8 w-8 text-gray-400" />
+                            <span className="text-2xl font-bold text-blue-600">
+                                {lesson.resources?.filter(r => r.language === 'en').length || 0}
+                            </span>
                         </div>
+                        <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex justify-between">
+                                <span>Videos:</span>
+                                <span>{lesson.resources?.filter(r => r.language === 'en' && r.type === 'video').length || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Documents:</span>
+                                <span>{lesson.resources?.filter(r => r.language === 'en' && r.type === 'document').length || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Other:</span>
+                                <span>{lesson.resources?.filter(r => r.language === 'en' && !['video', 'document'].includes(r.type)).length || 0}</span>
+                            </div>
+                        </div>
+                        <Link
+                            href={route("admin.lessons.resources.create", lesson.id) + "?lang=en"}
+                            className="mt-4 block w-full text-center px-3 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium"
+                        >
+                            Add English Resource
+                        </Link>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">
-                                    Videos
-                                </p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {lesson.resources?.filter(r => r.type === 'video').length || 0}
-                                </p>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                                <h3 className="text-lg font-medium text-gray-900">Macedonian Resources</h3>
                             </div>
-                            <Video className="h-8 w-8 text-red-500" />
+                            <span className="text-2xl font-bold text-orange-600">
+                                {lesson.resources?.filter(r => r.language === 'mk').length || 0}
+                            </span>
                         </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">
-                                    Documents
-                                </p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {lesson.resources?.filter(r => r.type === 'document').length || 0}
-                                </p>
+                        <div className="space-y-2 text-sm text-gray-600">
+                            <div className="flex justify-between">
+                                <span>Videos:</span>
+                                <span>{lesson.resources?.filter(r => r.language === 'mk' && r.type === 'video').length || 0}</span>
                             </div>
-                            <FileText className="h-8 w-8 text-blue-500" />
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">
-                                    Quizzes
-                                </p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {lesson.resources?.filter(r => r.type === 'quiz').length || 0}
-                                </p>
+                            <div className="flex justify-between">
+                                <span>Documents:</span>
+                                <span>{lesson.resources?.filter(r => r.language === 'mk' && r.type === 'document').length || 0}</span>
                             </div>
-                            <HelpCircle className="h-8 w-8 text-indigo-500" />
+                            <div className="flex justify-between">
+                                <span>Other:</span>
+                                <span>{lesson.resources?.filter(r => r.language === 'mk' && !['video', 'document'].includes(r.type)).length || 0}</span>
+                            </div>
                         </div>
+                        <Link
+                            href={route("admin.lessons.resources.create", lesson.id) + "?lang=mk"}
+                            className="mt-4 block w-full text-center px-3 py-2 bg-orange-50 text-orange-700 rounded-md hover:bg-orange-100 transition-colors text-sm font-medium"
+                        >
+                            Add Macedonian Resource
+                        </Link>
                     </div>
                 </div>
 
@@ -199,18 +208,9 @@ export default function LessonResourcesIndex() {
                 )}
 
                 {/* Resources List */}
-                <div className="bg-white rounded-lg shadow">
-                    <div className="p-6 border-b border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-900">
-                            Lesson Resources
-                        </h2>
-                        <p className="text-sm text-gray-600 mt-1">
-                            {lesson.resources?.length || 0} resource{lesson.resources?.length !== 1 ? "s" : ""}
-                        </p>
-                    </div>
-
-                    <div className="divide-y divide-gray-200">
-                        {hasNoResources ? (
+                <div className="space-y-6">
+                    {hasNoResources ? (
+                        <div className="bg-white rounded-lg shadow">
                             <div className="p-8 text-center">
                                 <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-3" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -219,92 +219,245 @@ export default function LessonResourcesIndex() {
                                 <p className="text-gray-600 mb-4">
                                     This lesson doesn't have any resources. Add some learning materials to get started.
                                 </p>
-                                <Link
-                                    href={route("admin.lessons.resources.create", lesson.id)}
-                                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                >
-                                    <Plus size={16} className="mr-2" />
-                                    Add First Resource
-                                </Link>
+                                <div className="flex justify-center gap-3">
+                                    <Link
+                                        href={route("admin.lessons.resources.create", lesson.id) + "?lang=en"}
+                                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    >
+                                        <Plus size={16} className="mr-2" />
+                                        Add English Resource
+                                    </Link>
+                                    <Link
+                                        href={route("admin.lessons.resources.create", lesson.id) + "?lang=mk"}
+                                        className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                                    >
+                                        <Plus size={16} className="mr-2" />
+                                        Add Macedonian Resource
+                                    </Link>
+                                </div>
                             </div>
-                        ) : (
-                            <div className="space-y-2 p-4">
-                                {lesson.resources.map((resource) => {
-                                    const Icon = resourceTypeIcons[resource.type];
-                                    const colorClass = resourceTypeColors[resource.type];
-
-                                    return (
-                                        <div
-                                            key={resource.id}
-                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                                        >
+                        </div>
+                    ) : (
+                        <>
+                            {/* English Resources */}
+                            {lesson.resources?.filter(r => r.language === 'en').length > 0 && (
+                                <div className="bg-white rounded-lg shadow">
+                                    <div className="p-4 border-b border-gray-200 bg-blue-50">
+                                        <div className="flex items-center justify-between">
                                             <div className="flex items-center">
-                                                <GripVertical
-                                                    className="text-gray-400 mr-2"
-                                                    size={16}
-                                                />
+                                                <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                                                <h3 className="text-lg font-semibold text-gray-900">English Resources</h3>
+                                                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                                    {lesson.resources?.filter(r => r.language === 'en').length}
+                                                </span>
+                                            </div>
+                                            <Link
+                                                href={route("admin.lessons.resources.create", lesson.id) + "?lang=en"}
+                                                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                            >
+                                                + Add English
+                                            </Link>
+                                        </div>
+                                    </div>
+                                    <div className="divide-y divide-gray-100">
+                                        {lesson.resources?.filter(r => r.language === 'en').map((resource) => {
+                                            const Icon = resourceTypeIcons[resource.type];
+                                            const colorClass = resourceTypeColors[resource.type];
+
+                                            return (
                                                 <div
-                                                    className={`p-2 rounded ${colorClass} mr-3`}
+                                                    key={resource.id}
+                                                    className="flex items-center justify-between p-4 hover:bg-gray-50"
                                                 >
-                                                    <Icon size={16} />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-gray-900">
-                                                        {resource.title}
-                                                    </p>
-                                                    {resource.description && (
-                                                        <p className="text-sm text-gray-600">
-                                                            {resource.description}
-                                                        </p>
-                                                    )}
-                                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                                                        <span className="capitalize">
-                                                            {resource.type}
-                                                        </span>
-                                                        <span>Order: {resource.order}</span>
-                                                        {resource.is_required && (
-                                                            <span className="text-green-600">
-                                                                Required
-                                                            </span>
-                                                        )}
-                                                        {resource.is_downloadable && (
-                                                            <span className="text-blue-600">
-                                                                Downloadable
-                                                            </span>
-                                                        )}
+                                                    <div className="flex items-center">
+                                                        <GripVertical
+                                                            className="text-gray-400 mr-3"
+                                                            size={16}
+                                                        />
+                                                        <div
+                                                            className={`p-2 rounded ${colorClass} mr-3`}
+                                                        >
+                                                            <Icon size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">
+                                                                {resource.title}
+                                                            </p>
+                                                            {resource.description && (
+                                                                <p className="text-sm text-gray-600">
+                                                                    {resource.description}
+                                                                </p>
+                                                            )}
+                                                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                                                <span className="capitalize">
+                                                                    {resource.type}
+                                                                </span>
+                                                                <span>Order: {resource.order}</span>
+                                                                {resource.is_required && (
+                                                                    <span className="text-green-600 font-medium">
+                                                                        Required
+                                                                    </span>
+                                                                )}
+                                                                {resource.is_downloadable && (
+                                                                    <span className="text-blue-600 font-medium">
+                                                                        Downloadable
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Link
+                                                            href={route(
+                                                                "admin.lessons.resources.edit",
+                                                                {
+                                                                    lesson: lesson.id,
+                                                                    resource: resource.id,
+                                                                }
+                                                            )}
+                                                            className="p-2 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                                                        >
+                                                            <Edit size={16} />
+                                                        </Link>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleDeleteResource(lesson.id, resource.id, resource.title);
+                                                            }}
+                                                            className="p-2 text-gray-600 hover:text-red-600 rounded-md hover:bg-red-50"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
                                                     </div>
                                                 </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Macedonian Resources */}
+                            {lesson.resources?.filter(r => r.language === 'mk').length > 0 && (
+                                <div className="bg-white rounded-lg shadow">
+                                    <div className="p-4 border-b border-gray-200 bg-orange-50">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center">
+                                                <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                                                <h3 className="text-lg font-semibold text-gray-900">Macedonian Resources</h3>
+                                                <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                                                    {lesson.resources?.filter(r => r.language === 'mk').length}
+                                                </span>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Link
-                                                    href={route(
-                                                        "admin.lessons.resources.edit",
-                                                        {
-                                                            lesson: lesson.id,
-                                                            resource: resource.id,
-                                                        }
-                                                    )}
-                                                    className="p-1 text-gray-600 hover:text-blue-600"
-                                                >
-                                                    <Edit size={16} />
-                                                </Link>
-                                                <button 
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        handleDeleteResource(lesson.id, resource.id, resource.title);
-                                                    }}
-                                                    className="p-1 text-gray-600 hover:text-red-600"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
+                                            <Link
+                                                href={route("admin.lessons.resources.create", lesson.id) + "?lang=mk"}
+                                                className="text-sm text-orange-600 hover:text-orange-800 font-medium"
+                                            >
+                                                + Add Macedonian
+                                            </Link>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
+                                    </div>
+                                    <div className="divide-y divide-gray-100">
+                                        {lesson.resources?.filter(r => r.language === 'mk').map((resource) => {
+                                            const Icon = resourceTypeIcons[resource.type];
+                                            const colorClass = resourceTypeColors[resource.type];
+
+                                            return (
+                                                <div
+                                                    key={resource.id}
+                                                    className="flex items-center justify-between p-4 hover:bg-gray-50"
+                                                >
+                                                    <div className="flex items-center">
+                                                        <GripVertical
+                                                            className="text-gray-400 mr-3"
+                                                            size={16}
+                                                        />
+                                                        <div
+                                                            className={`p-2 rounded ${colorClass} mr-3`}
+                                                        >
+                                                            <Icon size={16} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">
+                                                                {resource.title}
+                                                            </p>
+                                                            {resource.description && (
+                                                                <p className="text-sm text-gray-600">
+                                                                    {resource.description}
+                                                                </p>
+                                                            )}
+                                                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                                                <span className="capitalize">
+                                                                    {resource.type}
+                                                                </span>
+                                                                <span>Order: {resource.order}</span>
+                                                                {resource.is_required && (
+                                                                    <span className="text-green-600 font-medium">
+                                                                        Required
+                                                                    </span>
+                                                                )}
+                                                                {resource.is_downloadable && (
+                                                                    <span className="text-blue-600 font-medium">
+                                                                        Downloadable
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Link
+                                                            href={route(
+                                                                "admin.lessons.resources.edit",
+                                                                {
+                                                                    lesson: lesson.id,
+                                                                    resource: resource.id,
+                                                                }
+                                                            )}
+                                                            className="p-2 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
+                                                        >
+                                                            <Edit size={16} />
+                                                        </Link>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleDeleteResource(lesson.id, resource.id, resource.title);
+                                                            }}
+                                                            className="p-2 text-gray-600 hover:text-red-600 rounded-md hover:bg-red-50"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Show helper text if resources exist but some languages are missing */}
+                            {(lesson.resources?.filter(r => r.language === 'en').length === 0 || 
+                              lesson.resources?.filter(r => r.language === 'mk').length === 0) && (
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <div className="flex items-start">
+                                        <Info className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+                                        <div className="text-sm">
+                                            <h4 className="text-yellow-800 font-medium mb-1">Complete Your Multilingual Content</h4>
+                                            <p className="text-yellow-700">
+                                                {lesson.resources?.filter(r => r.language === 'en').length === 0 && 
+                                                 lesson.resources?.filter(r => r.language === 'mk').length === 0 
+                                                    ? "Add resources in both English and Macedonian to provide a complete learning experience for all students."
+                                                    : lesson.resources?.filter(r => r.language === 'en').length === 0
+                                                    ? "Consider adding English resources so English-speaking students can access this content."
+                                                    : "Consider adding Macedonian resources so Macedonian-speaking students can access this content."
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </AdminLayout>

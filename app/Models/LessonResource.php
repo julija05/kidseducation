@@ -6,19 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
-use App\Traits\HasTranslations;
 
 class LessonResource extends Model
 {
-    use HasFactory, HasTranslations;
+    use HasFactory;
 
     protected $fillable = [
         'lesson_id',
         'title',
         'description',
-        'title_translations',
-        'description_translations',
         'type',
+        'language',
         'resource_url',
         'file_path',
         'file_name',
@@ -35,8 +33,6 @@ class LessonResource extends Model
         'is_downloadable' => 'boolean',
         'is_required' => 'boolean',
         'order' => 'integer',
-        'title_translations' => 'array',
-        'description_translations' => 'array',
     ];
 
     // Relationships
@@ -59,6 +55,11 @@ class LessonResource extends Model
     public function scopeByType($query, string $type)
     {
         return $query->where('type', $type);
+    }
+
+    public function scopeByLanguage($query, string $language)
+    {
+        return $query->where('language', $language);
     }
 
     // Basic accessors
@@ -244,14 +245,4 @@ class LessonResource extends Model
         ];
     }
     
-    // Translation accessors
-    public function getTranslatedTitleAttribute(): string
-    {
-        return $this->getTranslatedAttribute('title');
-    }
-    
-    public function getTranslatedDescriptionAttribute(): ?string
-    {
-        return $this->getTranslatedAttribute('description');
-    }
 }

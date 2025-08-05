@@ -21,10 +21,15 @@ export default function CreateLessonResource() {
     const [selectedType, setSelectedType] = useState("video");
     const [showYouTubeHelper, setShowYouTubeHelper] = useState(false);
 
+    // Get language from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const defaultLanguage = urlParams.get('lang') || 'en';
+
     const { data, setData, post, processing, errors, reset } = useForm({
         title: "",
         description: "",
         type: "video",
+        language: defaultLanguage,
         resource_url: "",
         file: null,
         order: 1,
@@ -57,7 +62,18 @@ export default function CreateLessonResource() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Clean up form data before submission
+        const submitData = {
+            ...data,
+            order: data.order === "" ? 1 : parseInt(data.order) || 1,
+            passing_score: data.passing_score === "" ? 70 : parseInt(data.passing_score) || 70,
+            time_limit: data.time_limit === "" ? null : (parseInt(data.time_limit) || null),
+            attempts_allowed: data.attempts_allowed === "" ? 3 : parseInt(data.attempts_allowed) || 3,
+        };
+        
         post(route("admin.lessons.resources.store", lesson.id), {
+            data: submitData,
             preserveScroll: true,
             onSuccess: () => {
                 reset();
@@ -313,7 +329,7 @@ export default function CreateLessonResource() {
                                     onChange={(e) =>
                                         setData(
                                             "passing_score",
-                                            parseInt(e.target.value)
+                                            e.target.value === "" ? "" : parseInt(e.target.value) || 0
                                         )
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -331,9 +347,7 @@ export default function CreateLessonResource() {
                                     onChange={(e) =>
                                         setData(
                                             "time_limit",
-                                            e.target.value
-                                                ? parseInt(e.target.value)
-                                                : null
+                                            e.target.value === "" ? null : parseInt(e.target.value) || 0
                                         )
                                     }
                                     placeholder="No limit"
@@ -352,7 +366,7 @@ export default function CreateLessonResource() {
                                     onChange={(e) =>
                                         setData(
                                             "attempts_allowed",
-                                            parseInt(e.target.value)
+                                            e.target.value === "" ? "" : parseInt(e.target.value) || 1
                                         )
                                     }
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -538,6 +552,34 @@ export default function CreateLessonResource() {
                                 />
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Language *
+                                </label>
+                                <select
+                                    value={data.language}
+                                    onChange={(e) =>
+                                        setData("language", e.target.value)
+                                    }
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                        errors.language
+                                            ? "border-red-500"
+                                            : "border-gray-300"
+                                    }`}
+                                >
+                                    <option value="en">English</option>
+                                    <option value="mk">Македонски (Macedonian)</option>
+                                </select>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Select the language for this resource. Students will see resources matching their selected language.
+                                </p>
+                                {errors.language && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.language}
+                                    </p>
+                                )}
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -550,7 +592,7 @@ export default function CreateLessonResource() {
                                         onChange={(e) =>
                                             setData(
                                                 "order",
-                                                parseInt(e.target.value)
+                                                e.target.value === "" ? "" : parseInt(e.target.value) || 1
                                             )
                                         }
                                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
