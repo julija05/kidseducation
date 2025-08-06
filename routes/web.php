@@ -25,6 +25,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\QuizController;
+use App\Http\Controllers\DemoController;
 use Illuminate\Support\Facades\Route;
 
 // Language switching
@@ -210,6 +211,16 @@ Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid
 Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name('programs.show');
 Route::get('/news', [NewsController::class, 'index']);
+
+// Demo account routes
+Route::prefix('demo')->name('demo.')->group(function () {
+    Route::get('/{program:slug}', [DemoController::class, 'showDemoForm'])->name('access');
+    Route::post('/{program:slug}/create', [DemoController::class, 'createDemoAccount'])->name('create');
+    Route::get('/{program:slug}/dashboard', [DemoController::class, 'dashboard'])->name('dashboard')->middleware('auth');
+    Route::post('/{program:slug}/enroll', [DemoController::class, 'convertToEnrollment'])->name('enroll')->middleware('auth');
+    Route::post('/logout', [DemoController::class, 'logout'])->name('logout')->middleware('auth');
+    Route::get('/expired', [DemoController::class, 'expired'])->name('expired');
+});
 
 
 require __DIR__ . '/auth.php';

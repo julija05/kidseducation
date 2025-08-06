@@ -29,19 +29,36 @@ class LessonController extends Controller
     public function show(Lesson $lesson)
     {
         $user = Auth::user();
+        
+        // Initialize enrollment variable
+        $enrollment = null;
 
-        // Check enrollment
-        $enrollment = $this->enrollmentRepository->findActiveApprovedEnrollment($user, $lesson->program_id);
+        // Check demo access first
+        if ($user->isDemoAccount()) {
+            if (!$user->canAccessLessonInDemo($lesson)) {
+                return redirect()->route('demo.dashboard', $user->demo_program_slug)
+                    ->with('error', 'Demo access is limited to the first lesson only. Enroll for full access.');
+            }
 
-        if (!$enrollment) {
-            return redirect()->route('programs.show', $lesson->program->slug)
-                ->with('error', 'You need to be enrolled and approved to access lessons.');
-        }
+            // Check if demo has expired
+            if ($user->isDemoExpired()) {
+                Auth::logout();
+                return redirect()->route('demo.expired');
+            }
+        } else {
+            // Regular enrollment check for non-demo users
+            $enrollment = $this->enrollmentRepository->findActiveApprovedEnrollment($user, $lesson->program_id);
 
-        // Check if lesson is unlocked
-        if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
-            return redirect()->route('dashboard.programs.show', $lesson->program->slug)
-                ->with('error', 'You need to complete previous level lessons to unlock this lesson.');
+            if (!$enrollment) {
+                return redirect()->route('programs.show', $lesson->program->slug)
+                    ->with('error', 'You need to be enrolled and approved to access lessons.');
+            }
+
+            // Check if lesson is unlocked for regular users
+            if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
+                return redirect()->route('dashboard.programs.show', $lesson->program->slug)
+                    ->with('error', 'You need to complete previous level lessons to unlock this lesson.');
+            }
         }
 
         // Load lesson with resources and quizzes
@@ -82,12 +99,24 @@ class LessonController extends Controller
     {
         $user = $request->user();
 
-        if (!$this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
-            return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
-        }
+        // Check demo access first
+        if ($user->isDemoAccount()) {
+            if (!$user->canAccessLessonInDemo($lesson)) {
+                return response()->json(['error' => 'Demo access is limited to the first lesson only'], 403);
+            }
 
-        if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
-            return response()->json(['error' => 'Lesson is not unlocked'], 403);
+            if ($user->isDemoExpired()) {
+                return response()->json(['error' => 'Demo access has expired'], 403);
+            }
+        } else {
+            // Regular enrollment check for non-demo users
+            if (!$this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
+                return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
+            }
+
+            if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
+                return response()->json(['error' => 'Lesson is not unlocked'], 403);
+            }
         }
 
         $progress = $this->lessonService->startLessonForUser($lesson, $user);
@@ -156,8 +185,20 @@ class LessonController extends Controller
 
         $user = $request->user();
 
-        if (!$this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
-            return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
+        // Check demo access first
+        if ($user->isDemoAccount()) {
+            if (!$user->canAccessLessonInDemo($lesson)) {
+                return response()->json(['error' => 'Demo access is limited to the first lesson only'], 403);
+            }
+
+            if ($user->isDemoExpired()) {
+                return response()->json(['error' => 'Demo access has expired'], 403);
+            }
+        } else {
+            // Regular enrollment check for non-demo users
+            if (!$this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
+                return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
+            }
         }
 
         DB::beginTransaction();

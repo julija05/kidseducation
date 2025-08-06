@@ -560,6 +560,14 @@ return [
         'last_week' => 'Last Week',
         'this_month' => 'This Month',
         'last_month' => 'Last Month',
+        'minutes' => 'minutes',
+        'min' => 'min',
+        'hours' => 'hours',
+        'days' => 'days',
+        'weeks' => 'weeks',
+        'months' => 'months',
+        'years' => 'years',
+        'days_remaining' => 'days remaining',
     ],
 
     // Schedule
@@ -640,5 +648,68 @@ return [
         'check_email_instructions' => 'Please check your email inbox and click the verification link we just sent you.',
         'already_verified_message' => 'Your email is already verified!',
         'refresh_page_instruction' => 'Please refresh the page to see the updated verification status.',
+    ],
+
+    // Demo System
+    'demo' => [
+        'try' => 'Try',
+        'title' => 'Demo Account',
+        'description' => 'Get a free preview of the first lesson and see what our program offers before enrolling.',
+        'what_included' => 'What\'s Included in the Demo',
+        'first_lesson_access' => 'Access to First Lesson',
+        'first_lesson_description' => 'Experience the full first lesson with all resources and materials.',
+        'no_commitment' => 'No Commitment Required',
+        'no_commitment_description' => 'Just enter your email to get started - no payment required.',
+        'seven_days' => '7 Days Free Access',
+        'seven_days_description' => 'Your demo account remains active for 7 days.',
+        'easy_enrollment' => 'Easy Enrollment',
+        'easy_enrollment_description' => 'Convert to full enrollment with one click if you like what you see.',
+        'limitations' => 'Demo Limitations',
+        'only_first_lesson' => 'Access limited to first lesson only',
+        'no_progress_saved' => 'Progress is not permanently saved',
+        'expires_seven_days' => 'Demo expires after 7 days',
+        'no_teacher_interaction' => 'No teacher support or feedback',
+        'start_demo' => 'Start Your Free Demo',
+        'start_free_demo' => 'Start Free Demo',
+        'no_credit_card' => 'No credit card required',
+        'welcome_to' => 'Welcome to',
+        'currently_in_demo_mode' => 'You\'re currently in demo mode with limited access.',
+        'expires_on' => 'Demo expires on',
+        'available_lesson' => 'Available Demo Lesson',
+        'start_learning_now' => 'Start learning now!',
+        'locked_content' => 'Locked Content',
+        'enroll_to_unlock' => 'Enroll in the full program to unlock all lessons.',
+        'and_more_lessons' => 'And :count more lessons...',
+        'ready_to_enroll' => 'Ready to Enroll?',
+        'unlock_all_lessons' => 'Unlock all lessons, get teacher support, and track your progress.',
+        'full_program_includes' => 'Full Program Includes',
+        'teacher_support' => 'teacher support, progress tracking',
+        'demo_actions' => 'Demo Options',
+        'exit_demo' => 'Exit Demo',
+        'expired_title' => 'Demo Access Expired',
+        'expired_description' => 'Your 7-day demo access has expired. You can start a new demo or enroll in the full program.',
+        'try_another_demo' => 'Try Another Demo',
+        'contact_support' => 'Questions? Contact our support team for assistance.',
+    ],
+
+    // Common
+    'common' => [
+        'or' => 'or',
+    ],
+
+    // Navigation
+    'navigation' => [
+        'back_to_programs' => 'Back to Programs',
+        'view_other_programs' => 'View Other Programs',
+    ],
+
+    // Form
+    'form' => [
+        'name' => 'Name',
+        'email' => 'Email',
+        'enter_name' => 'Enter your name',
+        'enter_email' => 'Enter your email',
+        'creating' => 'Creating...',
+        'processing' => 'Processing...',
     ],
 ];

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ResourceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Lesson;
 use App\Models\ClassSchedule;
@@ -24,6 +25,16 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+
+        // Check if this is a demo account - redirect to demo dashboard
+        if ($user->isDemoAccount()) {
+            if ($user->isDemoExpired()) {
+                Auth::logout();
+                return redirect()->route('demo.expired');
+            }
+            
+            return redirect()->route('demo.dashboard', $user->demo_program_slug);
+        }
 
         // Get approved enrollment if exists
         $currentLocale = app()->getLocale();

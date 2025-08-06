@@ -35,6 +35,12 @@ class VerifyEmailController extends Controller
             if (!Auth::check()) {
                 Auth::login($user);
             }
+            
+            // Check if this is a demo account
+            if ($user->isDemoAccount()) {
+                return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+            }
+            
             return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
         }
 
@@ -46,6 +52,11 @@ class VerifyEmailController extends Controller
         // Log the user in automatically after verification
         if (!Auth::check()) {
             Auth::login($user);
+        }
+
+        // Check if this is a demo account
+        if ($user->isDemoAccount()) {
+            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
         }
 
         return redirect()->intended(route('dashboard', absolute: false).'?verified=1');

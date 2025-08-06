@@ -44,6 +44,18 @@ export default function ProgramDetail({ auth }) {
                             </Link>
                         </div>
 
+                        <div className="mt-6 p-4 border-t border-gray-200">
+                            <p className="text-sm text-gray-600 mb-3 text-center">
+                                Not sure yet? Try it first!
+                            </p>
+                            <Link
+                                href={route("demo.access", program.slug)}
+                                className="block w-full sm:w-auto sm:mx-auto text-center bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 font-medium transition-all transform hover:scale-105"
+                            >
+                                🎯 Try Free Demo
+                            </Link>
+                        </div>
+
                         <p className="text-sm text-gray-500 mt-6">
                             After creating your account, you'll be asked to
                             confirm your enrollment

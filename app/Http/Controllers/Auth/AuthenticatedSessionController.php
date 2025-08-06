@@ -39,6 +39,18 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        // Check if this is a demo account
+        if ($user->isDemoAccount()) {
+            // Check if demo has expired
+            if ($user->isDemoExpired()) {
+                Auth::logout();
+                return redirect()->route('demo.expired');
+            }
+            
+            // Redirect demo users to regular dashboard, they can browse but not access program dashboards
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

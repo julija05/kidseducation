@@ -37,6 +37,12 @@ class ResourceService
      */
     public function canUserAccessResource(LessonResource $resource, User $user): bool
     {
+        // Handle demo users
+        if ($user->isDemoAccount()) {
+            // Demo users can only access resources from their demo lesson
+            return $user->canAccessLessonInDemo($resource->lesson);
+        }
+
         // Check if user is enrolled and approved for this lesson's program
         $enrollment = $user->enrollments()
             ->where('program_id', $resource->lesson->program_id)
