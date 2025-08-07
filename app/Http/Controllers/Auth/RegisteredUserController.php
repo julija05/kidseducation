@@ -63,15 +63,16 @@ class RegisteredUserController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'language_preference' => app()->getLocale(),
+            'language_selected' => true,
         ]);
         $user->assignRole('student');
-
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        // Redirect to email verification notice instead of dashboard
-        return redirect()->route('verification.notice');
+        // Redirect to dashboard where user can choose to try demos
+        return redirect()->route('dashboard')->with('welcome', true);
     }
 }

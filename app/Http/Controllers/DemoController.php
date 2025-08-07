@@ -28,6 +28,26 @@ class DemoController extends Controller
     {
         $program = Program::where('slug', $programSlug)->firstOrFail();
         
+        // If user is already logged in, handle demo logic
+        if (Auth::check()) {
+            $user = Auth::user();
+            
+            // Check if user already has demo access for this program
+            if ($user->hasDemoAccess() && $user->demo_program_slug === $programSlug) {
+                return redirect()->route('demo.dashboard', $programSlug);
+            }
+            
+            // Check if user has demo access for a different program
+            if ($user->hasDemoAccess() && $user->demo_program_slug !== $programSlug) {
+                return redirect()->route('dashboard')
+                    ->with('error', 'You can only have one demo active at a time. Please complete or expire your current demo before starting a new one.');
+            }
+            
+            // Start demo for logged-in user
+            $user->startDemo($programSlug);
+            return redirect()->route('demo.dashboard', $programSlug);
+        }
+        
         return Inertia::render('Demo/Access', [
             'program' => [
                 'id' => $program->id,

@@ -537,6 +537,8 @@ return [
         'track_progress_desc' => 'Monitor your child\'s learning journey with detailed progress reports',
         'earn_rewards' => 'Earn Rewards',
         'earn_rewards_desc' => 'Celebrate achievements with certificates and digital badges',
+        'welcome_title' => 'Welcome to Abacoding!',
+        'welcome_subtitle' => 'You\'ve successfully created your account. Explore our programs and try a free demo to get started.',
     ],
 
     // Admin
@@ -690,6 +692,14 @@ return [
         'expired_description' => 'Your 7-day demo access has expired. You can start a new demo or enroll in the full program.',
         'try_another_demo' => 'Try Another Demo',
         'contact_support' => 'Questions? Contact our support team for assistance.',
+        'try_demo_first' => 'Try a Demo First!',
+        'demo_instructions' => 'Click "Try Start Free Demo" on any program below to experience the first lesson for free.',
+        'one_demo_only' => 'One Demo Only',
+        'continue_demo' => 'Continue Demo',
+        'demo_info_title' => 'Demo Account Information',
+        'one_program_only' => 'You can try demo on ONE program only',
+        'first_lesson_only' => 'Access limited to first lesson only',
+        'choose_wisely' => 'Choose wisely - you cannot change your demo program!',
     ],
 
     // Common
@@ -706,9 +716,16 @@ return [
     // Form
     'form' => [
         'name' => 'Name',
+        'first_name' => 'First Name',
+        'last_name' => 'Last Name',
         'email' => 'Email',
+        'password' => 'Password',
+        'confirm_password' => 'Confirm Password',
         'enter_name' => 'Enter your name',
+        'enter_first_name' => 'Enter your first name',
+        'enter_last_name' => 'Enter your last name',
         'enter_email' => 'Enter your email',
+        'enter_password' => 'Enter your password',
         'creating' => 'Creating...',
         'processing' => 'Processing...',
     ],

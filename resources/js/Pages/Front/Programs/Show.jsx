@@ -182,14 +182,14 @@ export default function ProgramDetail({ auth }) {
                         {program.name}
                     </p>
                     <Link
-                        href={route("dashboard")}
+                        href={route("programs.enroll", program.slug)}
+                        method="post"
                         className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
                     >
-                        Go to Dashboard to Enroll
+                        Enroll Now
                     </Link>
                     <p className="text-sm text-gray-500 mt-4">
-                        You'll be asked to confirm your enrollment on the
-                        dashboard
+                        Your enrollment request will be sent for approval
                     </p>
                 </div>
             </div>

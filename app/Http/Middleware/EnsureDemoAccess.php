@@ -59,7 +59,12 @@ class EnsureDemoAccess
                     ->with('error', 'Please enroll in a program to access the program dashboard.');
             }
 
-            // Block access to enrollment-specific routes
+            // Allow enrollment in other programs while having demo access
+            if ($request->routeIs('programs.enroll')) {
+                return $next($request);
+            }
+
+            // Block access to enrollment-specific routes (but not the enrollment action itself)
             if ($request->routeIs(['enrollments.*', 'quiz.*', 'lesson-resources.*'])) {
                 return redirect()->route('programs.index')
                     ->with('error', 'Please enroll in a program to access this feature.');
@@ -69,6 +74,11 @@ class EnsureDemoAccess
             // Demo users can see the main dashboard, browse programs, view program details, and manage their profile
         }
 
+        // If user has any enrollments, they shouldn't access demo routes
+        if ($request->routeIs('demo.*') && $user->enrollments()->exists()) {
+            return redirect()->route('dashboard');
+        }
+
         // If user has expired demo access and trying to access demo routes
         if ($user->isDemoExpired() && $request->routeIs('demo.*')) {
             return redirect()->route('demo.expired');
@@ -76,6 +86,11 @@ class EnsureDemoAccess
 
         // If user doesn't have demo access but trying to access demo routes
         if (!$user->hasDemoAccess() && !$user->isDemoExpired() && $request->routeIs('demo.*')) {
+            // Allow access to demo access route (to start demo)
+            if ($request->routeIs('demo.access')) {
+                return $next($request);
+            }
+            
             return redirect()->route('dashboard');
         }
 

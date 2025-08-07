@@ -2,10 +2,53 @@ import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import GuessFrontLayout from '@/Layouts/GuessFrontLayout';
 import { Play, Lock, Users, Clock, Star } from 'lucide-react';
-import { useTranslation } from '@/hooks/useTranslation';
+
+// Let me try direct translation access instead of the hook
+function useTranslation() {
+    return {
+        t: (key, replacements = {}) => {
+            // Hardcoded translations for now to test
+            const translations = {
+                'app.demo.what_included': 'What\'s Included in the Demo',
+                'app.demo.first_lesson_access': 'Access to First Lesson',
+                'app.demo.first_lesson_description': 'Experience the full first lesson with all resources and materials.',
+                'app.demo.no_commitment': 'No Commitment Required',
+                'app.demo.no_commitment_description': 'Just enter your email to get started - no payment required.',
+                'app.demo.seven_days': '7 Days Free Access',
+                'app.demo.seven_days_description': 'Your demo account remains active for 7 days.',
+                'app.demo.easy_enrollment': 'Easy Enrollment',
+                'app.demo.easy_enrollment_description': 'Convert to full enrollment with one click if you like what you see.',
+                'app.demo.limitations': 'Demo Limitations',
+                'app.demo.only_first_lesson': 'Access limited to first lesson only',
+                'app.demo.no_progress_saved': 'Progress is not permanently saved',
+                'app.demo.expires_seven_days': 'Demo expires after 7 days',
+                'app.demo.no_teacher_interaction': 'No teacher support or feedback',
+                'app.demo.start_demo': 'Start Your Free Demo',
+                'app.demo.start_free_demo': 'Start Free Demo',
+                'app.demo.no_credit_card': 'No credit card required',
+                'app.demo.try': 'Try',
+                'app.demo.description': 'Get a free preview of the first lesson and see what our program offers before enrolling.',
+                'app.form.first_name': 'First Name',
+                'app.form.last_name': 'Last Name',
+                'app.form.email': 'Email',
+                'app.form.password': 'Password',
+                'app.form.confirm_password': 'Confirm Password',
+                'app.form.enter_first_name': 'Enter your first name',
+                'app.form.enter_last_name': 'Enter your last name',
+                'app.form.enter_email': 'Enter your email',
+                'app.form.enter_password': 'Enter your password',
+                'app.form.creating': 'Creating...',
+                'app.navigation.back_to_programs': 'Back to Programs',
+            };
+            
+            return translations[key] || key;
+        }
+    };
+}
 
 export default function DemoAccess({ program }) {
     const { t } = useTranslation();
+    
     const { data, setData, post, processing, errors } = useForm({
         first_name: '',
         last_name: '',
