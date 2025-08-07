@@ -4,10 +4,11 @@ import { motion } from "framer-motion";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import { useTranslation } from "@/hooks/useTranslation";
 import { iconMap } from "@/Utils/iconMapping";
-import { BookOpen, Star, Sparkles, Clock, ArrowRight, Users, Award } from "lucide-react";
+import { BookOpen, Star, Sparkles, Clock, ArrowRight, Users, Award, Play } from "lucide-react";
 
-const ProgramsIndex = ({ auth, programs }) => {
+const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments = [] }) => {
     const { t } = useTranslation();
+    const { flash } = usePage().props;
     // const { programs, pageTitle, content } = usePage().props;
     const colors = [
         {
@@ -39,6 +40,38 @@ const ProgramsIndex = ({ auth, programs }) => {
     return (
         <GuestFrontLayout auth={auth}>
             <section className="relative bg-gradient-to-br from-gray-50 to-white py-20 px-6 overflow-hidden">
+                {/* Welcome Message for New Users */}
+                {flash?.welcome && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="max-w-4xl mx-auto mb-12"
+                    >
+                        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-2xl p-6">
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+                                    <Sparkles className="text-green-600" size={24} />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                                    {t('programs_page.welcome_title')}
+                                </h2>
+                                <p className="text-gray-600 mb-4">
+                                    {t('programs_page.welcome_subtitle')}
+                                </p>
+                                <div className="bg-white rounded-xl p-4 border border-blue-200">
+                                    <div className="flex items-center justify-center space-x-2 text-blue-600 mb-2">
+                                        <Play size={20} />
+                                        <span className="font-semibold">{t('demo.try_demo_first')}</span>
+                                    </div>
+                                    <p className="text-sm text-gray-600">
+                                        {t('demo.demo_instructions')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
                 {/* Hero Section */}
                 <div className="max-w-7xl mx-auto text-center mb-16">
                     <motion.div
@@ -56,12 +89,47 @@ const ProgramsIndex = ({ auth, programs }) => {
                     </motion.div>
                 </div>
 
+                {/* Demo Limitations Notice - Only show for logged in users without enrollments */}
+                {auth.user && !userEnrollments.length && (
+                    <div className="max-w-4xl mx-auto mb-8">
+                        <div className="bg-gradient-to-r from-blue-50 to-orange-50 border border-blue-200 rounded-2xl p-6">
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mb-4">
+                                    <Play className="text-orange-600" size={24} />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                    {t('demo.demo_info_title')}
+                                </h3>
+                                <div className="text-gray-600 space-y-2">
+                                    <p className="text-sm">
+                                        ✨ {t('demo.one_program_only')}
+                                    </p>
+                                    <p className="text-sm">
+                                        ⏰ {t('demo.expires_seven_days')}
+                                    </p>
+                                    <p className="text-sm">
+                                        📚 {t('demo.first_lesson_only')}
+                                    </p>
+                                    <p className="text-sm font-medium text-blue-600">
+                                        🎯 {t('demo.choose_wisely')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Programs Grid */}
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {programs.map((program, index) => {
                             const color = colors[index % colors.length];
                             const Icon = iconMap[program.icon] || BookOpen;
+                            
+                            // Check user's enrollment and demo status for this program
+                            const userEnrollment = userEnrollments.find(enrollment => enrollment.program_id === program.id);
+                            const hasActiveDemo = userDemoAccess && userDemoAccess.program_slug;
+                            const isCurrentDemoProgram = hasActiveDemo && userDemoAccess.program_slug === program.slug;
                             
                             return (
                                 <motion.div
@@ -72,8 +140,7 @@ const ProgramsIndex = ({ auth, programs }) => {
                                     whileHover={{ y: -4 }}
                                     className="group"
                                 >
-                                    <Link href={route("programs.show", program.slug)}>
-                                        <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden h-full flex flex-col">
+                                    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden h-full flex flex-col">
                                             {/* Header with Icon */}
                                             <div className={`${color.light} relative p-8 text-center ${color.border} border-b`}>
                                                 {/* Background Pattern */}
@@ -133,15 +200,50 @@ const ProgramsIndex = ({ auth, programs }) => {
                                                         </div>
                                                     </div>
                                                     
-                                                    {/* CTA Button */}
-                                                    <div className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}>
-                                                        <span>{t('programs_page.start_learning')}</span>
-                                                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                                    {/* CTA Buttons */}
+                                                    <div className="space-y-2">
+                                                        {/* Demo Button Logic */}
+                                                        {userEnrollment ? (
+                                                            // User has enrollment - no demo button
+                                                            null
+                                                        ) : hasActiveDemo && !isCurrentDemoProgram ? (
+                                                            // User has demo for different program - disabled
+                                                            <div className="w-full bg-gray-300 text-gray-500 text-center py-2.5 px-4 rounded-xl font-medium text-sm flex items-center justify-center space-x-2 cursor-not-allowed">
+                                                                <Play size={16} />
+                                                                <span>{t('demo.one_demo_only')}</span>
+                                                            </div>
+                                                        ) : isCurrentDemoProgram ? (
+                                                            // User has active demo for this program - continue
+                                                            <Link 
+                                                                href={`/demo/${program.slug}/dashboard`}
+                                                                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-2.5 px-4 rounded-xl font-medium text-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group/demo"
+                                                            >
+                                                                <Play size={16} className="group-hover/demo:scale-110 transition-transform duration-300" />
+                                                                <span>{t('demo.continue_demo')}</span>
+                                                            </Link>
+                                                        ) : (
+                                                            // Normal demo button
+                                                            <Link 
+                                                                href={route('demo.access', program.slug)}
+                                                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-center py-2.5 px-4 rounded-xl font-medium text-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group/demo"
+                                                            >
+                                                                <Play size={16} className="group-hover/demo:scale-110 transition-transform duration-300" />
+                                                                <span>{t('demo.try')} {t('demo.start_free_demo')}</span>
+                                                            </Link>
+                                                        )}
+                                                        
+                                                        {/* Main CTA Button */}
+                                                        <Link 
+                                                            href={route("programs.show", program.slug)}
+                                                            className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}
+                                                        >
+                                                            <span>{t('programs_page.start_learning')}</span>
+                                                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </Link>
                                 </motion.div>
                             );
                         })}

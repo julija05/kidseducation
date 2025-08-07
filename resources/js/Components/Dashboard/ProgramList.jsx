@@ -1,11 +1,11 @@
 // resources/js/Components/Dashboard/ProgramList.jsx
 import React from "react";
 import { Link, router } from "@inertiajs/react";
-import { ArrowRight, BookOpen, Clock, Star, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Clock, Star, Sparkles, Play } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 import { useTranslation } from "@/hooks/useTranslation";
 
-export default function ProgramList({ programs, userEnrollments = [] }) {
+export default function ProgramList({ programs, userEnrollments = [], userDemoAccess = null }) {
     const { t } = useTranslation();
     
     // Create a map of program enrollments for quick lookup
@@ -18,19 +18,86 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
         const enrollment = enrollmentMap[program.id];
 
         if (!enrollment) {
-            // Not enrolled - show View Details button that goes to dashboard program show
-            return (
-                <Link
-                    href={route("dashboard.programs.show", program.slug)}
-                    className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
-                    style={{
-                        background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
-                    }}
-                >
-                    🔍 {t('dashboard.explore_adventure')}
-                    <ArrowRight size={20} className="ml-2" />
-                </Link>
-            );
+            // Not enrolled - check demo access
+            const hasActiveDemo = userDemoAccess && userDemoAccess.program_slug;
+            const isCurrentDemoProgram = hasActiveDemo && userDemoAccess.program_slug === program.slug;
+            
+            if (hasActiveDemo && !isCurrentDemoProgram) {
+                // User has demo for different program - show disabled state
+                return (
+                    <div className="space-y-3">
+                        {/* Disabled Demo Button */}
+                        <div className="w-full bg-gray-300 text-gray-500 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed">
+                            <Play size={20} className="mr-2" />
+                            {t('demo.one_demo_only')}
+                        </div>
+                        
+                        {/* View Details Button */}
+                        <Link
+                            href={route("dashboard.programs.show", program.slug)}
+                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                            style={{
+                                background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                            }}
+                        >
+                            🔍 {t('dashboard.explore_adventure')}
+                            <ArrowRight size={18} className="ml-2" />
+                        </Link>
+                    </div>
+                );
+            } else if (isCurrentDemoProgram) {
+                // User has active demo for this program - show "Continue Demo"
+                return (
+                    <div className="space-y-3">
+                        {/* Continue Demo Button */}
+                        <a
+                            href={`/demo/${program.slug}/dashboard`}
+                            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
+                        >
+                            <Play size={20} className="mr-2" />
+                            🎮 {t('demo.continue_demo')}
+                        </a>
+                        
+                        {/* View Details Button */}
+                        <Link
+                            href={route("dashboard.programs.show", program.slug)}
+                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                            style={{
+                                background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                            }}
+                        >
+                            🔍 {t('dashboard.explore_adventure')}
+                            <ArrowRight size={18} className="ml-2" />
+                        </Link>
+                    </div>
+                );
+            } else {
+                // No demo access - show normal demo button
+                return (
+                    <div className="space-y-3">
+                        {/* Demo Button */}
+                        <a
+                            href={`/demo/${program.slug}`}
+                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
+                        >
+                            <Play size={20} className="mr-2" />
+                            🎮 {t('demo.try')} {t('demo.start_free_demo')}
+                        </a>
+                        
+                        {/* View Details Button */}
+                        <Link
+                            href={route("dashboard.programs.show", program.slug)}
+                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                            style={{
+                                background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                            }}
+                        >
+                            🔍 {t('dashboard.explore_adventure')}
+                            <ArrowRight size={18} className="ml-2" />
+                        </Link>
+                    </div>
+                );
+            }
         }
 
         // Check enrollment status
@@ -73,9 +140,9 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                     <Link
                         href={route("dashboard.programs.show", program.slug)}
                         className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
-                    style={{
-                        background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
-                    }}
+                        style={{
+                            background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                        }}
                     >
                         🔍 {t('dashboard.explore_adventure')}
                         <ArrowRight size={20} className="ml-2" />
@@ -96,6 +163,36 @@ export default function ProgramList({ programs, userEnrollments = [] }) {
                     {t('dashboard.pick_adventure')} 🚀
                 </p>
             </div>
+
+            {/* Demo Limitations Notice */}
+            {!userEnrollments.length && (
+                <div className="max-w-4xl mx-auto mb-8">
+                    <div className="bg-gradient-to-r from-blue-50 to-orange-50 border border-blue-200 rounded-2xl p-6">
+                        <div className="text-center">
+                            <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mb-4">
+                                <Play className="text-orange-600" size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                {t('demo.demo_info_title')}
+                            </h3>
+                            <div className="text-gray-600 space-y-2">
+                                <p className="text-sm">
+                                    ✨ {t('demo.one_program_only')}
+                                </p>
+                                <p className="text-sm">
+                                    ⏰ {t('demo.expires_seven_days')}
+                                </p>
+                                <p className="text-sm">
+                                    📚 {t('demo.first_lesson_only')}
+                                </p>
+                                <p className="text-sm font-medium text-blue-600">
+                                    🎯 {t('demo.choose_wisely')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {programs.map((program) => {

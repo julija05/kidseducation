@@ -26,7 +26,7 @@ function AuthenticatedLayoutContent({
     const isStudent = user.roles && user.roles.includes('student');
     
     // Get notification data from props if available
-    const { notifications = [], unreadNotificationCount = 0, nextClass = null, enrolledProgram } = props;
+    const { notifications = [], unreadNotificationCount = 0, nextClass = null, enrolledProgram = null } = props;
     
     // Check if student is enrolled in Mental Arithmetic program
     const isMentalArithmeticStudent = isStudent && enrolledProgram && 
@@ -300,7 +300,7 @@ function AuthenticatedLayoutContentSimple({
     }, []);
     
     // Get notification data from props if available
-    const { notifications = [], unreadNotificationCount = 0, nextClass = null, enrolledProgram } = props;
+    const { notifications = [], unreadNotificationCount = 0, nextClass = null, enrolledProgram = null } = props;
     
     // Check if student is enrolled in Mental Arithmetic program
     const isMentalArithmeticStudent = isStudent && enrolledProgram && 

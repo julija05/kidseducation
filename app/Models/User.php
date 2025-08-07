@@ -37,6 +37,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar_path',
         'avatar_type',
         'avatar_value',
+        'is_demo_account',
+        'demo_created_at',
+        'demo_expires_at',
+        'demo_program_slug',
     ];
 
     /**
@@ -60,6 +64,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'language_selected' => 'boolean',
+            'is_demo_account' => 'boolean',
+            'demo_created_at' => 'datetime',
+            'demo_expires_at' => 'datetime',
         ];
     }
 
@@ -126,5 +133,115 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPassword($token));
+    }
+
+    /**
+     * Check if user has demo access (active demo period)
+     */
+    public function hasDemoAccess(): bool
+    {
+        return $this->demo_created_at && 
+               $this->demo_expires_at && 
+               $this->demo_expires_at->isFuture();
+    }
+
+    /**
+     * Check if demo access has expired
+     */
+    public function isDemoExpired(): bool
+    {
+        return $this->demo_created_at && 
+               $this->demo_expires_at && 
+               $this->demo_expires_at->isPast();
+    }
+
+    /**
+     * Check if user can start demo (hasn't used demo yet)
+     */
+    public function canStartDemo(): bool
+    {
+        // If user has never had demo access, they can start
+        return !$this->demo_created_at;
+    }
+
+    /**
+     * Start demo access for a program
+     */
+    public function startDemo(string $programSlug): void
+    {
+        $this->update([
+            'is_demo_account' => false, // Keep as false since this is regular user with demo access
+            'demo_created_at' => now(),
+            'demo_expires_at' => now()->addDays(7),
+            'demo_program_slug' => $programSlug,
+        ]);
+    }
+
+    /**
+     * Get the demo program if user has demo access
+     */
+    public function getDemoProgram()
+    {
+        if (!$this->hasDemoAccess() || !$this->demo_program_slug) {
+            return null;
+        }
+
+        return Program::where('slug', $this->demo_program_slug)->first();
+    }
+
+    /**
+     * Check if user can access a specific lesson in demo mode
+     */
+    public function canAccessLessonInDemo($lesson): bool
+    {
+        if (!$this->hasDemoAccess()) {
+            return false;
+        }
+
+        $demoProgram = $this->getDemoProgram();
+        if (!$demoProgram || $lesson->program_id !== $demoProgram->id) {
+            return false;
+        }
+
+        // Only allow access to the first lesson (level 1, order_in_level 1)
+        return $lesson->level === 1 && $lesson->order_in_level === 1;
+    }
+
+    /**
+     * Get days remaining in demo
+     */
+    public function getDemoRemainingDays(): int
+    {
+        if (!$this->hasDemoAccess()) {
+            return 0;
+        }
+
+        return now()->diffInDays($this->demo_expires_at, false);
+    }
+
+    /**
+     * Scope for users with active demo access
+     */
+    public function scopeWithActiveDemoAccess($query)
+    {
+        return $query->whereNotNull('demo_created_at')
+                    ->where('demo_expires_at', '>', now());
+    }
+
+    /**
+     * Check if this is a demo account
+     */
+    public function isDemoAccount(): bool
+    {
+        return $this->is_demo_account || $this->hasDemoAccess();
+    }
+
+    /**
+     * Scope for users with expired demo access
+     */
+    public function scopeWithExpiredDemoAccess($query)
+    {
+        return $query->whereNotNull('demo_created_at')
+                    ->where('demo_expires_at', '<', now());
     }
 }

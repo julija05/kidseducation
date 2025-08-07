@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ResourceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Lesson;
 use App\Models\ClassSchedule;
@@ -24,6 +25,26 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+
+        // DEBUG: Log dashboard access attempt
+        \Log::info('Dashboard index accessed', [
+            'user_id' => $user->id,
+            'has_demo_access' => $user->hasDemoAccess(),
+            'demo_program_slug' => $user->demo_program_slug,
+            'is_demo_account' => $user->isDemoAccount(),
+            'enrollments_count' => $user->enrollments()->count(),
+        ]);
+
+        // Check if this is a demo account - redirect to demo dashboard
+        if ($user->isDemoAccount() && !$user->enrollments()->where('approval_status', 'approved')->exists()) {
+            \Log::info('Redirecting demo account to demo dashboard');
+            if ($user->isDemoExpired()) {
+                Auth::logout();
+                return redirect()->route('demo.expired');
+            }
+            
+            return redirect()->route('demo.dashboard', $user->demo_program_slug);
+        }
 
         // Get approved enrollment if exists
         $currentLocale = app()->getLocale();
@@ -207,6 +228,11 @@ class DashboardController extends Controller
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => !$user->language_selected,
+            'userDemoAccess' => $user->hasDemoAccess() ? [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => $user->demo_expires_at,
+                'days_remaining' => $user->getDemoRemainingDays(),
+            ] : null,
         ]);
     }
 
@@ -229,6 +255,11 @@ class DashboardController extends Controller
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => !$user->language_selected,
+            'userDemoAccess' => $user->hasDemoAccess() ? [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => $user->demo_expires_at,
+                'days_remaining' => $user->getDemoRemainingDays(),
+            ] : null,
         ]);
     }
 

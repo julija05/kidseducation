@@ -38,8 +38,36 @@ class ProgramController extends Controller
             ];
         });
 
+        // Get user demo access and enrollment info if logged in
+        $userDemoAccess = null;
+        $userEnrollments = [];
+        
+        if (Auth::check()) {
+            $user = Auth::user();
+            
+            // Get demo access info
+            if ($user->hasDemoAccess()) {
+                $userDemoAccess = [
+                    'program_slug' => $user->demo_program_slug,
+                    'expires_at' => $user->demo_expires_at,
+                    'days_remaining' => $user->getDemoRemainingDays(),
+                ];
+            }
+            
+            // Get enrollment info
+            $userEnrollments = $user->enrollments()->with('program')->get()->map(function ($enrollment) {
+                return [
+                    'program_id' => $enrollment->program_id,
+                    'approval_status' => $enrollment->approval_status,
+                    'status' => $enrollment->status,
+                ];
+            });
+        }
+
         return $this->createView('Front/Programs/Index', [
             'programs' => $programs,
+            'userDemoAccess' => $userDemoAccess,
+            'userEnrollments' => $userEnrollments,
         ]);
     }
 
