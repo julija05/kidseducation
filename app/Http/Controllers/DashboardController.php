@@ -39,14 +39,33 @@ class DashboardController extends Controller
         ]);
 
         // Check if this is a demo account - redirect to demo dashboard
-        if ($user->isDemoAccount() && !$user->enrollments()->where('approval_status', 'approved')->exists()) {
-            \Log::info('Redirecting demo account to demo dashboard');
+        // IMPORTANT: Only redirect to demo if user has NO enrollments at all (pending or approved)
+        // Users with pending enrollments should see dashboard with option to return to demo
+        if ($user->isDemoAccount() && !$user->enrollments()->exists()) {
+            \Log::info('Redirecting demo account to demo dashboard - no enrollments', [
+                'user_id' => $user->id,
+                'demo_program_slug' => $user->demo_program_slug,
+                'has_demo_access' => $user->hasDemoAccess(),
+                'enrollments_count' => $user->enrollments()->count()
+            ]);
+            
             if ($user->isDemoExpired()) {
                 Auth::logout();
                 return redirect()->route('demo.expired');
             }
             
             return redirect()->route('demo.dashboard', $user->demo_program_slug);
+        }
+
+        // Log when demo user has enrollments (should NOT redirect to demo)
+        if ($user->isDemoAccount() && $user->enrollments()->exists()) {
+            \Log::info('Demo user with enrollments - staying on regular dashboard', [
+                'user_id' => $user->id,
+                'demo_program_slug' => $user->demo_program_slug,
+                'enrollments_count' => $user->enrollments()->count(),
+                'pending_enrollments' => $user->enrollments()->where('approval_status', 'pending')->count(),
+                'approved_enrollments' => $user->enrollments()->where('approval_status', 'approved')->count()
+            ]);
         }
 
         // Get approved enrollment if exists
@@ -265,11 +284,7 @@ class DashboardController extends Controller
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => !$user->language_selected,
-            'userDemoAccess' => $user->hasDemoAccess() ? [
-                'program_slug' => $user->demo_program_slug,
-                'expires_at' => $user->demo_expires_at,
-                'days_remaining' => $user->getDemoRemainingDays(),
-            ] : null,
+            'userDemoAccess' => $this->getUserDemoAccessForPendingEnrollments($user),
         ]);
     }
 
@@ -404,6 +419,50 @@ class DashboardController extends Controller
         return back();
     }
 
+
+    /**
+     * Get demo access info for users with pending enrollments
+     * Allow demo access even if technically expired, as long as user has demo_program_slug
+     */
+    private function getUserDemoAccessForPendingEnrollments($user)
+    {
+        // Check if user has regular demo access first
+        if ($user->hasDemoAccess()) {
+            \Log::info('User has regular demo access', [
+                'user_id' => $user->id,
+                'program_slug' => $user->demo_program_slug,
+                'days_remaining' => $user->getDemoRemainingDays(),
+            ]);
+            return [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => $user->demo_expires_at,
+                'days_remaining' => $user->getDemoRemainingDays(),
+            ];
+        }
+        
+        // If user has pending enrollments and a demo program slug, allow demo access
+        if ($user->enrollments()->where('approval_status', 'pending')->exists() && $user->demo_program_slug) {
+            \Log::info('User has pending enrollment with demo access', [
+                'user_id' => $user->id,
+                'program_slug' => $user->demo_program_slug,
+                'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
+            ]);
+            return [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => null, // No expiration while enrollment is pending
+                'days_remaining' => 999, // Indicate unlimited access while pending
+            ];
+        }
+        
+        \Log::info('User has no demo access', [
+            'user_id' => $user->id,
+            'has_regular_demo' => $user->hasDemoAccess(),
+            'demo_program_slug' => $user->demo_program_slug,
+            'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
+        ]);
+        
+        return null;
+    }
 
     public function mySchedule(Request $request)
     {

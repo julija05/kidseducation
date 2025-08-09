@@ -35,31 +35,38 @@ class LessonController extends Controller
         // Initialize enrollment variable
         $enrollment = null;
 
-        // Check demo access first
-        if ($user->isDemoAccount()) {
-            if (!$user->canAccessLessonInDemo($lesson)) {
-                return redirect()->route('demo.dashboard', $user->demo_program_slug)
-                    ->with('error', 'Demo access is limited to the first lesson only. Enroll for full access.');
-            }
-
-            // Check if demo has expired
-            if ($user->isDemoExpired()) {
-                Auth::logout();
-                return redirect()->route('demo.expired');
-            }
-        } else {
-            // Regular enrollment check for non-demo users
-            $enrollment = $this->enrollmentRepository->findActiveApprovedEnrollment($user, $lesson->program_id);
-
-            if (!$enrollment) {
-                return redirect()->route('programs.show', $lesson->program->slug)
-                    ->with('error', 'You need to be enrolled and approved to access lessons.');
-            }
-
-            // Check if lesson is unlocked for regular users
+        // PRIORITY 1: Check for regular enrollment first (trumps demo access)
+        $enrollment = $this->enrollmentRepository->findActiveApprovedEnrollment($user, $lesson->program_id);
+        
+        if ($enrollment) {
+            // User has approved enrollment - use regular enrollment logic
             if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
                 return redirect()->route('dashboard')
                     ->with('error', 'You need to complete previous level lessons to unlock this lesson.');
+            }
+        } else {
+            // PRIORITY 2: Check demo access (even with pending enrollments)
+            if ($user->isDemoAccount()) {
+                if (!$user->canAccessLessonInDemo($lesson)) {
+                    return redirect()->route('demo.dashboard', $user->demo_program_slug)
+                        ->with('error', 'Demo access is limited to the first lesson only. Enroll for full access.');
+                }
+
+                // Check if demo has expired
+                if ($user->isDemoExpired()) {
+                    Auth::logout();
+                    return redirect()->route('demo.expired');
+                }
+            } else {
+                // PRIORITY 3: Check if user has pending enrollment - redirect to dashboard
+                if ($user->enrollments()->where('approval_status', 'pending')->exists()) {
+                    return redirect()->route('dashboard')
+                        ->with('error', 'You have a pending enrollment. Please wait for approval to access lessons.');
+                }
+                
+                // User has no enrollment and no demo access
+                return redirect()->route('programs.show', $lesson->program->slug)
+                    ->with('error', 'You need to be enrolled and approved to access lessons.');
             }
         }
 
@@ -101,23 +108,30 @@ class LessonController extends Controller
     {
         $user = $request->user();
 
-        // Check demo access first
-        if ($user->isDemoAccount()) {
-            if (!$user->canAccessLessonInDemo($lesson)) {
-                return response()->json(['error' => 'Demo access is limited to the first lesson only'], 403);
-            }
-
-            if ($user->isDemoExpired()) {
-                return response()->json(['error' => 'Demo access has expired'], 403);
-            }
-        } else {
-            // Regular enrollment check for non-demo users
-            if (!$this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
-                return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
-            }
-
+        // PRIORITY 1: Check for regular enrollment first (trumps demo access)
+        if ($this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
+            // User has approved enrollment - use regular enrollment logic
             if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
                 return response()->json(['error' => 'Lesson is not unlocked'], 403);
+            }
+        } else {
+            // PRIORITY 2: Check demo access (even with pending enrollments)
+            if ($user->isDemoAccount()) {
+                if (!$user->canAccessLessonInDemo($lesson)) {
+                    return response()->json(['error' => 'Demo access is limited to the first lesson only'], 403);
+                }
+
+                if ($user->isDemoExpired()) {
+                    return response()->json(['error' => 'Demo access has expired'], 403);
+                }
+            } else {
+                // PRIORITY 3: Check if user has pending enrollment
+                if ($user->enrollments()->where('approval_status', 'pending')->exists()) {
+                    return response()->json(['error' => 'You have a pending enrollment. Please wait for approval to access lessons.'], 403);
+                }
+                
+                // User has no enrollment and no demo access
+                return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
             }
         }
 
@@ -195,18 +209,26 @@ class LessonController extends Controller
 
         $user = $request->user();
 
-        // Check demo access first
-        if ($user->isDemoAccount()) {
-            if (!$user->canAccessLessonInDemo($lesson)) {
-                return response()->json(['error' => 'Demo access is limited to the first lesson only'], 403);
-            }
-
-            if ($user->isDemoExpired()) {
-                return response()->json(['error' => 'Demo access has expired'], 403);
-            }
+        // PRIORITY 1: Check for regular enrollment first (trumps demo access)
+        if ($this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
+            // User has approved enrollment - proceed with completion
         } else {
-            // Regular enrollment check for non-demo users
-            if (!$this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
+            // PRIORITY 2: Check demo access (even with pending enrollments)
+            if ($user->isDemoAccount()) {
+                if (!$user->canAccessLessonInDemo($lesson)) {
+                    return response()->json(['error' => 'Demo access is limited to the first lesson only'], 403);
+                }
+
+                if ($user->isDemoExpired()) {
+                    return response()->json(['error' => 'Demo access has expired'], 403);
+                }
+            } else {
+                // PRIORITY 3: Check if user has pending enrollment
+                if ($user->enrollments()->where('approval_status', 'pending')->exists()) {
+                    return response()->json(['error' => 'You have a pending enrollment. Please wait for approval to access lessons.'], 403);
+                }
+                
+                // User has no enrollment and no demo access
                 return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
             }
         }

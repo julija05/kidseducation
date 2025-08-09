@@ -64,14 +64,27 @@ class EnrollmentController extends Controller
             return back()->with('error', 'You already have an enrollment request for this program.');
         }
 
-        // Check if user has any other active enrollment
-        $activeEnrollment = $user->enrollments()
-            ->where('status', 'active')
-            ->where('approval_status', 'approved')
+        // Check if user has any pending or active enrollment (only one enrollment at a time)
+        $existingAnyEnrollment = $user->enrollments()
+            ->whereIn('approval_status', ['pending', 'approved'])
+            ->where('status', '!=', 'completed')
             ->first();
 
-        if ($activeEnrollment) {
-            return back()->with('error', 'You can only be enrolled in one program at a time. Please complete your current program first.');
+        if ($existingAnyEnrollment) {
+            $message = $existingAnyEnrollment->approval_status === 'pending' 
+                ? 'You already have a pending enrollment request. Please wait for approval or cancel your current request before enrolling in another program.'
+                : 'You can only be enrolled in one program at a time. Please complete your current program first.';
+            
+            Log::info('Enrollment blocked - user has existing enrollment', [
+                'user_id' => $user->id,
+                'existing_enrollment_id' => $existingAnyEnrollment->id,
+                'existing_program_id' => $existingAnyEnrollment->program_id,
+                'existing_approval_status' => $existingAnyEnrollment->approval_status,
+                'existing_status' => $existingAnyEnrollment->status,
+                'requested_program_id' => $program->id
+            ]);
+            
+            return back()->with('error', $message);
         }
 
         // Create new enrollment with pending approval status

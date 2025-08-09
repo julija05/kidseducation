@@ -20,10 +20,12 @@ class SetLocale
     {
         // Priority order: User preference > URL parameter > Session > Default
         $locale = null;
+        $userHasPreference = false;
         
         // Check if user is authenticated and has a language preference
         if (Auth::check() && Auth::user()->language_preference) {
             $locale = Auth::user()->language_preference;
+            $userHasPreference = true;
         }
         
         // Fall back to URL parameter, session, or default
@@ -39,7 +41,12 @@ class SetLocale
         
         // Set locale
         App::setLocale($locale);
-        Session::put('locale', $locale);
+        
+        // Only update session if user doesn't have a saved preference
+        // This prevents overriding user's saved language preference
+        if (!$userHasPreference) {
+            Session::put('locale', $locale);
+        }
         
         return $next($request);
     }

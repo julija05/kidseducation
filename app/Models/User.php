@@ -187,11 +187,17 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getDemoProgram()
     {
-        if (!$this->hasDemoAccess() || !$this->demo_program_slug) {
-            return null;
+        // Check if user has regular demo access
+        if ($this->hasDemoAccess() && $this->demo_program_slug) {
+            return Program::where('slug', $this->demo_program_slug)->first();
+        }
+        
+        // Check if user has pending enrollment with demo access
+        if ($this->enrollments()->where('approval_status', 'pending')->exists() && $this->demo_program_slug) {
+            return Program::where('slug', $this->demo_program_slug)->first();
         }
 
-        return Program::where('slug', $this->demo_program_slug)->first();
+        return null;
     }
 
     /**
@@ -199,17 +205,27 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function canAccessLessonInDemo($lesson): bool
     {
-        if (!$this->hasDemoAccess()) {
-            return false;
+        // Regular demo access
+        if ($this->hasDemoAccess()) {
+            $demoProgram = $this->getDemoProgram();
+            if (!$demoProgram || $lesson->program_id !== $demoProgram->id) {
+                return false;
+            }
+            // Only allow access to the first lesson (level 1, order_in_level 1)
+            return $lesson->level === 1 && $lesson->order_in_level === 1;
+        }
+        
+        // Special case: Users with pending enrollments can access demo if they have demo_program_slug
+        if ($this->enrollments()->where('approval_status', 'pending')->exists() && $this->demo_program_slug) {
+            $demoProgram = \App\Models\Program::where('slug', $this->demo_program_slug)->first();
+            if (!$demoProgram || $lesson->program_id !== $demoProgram->id) {
+                return false;
+            }
+            // Only allow access to the first lesson (level 1, order_in_level 1)
+            return $lesson->level === 1 && $lesson->order_in_level === 1;
         }
 
-        $demoProgram = $this->getDemoProgram();
-        if (!$demoProgram || $lesson->program_id !== $demoProgram->id) {
-            return false;
-        }
-
-        // Only allow access to the first lesson (level 1, order_in_level 1)
-        return $lesson->level === 1 && $lesson->order_in_level === 1;
+        return false;
     }
 
     /**
@@ -238,7 +254,13 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isDemoAccount(): bool
     {
-        return $this->is_demo_account || $this->hasDemoAccess();
+        // Regular demo accounts
+        if ($this->is_demo_account || $this->hasDemoAccess()) {
+            return true;
+        }
+        
+        // Users with pending enrollments but still have demo access
+        return $this->enrollments()->where('approval_status', 'pending')->exists() && $this->demo_program_slug;
     }
 
     /**
