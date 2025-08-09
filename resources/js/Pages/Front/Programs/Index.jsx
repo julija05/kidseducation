@@ -5,6 +5,7 @@ import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import { useTranslation } from "@/hooks/useTranslation";
 import { iconMap } from "@/Utils/iconMapping";
 import { BookOpen, Star, Sparkles, Clock, ArrowRight, Users, Award, Play } from "lucide-react";
+import StarRating from "@/Components/StarRating";
 
 const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments = [] }) => {
     const { t } = useTranslation();
@@ -126,8 +127,9 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                             const color = colors[index % colors.length];
                             const Icon = iconMap[program.icon] || BookOpen;
                             
-                            // Check user's enrollment and demo status for this program
+                            // Check user's enrollment and demo status
                             const userEnrollment = userEnrollments.find(enrollment => enrollment.program_id === program.id);
+                            const hasAnyEnrollment = userEnrollments.length > 0;
                             const hasActiveDemo = userDemoAccess && userDemoAccess.program_slug;
                             const isCurrentDemoProgram = hasActiveDemo && userDemoAccess.program_slug === program.slug;
                             
@@ -172,9 +174,19 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                                                 <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
                                                     {program.name}
                                                 </h3>
-                                                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-1">
+                                                <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-1">
                                                     {program.description}
                                                 </p>
+
+                                                {/* Rating */}
+                                                <div className="mb-4">
+                                                    <div className="flex items-center space-x-2">
+                                                        <StarRating rating={program.average_rating || 0} size={16} />
+                                                        <span className="text-sm text-gray-600">
+                                                            {program.average_rating > 0 ? `${program.average_rating} (${program.total_reviews_count} review${program.total_reviews_count !== 1 ? 's' : ''})` : 'No reviews yet'}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                                 
                                                 {/* Stats */}
                                                 <div className="space-y-4">
@@ -202,44 +214,72 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                                                     
                                                     {/* CTA Buttons */}
                                                     <div className="space-y-2">
-                                                        {/* Demo Button Logic */}
-                                                        {userEnrollment ? (
-                                                            // User has enrollment - no demo button
-                                                            null
-                                                        ) : hasActiveDemo && !isCurrentDemoProgram ? (
-                                                            // User has demo for different program - disabled
-                                                            <div className="w-full bg-gray-300 text-gray-500 text-center py-2.5 px-4 rounded-xl font-medium text-sm flex items-center justify-center space-x-2 cursor-not-allowed">
-                                                                <Play size={16} />
-                                                                <span>{t('demo.one_demo_only')}</span>
-                                                            </div>
-                                                        ) : isCurrentDemoProgram ? (
-                                                            // User has active demo for this program - continue
-                                                            <Link 
-                                                                href={`/demo/${program.slug}/dashboard`}
-                                                                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-2.5 px-4 rounded-xl font-medium text-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group/demo"
-                                                            >
-                                                                <Play size={16} className="group-hover/demo:scale-110 transition-transform duration-300" />
-                                                                <span>{t('demo.continue_demo')}</span>
-                                                            </Link>
-                                                        ) : (
-                                                            // Normal demo button
-                                                            <Link 
-                                                                href={route('demo.access', program.slug)}
-                                                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-center py-2.5 px-4 rounded-xl font-medium text-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group/demo"
-                                                            >
-                                                                <Play size={16} className="group-hover/demo:scale-110 transition-transform duration-300" />
-                                                                <span>{t('demo.try')} {t('demo.start_free_demo')}</span>
-                                                            </Link>
+                                                        {/* Demo Button Logic - Only show for users with no enrollments */}
+                                                        {!hasAnyEnrollment && (
+                                                            <>
+                                                                {hasActiveDemo && !isCurrentDemoProgram ? (
+                                                                    // User has demo for different program - disabled
+                                                                    <div className="w-full bg-gray-300 text-gray-500 text-center py-2.5 px-4 rounded-xl font-medium text-sm flex items-center justify-center space-x-2 cursor-not-allowed">
+                                                                        <Play size={16} />
+                                                                        <span>{t('demo.one_demo_only')}</span>
+                                                                    </div>
+                                                                ) : isCurrentDemoProgram ? (
+                                                                    // User has active demo for this program - continue
+                                                                    <Link 
+                                                                        href={`/demo/${program.slug}/dashboard`}
+                                                                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-2.5 px-4 rounded-xl font-medium text-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group/demo"
+                                                                    >
+                                                                        <Play size={16} className="group-hover/demo:scale-110 transition-transform duration-300" />
+                                                                        <span>{t('demo.continue_demo')}</span>
+                                                                    </Link>
+                                                                ) : (
+                                                                    // Normal demo button
+                                                                    <Link 
+                                                                        href={route('demo.access', program.slug)}
+                                                                        className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white text-center py-2.5 px-4 rounded-xl font-medium text-sm hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group/demo"
+                                                                    >
+                                                                        <Play size={16} className="group-hover/demo:scale-110 transition-transform duration-300" />
+                                                                        <span>{t('demo.try')} {t('demo.start_free_demo')}</span>
+                                                                    </Link>
+                                                                )}
+                                                            </>
                                                         )}
                                                         
                                                         {/* Main CTA Button */}
-                                                        <Link 
-                                                            href={route("programs.show", program.slug)}
-                                                            className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}
-                                                        >
-                                                            <span>{t('programs_page.start_learning')}</span>
-                                                            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
-                                                        </Link>
+                                                        {userEnrollment && userEnrollment.approval_status === 'approved' ? (
+                                                            // Enrolled and approved in THIS program - go to dashboard
+                                                            <Link 
+                                                                href={route("dashboard")}
+                                                                className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}
+                                                            >
+                                                                <span>Go to Dashboard</span>
+                                                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                                            </Link>
+                                                        ) : userEnrollment && userEnrollment.approval_status === 'pending' ? (
+                                                            // Pending enrollment for THIS program
+                                                            <div className="bg-yellow-500 text-white text-center py-3 px-4 rounded-xl font-medium text-sm flex items-center justify-center space-x-2">
+                                                                <Clock size={16} />
+                                                                <span>Enrollment Pending</span>
+                                                            </div>
+                                                        ) : hasAnyEnrollment ? (
+                                                            // User is enrolled in ANOTHER program - just show details
+                                                            <Link 
+                                                                href={route("programs.show", program.slug)}
+                                                                className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}
+                                                            >
+                                                                <span>View Details</span>
+                                                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                                            </Link>
+                                                        ) : (
+                                                            // Not enrolled in any program - show normal enrollment button
+                                                            <Link 
+                                                                href={route("programs.show", program.slug)}
+                                                                className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}
+                                                            >
+                                                                <span>{t('programs_page.start_learning')}</span>
+                                                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                                            </Link>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

@@ -6,6 +6,7 @@ use App\Models\Lesson;
 use App\Services\LessonService;
 use App\Services\EnrollmentService;
 use App\Services\LessonFormatterService;
+use App\Services\ProgramService;
 use App\Repositories\Interfaces\EnrollmentRepositoryInterface;
 use App\Repositories\Interfaces\LessonRepositoryInterface;
 use App\Repositories\Interfaces\LessonProgressRepositoryInterface;
@@ -23,7 +24,8 @@ class LessonController extends Controller
         private LessonFormatterService $formatterService,
         private EnrollmentRepositoryInterface $enrollmentRepository,
         private LessonRepositoryInterface $lessonRepository,
-        private LessonProgressRepositoryInterface $progressRepository
+        private LessonProgressRepositoryInterface $progressRepository,
+        private ProgramService $programService
     ) {}
 
     public function show(Lesson $lesson)
@@ -56,7 +58,7 @@ class LessonController extends Controller
 
             // Check if lesson is unlocked for regular users
             if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
-                return redirect()->route('dashboard.programs.show', $lesson->program->slug)
+                return redirect()->route('dashboard')
                     ->with('error', 'You need to complete previous level lessons to unlock this lesson.');
             }
         }
@@ -179,6 +181,14 @@ class LessonController extends Controller
 
     public function complete(Request $request, Lesson $lesson)
     {
+        \Log::info('=== LESSON COMPLETION ENDPOINT CALLED ===', [
+            'lesson_id' => $lesson->id,
+            'user_id' => $request->user()->id,
+            'method' => $request->method(),
+            'url' => $request->url(),
+            'all_input' => $request->all()
+        ]);
+
         $request->validate([
             'score' => 'nullable|numeric|min:0|max:100',
         ]);
@@ -214,6 +224,9 @@ class LessonController extends Controller
             $nextLesson = $this->lessonService->getNextLessonForUser($lesson, $user);
             $levelCompleted = $this->lessonService->isLevelCompletedByUser($lesson, $user);
 
+            // Check if this lesson completion should trigger a review prompt
+            $shouldPromptReview = $this->shouldPromptReviewAfterLesson($lesson, $user);
+
             DB::commit();
 
             return response()->json([
@@ -228,10 +241,64 @@ class LessonController extends Controller
                     'url' => route('lessons.show', $nextLesson->id)
                 ] : null,
                 'level_completed' => $levelCompleted,
+                'shouldPromptReview' => $shouldPromptReview,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Check if completing this lesson should prompt for a review
+     */
+    private function shouldPromptReviewAfterLesson(Lesson $lesson, $user): bool
+    {
+        $program = $lesson->program;
+        
+        // Check if user already has a review for this program
+        $existingReview = $user->reviews()
+            ->where('reviewable_type', \App\Models\Program::class)
+            ->where('reviewable_id', $program->id)
+            ->exists();
+            
+        if ($existingReview) {
+            Log::info('Review prompt: User already has review', [
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+            ]);
+            return false; // User already reviewed this program
+        }
+        
+        // Get total lessons in the program
+        $totalLessons = $this->programService->getTotalLessonsCount($program);
+        
+        if ($totalLessons < 2) {
+            Log::info('Review prompt: Not enough lessons', [
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+                'total_lessons' => $totalLessons,
+            ]);
+            return false; // Not enough lessons to have a "second-to-last"
+        }
+        
+        // Get completed lessons count for this user (after this completion)
+        $completedLessons = $this->programService->getCompletedLessonsCountForUser($program, $user);
+        
+        // Check if user just completed the second-to-last lesson
+        // (completedLessons should equal totalLessons - 1)
+        $shouldPrompt = $completedLessons === ($totalLessons - 1);
+        
+        Log::info('Review prompt decision', [
+            'user_id' => $user->id,
+            'program_id' => $program->id,
+            'lesson_id' => $lesson->id,
+            'total_lessons' => $totalLessons,
+            'completed_lessons' => $completedLessons,
+            'should_prompt' => $shouldPrompt,
+            'calculation' => "completed_lessons ($completedLessons) === (total_lessons ($totalLessons) - 1)"
+        ]);
+        
+        return $shouldPrompt;
     }
 }

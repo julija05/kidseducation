@@ -34,7 +34,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         
                         {/* View Details Button */}
                         <Link
-                            href={route("dashboard.programs.show", program.slug)}
+                            href={route("programs.show", program.slug)}
                             className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
                             style={{
                                 background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
@@ -60,7 +60,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         
                         {/* View Details Button */}
                         <Link
-                            href={route("dashboard.programs.show", program.slug)}
+                            href={route("programs.show", program.slug)}
                             className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
                             style={{
                                 background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
@@ -86,7 +86,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         
                         {/* View Details Button */}
                         <Link
-                            href={route("dashboard.programs.show", program.slug)}
+                            href={route("programs.show", program.slug)}
                             className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
                             style={{
                                 background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
@@ -117,7 +117,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                     <button
                         onClick={() =>
                             router.visit(
-                                route("dashboard.programs.show", program.slug)
+                                route("dashboard")
                             )
                         }
                         className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -138,7 +138,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
             default:
                 return (
                     <Link
-                        href={route("dashboard.programs.show", program.slug)}
+                        href={route("programs.show", program.slug)}
                         className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
                         style={{
                             background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'

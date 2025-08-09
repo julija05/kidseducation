@@ -7,6 +7,7 @@ import StartLessonPrompt from "@/Components/Lessons/StartLessonPrompt";
 import LessonContent from "@/Components/Lessons/LessonContent";
 import LessonNavigation from "@/Components/Lessons/LessonNavigation";
 import LessonCompletionModal from "@/Components/Lessons/LessonCompletionModal";
+import ReviewPromptModal from "@/Components/ReviewPromptModal";
 import useLessonProgress from "@/hooks/useLessonProgress";
 import useResourceSelection from "@/hooks/useResourceSelection";
 
@@ -56,15 +57,46 @@ export default function LessonShow({
 
     const [showCompletionModal, setShowCompletionModal] = useState(false);
     const [completionData, setCompletionData] = useState(null);
+    const [showReviewPrompt, setShowReviewPrompt] = useState(false);
 
     const handleCompleteLesson = async (score = null) => {
+        console.log('=== LESSON COMPLETION STARTED ===');
+        console.log('Lesson ID:', lesson.id);
+        console.log('Program:', program);
+        console.log('Score:', score);
+        
         const result = await completeLesson(score);
 
+        console.log('=== LESSON COMPLETION RESULT ===');
+        console.log('Full result object:', JSON.stringify(result, null, 2));
+
         if (result) {
-            // Show the completion modal instead of alert/confirm
-            setCompletionData({ nextLesson, program });
-            setShowCompletionModal(true);
+            console.log('Result exists - checking shouldPromptReview flag...');
+            console.log('shouldPromptReview value:', result.shouldPromptReview);
+            console.log('shouldPromptReview type:', typeof result.shouldPromptReview);
+            console.log('shouldPromptReview === true:', result.shouldPromptReview === true);
+            
+            // Check if we should show the review prompt
+            if (result.shouldPromptReview === true) {
+                console.log('✅ SHOWING REVIEW PROMPT MODAL');
+                setShowReviewPrompt(true);
+            } else {
+                console.log('❌ NOT SHOWING REVIEW PROMPT - showing normal completion modal');
+                console.log('Reason: shouldPromptReview is', result.shouldPromptReview);
+                // Show the normal completion modal
+                setCompletionData({ nextLesson, program });
+                setShowCompletionModal(true);
+            }
+        } else {
+            console.log('❌ No result from completeLesson function');
         }
+    };
+
+    const handleReviewPromptClose = () => {
+        setShowReviewPrompt(false);
+        // After closing review prompt, show completion modal
+        setCompletionData({ nextLesson, program });
+        setShowCompletionModal(true);
     };
 
     const handleProceedToNext = () => {
@@ -153,6 +185,17 @@ export default function LessonShow({
                     currentProgress={currentProgress}
                 />
             </div>
+
+            {/* Review Prompt Modal */}
+            <ReviewPromptModal
+                program={{
+                    id: program?.id,
+                    name: program?.name || program?.translated_name,
+                    slug: program?.slug
+                }}
+                isOpen={showReviewPrompt}
+                onClose={handleReviewPromptClose}
+            />
 
             {/* Lesson Completion Modal */}
             <LessonCompletionModal
