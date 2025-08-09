@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Traits\HasTranslations;
 
 class Program extends Model
@@ -61,6 +62,37 @@ class Program extends Model
     public function lessons(): HasMany
     {
         return $this->hasMany(Lesson::class);
+    }
+
+    public function reviews(): MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function approvedReviews(): MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable')->approved();
+    }
+
+    // Review-related methods
+    public function getAverageRatingAttribute(): float
+    {
+        return $this->approvedReviews()->avg('rating') ?? 0;
+    }
+
+    public function getTotalReviewsCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    public function getTopReviewsAttribute()
+    {
+        return $this->approvedReviews()
+            ->with('user')
+            ->orderBy('rating', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
     }
 
     // Scopes

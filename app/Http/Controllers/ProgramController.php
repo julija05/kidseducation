@@ -22,7 +22,7 @@ class ProgramController extends Controller
      */
     public function index()
     {
-        $programs = Program::active()->get()->map(function ($program) {
+        $programs = Program::active()->withCount('approvedReviews')->get()->map(function ($program) {
             return [
                 'id' => $program->id,
                 'name' => $program->translated_name,
@@ -35,6 +35,8 @@ class ProgramController extends Controller
                 'duration' => $program->duration,
                 'duration_weeks' => $program->duration_weeks,
                 'price' => $program->price,
+                'average_rating' => round($program->average_rating, 1),
+                'total_reviews_count' => $program->approved_reviews_count,
             ];
         });
 
@@ -100,18 +102,52 @@ class ProgramController extends Controller
 
             // If enrolled and approved, redirect to dashboard
             if ($userEnrollment && $this->enrollmentService->isEnrollmentActiveAndApproved($userEnrollment)) {
-                return redirect()->route('dashboard.programs.show', $program->slug);
+                return redirect()->route('dashboard');
             }
         }
 
 
         $userEnrollment = null;
+        $canReview = false;
+        $userReview = null;
+        $hasAnyEnrollment = false;
 
         if (Auth::user() && Auth::user()->hasRole('student')) {
-            $userEnrollment = Auth::user()->enrollments()
+            $user = Auth::user();
+            $userEnrollment = $user->enrollments()
                 ->where('program_id', $program->id)
                 ->first();
+
+            // Check if user has any enrollments at all
+            $hasAnyEnrollment = $user->enrollments()->exists();
+
+            // Check if user can review (enrolled and approved, no existing review)
+            if ($userEnrollment && $userEnrollment->approval_status === 'approved') {
+                $userReview = $user->reviews()
+                    ->where('reviewable_type', Program::class)
+                    ->where('reviewable_id', $program->id)
+                    ->first();
+                
+                $canReview = !$userReview;
+            }
         }
+
+        // Get top 3 reviews for this program
+        $topReviews = $program->approvedReviews()
+            ->with('user')
+            ->orderBy('rating', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get()
+            ->map(function ($review) {
+                return [
+                    'id' => $review->id,
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
+                    'created_at' => $review->created_at,
+                    'user_name' => $review->user->name,
+                ];
+            });
 
         return $this->createView('Front/Programs/Show', [
             'program' => [
@@ -126,9 +162,20 @@ class ProgramController extends Controller
                 'duration' => $program->duration,
                 'duration_weeks' => $program->duration_weeks,
                 'price' => $program->price,
+                'average_rating' => round($program->average_rating, 1),
+                'total_reviews_count' => $program->total_reviews_count,
             ],
             'pageTitle' => $program->translated_name,
             'userEnrollment' => $userEnrollment,
+            'hasAnyEnrollment' => $hasAnyEnrollment,
+            'canReview' => $canReview,
+            'userReview' => $userReview ? [
+                'id' => $userReview->id,
+                'rating' => $userReview->rating,
+                'comment' => $userReview->comment,
+                'created_at' => $userReview->created_at,
+            ] : null,
+            'topReviews' => $topReviews,
         ]);
     }
 

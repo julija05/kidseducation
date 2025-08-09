@@ -9,9 +9,11 @@ use Inertia\Inertia;
 use App\Models\Lesson;
 use App\Models\ClassSchedule;
 use App\Models\Notification;
+use App\Models\User;
 use App\Services\EnrollmentService;
 use App\Services\LessonService;
 use App\Services\NotificationService;
+use App\Services\ProgramService;
 
 class DashboardController extends Controller
 {
@@ -19,7 +21,8 @@ class DashboardController extends Controller
         private EnrollmentService $enrollmentService,
         private LessonService $lessonService,
         private ResourceService $resourceService,
-        private NotificationService $notificationService
+        private NotificationService $notificationService,
+        private ProgramService $programService
     ) {}
 
     public function index(Request $request)
@@ -184,6 +187,24 @@ class DashboardController extends Controller
             }
         }
 
+        // Get review data for the enrolled program
+        $program = $enrollment->program;
+        $userReview = $user->reviews()
+            ->where('reviewable_type', \App\Models\Program::class)
+            ->where('reviewable_id', $program->id)
+            ->first();
+        
+        $canReview = !$userReview;
+        
+        // Check if program was recently completed and user hasn't reviewed yet
+        $shouldPromptReview = false;
+        if ($enrollment->status === 'completed' && 
+            $enrollment->completed_at && 
+            $enrollment->completed_at->isAfter(now()->subDays(7)) && 
+            !$userReview) {
+            $shouldPromptReview = true;
+        }
+
         return $this->createView('Dashboard', [
             'enrolledProgram' => $enrolledProgramData,
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
@@ -192,6 +213,22 @@ class DashboardController extends Controller
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => !$user->language_selected,
+            'canReview' => $canReview,
+            'userReview' => $userReview ? [
+                'id' => $userReview->id,
+                'rating' => $userReview->rating,
+                'comment' => $userReview->comment,
+                'created_at' => $userReview->created_at,
+            ] : null,
+            'shouldPromptReview' => $shouldPromptReview,
+            'program' => [
+                'id' => $program->id,
+                'name' => $program->name,
+                'translated_name' => $program->translated_name,
+                'slug' => $program->slug,
+                'description' => $program->description,
+                'translated_description' => $program->translated_description,
+            ],
         ]);
     }
 
@@ -309,11 +346,47 @@ class DashboardController extends Controller
         // Complete the lesson
         $progress = $this->lessonService->completeLessonForUser($lesson, $user, $request->score ?? null);
 
+        // Check if this lesson completion should trigger a review prompt
+        $shouldPromptReview = $this->shouldPromptReviewAfterLesson($lesson, $user);
+
         return response()->json([
             'success' => true,
             'progress' => $progress,
-            'enrollment_progress' => $enrollment->fresh()->progress
+            'enrollment_progress' => $enrollment->fresh()->progress,
+            'shouldPromptReview' => $shouldPromptReview
         ]);
+    }
+
+    /**
+     * Check if completing this lesson should prompt for a review
+     */
+    private function shouldPromptReviewAfterLesson(Lesson $lesson, User $user): bool
+    {
+        $program = $lesson->program;
+        
+        // Check if user already has a review for this program
+        $existingReview = $user->reviews()
+            ->where('reviewable_type', \App\Models\Program::class)
+            ->where('reviewable_id', $program->id)
+            ->exists();
+            
+        if ($existingReview) {
+            return false; // User already reviewed this program
+        }
+        
+        // Get total lessons in the program
+        $totalLessons = $this->programService->getTotalLessonsCount($program);
+        
+        if ($totalLessons < 2) {
+            return false; // Not enough lessons to have a "second-to-last"
+        }
+        
+        // Get completed lessons count for this user (after this completion)
+        $completedLessons = $this->programService->getCompletedLessonsCountForUser($program, $user);
+        
+        // Check if user just completed the second-to-last lesson
+        // (completedLessons should equal totalLessons - 1)
+        return $completedLessons === ($totalLessons - 1);
     }
 
     public function markAllNotificationsAsRead(Request $request)
@@ -331,49 +404,6 @@ class DashboardController extends Controller
         return back();
     }
 
-    public function showProgram(Request $request, $programSlug)
-    {
-        $user = $request->user();
-        $program = \App\Models\Program::where('slug', $programSlug)->firstOrFail();
-        
-        // Get user's enrollment status for this program
-        $userEnrollment = $user->enrollments()
-            ->where('program_id', $program->id)
-            ->first();
-            
-        // Determine enrollment status
-        $enrollmentStatus = 'not_enrolled';
-        $enrolledProgram = null;
-
-        if ($userEnrollment) {
-            if ($userEnrollment->approval_status === 'approved' && $userEnrollment->status === 'active') {
-                $enrollmentStatus = 'approved';
-                $enrolledProgram = $this->enrollmentService->formatEnrollmentForDashboard($userEnrollment);
-            } elseif ($userEnrollment->approval_status === 'pending') {
-                $enrollmentStatus = 'pending';
-            } elseif ($userEnrollment->approval_status === 'rejected') {
-                $enrollmentStatus = 'rejected';
-            }
-        }
-        
-        // Get student data
-        $studentData = $this->getStudentData($user);
-        
-        return $this->createView('Dashboard/Programs/Show', [
-            'program' => [
-                'id' => $program->id,
-                'name' => $program->name,
-                'translated_name' => $program->translated_name,
-                'slug' => $program->slug,
-                'description' => $program->description,
-                'translated_description' => $program->translated_description,
-            ],
-            'userEnrollment' => $userEnrollment,
-            'enrolledProgram' => $enrolledProgram,
-            'enrollmentStatus' => $enrollmentStatus,
-            'nextClass' => $studentData['nextScheduledClass'] ?? null,
-        ]);
-    }
 
     public function mySchedule(Request $request)
     {
