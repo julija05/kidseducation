@@ -6,9 +6,11 @@ import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import StarRating from "@/Components/StarRating";
 import ReviewCard from "@/Components/ReviewCard";
 import { MessageSquare, Plus } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramDetail({ auth }) {
-    const { program, userEnrollment, hasAnyEnrollment, canReview, userReview, topReviews } = usePage().props;
+    const { program, userEnrollment, hasAnyEnrollment, hasAnyActiveEnrollment, canReview, userReview, topReviews } = usePage().props;
+    const { t } = useTranslation();
 
     const handleEnrollClick = () => {
         // Save program ID to session storage before redirecting
@@ -174,21 +176,26 @@ export default function ProgramDetail({ auth }) {
         }
 
         // Logged in but not enrolled in this program
-        if (hasAnyEnrollment) {
-            // User is enrolled in another program - just show program info
+        if (hasAnyActiveEnrollment) {
+            // User has an active enrollment in another program - show restriction message
             return (
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl shadow-lg p-8 mt-8">
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                            Program Information
+                            Enrollment Restricted
                         </h2>
                         <p className="text-lg text-gray-600 mb-6">
-                            You're currently enrolled in another program. You can view the details of{" "}
+                            You currently have a pending enrollment or are enrolled in another program. You can view the details of{" "}
                             <strong>{program.name}</strong> below, but enrollment is limited to one program at a time.
                         </p>
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
                             <p className="text-sm text-blue-700">
-                                💡 Complete your current program to unlock enrollment in additional programs.
+                                💡 Complete your current program or wait for approval to unlock enrollment in additional programs.
+                            </p>
+                        </div>
+                        <div className="mt-6 p-4 border-t border-gray-200">
+                            <p className="text-sm text-gray-600 mb-3 text-center">
+                                Demo access is also restricted while you have an active enrollment.
                             </p>
                         </div>
                     </div>
@@ -229,7 +236,7 @@ export default function ProgramDetail({ auth }) {
                     <div className="flex items-center space-x-3">
                         <MessageSquare className="text-blue-600" size={24} />
                         <h3 className="text-2xl font-bold text-gray-900">
-                            Student Reviews
+                            {t('reviews.student_reviews')}
                         </h3>
                     </div>
                     
@@ -247,11 +254,11 @@ export default function ProgramDetail({ auth }) {
                 {auth.user && userReview && (
                     <div className="mb-6">
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 className="font-medium text-blue-900 mb-2">Your Review</h4>
+                            <h4 className="font-medium text-blue-900 mb-2">{t('reviews.your_review')}</h4>
                             <ReviewCard review={userReview} showUserName={false} />
                             <div className="mt-3">
                                 <p className="text-sm text-blue-700">
-                                    Manage your review from your <Link href={route('dashboard')} className="underline font-medium">student dashboard</Link>.
+                                    {t('reviews.manage_review_from_dashboard')} <Link href={route('dashboard')} className="underline font-medium">{t('reviews.student_dashboard')}</Link>.
                                 </p>
                             </div>
                         </div>
@@ -261,7 +268,7 @@ export default function ProgramDetail({ auth }) {
                 {/* Reviews List */}
                 {topReviews && topReviews.length > 0 ? (
                     <div className="space-y-4">
-                        <h4 className="font-medium text-gray-900">Recent Reviews</h4>
+                        <h4 className="font-medium text-gray-900">{t('reviews.recent_reviews')}</h4>
                         <div className="grid gap-4">
                             {topReviews.map((review) => (
                                 <ReviewCard key={review.id} review={review} />
@@ -271,7 +278,7 @@ export default function ProgramDetail({ auth }) {
                         {program.total_reviews_count > 3 && (
                             <div className="text-center pt-4">
                                 <p className="text-gray-600 text-sm">
-                                    Showing 3 of {program.total_reviews_count} reviews
+                                    {t('reviews.showing_reviews_of', { shown: 3, total: program.total_reviews_count })}
                                 </p>
                             </div>
                         )}
@@ -279,9 +286,9 @@ export default function ProgramDetail({ auth }) {
                 ) : (
                     <div className="text-center py-8">
                         <MessageSquare className="mx-auto text-gray-400 mb-3" size={48} />
-                        <h4 className="text-lg font-medium text-gray-600 mb-2">No Reviews Yet</h4>
+                        <h4 className="text-lg font-medium text-gray-600 mb-2">{t('reviews.no_reviews_yet')}</h4>
                         <p className="text-gray-500">
-                            Be the first to share your experience with this program!
+                            {t('reviews.be_first_to_share')}
                         </p>
                     </div>
                 )}

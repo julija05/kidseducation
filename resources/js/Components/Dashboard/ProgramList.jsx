@@ -14,14 +14,80 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
         return acc;
     }, {});
 
+    // Check if user has any pending or active enrollments (only one enrollment at a time)
+    const hasAnyActiveEnrollment = userEnrollments.some(enrollment => 
+        (enrollment.approval_status === 'pending' || 
+         (enrollment.approval_status === 'approved' && enrollment.status !== 'completed'))
+    );
+    
+    // Check if user has any pending enrollments specifically
+    const hasPendingEnrollments = userEnrollments.some(enrollment => 
+        enrollment.approval_status === 'pending'
+    );
+
     const getButtonContent = (program) => {
         const enrollment = enrollmentMap[program.id];
 
         if (!enrollment) {
-            // Not enrolled - check demo access
+            // Not enrolled - check if user has pending enrollments or demo access
             const hasActiveDemo = userDemoAccess && userDemoAccess.program_slug;
             const isCurrentDemoProgram = hasActiveDemo && userDemoAccess.program_slug === program.slug;
             
+            // If user has pending enrollments, only show demo access for their current demo program
+            if (hasPendingEnrollments) {
+                if (isCurrentDemoProgram) {
+                    // User has pending enrollment AND this is their demo program - show "Back to Demo"
+                    return (
+                        <div className="space-y-3">
+                            {/* Back to Demo Button */}
+                            <Link
+                                href={`/demo/${program.slug}/dashboard`}
+                                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
+                            >
+                                <Play size={20} className="mr-2" />
+                                {t('demo.back_to_demo')}
+                            </Link>
+                            
+                            {/* View Details Button */}
+                            <Link
+                                href={route("programs.show", program.slug)}
+                                className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                                style={{
+                                    background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                                }}
+                            >
+                                🔍 {t('dashboard.explore_adventure')}
+                                <ArrowRight size={18} className="ml-2" />
+                            </Link>
+                        </div>
+                    );
+                } else {
+                    // User has pending enrollment but this is NOT their demo program - only show view details
+                    return (
+                        <div className="space-y-3">
+                            {/* Disabled message */}
+                            <div className="w-full bg-gray-300 text-gray-600 py-3 rounded-xl font-medium text-base flex items-center justify-center shadow-md cursor-not-allowed">
+                                <Clock size={20} className="mr-2" />
+                                {t('dashboard.enrollment_pending_other')}
+                            </div>
+                            
+                            {/* View Details Button */}
+                            <Link
+                                href={route("programs.show", program.slug)}
+                                className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                                style={{
+                                    background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                                }}
+                            >
+                                🔍 {t('dashboard.explore_adventure')}
+                                <ArrowRight size={18} className="ml-2" />
+                            </Link>
+                        </div>
+                    );
+                }
+            }
+            
+            // User has no pending enrollments - show normal demo/enroll logic
             if (hasActiveDemo && !isCurrentDemoProgram) {
                 // User has demo for different program - show disabled state
                 return (
@@ -50,13 +116,13 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                 return (
                     <div className="space-y-3">
                         {/* Continue Demo Button */}
-                        <a
+                        <Link
                             href={`/demo/${program.slug}/dashboard`}
                             className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
                         >
                             <Play size={20} className="mr-2" />
                             🎮 {t('demo.continue_demo')}
-                        </a>
+                        </Link>
                         
                         {/* View Details Button */}
                         <Link
@@ -76,13 +142,20 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                 return (
                     <div className="space-y-3">
                         {/* Demo Button */}
-                        <a
-                            href={`/demo/${program.slug}`}
-                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
-                        >
-                            <Play size={20} className="mr-2" />
-                            🎮 {t('demo.try')} {t('demo.start_free_demo')}
-                        </a>
+                        {hasAnyActiveEnrollment ? (
+                            <div className="w-full bg-gray-300 text-gray-600 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed">
+                                <Clock size={20} className="mr-2" />
+                                {t('dashboard.enrollment_pending_other')}
+                            </div>
+                        ) : (
+                            <Link
+                                href={`/demo/${program.slug}`}
+                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
+                            >
+                                <Play size={20} className="mr-2" />
+                                🎮 {t('demo.try')} {t('demo.start_free_demo')}
+                            </Link>
+                        )}
                         
                         {/* View Details Button */}
                         <Link

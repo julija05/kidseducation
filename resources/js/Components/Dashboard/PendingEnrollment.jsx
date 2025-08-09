@@ -1,13 +1,16 @@
 // resources/js/Components/Dashboard/PendingEnrollment.jsx
 import React, { useState } from "react";
-import { router } from "@inertiajs/react";
-import { AlertCircle, X, BookOpen } from "lucide-react";
+import { router, Link } from "@inertiajs/react";
+import { AlertCircle, X, BookOpen, Play } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 import { useTranslation } from "@/hooks/useTranslation";
 
-export default function PendingEnrollment({ enrollment }) {
+export default function PendingEnrollment({ enrollment, userDemoAccess }) {
     const { t } = useTranslation();
     const [isCanceling, setIsCanceling] = useState(false);
+
+    // Debug logging
+    console.log('PendingEnrollment rendered with userDemoAccess:', userDemoAccess);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const program = enrollment?.program || {};
 
@@ -63,9 +66,28 @@ export default function PendingEnrollment({ enrollment }) {
                     <p className="text-lg text-yellow-700 mb-6">
                         {t('dashboard.enrollment_request_sent', { program: program.name || 'this program' })}
                     </p>
-                    <p className="text-yellow-600 mb-8">
+                    <p className="text-yellow-600 mb-6">
                         {t('dashboard.enrollment_review_message')}
                     </p>
+
+                    {/* Return to Demo Button */}
+                    {userDemoAccess && (
+                        <div className="mb-6">
+                            <Link
+                                href={`/demo/${userDemoAccess.program_slug}/dashboard`}
+                                className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 font-medium transition-all transform hover:scale-105 shadow-lg"
+                            >
+                                <Play size={20} />
+                                <span>Return to Demo</span>
+                            </Link>
+                            <p className="text-sm text-yellow-600 mt-2">
+                                Continue exploring while waiting for approval
+                                {userDemoAccess.days_remaining > 0 && (
+                                    <> • {userDemoAccess.days_remaining} days remaining</>
+                                )}
+                            </p>
+                        </div>
+                    )}
 
                     <div
                         className={`${lightColor} rounded-lg p-6 inline-block`}

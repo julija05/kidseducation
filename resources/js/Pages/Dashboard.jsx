@@ -281,7 +281,10 @@ export default function Dashboard() {
 
                 {/* Show pending enrollment notification if exists */}
                 {pendingEnrollments && pendingEnrollments.length > 0 && (
-                    <PendingEnrollment enrollment={pendingEnrollments[0]} />
+                    <PendingEnrollment 
+                        enrollment={pendingEnrollments[0]} 
+                        userDemoAccess={props.userDemoAccess || null}
+                    />
                 )}
 
                 {/* Always show available programs */}

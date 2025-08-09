@@ -45,7 +45,12 @@ class EnrollmentService
      */
     public function isEnrollmentActiveAndApproved(Enrollment $enrollment): bool
     {
-        return $enrollment->status === 'active' && $enrollment->approval_status === 'approved';
+        // An enrollment is considered "active and approved" if it's approved and either active or paused
+        // 'paused' is for approved users who haven't started yet
+        // 'active' is for users currently learning  
+        // 'completed' users should not be redirected to dashboard automatically
+        return $enrollment->approval_status === 'approved' && 
+               in_array($enrollment->status, ['active', 'paused']);
     }
 
     /**

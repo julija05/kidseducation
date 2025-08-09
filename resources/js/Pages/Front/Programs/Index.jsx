@@ -128,10 +128,26 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                             const Icon = iconMap[program.icon] || BookOpen;
                             
                             // Check user's enrollment and demo status
-                            const userEnrollment = userEnrollments.find(enrollment => enrollment.program_id === program.id);
+                            const userEnrollment = userEnrollments.find(enrollment => {
+                                // Ensure both values are compared as the same type (numbers)
+                                return parseInt(enrollment.program_id) === parseInt(program.id);
+                            });
                             const hasAnyEnrollment = userEnrollments.length > 0;
                             const hasActiveDemo = userDemoAccess && userDemoAccess.program_slug;
                             const isCurrentDemoProgram = hasActiveDemo && userDemoAccess.program_slug === program.slug;
+
+                            // Debug logging for troubleshooting
+                            if (hasAnyEnrollment && index === 0) { // Only log for first program to avoid spam
+                                console.log('Enrollment Debug:', {
+                                    programId: program.id,
+                                    programName: program.name,
+                                    userEnrollments: userEnrollments,
+                                    userEnrollment: userEnrollment,
+                                    hasAnyEnrollment: hasAnyEnrollment,
+                                    isActive: userEnrollment?.status === 'active',
+                                    isApproved: userEnrollment?.approval_status === 'approved'
+                                });
+                            }
                             
                             return (
                                 <motion.div
@@ -246,13 +262,22 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                                                         )}
                                                         
                                                         {/* Main CTA Button */}
-                                                        {userEnrollment && userEnrollment.approval_status === 'approved' ? (
-                                                            // Enrolled and approved in THIS program - go to dashboard
+                                                        {userEnrollment && userEnrollment.approval_status === 'approved' && userEnrollment.status === 'active' ? (
+                                                            // Enrolled, approved and ACTIVE in THIS program - go to dashboard
                                                             <Link 
                                                                 href={route("dashboard")}
                                                                 className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}
                                                             >
                                                                 <span>Go to Dashboard</span>
+                                                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
+                                                            </Link>
+                                                        ) : userEnrollment && userEnrollment.approval_status === 'approved' ? (
+                                                            // Enrolled and approved but NOT active (completed/paused) - view details
+                                                            <Link 
+                                                                href={route("programs.show", program.slug)}
+                                                                className={`${color.primary} text-white text-center py-3 px-4 rounded-xl font-medium text-sm group-hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2`}
+                                                            >
+                                                                <span>View Details</span>
                                                                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
                                                             </Link>
                                                         ) : userEnrollment && userEnrollment.approval_status === 'pending' ? (

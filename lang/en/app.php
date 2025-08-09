@@ -88,6 +88,18 @@ return [
         'all_lessons_completed' => 'Congratulations! You have completed all available lessons in this program.',
     ],
 
+    // Reviews
+    'reviews' => [
+        'student_reviews' => 'Student Reviews',
+        'your_review' => 'Your Review',
+        'manage_review_from_dashboard' => 'Manage your review from your',
+        'student_dashboard' => 'student dashboard',
+        'recent_reviews' => 'Recent Reviews',
+        'no_reviews_yet' => 'No Reviews Yet',
+        'be_first_to_share' => 'Be the first to share your experience with this program!',
+        'showing_reviews_of' => 'Showing :shown of :total reviews',
+    ],
+
     // Dashboard
     'dashboard' => [
         'welcome_back' => 'Welcome back',
@@ -260,6 +272,8 @@ return [
         'you_are_all_caught_up' => 'You\'re all caught up!',
         'unread' => 'unread',
         'join_class' => 'Join Class',
+        'enrollment_pending_other' => 'Another enrollment request is already pending',
+        'learning_adventure_subtitle' => 'Your learning adventure continues',
     ],
 
     // Profile
@@ -700,6 +714,32 @@ return [
         'one_program_only' => 'You can try demo on ONE program only',
         'first_lesson_only' => 'Access limited to first lesson only',
         'choose_wisely' => 'Choose wisely - you cannot change your demo program!',
+        'back_to_demo' => 'Back to Demo',
+        'what_included' => 'What\'s Included in the Demo',
+        'first_lesson_access' => 'Access to First Lesson',
+        'first_lesson_description' => 'Experience the full first lesson with all resources and materials.',
+        'no_commitment' => 'No Commitment Required',
+        'no_commitment_description' => 'Just enter your email to get started - no payment required.',
+        'seven_days' => '7 Days Free Access',
+        'seven_days_description' => 'Your demo account remains active for 7 days.',
+        'easy_enrollment' => 'Easy Enrollment',
+        'easy_enrollment_description' => 'Convert to full enrollment with one click if you like what you see.',
+        'limitations' => 'Demo Limitations',
+        'only_first_lesson' => 'Access limited to first lesson only',
+        'no_progress_saved' => 'Progress is not permanently saved',
+        'expires_seven_days' => 'Demo expires after 7 days',
+        'no_teacher_interaction' => 'No teacher support or feedback',
+        'start_demo' => 'Start Your Free Demo',
+        'no_credit_card' => 'No credit card required',
+        'description' => 'Get a free preview of the first lesson and see what our program offers before enrolling.',
+        'mode' => 'DEMO MODE',
+        'expires' => 'Expires',
+        'user' => 'Demo User',
+        'exit' => 'Exit Demo',
+        'notice_bar' => 'You\'re in Demo Mode - Limited to first lesson only',
+        'footer_notice' => 'Demo Mode - Experience limited to first lesson only',
+        'view_all_programs' => 'View All Programs',
+        'contact_support' => 'Contact Support',
     ],
 
     // Common

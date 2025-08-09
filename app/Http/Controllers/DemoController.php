@@ -110,14 +110,44 @@ class DemoController extends Controller
     {
         $user = Auth::user();
         
-        // Verify user has demo access for the correct program
-        if (!$user->hasDemoAccess() || $user->demo_program_slug !== $programSlug) {
-            // If demo expired, show expired page
+        // Check if user has regular demo access
+        $hasRegularDemoAccess = $user->hasDemoAccess() && $user->demo_program_slug === $programSlug;
+        
+        // Check if user has pending enrollment with demo access
+        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists() 
+                                        && $user->demo_program_slug === $programSlug;
+        
+        // Log debug information
+        \Log::info('Demo dashboard access attempt', [
+            'user_id' => $user->id,
+            'program_slug' => $programSlug,
+            'user_demo_program_slug' => $user->demo_program_slug,
+            'has_regular_demo_access' => $hasRegularDemoAccess,
+            'has_pending_enrollment_demo_access' => $hasPendingEnrollmentDemoAccess,
+            'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
+            'demo_expires_at' => $user->demo_expires_at,
+            'is_demo_expired' => $user->isDemoExpired(),
+        ]);
+        
+        // Verify user has some form of demo access for the correct program
+        if (!$hasRegularDemoAccess && !$hasPendingEnrollmentDemoAccess) {
+            \Log::info('Demo dashboard access denied - no valid access', [
+                'user_id' => $user->id,
+                'program_slug' => $programSlug,
+            ]);
+            
+            // If demo expired and no pending enrollment, show expired page
             if ($user->isDemoExpired() && $user->demo_program_slug === $programSlug) {
                 return redirect()->route('demo.expired');
             }
             return redirect()->route('programs.index');
         }
+        
+        \Log::info('Demo dashboard access granted', [
+            'user_id' => $user->id,
+            'program_slug' => $programSlug,
+            'access_type' => $hasRegularDemoAccess ? 'regular_demo' : 'pending_enrollment_demo',
+        ]);
 
         $program = $user->getDemoProgram();
         if (!$program) {
@@ -125,7 +155,12 @@ class DemoController extends Controller
         }
 
         // Calculate days remaining
-        $daysRemaining = $user->getDemoRemainingDays();
+        if ($hasPendingEnrollmentDemoAccess && !$hasRegularDemoAccess) {
+            // Users with pending enrollments get unlimited demo access
+            $daysRemaining = 999;
+        } else {
+            $daysRemaining = $user->getDemoRemainingDays();
+        }
 
         // Get the first lesson of the program
         $firstLesson = $program->lessons()
@@ -200,7 +235,7 @@ class DemoController extends Controller
             ],
             'firstLesson' => $formattedLesson,
             'lockedLessons' => $otherLessons,
-            'demoExpiresAt' => $user->demo_expires_at,
+            'demoExpiresAt' => $hasPendingEnrollmentDemoAccess && !$hasRegularDemoAccess ? null : $user->demo_expires_at,
             'daysRemaining' => $daysRemaining,
         ]);
     }
@@ -220,9 +255,22 @@ class DemoController extends Controller
     {
         $user = Auth::user();
         
-        // Verify user has demo access for the correct program
-        if (!$user->hasDemoAccess() || $user->demo_program_slug !== $programSlug) {
+        // Check if user has regular demo access
+        $hasRegularDemoAccess = $user->hasDemoAccess() && $user->demo_program_slug === $programSlug;
+        
+        // Check if user has pending enrollment with demo access
+        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists() 
+                                        && $user->demo_program_slug === $programSlug;
+        
+        // Verify user has some form of demo access for the correct program
+        if (!$hasRegularDemoAccess && !$hasPendingEnrollmentDemoAccess) {
             return redirect()->route('programs.index');
+        }
+        
+        // If user already has a pending enrollment, redirect to dashboard
+        if ($hasPendingEnrollmentDemoAccess) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You already have a pending enrollment for this program.');
         }
 
         $program = $user->getDemoProgram();

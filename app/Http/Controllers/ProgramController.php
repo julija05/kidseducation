@@ -47,12 +47,19 @@ class ProgramController extends Controller
         if (Auth::check()) {
             $user = Auth::user();
             
-            // Get demo access info
+            // Get demo access info - check regular demo access first
             if ($user->hasDemoAccess()) {
                 $userDemoAccess = [
                     'program_slug' => $user->demo_program_slug,
                     'expires_at' => $user->demo_expires_at,
                     'days_remaining' => $user->getDemoRemainingDays(),
+                ];
+            } elseif ($user->enrollments()->where('approval_status', 'pending')->exists() && $user->demo_program_slug) {
+                // Allow demo access for users with pending enrollments
+                $userDemoAccess = [
+                    'program_slug' => $user->demo_program_slug,
+                    'expires_at' => null, // No expiration while enrollment is pending
+                    'days_remaining' => 999, // Indicate unlimited access while pending
                 ];
             }
             
@@ -64,6 +71,12 @@ class ProgramController extends Controller
                     'status' => $enrollment->status,
                 ];
             });
+
+            // Debug: Log enrollment data for troubleshooting
+            Log::info('User enrollments for programs index:', [
+                'user_id' => $user->id,
+                'enrollments' => $userEnrollments->toArray()
+            ]);
         }
 
         return $this->createView('Front/Programs/Index', [
@@ -111,6 +124,7 @@ class ProgramController extends Controller
         $canReview = false;
         $userReview = null;
         $hasAnyEnrollment = false;
+        $hasAnyActiveEnrollment = false;
 
         if (Auth::user() && Auth::user()->hasRole('student')) {
             $user = Auth::user();
@@ -120,6 +134,25 @@ class ProgramController extends Controller
 
             // Check if user has any enrollments at all
             $hasAnyEnrollment = $user->enrollments()->exists();
+
+            // Check if user has any active enrollments (pending or approved non-completed)
+            $hasAnyActiveEnrollment = $user->enrollments()
+                ->whereIn('approval_status', ['pending', 'approved'])
+                ->where('status', '!=', 'completed')
+                ->exists();
+
+            // Debug: Log enrollment data for individual program show
+            Log::info('User enrollment for program show:', [
+                'user_id' => $user->id,
+                'program_id' => $program->id,
+                'userEnrollment' => $userEnrollment ? [
+                    'id' => $userEnrollment->id,
+                    'approval_status' => $userEnrollment->approval_status,
+                    'status' => $userEnrollment->status
+                ] : null,
+                'hasAnyEnrollment' => $hasAnyEnrollment,
+                'hasAnyActiveEnrollment' => $hasAnyActiveEnrollment
+            ]);
 
             // Check if user can review (enrolled and approved, no existing review)
             if ($userEnrollment && $userEnrollment->approval_status === 'approved') {
@@ -168,6 +201,7 @@ class ProgramController extends Controller
             'pageTitle' => $program->translated_name,
             'userEnrollment' => $userEnrollment,
             'hasAnyEnrollment' => $hasAnyEnrollment,
+            'hasAnyActiveEnrollment' => $hasAnyActiveEnrollment,
             'canReview' => $canReview,
             'userReview' => $userReview ? [
                 'id' => $userReview->id,
