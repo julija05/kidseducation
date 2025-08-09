@@ -25,6 +25,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\QuizController;
+use App\Http\Controllers\Student\ReviewController;
 use App\Http\Controllers\DemoController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,8 +36,6 @@ Route::post('/language/set-preference', [LanguageController::class, 'setPreferen
 // Student dashboard
 Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    // Program-specific dashboard
-    Route::get('/dashboard/programs/{program:slug}', [DashboardController::class, 'showProgram'])->name('dashboard.programs.show');
 
     Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
     Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
@@ -77,6 +76,16 @@ Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
         Route::post('/{quiz}/attempts/{attempt}/answer', [QuizController::class, 'submitAnswer'])->name('submit-answer');
         Route::post('/{quiz}/attempts/{attempt}/submit', [QuizController::class, 'submit'])->name('submit');
         Route::get('/{quiz}/attempts/{attempt}/result', [QuizController::class, 'result'])->name('result');
+    });
+
+    // Review routes for students
+    Route::prefix('reviews')->name('reviews.')->group(function () {
+        Route::get('/', [ReviewController::class, 'index'])->name('index');
+        Route::get('/programs/{program:slug}/create', [ReviewController::class, 'create'])->name('programs.create');
+        Route::post('/programs/{program:slug}', [ReviewController::class, 'store'])->name('programs.store');
+        Route::get('/{review}/edit', [ReviewController::class, 'edit'])->name('edit');
+        Route::patch('/{review}', [ReviewController::class, 'update'])->name('update');
+        Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy');
     });
 });
 

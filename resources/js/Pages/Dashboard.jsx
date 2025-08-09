@@ -4,6 +4,8 @@ import { Head, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Sparkles, Play } from "lucide-react";
+import ReviewSection from "@/Components/ReviewSection";
+import ReviewPromptModal from "@/Components/ReviewPromptModal";
 
 // Import Dashboard components
 import {
@@ -30,6 +32,10 @@ export default function Dashboard() {
         unreadNotificationCount,
         showLanguageSelector,
         flash,
+        canReview,
+        userReview,
+        shouldPromptReview,
+        program,
     } = props;
 
     const student = props.auth.user;
@@ -37,6 +43,7 @@ export default function Dashboard() {
     const [selectedProgram, setSelectedProgram] = useState(null);
     const [showLanguageModal, setShowLanguageModal] = useState(showLanguageSelector || false);
     const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
+    const [showReviewPrompt, setShowReviewPrompt] = useState(shouldPromptReview || false);
 
     // Check for email verification success
     useEffect(() => {
@@ -176,7 +183,26 @@ export default function Dashboard() {
                             onReviewLesson={handleReviewLesson}
                         />
                     </div>
+
+                    {/* Review Section */}
+                    {program && (
+                        <ReviewSection
+                            enrolledProgram={enrolledProgram}
+                            program={program}
+                            userReview={userReview}
+                            canReview={canReview}
+                        />
+                    )}
                 </div>
+
+                {/* Review Prompt Modal */}
+                {program && (
+                    <ReviewPromptModal
+                        program={program}
+                        isOpen={showReviewPrompt}
+                        onClose={() => setShowReviewPrompt(false)}
+                    />
+                )}
             </AuthenticatedLayout>
         );
     }
