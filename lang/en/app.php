@@ -7,6 +7,7 @@ return [
         'about' => 'About',
         'programs' => 'Programs',
         'news' => 'News',
+        'help' => 'Help & Guides',
         'contact' => 'Contact',
         'login' => 'Login',
         'register' => 'Register',
@@ -760,6 +761,21 @@ return [
     'navigation' => [
         'back_to_programs' => 'Back to Programs',
         'view_other_programs' => 'View Other Programs',
+    ],
+
+    // Articles
+    'articles' => [
+        'how_to_use_platform' => 'How to Use Platform',
+        'tutorials_guides' => 'Tutorials & Guides',
+        'platform_updates' => 'Platform Updates',
+        'news_announcements' => 'News & Announcements',
+        'helpful_guides_description' => 'Helpful guides and resources to make the most of your learning journey',
+        'no_articles_yet' => 'No articles yet',
+        'articles_coming_soon' => 'Articles in this category are coming soon. Check back later for helpful guides and tutorials!',
+        'read_more' => 'Read more',
+        'no_content_title' => 'Stay Connected with Our Content',
+        'no_content_message' => 'We\'re working on creating helpful articles and guides for you. Check back soon for valuable resources to enhance your learning experience!',
+        'coming_soon' => 'Coming Soon',
     ],
 
     // Form

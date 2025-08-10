@@ -54,6 +54,14 @@ export default function AdminLayout({ children }) {
                     </li>
                     <li className="mb-4">
                         <Link
+                            href={route("admin.articles.index")}
+                            className="hover:text-gray-300 transition-colors"
+                        >
+                            Articles & Guides
+                        </Link>
+                    </li>
+                    <li className="mb-4">
+                        <Link
                             href={route("admin.quizzes.index")}
                             className="hover:text-gray-300 transition-colors"
                         >
@@ -66,14 +74,6 @@ export default function AdminLayout({ children }) {
                             className="hover:text-gray-300 transition-colors"
                         >
                             Class Schedules
-                        </Link>
-                    </li>
-                    <li className="mb-4">
-                        <Link
-                            href={route("admin.translations.index")}
-                            className="hover:text-gray-300 transition-colors"
-                        >
-                            Translations
                         </Link>
                     </li>
                 </ul>
