@@ -61,7 +61,8 @@ class EnrollmentController extends Controller
                 'existing_status' => $existingEnrollment->status,
                 'existing_approval' => $existingEnrollment->approval_status
             ]);
-            return back()->with('error', 'You already have an enrollment request for this program.');
+            return redirect()->route('programs.show', $program->slug)
+                ->with('error', 'You already have an enrollment request for this program.');
         }
 
         // Check if user has any pending or active enrollment (only one enrollment at a time)
@@ -84,7 +85,8 @@ class EnrollmentController extends Controller
                 'requested_program_id' => $program->id
             ]);
             
-            return back()->with('error', $message);
+            return redirect()->route('programs.show', $program->slug)
+                ->with('error', $message);
         }
 
         // Create new enrollment with pending approval status
@@ -112,7 +114,8 @@ class EnrollmentController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return back()->with('error', 'Failed to create enrollment. Please try again.');
+            return redirect()->route('programs.show', $program->slug)
+                ->with('error', 'Failed to create enrollment. Please try again.');
         }
 
         // Create notification for admins
@@ -146,7 +149,10 @@ class EnrollmentController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Your enrollment request has been submitted! We\'ll notify you once it\'s approved.');
+        // Redirect to the program page (authenticated view) with success message
+        return redirect()->route('programs.show', $program->slug)
+            ->with('success', 'waiting_list_success')
+            ->with('waiting_list_program', $program->name);
     }
 
     /**
@@ -193,12 +199,14 @@ class EnrollmentController extends Controller
 
         // Only allow cancellation of pending enrollments
         if ($enrollment->approval_status !== 'pending') {
-            return back()->with('error', 'You can only cancel pending enrollment requests.');
+            return redirect()->route('programs.show', $enrollment->program->slug)
+            ->with('error', 'You can only leave the waiting list for pending requests.');
         }
 
         // Delete the enrollment
         $enrollment->delete();
 
-        return back()->with('success', 'Enrollment request cancelled successfully.');
+        return redirect()->route('programs.show', $enrollment->program->slug)
+            ->with('success', 'left_waiting_list');
     }
 }
