@@ -1,16 +1,45 @@
 // resources/js/Pages/Front/Programs/Show.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { usePage, Link } from "@inertiajs/react";
 import ProgramDetailsSection from "@/Components/ProgramDetailsSection";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import StarRating from "@/Components/StarRating";
 import ReviewCard from "@/Components/ReviewCard";
 import { MessageSquare, Plus } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramDetail({ auth }) {
-    const { program, userEnrollment, hasAnyEnrollment, hasAnyActiveEnrollment, canReview, userReview, topReviews } = usePage().props;
+    const { program, userEnrollment, hasAnyEnrollment, hasAnyActiveEnrollment, canReview, userReview, topReviews, flash, waiting_list_program } = usePage().props;
     const { t } = useTranslation();
+    
+    // Get flash messages from Inertia props
+    const flashMessages = flash || {};
+    
+    // Dynamic viewer count for guest users
+    const [currentViewers, setCurrentViewers] = useState(0);
+    
+    useEffect(() => {
+        if (!auth.user) {
+            // Generate initial viewer count based on program popularity
+            const baseViewers = Math.floor(Math.random() * 15) + 3; // 3-17 viewers
+            setCurrentViewers(baseViewers);
+            
+            // Update viewer count every 8-15 seconds with realistic changes
+            const interval = setInterval(() => {
+                setCurrentViewers(prev => {
+                    const change = Math.random() < 0.5 ? -1 : 1; // 50% chance to go up or down
+                    const magnitude = Math.random() < 0.7 ? 1 : 2; // 70% chance of small change
+                    const newCount = prev + (change * magnitude);
+                    
+                    // Keep within realistic bounds (2-25 viewers)
+                    return Math.max(2, Math.min(25, newCount));
+                });
+            }, Math.random() * 7000 + 8000); // Random interval 8-15 seconds
+            
+            return () => clearInterval(interval);
+        }
+    }, [auth.user]);
 
     const handleEnrollClick = () => {
         // Save program ID to session storage before redirecting
@@ -24,10 +53,11 @@ export default function ProgramDetail({ auth }) {
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg p-8 mt-8">
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                            Ready to Learn?
+                            Join Our Waiting List!
                         </h2>
                         <p className="text-lg text-gray-600 mb-6">
-                            Please create an account to enroll in this program
+                            Create an account to join our waiting list and be among the first
+                            to know when this program launches!
                         </p>
 
                         <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
@@ -38,7 +68,7 @@ export default function ProgramDetail({ auth }) {
                                 onClick={handleEnrollClick}
                                 className="block sm:inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
                             >
-                                Create Account & Enroll
+                                Create Account & Join Waiting List
                             </Link>
                             <Link
                                 href={route("login")}
@@ -62,8 +92,8 @@ export default function ProgramDetail({ auth }) {
                         </div>
 
                         <p className="text-sm text-gray-500 mt-6">
-                            After creating your account, you'll be asked to
-                            confirm your enrollment
+                            After creating your account, you'll be added to our waiting list
+                            and we'll contact you with launch details
                         </p>
                     </div>
                 </div>
@@ -93,16 +123,14 @@ export default function ProgramDetail({ auth }) {
                                     </svg>
                                 </div>
                                 <h3 className="text-xl font-bold text-yellow-800 mb-2">
-                                    Enrollment Pending
+                                    {t('waiting_list.welcome_title')}
                                 </h3>
                                 <p className="text-yellow-700">
-                                    Your enrollment request is being reviewed.
-                                    We'll notify you at{" "}
-                                    <strong>{auth.user.email}</strong> once it's
-                                    approved!
+                                    {t('waiting_list.success_message', { program: program.name })} {' '}
+                                    {t('waiting_list.contact_info', { email: auth.user.email })}
                                 </p>
                                 <p className="text-sm text-yellow-600 mt-4">
-                                    Requested on:{" "}
+                                    {t('waiting_list.added_on')}{" "}
                                     {new Date(
                                         userEnrollment.created_at
                                     ).toLocaleDateString()}
@@ -208,21 +236,22 @@ export default function ProgramDetail({ auth }) {
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg p-8 mt-8">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                        Ready to Start Learning?
+                        Join Our Waiting List!
                     </h2>
                     <p className="text-lg text-gray-600 mb-6">
-                        You're logged in! Click below to request enrollment in{" "}
-                        {program.name}
+                        Be among the first to experience{" "}
+                        <strong>{program.name}</strong>. Join our waiting list and we'll notify you
+                        with launch details and exclusive early access!
                     </p>
                     <Link
                         href={route("programs.enroll", program.slug)}
                         method="post"
                         className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
                     >
-                        Enroll Now
+                        Join Waiting List
                     </Link>
                     <p className="text-sm text-gray-500 mt-4">
-                        Your enrollment request will be sent for approval
+                        You'll be added to our waiting list and contacted with program details
                     </p>
                 </div>
             </div>
@@ -296,13 +325,124 @@ export default function ProgramDetail({ auth }) {
         );
     };
 
+    // Flash Messages Banner Component
+    const getFlashMessageBanner = () => {
+        // Success message (waiting list or general success)
+        if (flashMessages.success) {
+            const isWaitingListSuccess = flashMessages.success === 'waiting_list_success';
+            
+            if (isWaitingListSuccess) {
+                return (
+                    <div className="bg-gradient-to-r from-green-500 to-blue-600 text-white py-6 px-4 mb-8 rounded-2xl shadow-xl">
+                        <div className="max-w-4xl mx-auto text-center">
+                            <div className="flex items-center justify-center mb-4">
+                                <div className="bg-white bg-opacity-20 rounded-full p-3 mr-4">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold mb-2">
+                                        You're on the Waiting List! 🎉
+                                    </h2>
+                                </div>
+                            </div>
+                            <p className="text-lg mb-4 text-white/90">
+                                You've successfully joined the waiting list for <strong>{waiting_list_program || program.name}</strong>!
+                            </p>
+                            <div className="bg-white bg-opacity-10 rounded-lg p-4 max-w-2xl mx-auto">
+                                <p className="text-white/95">
+                                    📧 We'll contact you at <strong>{auth.user?.email}</strong> with program details and launch information soon!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            } else if (flashMessages.success === 'left_waiting_list') {
+                // Left waiting list message
+                return (
+                    <div className="bg-blue-500 text-white py-4 px-4 mb-8 rounded-lg shadow-lg">
+                        <div className="max-w-4xl mx-auto text-center">
+                            <div className="flex items-center justify-center mb-2">
+                                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="text-lg font-medium">{t('waiting_list.left_successfully')}</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            } else {
+                // General success message (fallback)
+                return (
+                    <div className="bg-green-500 text-white py-4 px-4 mb-8 rounded-lg shadow-lg">
+                        <div className="max-w-4xl mx-auto text-center">
+                            <div className="flex items-center justify-center mb-2">
+                                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="text-lg font-medium">{flashMessages.success}</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+        }
+        
+        // Error message
+        if (flashMessages.error) {
+            return (
+                <div className="bg-red-500 text-white py-4 px-4 mb-8 rounded-lg shadow-lg">
+                    <div className="max-w-4xl mx-auto text-center">
+                        <div className="flex items-center justify-center mb-2">
+                            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-lg font-medium">{flashMessages.error}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        return null;
+    };
+
+    // Live viewers component for guest users
+    const getLiveViewersComponent = () => {
+        if (!auth.user && currentViewers > 0) {
+            return (
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 mb-6 rounded-lg shadow-lg">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex items-center justify-center space-x-2">
+                            <div className="flex items-center space-x-1">
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                            </div>
+                            <p className="text-sm font-medium">
+                                🔥 <span className="font-bold">{currentViewers}</span> {currentViewers === 1 ? 'person is' : 'people are'} currently viewing this program
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        return null;
+    };
+
+    // Choose the appropriate layout based on authentication status
+    const LayoutComponent = auth.user ? AuthenticatedLayout : GuestFrontLayout;
+    
     return (
-        <GuestFrontLayout auth={auth}>
+        <LayoutComponent auth={auth}>
             <div className="container mx-auto px-4 py-12 max-w-6xl">
+                {getFlashMessageBanner()}
+                {getLiveViewersComponent()}
                 <ProgramDetailsSection program={program} />
                 {getEnrollmentSection()}
                 {getReviewsSection()}
             </div>
-        </GuestFrontLayout>
+        </LayoutComponent>
     );
 }

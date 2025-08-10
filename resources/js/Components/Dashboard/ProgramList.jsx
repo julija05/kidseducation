@@ -179,10 +179,10 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                 return (
                     <button
                         disabled
-                        className="w-full bg-gradient-to-r from-yellow-300 to-orange-400 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-75"
+                        className="w-full bg-gradient-to-r from-blue-400 to-blue-500 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-90"
                     >
                         <Clock size={20} className="mr-2" />
-                        ⏳ {t('dashboard.pending_approval')}
+                        📋 {t('dashboard.pending_approval')}
                     </button>
                 );
             case "approved":
@@ -286,9 +286,9 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                             {enrollment && (
                                 <div className="absolute top-4 right-4 z-10">
                                     {isPending && (
-                                        <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse flex items-center">
+                                        <span className="bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse flex items-center">
                                             <Clock size={16} className="mr-1" />
-                                            {t('dashboard.pending')} ⏳
+                                            {t('dashboard.pending')} 📋
                                         </span>
                                     )}
                                     {isApproved && (

@@ -89,6 +89,8 @@ export default function Dashboard() {
                 onSuccess: () => {
                     setShowEnrollModal(false);
                     setSelectedProgram(null);
+                    // Redirect to the program page to show the waiting list banner
+                    router.visit(route("programs.show", selectedProgram.slug));
                 },
             }
         );

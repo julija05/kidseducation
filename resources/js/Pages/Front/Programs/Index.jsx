@@ -2,6 +2,7 @@ import React from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useTranslation } from "@/hooks/useTranslation";
 import { iconMap } from "@/Utils/iconMapping";
 import { BookOpen, Star, Sparkles, Clock, ArrowRight, Users, Award, Play } from "lucide-react";
@@ -38,8 +39,11 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
         },
     ];
 
+    // Choose appropriate layout based on authentication
+    const LayoutComponent = auth.user ? AuthenticatedLayout : GuestFrontLayout;
+    
     return (
-        <GuestFrontLayout auth={auth}>
+        <LayoutComponent auth={auth}>
             <section className="relative bg-gradient-to-br from-gray-50 to-white py-20 px-6 overflow-hidden">
                 {/* Welcome Message for New Users */}
                 {flash?.welcome && (
@@ -315,7 +319,7 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                     </div>
                 </div>
             </section>
-        </GuestFrontLayout>
+        </LayoutComponent>
     );
 };
 
