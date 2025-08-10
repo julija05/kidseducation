@@ -19,20 +19,18 @@ class LanguageController extends Controller
             abort(404);
         }
 
-        // If user is authenticated and has a language preference, 
-        // we should update their preference instead of just session
+        // If user is authenticated, update their preference AND session
         if (Auth::check()) {
             $user = Auth::user();
             
-            // If user already has a language preference, update it
-            if ($user->language_preference) {
-                $user->update([
-                    'language_preference' => $locale
-                ]);
-            } else {
-                // User doesn't have a preference set, just update session for this session only
-                Session::put('locale', $locale);
-            }
+            // Always update user's language preference when they explicitly switch
+            $user->update([
+                'language_preference' => $locale,
+                'language_selected' => true
+            ]);
+            
+            // Also update session for immediate effect
+            Session::put('locale', $locale);
         } else {
             // Guest user - store in session only
             Session::put('locale', $locale);
