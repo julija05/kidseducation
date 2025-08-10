@@ -14,6 +14,7 @@ use App\Services\EnrollmentService;
 use App\Services\LessonService;
 use App\Services\NotificationService;
 use App\Services\ProgramService;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -48,12 +49,12 @@ class DashboardController extends Controller
                 'has_demo_access' => $user->hasDemoAccess(),
                 'enrollments_count' => $user->enrollments()->count()
             ]);
-            
+
             if ($user->isDemoExpired()) {
                 Auth::logout();
                 return redirect()->route('demo.expired');
             }
-            
+
             return redirect()->route('demo.dashboard', $user->demo_program_slug);
         }
 
@@ -120,9 +121,9 @@ class DashboardController extends Controller
             ->where(function ($query) use ($user) {
                 // Check both individual and group classes
                 $query->where('student_id', $user->id)
-                      ->orWhereHas('students', function ($subQuery) use ($user) {
-                          $subQuery->where('users.id', $user->id);
-                      });
+                    ->orWhereHas('students', function ($subQuery) use ($user) {
+                        $subQuery->where('users.id', $user->id);
+                    });
             })
             ->upcoming()
             ->orderBy('scheduled_at', 'asc')
@@ -132,9 +133,8 @@ class DashboardController extends Controller
         $formattedNextClass = null;
         if ($nextScheduledClass) {
             $scheduledAt = $nextScheduledClass->scheduled_at;
-            $dayName = $scheduledAt->isToday() ? __('app.time.today') : 
-                      ($scheduledAt->isTomorrow() ? __('app.time.tomorrow') : $scheduledAt->format('l'));
-            
+            $dayName = $scheduledAt->isToday() ? __('app.time.today') : ($scheduledAt->isTomorrow() ? __('app.time.tomorrow') : $scheduledAt->format('l'));
+
             $formattedNextClass = [
                 'id' => $nextScheduledClass->id,
                 'title' => $nextScheduledClass->title,
@@ -212,15 +212,17 @@ class DashboardController extends Controller
             ->where('reviewable_type', \App\Models\Program::class)
             ->where('reviewable_id', $program->id)
             ->first();
-        
+
         $canReview = !$userReview;
-        
+
         // Check if program was recently completed and user hasn't reviewed yet
         $shouldPromptReview = false;
-        if ($enrollment->status === 'completed' && 
-            $enrollment->completed_at && 
-            $enrollment->completed_at->isAfter(now()->subDays(7)) && 
-            !$userReview) {
+        if (
+            $enrollment->status === 'completed' &&
+            $enrollment->completed_at &&
+            $enrollment->completed_at->isAfter(now()->subDays(7)) &&
+            !$userReview
+        ) {
             $shouldPromptReview = true;
         }
 
@@ -378,27 +380,27 @@ class DashboardController extends Controller
     private function shouldPromptReviewAfterLesson(Lesson $lesson, User $user): bool
     {
         $program = $lesson->program;
-        
+
         // Check if user already has a review for this program
         $existingReview = $user->reviews()
             ->where('reviewable_type', \App\Models\Program::class)
             ->where('reviewable_id', $program->id)
             ->exists();
-            
+
         if ($existingReview) {
             return false; // User already reviewed this program
         }
-        
+
         // Get total lessons in the program
         $totalLessons = $this->programService->getTotalLessonsCount($program);
-        
+
         if ($totalLessons < 2) {
             return false; // Not enough lessons to have a "second-to-last"
         }
-        
+
         // Get completed lessons count for this user (after this completion)
         $completedLessons = $this->programService->getCompletedLessonsCountForUser($program, $user);
-        
+
         // Check if user just completed the second-to-last lesson
         // (completedLessons should equal totalLessons - 1)
         return $completedLessons === ($totalLessons - 1);
@@ -428,7 +430,7 @@ class DashboardController extends Controller
     {
         // Check if user has regular demo access first
         if ($user->hasDemoAccess()) {
-            \Log::info('User has regular demo access', [
+            Log::info('User has regular demo access', [
                 'user_id' => $user->id,
                 'program_slug' => $user->demo_program_slug,
                 'days_remaining' => $user->getDemoRemainingDays(),
@@ -439,10 +441,10 @@ class DashboardController extends Controller
                 'days_remaining' => $user->getDemoRemainingDays(),
             ];
         }
-        
+
         // If user has pending enrollments and a demo program slug, allow demo access
         if ($user->enrollments()->where('approval_status', 'pending')->exists() && $user->demo_program_slug) {
-            \Log::info('User has pending enrollment with demo access', [
+            Log::info('User has pending enrollment with demo access', [
                 'user_id' => $user->id,
                 'program_slug' => $user->demo_program_slug,
                 'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
@@ -453,14 +455,14 @@ class DashboardController extends Controller
                 'days_remaining' => 999, // Indicate unlimited access while pending
             ];
         }
-        
-        \Log::info('User has no demo access', [
+
+        Log::info('User has no demo access', [
             'user_id' => $user->id,
             'has_regular_demo' => $user->hasDemoAccess(),
             'demo_program_slug' => $user->demo_program_slug,
             'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
         ]);
-        
+
         return null;
     }
 
@@ -473,10 +475,10 @@ class DashboardController extends Controller
             ->where(function ($query) use ($user) {
                 // Individual classes
                 $query->where('student_id', $user->id)
-                      // Group classes
-                      ->orWhereHas('students', function ($subQuery) use ($user) {
-                          $subQuery->where('users.id', $user->id);
-                      });
+                    // Group classes
+                    ->orWhereHas('students', function ($subQuery) use ($user) {
+                        $subQuery->where('users.id', $user->id);
+                    });
             })
             ->orderBy('scheduled_at', 'desc')
             ->get();

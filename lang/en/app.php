@@ -7,6 +7,7 @@ return [
         'about' => 'About',
         'programs' => 'Programs',
         'news' => 'News',
+        'help' => 'Help & Guides',
         'contact' => 'Contact',
         'login' => 'Login',
         'register' => 'Register',

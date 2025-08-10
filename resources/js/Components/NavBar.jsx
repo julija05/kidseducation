@@ -67,10 +67,10 @@ const NavBar = React.memo(() => {
                             {t('nav.about')}
                         </Link>
                         <Link
-                            href={""}
+                            href={route("articles.index")}
                             className="hover:text-purple-600 transition"
                         >
-                            {t('nav.news')}
+                            {t('nav.help')}
                         </Link>
                         <Link
                             href={route("contact.index")}

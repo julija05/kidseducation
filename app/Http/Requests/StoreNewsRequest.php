@@ -24,7 +24,9 @@ class StoreNewsRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // You can make this required if you want
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category' => 'nullable|string|in:' . implode(',', array_keys(\App\Models\News::CATEGORIES)),
+            'is_published' => 'nullable|boolean',
         ];
     }
 
