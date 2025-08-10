@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "@inertiajs/react";
 import GuessFrontLayout from "@/Layouts/GuessFrontLayout";
 
-export default function ArticleShow({ article, relatedArticles }) {
+export default function ArticleShow({ article, relatedArticles, currentLocale }) {
     const getCategoryIcon = (category) => {
         const icons = {
             'how_to_use': '📚',
@@ -21,8 +21,9 @@ export default function ArticleShow({ article, relatedArticles }) {
         return colors[category] || 'from-gray-400 to-slate-600';
     };
 
-    const formatContent = (content) => {
-        return content.split('\n').map((paragraph, index) => (
+    const formatContent = () => {
+        const translatedContent = article.translated_content || article.content;
+        return translatedContent.split('\n').map((paragraph, index) => (
             <p key={index} className="mb-4 text-gray-800 leading-relaxed">
                 {paragraph}
             </p>
@@ -59,7 +60,7 @@ export default function ArticleShow({ article, relatedArticles }) {
                         </div>
                         
                         <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                            {article.title}
+                            {article.translated_title || article.title}
                         </h1>
                         
                         <div className="text-sm text-gray-600 space-y-1">
@@ -94,7 +95,7 @@ export default function ArticleShow({ article, relatedArticles }) {
                     {/* Article Content */}
                     <div className="prose prose-lg prose-blue max-w-none mb-12">
                         <div className="bg-white rounded-lg p-8 shadow-sm">
-                            {formatContent(article.content)}
+                            {formatContent()}
                         </div>
                     </div>
 
@@ -117,13 +118,13 @@ export default function ArticleShow({ article, relatedArticles }) {
                                         </div>
                                         
                                         <h4 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                            {related.title}
+                                            {related.translated_title || related.title}
                                         </h4>
                                         
                                         <p className="text-gray-600 text-sm line-clamp-2">
-                                            {related.content.length > 120 
-                                                ? `${related.content.substring(0, 120)}...` 
-                                                : related.content
+                                            {((related.translated_content || related.content).length > 120) 
+                                                ? `${(related.translated_content || related.content).substring(0, 120)}...` 
+                                                : (related.translated_content || related.content)
                                             }
                                         </p>
                                         

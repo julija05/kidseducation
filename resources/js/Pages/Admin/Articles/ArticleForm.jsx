@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 
-export default function ArticleForm({ formData = {}, categories = {}, selectedCategory = "how_to_use", onSubmit, migrationRequired = false }) {
+export default function ArticleForm({ formData = {}, categories = {}, selectedCategory = "how_to_use", supportedLanguages = {}, onSubmit, migrationRequired = false }) {
     const { data, setData, post, put, processing, errors } = useForm({
-        title: formData.title || "",
-        content: formData.content || "",
+        title_en: formData.title_en || formData.title || "",
+        content_en: formData.content_en || formData.content || "",
+        title_mk: formData.title_mk || "",
+        content_mk: formData.content_mk || "",
         image: null,
         category: formData.category || selectedCategory,
         is_published: formData.is_published ?? true,
@@ -21,64 +23,102 @@ export default function ArticleForm({ formData = {}, categories = {}, selectedCa
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-            <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
-                <input
-                    type="text"
-                    value={data.title}
-                    onChange={(e) => setData("title", e.target.value)}
-                    className="w-full border-gray-300 rounded-md shadow-sm mt-1 focus:border-blue-500 focus:ring focus:ring-blue-200"
-                    required
-                />
-                {errors.title && (
-                    <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-                )}
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto">
+            {/* Translation section */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4">Article Translations</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                    {/* English Fields */}
+                    <div className="space-y-4">
+                        <h4 className="font-medium text-gray-900 border-b pb-2">🇬🇧 English</h4>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Title (English)</label>
+                            <input
+                                type="text"
+                                value={data.title_en}
+                                onChange={(e) => setData("title_en", e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm mt-1 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                required
+                            />
+                            {errors.title_en && (
+                                <p className="text-red-500 text-sm mt-1">{errors.title_en}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Content (English)</label>
+                            <textarea
+                                value={data.content_en}
+                                onChange={(e) => setData("content_en", e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm mt-1 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                rows="8"
+                                required
+                                placeholder="Write your article content in English..."
+                            />
+                            {errors.content_en && (
+                                <p className="text-red-500 text-sm mt-1">{errors.content_en}</p>
+                            )}
+                        </div>
+                    </div>
 
-            {/* Category selection - only show if migration has been applied */}
-            {!migrationRequired && Object.keys(categories).length > 0 && (
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
-                    <select
-                        value={data.category}
-                        onChange={(e) => setData("category", e.target.value)}
-                        className="w-full border-gray-300 rounded-md shadow-sm mt-1 focus:border-blue-500 focus:ring focus:ring-blue-200"
-                    >
-                        {Object.entries(categories).map(([key, label]) => (
-                            <option key={key} value={key}>
-                                {label}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.category && (
-                        <p className="text-red-500 text-sm mt-1">{errors.category}</p>
-                    )}
+                    {/* Macedonian Fields */}
+                    <div className="space-y-4">
+                        <h4 className="font-medium text-gray-900 border-b pb-2">🇲🇰 Macedonian (Македонски)</h4>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Title (Macedonian)</label>
+                            <input
+                                type="text"
+                                value={data.title_mk}
+                                onChange={(e) => setData("title_mk", e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm mt-1 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                placeholder="Наслов на македонски..."
+                            />
+                            {errors.title_mk && (
+                                <p className="text-red-500 text-sm mt-1">{errors.title_mk}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Content (Macedonian)</label>
+                            <textarea
+                                value={data.content_mk}
+                                onChange={(e) => setData("content_mk", e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm mt-1 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                rows="8"
+                                placeholder="Напишете ја содржината на статијата на македонски..."
+                            />
+                            {errors.content_mk && (
+                                <p className="text-red-500 text-sm mt-1">{errors.content_mk}</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            )}
-
-            {migrationRequired && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                    <p className="text-sm text-yellow-800">
-                        <strong>Note:</strong> Article categories will be available after running the database migration.
+                
+                <div className="mt-4 p-3 bg-blue-100 rounded-md">
+                    <p className="text-sm text-blue-800">
+                        <strong>Translation Guidelines:</strong> English is required and serves as the fallback language. 
+                        Macedonian translation is optional but recommended for better user experience.
                     </p>
                 </div>
-            )}
+            </div>
 
+            {/* Category selection */}
             <div>
-                <label className="block text-sm font-medium text-gray-700">Content</label>
-                <textarea
-                    value={data.content}
-                    onChange={(e) => setData("content", e.target.value)}
+                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <select
+                    value={data.category}
+                    onChange={(e) => setData("category", e.target.value)}
                     className="w-full border-gray-300 rounded-md shadow-sm mt-1 focus:border-blue-500 focus:ring focus:ring-blue-200"
-                    rows="10"
-                    required
-                    placeholder="Write your article content here. You can use markdown formatting."
-                />
-                {errors.content && (
-                    <p className="text-red-500 text-sm mt-1">{errors.content}</p>
+                >
+                    {Object.entries(categories).map(([key, label]) => (
+                        <option key={key} value={key}>
+                            {label}
+                        </option>
+                    ))}
+                </select>
+                {errors.category && (
+                    <p className="text-red-500 text-sm mt-1">{errors.category}</p>
                 )}
             </div>
+
 
             <div>
                 <label className="block text-sm font-medium text-gray-700">

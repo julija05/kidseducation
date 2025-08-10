@@ -1,7 +1,7 @@
 import AdminLayout from "@/Layouts/AdminLayout";
 import ArticleForm from "./ArticleForm";
 
-export default function Edit({ article, categories, migrationRequired }) {
+export default function Edit({ article, categories, migrationRequired, supportedLanguages }) {
     const handleSubmit = (data, post, put, options) => {
         put(route("admin.articles.update", article.id), options);
     };
@@ -23,6 +23,7 @@ export default function Edit({ article, categories, migrationRequired }) {
                 <ArticleForm 
                     formData={article}
                     categories={categories}
+                    supportedLanguages={supportedLanguages}
                     migrationRequired={migrationRequired}
                     onSubmit={handleSubmit} 
                 />

@@ -122,7 +122,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, mi
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <h2 className="text-xl font-semibold">{article.title}</h2>
+                                        <h2 className="text-xl font-semibold">{article.title_en || article.title}</h2>
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryBadgeColor(article.category)}`}>
                                             {categories[article.category] || article.category}
                                         </span>
@@ -131,8 +131,19 @@ export default function ArticleIndex({ articles, currentCategory, categories, mi
                                                 Draft
                                             </span>
                                         )}
+                                        {/* Translation status indicators */}
+                                        <div className="flex gap-1">
+                                            <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700" title="English">
+                                                EN
+                                            </span>
+                                            {article.title_mk && (
+                                                <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700" title="Macedonian">
+                                                    MK
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <p className="text-gray-600 line-clamp-3">{article.content}</p>
+                                    <p className="text-gray-600 line-clamp-3">{article.content_en || article.content}</p>
                                     {article.published_at && (
                                         <p className="text-sm text-gray-500 mt-2">
                                             Published: {new Date(article.published_at).toLocaleDateString()}

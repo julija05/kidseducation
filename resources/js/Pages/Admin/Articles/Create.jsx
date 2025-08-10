@@ -2,7 +2,7 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import ArticleForm from "./ArticleForm";
 import { usePage } from "@inertiajs/react";
 
-export default function Create({ categories, selectedCategory, migrationRequired }) {
+export default function Create({ categories, selectedCategory, migrationRequired, supportedLanguages }) {
     const { props } = usePage();
     
     const handleSubmit = (data, post, put, options) => {
@@ -19,6 +19,7 @@ export default function Create({ categories, selectedCategory, migrationRequired
                 <ArticleForm 
                     categories={categories}
                     selectedCategory={selectedCategory}
+                    supportedLanguages={supportedLanguages}
                     migrationRequired={migrationRequired}
                     onSubmit={handleSubmit} 
                 />

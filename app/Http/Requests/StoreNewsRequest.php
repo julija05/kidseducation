@@ -22,8 +22,10 @@ class StoreNewsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title_en' => 'required|string|max:255',
+            'content_en' => 'required|string',
+            'title_mk' => 'nullable|string|max:255',
+            'content_mk' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'category' => 'nullable|string|in:' . implode(',', array_keys(\App\Models\News::CATEGORIES)),
             'is_published' => 'nullable|boolean',

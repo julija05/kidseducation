@@ -37,7 +37,8 @@ class AdminArticleController extends Controller
             'articles' => $articles,
             'currentCategory' => $category,
             'categories' => $this->getArticleCategories(),
-            'migrationRequired' => $this->checkMigrationRequired()
+            'migrationRequired' => $this->checkMigrationRequired(),
+            'supportedLanguages' => $this->getSupportedLanguages()
         ]);
     }
 
@@ -51,7 +52,8 @@ class AdminArticleController extends Controller
         return $this->createView("Admin/Articles/Create", [
             'categories' => $this->getArticleCategories(),
             'selectedCategory' => $category,
-            'migrationRequired' => $this->checkMigrationRequired()
+            'migrationRequired' => $this->checkMigrationRequired(),
+            'supportedLanguages' => $this->getSupportedLanguages()
         ]);
     }
 
@@ -61,34 +63,25 @@ class AdminArticleController extends Controller
     public function store(StoreNewsRequest $request): RedirectResponse
     {
         try {
-            // Check if migration has been applied
-            if ($this->checkMigrationRequired()) {
-                // Migration required - create basic news item without category fields
-                $data = [
-                    'title' => $request->title,
-                    'content' => $request->content,
-                ];
-                
-                if ($request->hasFile('image')) {
-                    // Handle image upload manually since service might expect category fields
-                    $imagePath = $request->file('image')->store('news', 'public');
-                    $data['image'] = '/storage/' . $imagePath;
-                }
-                
-                News::create($data);
-                
-                return redirect()
-                    ->route('admin.articles.index')
-                    ->with('success', 'Article created successfully. Database migration required for full functionality.');
-            } else {
-                $this->newsService->createNews($request);
-                
-                $categoryName = News::CATEGORIES[$request->category] ?? 'Article';
-                
-                return redirect()
-                    ->route('admin.articles.index', ['category' => $request->category])
-                    ->with('success', "{$categoryName} created successfully.");
+            $data = $request->validated();
+            
+            // Set backward compatibility fields
+            $data['title'] = $request->title_en;
+            $data['content'] = $request->content_en;
+            
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('news', 'public');
+                $data['image'] = '/storage/' . $imagePath;
             }
+            
+            News::create($data);
+            
+            $categoryName = News::CATEGORIES[$request->category] ?? 'Article';
+            
+            return redirect()
+                ->route('admin.articles.index', ['category' => $request->category])
+                ->with('success', "{$categoryName} created successfully.");
         } catch (\Exception $e) {
             return redirect()
                 ->back()
@@ -115,7 +108,8 @@ class AdminArticleController extends Controller
         return $this->createView("Admin/Articles/Edit", [
             'article' => $article,
             'categories' => $this->getArticleCategories(),
-            'migrationRequired' => $this->checkMigrationRequired()
+            'migrationRequired' => $this->checkMigrationRequired(),
+            'supportedLanguages' => $this->getSupportedLanguages()
         ]);
     }
 
@@ -182,6 +176,30 @@ class AdminArticleController extends Controller
             return false; // Migration not required
         } catch (\Exception $e) {
             return true; // Migration required
+        }
+    }
+
+    /**
+     * Get supported languages for articles.
+     */
+    private function getSupportedLanguages(): array
+    {
+        return [
+            'en' => 'English',
+            'mk' => 'Macedonian (Македонски)'
+        ];
+    }
+
+    /**
+     * Check if translation migration has been applied.
+     */
+    private function translationMigrationApplied(): bool
+    {
+        try {
+            News::select('title_en')->limit(1)->get();
+            return true;
+        } catch (\Exception $e) {
+            return false;
         }
     }
 }

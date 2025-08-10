@@ -76,14 +76,6 @@ export default function AdminLayout({ children }) {
                             Class Schedules
                         </Link>
                     </li>
-                    <li className="mb-4">
-                        <Link
-                            href={route("admin.translations.index")}
-                            className="hover:text-gray-300 transition-colors"
-                        >
-                            Translations
-                        </Link>
-                    </li>
                 </ul>
             </aside>
 
