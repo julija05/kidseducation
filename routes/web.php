@@ -205,7 +205,7 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     // Translation Routes
     Route::prefix('translations')->name('translations.')->group(function () {
         Route::get('/', [TranslationController::class, 'index'])->name('index');
-        Route::get('/programs/{program:id}', [TranslationController::class, 'showProgram'])->name('programs.show');
+        Route::get('/programs/{program:id}', [TranslationController::class, 'showProgram'])->name('programs.show-translation');
         Route::post('/programs/{program:id}', [TranslationController::class, 'updateProgram'])->name('programs.update');
         Route::post('/lessons/{lesson:id}', [TranslationController::class, 'updateLesson'])->name('lessons.update');
         Route::post('/resources/{resource:id}', [TranslationController::class, 'updateResource'])->name('resources.update');

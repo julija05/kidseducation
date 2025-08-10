@@ -104,7 +104,7 @@ export default function TranslationsIndex({ auth, programs, supported_locales })
                                         </div>
 
                                         <Link
-                                            href={route('admin.translations.programs.show', program.id)}
+                                            href={route('admin.translations.programs.show-translation', program.id)}
                                             className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-medium"
                                         >
                                             <span>Manage Translations</span>
