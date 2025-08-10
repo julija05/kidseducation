@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "@inertiajs/react";
 import GuessFrontLayout from "@/Layouts/GuessFrontLayout";
 
-export default function ArticleShow({ article, relatedArticles, currentLocale }) {
+export default function ArticleShow({ article, relatedArticles, currentLocale, translations = {} }) {
     const getCategoryIcon = (category) => {
         const icons = {
             'how_to_use': '📚',
@@ -103,7 +103,7 @@ export default function ArticleShow({ article, relatedArticles, currentLocale })
                     {relatedArticles && relatedArticles.length > 0 && (
                         <section className="border-t pt-12">
                             <h3 className="text-2xl font-semibold text-gray-900 mb-6">
-                                Related Articles
+                                {translations.related_articles || 'Related Articles'}
                             </h3>
                             
                             <div className="grid md:grid-cols-3 gap-6">
@@ -129,7 +129,7 @@ export default function ArticleShow({ article, relatedArticles, currentLocale })
                                         </p>
                                         
                                         <span className="inline-flex items-center text-blue-600 text-sm font-medium mt-3 group-hover:underline">
-                                            Read more →
+                                            {translations.read_more || 'Read more'} →
                                         </span>
                                     </Link>
                                 ))}
@@ -140,17 +140,16 @@ export default function ArticleShow({ article, relatedArticles, currentLocale })
                     {/* Call to Action */}
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-center text-white mt-12">
                         <h3 className="text-2xl font-semibold mb-3">
-                            Ready to Start Learning?
+                            {translations.ready_to_start_learning || 'Ready to Start Learning?'}
                         </h3>
                         <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-                            Explore our educational programs and start your learning journey today. 
-                            From mathematics to coding, we have something for every young learner.
+                            {translations.explore_programs_description || 'Explore our educational programs and start your learning journey today. From mathematics to coding, we have something for every young learner.'}
                         </p>
                         <Link
                             href={route("programs.index")}
                             className="inline-flex items-center px-8 py-3 bg-white text-blue-600 rounded-full font-medium hover:bg-blue-50 transition-colors"
                         >
-                            View Programs →
+                            {translations.view_programs || 'View Programs'} →
                         </Link>
                     </div>
 
@@ -160,7 +159,7 @@ export default function ArticleShow({ article, relatedArticles, currentLocale })
                             href={route("articles.index", { category: article.category })}
                             className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                         >
-                            ← Back to {article.category_name}
+                            ← {translations.back_to || 'Back to'} {article.category_name}
                         </Link>
                     </div>
                 </article>

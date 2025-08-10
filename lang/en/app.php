@@ -261,6 +261,9 @@ return [
         
         // Learning Flow
         'ready_to_start_learning' => 'Ready to Start Learning?',
+        'explore_programs_description' => 'Explore our educational programs and start your learning journey today. From mathematics to coding, we have something for every young learner.',
+        'view_programs' => 'View Programs',
+        'back_to' => 'Back to',
         'lets_begin' => '🚀 Let\'s Begin!',
         'start_with_level_1' => 'Start with Level 1 and complete quizzes to earn points',
         'you_need_points_unlock' => 'You need :points points to unlock Level :level',
@@ -776,7 +779,14 @@ return [
         'no_content_title' => 'Stay Connected with Our Content',
         'no_content_message' => 'We\'re working on creating helpful articles and guides for you. Check back soon for valuable resources to enhance your learning experience!',
         'coming_soon' => 'Coming Soon',
+        'related_articles' => 'Related Articles',
     ],
+
+    // Additional translation keys
+    'ready_to_start_learning' => 'Ready to Start Learning?',
+    'explore_programs_description' => 'Explore our educational programs and start your learning journey today. From mathematics to coding, we have something for every young learner.',
+    'view_programs' => 'View Programs',
+    'back_to' => 'Back to',
 
     // Form
     'form' => [

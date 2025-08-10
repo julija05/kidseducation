@@ -85,18 +85,24 @@ class ArticleController extends Controller
         return $this->createView("Front/Articles/Show", [
             'article' => $article,
             'relatedArticles' => $relatedArticles,
-            'currentLocale' => $currentLocale
+            'currentLocale' => $currentLocale,
+            'translations' => [
+                'ready_to_start_learning' => __('app.ready_to_start_learning'),
+                'explore_programs_description' => __('app.explore_programs_description'),
+                'view_programs' => __('app.view_programs'),
+                'back_to' => __('app.back_to'),
+                'related_articles' => __('app.articles.related_articles'),
+                'read_more' => __('app.articles.read_more')
+            ]
         ]);
     }
 
     /**
-     * Get categories available for public viewing (excluding regular news).
+     * Get categories available for public viewing.
      */
     private function getPublicCategories(): array
     {
-        $categories = array_filter(News::CATEGORIES, function ($key) {
-            return $key !== 'news';
-        }, ARRAY_FILTER_USE_KEY);
+        $categories = News::CATEGORIES;
         
         // Translate category names
         $translatedCategories = [];

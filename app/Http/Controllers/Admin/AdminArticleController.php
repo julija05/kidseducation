@@ -156,13 +156,11 @@ class AdminArticleController extends Controller
     }
 
     /**
-     * Get article-specific categories (excluding regular news).
+     * Get article-specific categories.
      */
     private function getArticleCategories(): array
     {
-        return array_filter(News::CATEGORIES, function ($key) {
-            return $key !== 'news';
-        }, ARRAY_FILTER_USE_KEY);
+        return News::CATEGORIES;
     }
 
     /**
