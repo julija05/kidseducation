@@ -18,21 +18,21 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Priority order: User preference > URL parameter > Session > Default
+        // Priority order: URL parameter > User preference > Session > Default
         $locale = null;
-        $userHasPreference = false;
         
-        // Check if user is authenticated and has a language preference
-        if (Auth::check() && Auth::user()->language_preference) {
-            $locale = Auth::user()->language_preference;
-            $userHasPreference = true;
+        // Check URL parameter first (for immediate language switching)
+        if ($request->has('lang')) {
+            $locale = $request->get('lang');
         }
-        
-        // Fall back to URL parameter, session, or default
-        $locale = $locale 
-            ?? $request->get('locale') 
-            ?? Session::get('locale') 
-            ?? config('app.locale');
+        // Then check if user is authenticated and has a language preference
+        elseif (Auth::check() && Auth::user()->language_preference) {
+            $locale = Auth::user()->language_preference;
+        }
+        // Fall back to session or default
+        else {
+            $locale = Session::get('locale') ?? config('app.locale');
+        }
         
         // Validate locale
         if (!in_array($locale, config('app.supported_locales', ['en', 'mk']))) {
@@ -42,11 +42,8 @@ class SetLocale
         // Set locale
         App::setLocale($locale);
         
-        // Only update session if user doesn't have a saved preference
-        // This prevents overriding user's saved language preference
-        if (!$userHasPreference) {
-            Session::put('locale', $locale);
-        }
+        // Always update session to reflect current locale
+        Session::put('locale', $locale);
         
         return $next($request);
     }

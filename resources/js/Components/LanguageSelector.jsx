@@ -1,5 +1,5 @@
 import { usePage, router, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDownIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 
 const LanguageSelector = ({ className = '' }) => {
@@ -13,8 +13,67 @@ const LanguageSelector = ({ className = '' }) => {
     };
 
     const switchLanguage = (newLocale) => {
-        router.get(`/language/${newLocale}`);
         setIsOpen(false);
+        
+        // If it's the same locale, do nothing
+        if (newLocale === locale.current) {
+            return;
+        }
+        
+        // Store the desired language in localStorage for immediate detection
+        localStorage.setItem('pending_language_switch', newLocale);
+        localStorage.setItem('force_language_reload', Date.now().toString());
+        
+        // Show loading state
+        const switchingMessage = document.createElement('div');
+        switchingMessage.innerHTML = `
+            <div style="text-align: center;">
+                <div style="margin-bottom: 10px;">🌐</div>
+                <div>Switching to ${newLocale === 'en' ? 'English' : 'Македонски'}...</div>
+                <div style="margin-top: 10px; font-size: 12px;">Please wait...</div>
+            </div>
+        `;
+        switchingMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:white;padding:20px 30px;border-radius:8px;z-index:99999;font-family:Arial,sans-serif;';
+        document.body.appendChild(switchingMessage);
+        
+        // Disable all interactions during switch
+        document.body.style.pointerEvents = 'none';
+        
+        // Create a form to POST the language change (bypasses GET caching)
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/language/${newLocale}`;
+        form.style.display = 'none';
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) {
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '_token';
+            tokenInput.value = csrfToken.getAttribute('content');
+            form.appendChild(tokenInput);
+        }
+        
+        // Add cache busting parameters
+        const timestampInput = document.createElement('input');
+        timestampInput.type = 'hidden';
+        timestampInput.name = 'cache_bust';
+        timestampInput.value = Date.now().toString();
+        form.appendChild(timestampInput);
+        
+        const forceInput = document.createElement('input');
+        forceInput.type = 'hidden';
+        forceInput.name = 'force_reload';
+        forceInput.value = '1';
+        form.appendChild(forceInput);
+        
+        document.body.appendChild(form);
+        
+        // Submit the form after a short delay
+        setTimeout(() => {
+            form.submit();
+        }, 500);
     };
 
     return (
