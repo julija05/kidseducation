@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\Route;
 
 // Language switching
 Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
+Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch.post');
 Route::post('/language/set-preference', [LanguageController::class, 'setPreference'])->name('language.set-preference')->middleware('auth');
 
 // Student dashboard

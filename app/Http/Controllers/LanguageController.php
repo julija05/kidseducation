@@ -36,8 +36,33 @@ class LanguageController extends Controller
             Session::put('locale', $locale);
         }
 
-        // Redirect back to the previous page
-        return redirect()->back();
+        // Get the referer URL or fall back to home
+        $redirectUrl = $request->header('referer', '/');
+        
+        // Add cache busting parameter to force fresh page load
+        $separator = strpos($redirectUrl, '?') !== false ? '&' : '?';
+        $redirectUrl .= $separator . 'lang_switched=' . $locale . '&t=' . time();
+        
+        // For POST requests (from our aggressive form), use a full page reload response
+        if ($request->isMethod('POST')) {
+            return response()->view('language-switch-redirect', [
+                'redirectUrl' => $redirectUrl,
+                'locale' => $locale,
+                'localeNames' => [
+                    'en' => 'English',
+                    'mk' => 'Македонски'
+                ]
+            ])->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+        }
+        
+        // For GET requests, use normal redirect with no-cache headers
+        return redirect($redirectUrl)
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0')
+            ->header('Refresh', "0; url=$redirectUrl");
     }
 
     /**

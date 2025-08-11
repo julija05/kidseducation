@@ -23,8 +23,11 @@ class CacheHeaders
             // Default caching strategy based on route
             $routeName = $request->route()?->getName();
             
-            if (str_starts_with($routeName, 'admin.') || str_starts_with($routeName, 'student.')) {
-                // No caching for admin/student pages
+            if (str_starts_with($routeName, 'admin.') || 
+                str_starts_with($routeName, 'student.') || 
+                $routeName === 'language.switch' ||
+                $routeName === 'language.set-preference') {
+                // No caching for admin/student pages and language switching
                 $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
                 $response->header('Pragma', 'no-cache');
                 $response->header('Expires', '0');
