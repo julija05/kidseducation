@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import GuessFrontLayout from "@/Layouts/GuessFrontLayout";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -40,7 +40,9 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
     };
 
     return (
-        <GuessFrontLayout title={`${categoryName} - Abacoding`}>
+        <>
+            <Head title={t('articles')} />
+            <GuessFrontLayout title={`${categoryName} - Abacoding`}>
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
                 <div className="container mx-auto px-4 py-12">
                     {/* Check if there are any categories with articles */}
@@ -214,6 +216,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                     )}
                 </div>
             </div>
-        </GuessFrontLayout>
+            </GuessFrontLayout>
+        </>
     );
 }

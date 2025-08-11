@@ -1,3 +1,4 @@
+import { Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import undrawImage from "../../../../assets/people.png";
@@ -14,7 +15,9 @@ export default function About({ auth }) {
     });
 
     return (
-        <GuestFrontLayout auth={auth}>
+        <>
+            <Head title={t('about')} />
+            <GuestFrontLayout auth={auth}>
             <div className="bg-white text-gray-800 overflow-hidden">
                 {/* Hero Section */}
                 <section className="min-h-screen flex flex-col md:flex-row items-center justify-between px-6 py-24 relative z-10 max-w-7xl mx-auto gap-12">
@@ -279,6 +282,7 @@ export default function About({ auth }) {
                     </motion.a>
                 </section>
             </div>
-        </GuestFrontLayout>
+            </GuestFrontLayout>
+        </>
     );
 }

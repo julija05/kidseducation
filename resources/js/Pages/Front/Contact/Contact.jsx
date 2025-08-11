@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import undrawImage from "../../../../assets/contact-us.svg";
@@ -64,7 +65,9 @@ export default function ContactUs({ auth }) {
     };
 
     return (
-        <GuestFrontLayout auth={auth}>
+        <>
+            <Head title={t('contact')} />
+            <GuestFrontLayout auth={auth}>
             <section
                 id="contact"
                 className="relative min-h-screen py-24 bg-white text-gray-800 overflow-hidden"
@@ -153,6 +156,7 @@ export default function ContactUs({ auth }) {
                     </div>
                 </div>
             </section>
-        </GuestFrontLayout>
+            </GuestFrontLayout>
+        </>
     );
 }

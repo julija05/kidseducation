@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
@@ -43,7 +43,9 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
     const LayoutComponent = auth.user ? AuthenticatedLayout : GuestFrontLayout;
     
     return (
-        <LayoutComponent auth={auth}>
+        <>
+            <Head title={t('programs')} />
+            <LayoutComponent auth={auth}>
             <section className="relative bg-gradient-to-br from-gray-50 to-white py-20 px-6 overflow-hidden">
                 {/* Welcome Message for New Users */}
                 {flash?.welcome && (
@@ -319,7 +321,8 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                     </div>
                 </div>
             </section>
-        </LayoutComponent>
+            </LayoutComponent>
+        </>
     );
 };
 

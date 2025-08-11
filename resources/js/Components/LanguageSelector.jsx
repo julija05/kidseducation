@@ -20,9 +20,9 @@ const LanguageSelector = ({ className = '' }) => {
             return;
         }
         
-        // Store the desired language in localStorage for immediate detection
-        localStorage.setItem('pending_language_switch', newLocale);
-        localStorage.setItem('force_language_reload', Date.now().toString());
+        // Remove localStorage language switching logic to prevent auto-switching issues
+        // localStorage.setItem('pending_language_switch', newLocale);
+        // localStorage.setItem('force_language_reload', Date.now().toString());
         
         // Show loading state
         const switchingMessage = document.createElement('div');

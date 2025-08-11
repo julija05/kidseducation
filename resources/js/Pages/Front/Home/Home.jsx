@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import kid from "../../../../assets/Abacoding.png";
 import learningMap from "../../../../assets/learning_map.png";
@@ -42,7 +42,9 @@ const Home = ({ auth }) => {
     ];
 
     return (
-        <GuestFrontLayout auth={auth}>
+        <>
+            <Head title={t('home')} />
+            <GuestFrontLayout auth={auth}>
             <div className="bg-white text-gray-800 overflow-hidden">
                 {/* Hero Section */}
                 <section className="min-h-screen flex flex-col md:flex-row items-center justify-between px-6 py-24 relative z-10 max-w-7xl mx-auto gap-12">
@@ -369,7 +371,8 @@ const Home = ({ auth }) => {
                     </motion.button>
                 </section>
             </div>
-        </GuestFrontLayout>
+            </GuestFrontLayout>
+        </>
     );
 };
 

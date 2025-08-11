@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class LanguageController extends Controller
@@ -14,55 +15,39 @@ class LanguageController extends Controller
      */
     public function switch(Request $request, $locale)
     {
+        \Log::info('=== LANGUAGE SWITCH START ===', [
+            'requested_locale' => $locale,
+            'current_session_locale' => Session::get('locale'),
+            'session_id' => $request->session()->getId(),
+            'referer' => $request->header('referer'),
+            'user_agent' => $request->header('user-agent')
+        ]);
+
         // Validate locale
         if (!in_array($locale, config('app.supported_locales', ['en', 'mk']))) {
+            \Log::error('Invalid locale requested', ['locale' => $locale]);
             abort(404);
         }
 
-        // If user is authenticated, update their preference AND session
-        if (Auth::check()) {
-            $user = Auth::user();
-            
-            // Always update user's language preference when they explicitly switch
-            $user->update([
-                'language_preference' => $locale,
-                'language_selected' => true
-            ]);
-            
-            // Also update session for immediate effect
-            Session::put('locale', $locale);
-        } else {
-            // Guest user - store in session only
-            Session::put('locale', $locale);
-        }
+        // Store locale in session
+        Session::put('locale', $locale);
+        Session::save(); // Force save
+        
+        \Log::info('Language switched successfully', [
+            'new_locale' => $locale,
+            'session_after_save' => Session::get('locale'),
+            'session_id' => $request->session()->getId()
+        ]);
 
-        // Get the referer URL or fall back to home
+        // Redirect back with cache busting to force fresh page load
         $redirectUrl = $request->header('referer', '/');
-        
-        // Add cache busting parameter to force fresh page load
         $separator = strpos($redirectUrl, '?') !== false ? '&' : '?';
-        $redirectUrl .= $separator . 'lang_switched=' . $locale . '&t=' . time();
+        $redirectUrl .= $separator . 'v=' . time();
         
-        // For POST requests (from our aggressive form), use a full page reload response
-        if ($request->isMethod('POST')) {
-            return response()->view('language-switch-redirect', [
-                'redirectUrl' => $redirectUrl,
-                'locale' => $locale,
-                'localeNames' => [
-                    'en' => 'English',
-                    'mk' => 'Македонски'
-                ]
-            ])->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', '0');
-        }
-        
-        // For GET requests, use normal redirect with no-cache headers
         return redirect($redirectUrl)
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
-            ->header('Expires', '0')
-            ->header('Refresh', "0; url=$redirectUrl");
+            ->header('Expires', '0');
     }
 
     /**

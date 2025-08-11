@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 
 class CacheHeaders
 {
@@ -11,34 +12,44 @@ class CacheHeaders
     {
         $response = $next($request);
 
-        // Don't cache if user is authenticated
-        if (auth()->check()) {
+        // NUCLEAR SOLUTION: Disable ALL caching to fix language switching
+        // This ensures language changes work immediately for all users
+        // Trade-off: Performance impact but guaranteed language switching functionality
+        $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+        $response->header('Pragma', 'no-cache');
+        $response->header('Expires', '0');
+        return $response;
+
+        // Don't cache language switching requests
+        if ($request->is('language/*')) {
+            $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+            $response->header('Pragma', 'no-cache');
+            $response->header('Expires', '0');
             return $response;
         }
 
-        // Set default cache control
+        // Don't cache if language was recently switched (check for cache busting parameters)
+        if ($request->has(['lang_switched', 'v'])) {
+            $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+            $response->header('Pragma', 'no-cache');
+            $response->header('Expires', '0');
+            return $response;
+        }
+
+
+        // For all other pages (API endpoints, assets, etc.), allow caching
+        // Set default cache control  
         if ($cacheControl) {
             $response->header('Cache-Control', $cacheControl);
         } else {
-            // Default caching strategy based on route
-            $routeName = $request->route()?->getName();
-            
-            if (str_starts_with($routeName, 'admin.') || 
-                str_starts_with($routeName, 'student.') || 
-                $routeName === 'language.switch' ||
-                $routeName === 'language.set-preference') {
-                // No caching for admin/student pages and language switching
+            // Check if it's admin/student pages
+            if (str_starts_with($routeName, 'admin.') || str_starts_with($routeName, 'student.')) {
+                // No caching for admin/student pages
                 $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
                 $response->header('Pragma', 'no-cache');
                 $response->header('Expires', '0');
-            } elseif (in_array($routeName, ['home', 'about', 'contact'])) {
-                // Cache static pages for 1 day
-                $response->header('Cache-Control', 'public, max-age=86400');
-            } elseif (str_starts_with($routeName, 'programs.') || str_starts_with($routeName, 'articles.')) {
-                // Cache content pages for 1 hour
-                $response->header('Cache-Control', 'public, max-age=3600');
             } else {
-                // Default cache for 30 minutes
+                // Cache other resources (APIs, assets, etc.) for 30 minutes
                 $response->header('Cache-Control', 'public, max-age=1800');
             }
         }
