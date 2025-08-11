@@ -7,6 +7,7 @@ return [
         'about' => 'About',
         'programs' => 'Programs',
         'news' => 'News',
+        'help' => 'Help & Guides',
         'contact' => 'Contact',
         'login' => 'Login',
         'register' => 'Register',
@@ -260,6 +261,9 @@ return [
         
         // Learning Flow
         'ready_to_start_learning' => 'Ready to Start Learning?',
+        'explore_programs_description' => 'Explore our educational programs and start your learning journey today. From mathematics to coding, we have something for every young learner.',
+        'view_programs' => 'View Programs',
+        'back_to' => 'Back to',
         'lets_begin' => '🚀 Let\'s Begin!',
         'start_with_level_1' => 'Start with Level 1 and complete quizzes to earn points',
         'you_need_points_unlock' => 'You need :points points to unlock Level :level',
@@ -761,6 +765,28 @@ return [
         'back_to_programs' => 'Back to Programs',
         'view_other_programs' => 'View Other Programs',
     ],
+
+    // Articles
+    'articles' => [
+        'how_to_use_platform' => 'How to Use Platform',
+        'tutorials_guides' => 'Tutorials & Guides',
+        'platform_updates' => 'Platform Updates',
+        'news_announcements' => 'News & Announcements',
+        'helpful_guides_description' => 'Helpful guides and resources to make the most of your learning journey',
+        'no_articles_yet' => 'No articles yet',
+        'articles_coming_soon' => 'Articles in this category are coming soon. Check back later for helpful guides and tutorials!',
+        'read_more' => 'Read more',
+        'no_content_title' => 'Stay Connected with Our Content',
+        'no_content_message' => 'We\'re working on creating helpful articles and guides for you. Check back soon for valuable resources to enhance your learning experience!',
+        'coming_soon' => 'Coming Soon',
+        'related_articles' => 'Related Articles',
+    ],
+
+    // Additional translation keys
+    'ready_to_start_learning' => 'Ready to Start Learning?',
+    'explore_programs_description' => 'Explore our educational programs and start your learning journey today. From mathematics to coding, we have something for every young learner.',
+    'view_programs' => 'View Programs',
+    'back_to' => 'Back to',
 
     // Form
     'form' => [

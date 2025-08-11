@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminNewsController;
+use App\Http\Controllers\Admin\AdminArticleController;
+use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\AdminQuizController;
@@ -31,6 +33,7 @@ use Illuminate\Support\Facades\Route;
 
 // Language switching
 Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
+Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch.post');
 Route::post('/language/set-preference', [LanguageController::class, 'setPreference'])->name('language.set-preference')->middleware('auth');
 
 // Student dashboard
@@ -127,6 +130,7 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     // Program Routes
     Route::resource('programs', AdminProgramController::class);
     Route::resource('news', AdminNewsController::class);
+    Route::resource('articles', AdminArticleController::class);
 
     // Program Lesson Management Routes
     Route::prefix('programs/{program}/lessons')->name('programs.lessons.')->group(function () {
@@ -202,7 +206,7 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     // Translation Routes
     Route::prefix('translations')->name('translations.')->group(function () {
         Route::get('/', [TranslationController::class, 'index'])->name('index');
-        Route::get('/programs/{program:id}', [TranslationController::class, 'showProgram'])->name('programs.show');
+        Route::get('/programs/{program:id}', [TranslationController::class, 'showProgram'])->name('programs.show-translation');
         Route::post('/programs/{program:id}', [TranslationController::class, 'updateProgram'])->name('programs.update');
         Route::post('/lessons/{lesson:id}', [TranslationController::class, 'updateLesson'])->name('lessons.update');
         Route::post('/resources/{resource:id}', [TranslationController::class, 'updateResource'])->name('resources.update');
@@ -220,6 +224,8 @@ Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid
 Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name('programs.show');
 Route::get('/news', [NewsController::class, 'index']);
+Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
+Route::get('/articles/{article:slug}', [ArticleController::class, 'show'])->name('articles.show');
 
 // Demo account routes
 Route::prefix('demo')->name('demo.')->group(function () {

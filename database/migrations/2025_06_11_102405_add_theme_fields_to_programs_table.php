@@ -17,8 +17,8 @@ return new class extends Migration
             // Add slug for URL-friendly names
             $table->string('slug')->after('name');
 
-            // Add theme/styling fields
-            $table->string('icon')->default('BookOpen')->after('image');
+            // Add theme/styling fields - use a column that definitely exists
+            $table->string('icon')->default('BookOpen')->after('price');
             $table->string('color')->default('bg-blue-500')->after('icon');
             $table->string('light_color')->default('bg-blue-50')->after('color');
             $table->string('border_color')->default('border-blue-500')->after('light_color');
