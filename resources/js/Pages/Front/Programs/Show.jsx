@@ -1,12 +1,13 @@
 // resources/js/Pages/Front/Programs/Show.jsx
 import React, { useState, useEffect } from "react";
 import { usePage, Link } from "@inertiajs/react";
+import { motion } from "framer-motion";
 import ProgramDetailsSection from "@/Components/ProgramDetailsSection";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import StarRating from "@/Components/StarRating";
 import ReviewCard from "@/Components/ReviewCard";
-import { MessageSquare, Plus } from "lucide-react";
+import { MessageSquare, Plus, Sparkles, CheckCircle, Clock, XCircle, AlertTriangle, Users, Play } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramDetail({ auth }) {
@@ -50,53 +51,72 @@ export default function ProgramDetail({ auth }) {
         if (!auth.user) {
             // Not logged in - show registration/login options
             return (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg p-8 mt-8">
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="bg-white/70 backdrop-blur-lg border border-white/30 rounded-3xl shadow-xl p-10 mt-12"
+                >
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                        <motion.div 
+                            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-6 shadow-lg"
+                            animate={{ rotate: [0, 360] }}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        >
+                            <Users className="w-10 h-10 text-white" />
+                        </motion.div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
                             Join Our Waiting List!
                         </h2>
-                        <p className="text-lg text-gray-600 mb-6">
+                        <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
                             Create an account to join our waiting list and be among the first
                             to know when this program launches!
                         </p>
 
-                        <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
-                            <Link
-                                href={route("register", {
-                                    program: program.id,
-                                })}
-                                onClick={handleEnrollClick}
-                                className="block sm:inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
-                            >
-                                Create Account & Join Waiting List
-                            </Link>
-                            <Link
-                                href={route("login")}
-                                onClick={handleEnrollClick}
-                                className="block sm:inline-block bg-gray-200 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-300 font-medium transition-colors"
-                            >
-                                I Have an Account
-                            </Link>
+                        <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center mb-8">
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <Link
+                                    href={route("register", {
+                                        program: program.id,
+                                    })}
+                                    onClick={handleEnrollClick}
+                                    className="block sm:inline-block bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl hover:shadow-lg font-medium transition-all duration-300"
+                                >
+                                    Create Account & Join Waiting List
+                                </Link>
+                            </motion.div>
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <Link
+                                    href={route("login")}
+                                    onClick={handleEnrollClick}
+                                    className="block sm:inline-block bg-white/80 backdrop-blur-sm text-gray-700 px-8 py-4 rounded-xl hover:bg-white/90 border border-gray-200 font-medium transition-all duration-300"
+                                >
+                                    I Have an Account
+                                </Link>
+                            </motion.div>
                         </div>
 
-                        <div className="mt-6 p-4 border-t border-gray-200">
-                            <p className="text-sm text-gray-600 mb-3 text-center">
+                        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 border border-green-200/50 backdrop-blur-sm">
+                            <p className="text-gray-700 mb-4 font-medium">
                                 Not sure yet? Try it first!
                             </p>
-                            <Link
-                                href={route("demo.access", program.slug)}
-                                className="block w-full sm:w-auto sm:mx-auto text-center bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 font-medium transition-all transform hover:scale-105"
-                            >
-                                🎯 Try Free Demo
-                            </Link>
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <Link
+                                    href={route("demo.access", program.slug)}
+                                    className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-xl hover:from-green-600 hover:to-blue-600 font-medium transition-all duration-300 shadow-lg"
+                                >
+                                    <Play className="w-5 h-5" />
+                                    Try Free Demo
+                                </Link>
+                            </motion.div>
                         </div>
 
-                        <p className="text-sm text-gray-500 mt-6">
+                        <p className="text-sm text-gray-600 mt-8 bg-gray-50/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50">
                             After creating your account, you'll be added to our waiting list
                             and we'll contact you with launch details
                         </p>
                     </div>
-                </div>
+                </motion.div>
             );
         }
 
@@ -436,12 +456,47 @@ export default function ProgramDetail({ auth }) {
     
     return (
         <LayoutComponent auth={auth}>
-            <div className="container mx-auto px-4 py-12 max-w-6xl">
-                {getFlashMessageBanner()}
-                {getLiveViewersComponent()}
-                <ProgramDetailsSection program={program} />
-                {getEnrollmentSection()}
-                {getReviewsSection()}
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 relative overflow-hidden">
+                {/* Background decorative elements */}
+                <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-200 to-blue-200 rounded-full blur-3xl opacity-30 animate-pulse" />
+                <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-gradient-to-r from-pink-200 to-yellow-200 rounded-full blur-3xl opacity-30 animate-pulse" style={{animationDelay: '2s'}} />
+                <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-gradient-to-r from-emerald-200 to-cyan-200 rounded-full blur-3xl opacity-20 animate-pulse" style={{animationDelay: '1s'}} />
+
+                {/* Floating particles */}
+                <motion.div
+                    className="absolute top-32 right-32 w-3 h-3 bg-purple-400 rounded-full"
+                    animate={{
+                        y: [0, -20, 0],
+                        opacity: [0.4, 1, 0.4]
+                    }}
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                />
+                <motion.div
+                    className="absolute top-64 left-20 w-4 h-4 bg-blue-400 rounded-full"
+                    animate={{
+                        y: [0, -30, 0],
+                        x: [0, 15, 0],
+                        opacity: [0.5, 1, 0.5]
+                    }}
+                    transition={{
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1
+                    }}
+                />
+
+                <div className="container mx-auto px-4 py-12 max-w-6xl relative z-10">
+                    {getFlashMessageBanner()}
+                    {getLiveViewersComponent()}
+                    <ProgramDetailsSection program={program} />
+                    {getEnrollmentSection()}
+                    {getReviewsSection()}
+                </div>
             </div>
         </LayoutComponent>
     );

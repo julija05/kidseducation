@@ -29,6 +29,8 @@ use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\QuizController;
 use App\Http\Controllers\Student\ReviewController;
 use App\Http\Controllers\DemoController;
+use App\Http\Controllers\LegalController;
+use App\Http\Controllers\HelpController;
 use Illuminate\Support\Facades\Route;
 
 // Language switching
@@ -226,6 +228,15 @@ Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
 Route::get('/articles/{article:slug}', [ArticleController::class, 'show'])->name('articles.show');
+
+// Legal pages
+Route::get('/privacy-policy', [LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/terms-of-service', [LegalController::class, 'terms'])->name('legal.terms');
+
+// Help & Support pages
+Route::get('/help', [HelpController::class, 'index'])->name('help.index');
+Route::get('/help/search', [HelpController::class, 'search'])->name('help.search');
+Route::get('/help/{slug}', [HelpController::class, 'show'])->name('help.article');
 
 // Demo account routes
 Route::prefix('demo')->name('demo.')->group(function () {
