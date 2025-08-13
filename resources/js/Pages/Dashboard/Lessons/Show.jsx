@@ -3,6 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
 import { BookOpen } from "lucide-react";
 import LessonHeader from "@/Components/Lessons/LessonHeader";
+import StudentNavBar from "@/Components/StudentNavBar";
 import StartLessonPrompt from "@/Components/Lessons/StartLessonPrompt";
 import LessonContent from "@/Components/Lessons/LessonContent";
 import LessonNavigation from "@/Components/Lessons/LessonNavigation";
@@ -132,18 +133,11 @@ export default function LessonShow({
     };
 
     const customHeader = (
-        <>
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
-                <BookOpen className="text-white" size={24} />
-            </div>
-            <button
-                onClick={() => router.visit(route("dashboard"))}
-                className="flex flex-col text-left hover:opacity-80 transition-opacity"
-            >
-                <span className="text-2xl font-bold">Learning Session</span>
-                <span className="text-xs opacity-75 -mt-1">{program?.translated_name || program?.name || "lesson mode"}</span>
-            </button>
-        </>
+        <StudentNavBar 
+            panelType="lesson"
+            program={program}
+            icon={BookOpen}
+        />
     );
 
     return (
@@ -153,7 +147,15 @@ export default function LessonShow({
         >
             <Head title={`${lesson.translated_title || lesson.title} - ${program?.translated_name || program?.name || "Program"}`} />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+                {/* Background decorative elements */}
+                <div className="absolute inset-0">
+                    <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 animate-pulse" />
+                    <div className="absolute bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-pink-200 to-yellow-200 rounded-full blur-3xl opacity-30 animate-pulse" style={{animationDelay: '2s'}} />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-emerald-200 to-cyan-200 rounded-full blur-3xl opacity-20 animate-pulse" style={{animationDelay: '1s'}} />
+                </div>
+                
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <LessonHeader
                     lesson={lesson}
                     program={program}
@@ -184,6 +186,7 @@ export default function LessonShow({
                     nextLesson={nextLesson}
                     currentProgress={currentProgress}
                 />
+                </div>
             </div>
 
             {/* Review Prompt Modal */}

@@ -22,10 +22,13 @@ import {
     Star,
     Zap,
     Target,
+    Sparkles,
+    Award,
 } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useTheme, useThemeClasses } from "@/hooks/useTheme.jsx";
+import { motion } from "framer-motion";
 
 export default function ProgramContent({
     program,
@@ -280,237 +283,351 @@ export default function ProgramContent({
     };
 
     return (
-        <div className="space-y-6">
-            {/* Program Overview */}
-            <div
-                className="border rounded-lg p-6"
-                style={{ 
-                    backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
-                    borderColor: 'rgb(var(--primary-200, 191 219 254))'
-                }}
+        <motion.div 
+            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+        >
+            {/* Modern Program Overview */}
+            <motion.div
+                className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+                whileHover={{ scale: 1.02 }}
             >
-                <h3
-                    className="text-xl font-semibold mb-3"
-                    style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
-                >
-                    {t('dashboard.welcome_to_program', { program: program.translated_name || program.name })}
-                </h3>
-                <p style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}>
-                    {program.translated_description || program.description}
-                </p>
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                        <Calendar size={16} className="mr-2" />
-                        <span>{t('dashboard.enrolled_on', { date: program.enrolledAt })}</span>
+                <div className="flex items-start justify-between mb-6">
+                    <div className="flex-1">
+                        <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                            {t('dashboard.welcome_to_program')} {program.translated_name || program.name}
+                        </h3>
+                        <p className="text-gray-600 text-lg leading-relaxed">
+                            {program.translated_description || program.description}
+                        </p>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                        <BookOpen size={16} className="mr-2" />
-                        <span>
-                            {t('dashboard.level_of', { current: program.currentLevel, total: program.totalLevels })}
-                        </span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                        <Star size={16} className="mr-2 text-yellow-500" />
-                        <span className="font-semibold text-yellow-600">
-                            {program.quizPoints || 0} {t('dashboard.points')}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            
-            {/* Points & Progress Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Current Points Card */}
-                <div 
-                    className="border rounded-lg p-6"
-                    style={{ 
-                        backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
-                        borderColor: 'rgb(var(--primary-200, 191 219 254))'
-                    }}
-                >
-                    <h4 
-                        className="text-lg font-semibold mb-3 flex items-center"
-                        style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
+                    <motion.div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-xl shadow-lg ml-6"
+                        animate={{ rotate: [0, 5, -5, 0] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     >
-                        <Star className="mr-2 text-yellow-500" size={20} />
-                        {t('dashboard.your_points')}
-                    </h4>
+                        <BookOpen className="w-8 h-8 text-white" />
+                    </motion.div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <motion.div 
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50 shadow-sm"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg">
+                                <Calendar size={18} className="text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 font-medium">{t('dashboard.enrolled_on')}</p>
+                                <p className="font-bold text-gray-800">{program.enrolledAt}</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                    
+                    <motion.div 
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-200/50 shadow-sm"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.2, delay: 0.1 }}
+                    >
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg">
+                                <BookOpen size={18} className="text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 font-medium">{t('dashboard.level')}</p>
+                                <p className="font-bold text-gray-800">
+                                    {t('dashboard.level_of', { current: program.currentLevel, total: program.totalLevels })}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                    
+                    <motion.div 
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-yellow-200/50 shadow-sm"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.2, delay: 0.2 }}
+                    >
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-2 rounded-lg">
+                                <Star size={18} className="text-white" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 font-medium">{t('dashboard.points')}</p>
+                                <p className="font-bold text-yellow-600 text-lg">
+                                    {program.quizPoints || 0} {t('dashboard.points')}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </motion.div>
+            
+            {/* Modern Points & Progress Overview */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Modern Current Points Card */}
+                <motion.div 
+                    className="bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h4 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                            {t('dashboard.your_points')}
+                        </h4>
+                        <motion.div 
+                            className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-xl shadow-lg"
+                            animate={{ scale: [1, 1.1, 1] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            <Star className="w-6 h-6 text-white" />
+                        </motion.div>
+                    </div>
                     <div className="text-center">
-                        <div 
-                            className="text-4xl font-bold mb-2"
-                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
+                        <motion.div 
+                            className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent mb-3"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
                         >
                             {program.quizPoints || 0}
-                        </div>
-                        <p 
-                            className="font-medium"
-                            style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
-                        >
+                        </motion.div>
+                        <p className="text-lg font-semibold text-gray-700 mb-2">
                             {t('dashboard.total_points_earned')}
                         </p>
-                        <p 
-                            className="text-sm mt-1"
-                            style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
-                        >
-                            {t('dashboard.from_completing_quizzes')}
-                        </p>
+                        <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-yellow-200/50">
+                            <p className="text-sm text-gray-600 font-medium">
+                                {t('dashboard.from_completing_quizzes')}
+                            </p>
+                        </div>
                     </div>
-                </div>
+                </motion.div>
 
-                {/* Next Level Progress Card */}
+                {/* Modern Next Level Progress Card */}
                 {program.pointsNeededForNextLevel !== null && program.pointsNeededForNextLevel > 0 ? (
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6">
-                        <h4 className="text-lg font-semibold text-yellow-900 mb-3 flex items-center">
-                            <Target className="mr-2" size={20} />
-                            {t('dashboard.next_level', { level: program.highestUnlockedLevel + 1 })}
-                        </h4>
-                        <div className="space-y-3">
+                    <motion.div 
+                        className="bg-gradient-to-br from-emerald-50 via-cyan-50 to-blue-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                        whileHover={{ scale: 1.02, y: -5 }}
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h4 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+                                {t('dashboard.next_level', { level: program.highestUnlockedLevel + 1 })}
+                            </h4>
+                            <motion.div 
+                                className="bg-gradient-to-r from-emerald-500 to-cyan-500 p-3 rounded-xl shadow-lg"
+                                animate={{ rotate: [0, 10, -10, 0] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                                <Target className="w-6 h-6 text-white" />
+                            </motion.div>
+                        </div>
+                        <div className="space-y-6">
                             <div className="flex items-center justify-between">
-                                <span className="text-yellow-800 font-medium">{t('dashboard.progress_label')}:</span>
-                                <span className="text-yellow-700 font-bold">
+                                <span className="text-lg font-semibold text-gray-700">{t('dashboard.progress_label')}:</span>
+                                <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
                                     {program.quizPoints || 0} / {program.pointsForNextLevel || 0}
                                 </span>
                             </div>
-                            <div className="w-full bg-yellow-200 rounded-full h-3">
-                                <div
-                                    className="h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500"
-                                    style={{ 
-                                        width: `${Math.min(100, ((program.quizPoints || 0) / (program.pointsForNextLevel || 1)) * 100)}%` 
-                                    }}
-                                ></div>
+                            <div className="relative">
+                                <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+                                    <motion.div
+                                        className="h-4 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full shadow-lg"
+                                        initial={{ width: 0 }}
+                                        animate={{ 
+                                            width: `${Math.min(100, ((program.quizPoints || 0) / (program.pointsForNextLevel || 1)) * 100)}%` 
+                                        }}
+                                        transition={{ duration: 1.5, ease: "easeOut" }}
+                                    />
+                                </div>
+                                <div className="absolute top-0 left-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse opacity-50 rounded-full" />
                             </div>
-                            <div className="text-center">
-                                <p className="text-yellow-800 font-semibold">
+                            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-emerald-200/50 text-center">
+                                <p className="text-lg font-bold text-gray-800 mb-1">
                                     {t('dashboard.more_points_needed', { points: program.pointsNeededForNextLevel })}
                                 </p>
-                                <p className="text-yellow-600 text-sm">
+                                <p className="text-sm text-gray-600">
                                     {t('dashboard.complete_quizzes_unlock', { level: program.highestUnlockedLevel + 1 })}
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 ) : (
                     // Show congratulations only if student actually has points and unlocked levels
                     program.quizPoints > 0 && program.highestUnlockedLevel >= program.totalLevels ? (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
-                            <h4 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
-                                <Trophy className="mr-2 text-green-600" size={20} />
-                                {t('dashboard.all_levels_unlocked')}
-                            </h4>
+                        <motion.div 
+                            className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                            whileHover={{ scale: 1.02, y: -5 }}
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h4 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                    {t('dashboard.all_levels_unlocked')}
+                                </h4>
+                                <motion.div 
+                                    className="bg-gradient-to-r from-green-500 to-emerald-500 p-3 rounded-xl shadow-lg"
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <Trophy className="w-6 h-6 text-white" />
+                                </motion.div>
+                            </div>
                             <div className="text-center">
-                                <div className="text-2xl font-bold text-green-600 mb-2">
+                                <motion.div 
+                                    className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
+                                >
                                     {t('dashboard.congratulations_all_unlocked')}
-                                </div>
-                                <p className="text-green-700 font-medium">
+                                </motion.div>
+                                <p className="text-lg font-semibold text-gray-700 mb-2">
                                     {t('dashboard.unlocked_all_levels')}
                                 </p>
-                                <p className="text-green-600 text-sm mt-1">
-                                    {t('dashboard.keep_completing_quizzes')}
-                                </p>
-                            </div>
-                        </div>
-                    ) : (
-                        // Show getting started message for students with 0 points
-                        <div 
-                            className="border rounded-lg p-6"
-                            style={{ 
-                                backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
-                                borderColor: 'rgb(var(--primary-200, 191 219 254))'
-                            }}
-                        >
-                            <h4 
-                                className="text-lg font-semibold mb-3 flex items-center"
-                                style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
-                            >
-                                <Zap 
-                                    className="mr-2" 
-                                    size={20} 
-                                    style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
-                                />
-                                {t('dashboard.ready_to_start_learning')}
-                            </h4>
-                            <div className="text-center">
-                                <div 
-                                    className="text-2xl font-bold mb-2"
-                                    style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
-                                >
-                                    {t('dashboard.lets_begin')}
-                                </div>
-                                <p 
-                                    className="font-medium"
-                                    style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
-                                >
-                                    {t('dashboard.start_with_level_1')}
-                                </p>
-                                <p className="text-blue-600 text-sm mt-1">
-                                    {t('dashboard.you_need_points_unlock', { points: program.levelRequirements?.['2'] || 10, level: 2 })}
-                                </p>
-                                <div 
-                                    className="mt-3 rounded-lg p-3 border"
-                                    style={{ backgroundColor: 'rgb(var(--primary-100, 219 234 254))' }}
-                                >
-                                    <p 
-                                        className="text-sm font-medium"
-                                        style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
-                                    >
-                                        {t('dashboard.complete_quizzes_earn_points')}
+                                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-green-200/50">
+                                    <p className="text-sm text-gray-600">
+                                        {t('dashboard.keep_completing_quizzes')}
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
+                    ) : (
+                        // Show getting started message for students with 0 points
+                        <motion.div 
+                            className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                            whileHover={{ scale: 1.02, y: -5 }}
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h4 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    {t('dashboard.ready_to_start_learning')}
+                                </h4>
+                                <motion.div 
+                                    className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-xl shadow-lg"
+                                    animate={{ rotate: [0, 15, -15, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <Zap className="w-6 h-6 text-white" />
+                                </motion.div>
+                            </div>
+                            <div className="text-center space-y-4">
+                                <motion.div 
+                                    className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
+                                >
+                                    {t('dashboard.lets_begin')}
+                                </motion.div>
+                                <p className="text-lg font-semibold text-gray-700">
+                                    {t('dashboard.start_with_level_1')}
+                                </p>
+                                <p className="text-gray-600">
+                                    {t('dashboard.you_need_points_unlock', { points: program.levelRequirements?.['2'] || 10, level: 2 })}
+                                </p>
+                                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
+                                    <div className="flex items-center justify-center space-x-2 text-blue-600">
+                                        <Sparkles size={16} />
+                                        <p className="text-sm font-medium">
+                                            {t('dashboard.complete_quizzes_earn_points')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
                     )
                 )}
             </div>
 
-            {/* Next Lesson Card */}
+            {/* Modern Next Lesson Card */}
             {program.nextLesson && (
-                <div 
-                    className="border rounded-lg p-6"
-                    style={{ 
-                        backgroundColor: 'rgb(var(--primary-50, 239 246 255))',
-                        borderColor: 'rgb(var(--primary-200, 191 219 254))'
-                    }}
+                <motion.div 
+                    className="bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
                 >
-                    <h4 
-                        className="text-lg font-semibold mb-2"
-                        style={{ color: 'rgb(var(--primary-800, 30 64 175))' }}
-                    >
-                        {t('dashboard.continue_your_learning')}
-                    </h4>
                     <div className="flex items-center justify-between">
-                        <div>
-                            <p 
-                                className="font-medium"
-                                style={{ color: 'rgb(var(--primary-700, 29 78 216))' }}
-                            >
-                                {program.nextLesson.translated_title || program.nextLesson.title}
-                            </p>
-                            <p 
-                                className="text-sm"
-                                style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
-                            >
-                                {t('dashboard.level')} {program.nextLesson.level}
-                            </p>
+                        <div className="flex-1">
+                            <div className="flex items-center mb-4">
+                                <motion.div 
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl shadow-lg mr-4"
+                                    animate={{ scale: [1, 1.1, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <Play className="w-6 h-6 text-white" />
+                                </motion.div>
+                                <div>
+                                    <h4 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                        {t('dashboard.continue_your_learning')}
+                                    </h4>
+                                    <p className="text-gray-600">{t('dashboard.pick_up_where_left_off')}</p>
+                                </div>
+                            </div>
+                            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-200/50">
+                                <p className="text-lg font-bold text-gray-800 mb-1">
+                                    {program.nextLesson.translated_title || program.nextLesson.title}
+                                </p>
+                                <div className="flex items-center text-gray-600">
+                                    <Target size={16} className="mr-2" />
+                                    <span className="font-medium">{t('dashboard.level')} {program.nextLesson.level}</span>
+                                </div>
+                            </div>
                         </div>
-                        <button
-                            onClick={() =>
-                                handleLessonClick(program.nextLesson, "start")
-                            }
-                            className="text-white px-6 py-2 rounded-lg font-medium transition-colors"
-                            style={{ backgroundColor: 'rgb(var(--primary-600, 37 99 235))' }}
+                        <motion.button
+                            onClick={() => handleLessonClick(program.nextLesson, "start")}
+                            className="ml-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
                         >
-                            {t('dashboard.continue')}
-                        </button>
+                            <div className="flex items-center space-x-2">
+                                <span>{t('dashboard.continue')}</span>
+                                <ChevronRight size={20} />
+                            </div>
+                        </motion.button>
                     </div>
-                </div>
+                </motion.div>
             )}
 
-            {/* Lessons by Level */}
-            <div>
-                <h4 className="text-lg font-semibold mb-4 flex items-center">
-                    <BookOpen className="mr-2" size={20} />
-                    {t('dashboard.your_learning_path')}
-                </h4>
+            {/* Modern Lessons by Level */}
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+            >
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center space-x-3">
+                        <motion.div 
+                            className="bg-gradient-to-r from-indigo-500 to-purple-500 p-3 rounded-xl shadow-lg"
+                            animate={{ rotate: [0, 5, -5, 0] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            <BookOpen className="w-6 h-6 text-white" />
+                        </motion.div>
+                        <div>
+                            <h4 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                {t('dashboard.your_learning_path')}
+                            </h4>
+                            <p className="text-gray-600">{t('dashboard.explore_lessons_by_level')}</p>
+                        </div>
+                    </div>
+                </div>
 
                 <div className="space-y-4">
                     {Object.entries(program.lessons || {}).map(
@@ -846,7 +963,7 @@ export default function ProgramContent({
                         }
                     )}
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 }

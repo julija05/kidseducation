@@ -33,7 +33,7 @@ export default function About({ auth }) {
 
     return (
         <>
-            <Head title={t('about')} />
+            <Head title={t('about.page_title')} />
             <GuestFrontLayout auth={auth}>
             <div className="bg-white text-gray-800 overflow-hidden">
                 {/* Modern Hero Section */}
@@ -55,7 +55,7 @@ export default function About({ auth }) {
                         >
                             <Heart className="text-purple-600 mr-2" size={20} />
                             <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                Empowering Young Minds Since 2020
+                                {t('about.hero_badge')}
                             </span>
                         </motion.div>
 
@@ -67,11 +67,11 @@ export default function About({ auth }) {
                             transition={{ delay: 0.2, duration: 0.8 }}
                         >
                             <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                                Where Dreams
+                                {t('about.hero_title_1')}
                             </span>
                             <br />
                             <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                                Meet Discovery
+                                {t('about.hero_title_2')}
                             </span>
                         </motion.h1>
 
@@ -82,9 +82,8 @@ export default function About({ auth }) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.6, duration: 0.8 }}
                         >
-                            We're not just an education platform – we're architects of curiosity, 
-                            builders of confidence, and champions of every child's unlimited potential.
-                            <span className="font-semibold text-purple-600"> Your child's future starts here.</span>
+                            {t('about.hero_subtitle')}
+                            <span className="font-semibold text-purple-600"> {t('about.hero_subtitle_accent')}</span>
                         </motion.p>
 
                         {/* Modern Stats Grid */}
@@ -95,10 +94,10 @@ export default function About({ auth }) {
                             transition={{ delay: 0.8, duration: 0.8 }}
                         >
                             {[
-                                { icon: Users, number: "2000+", label: "Happy Families", color: "text-blue-600" },
-                                { icon: Award, number: "98%", label: "Success Rate", color: "text-emerald-600" },
-                                { icon: Globe, number: "15+", label: "Countries", color: "text-purple-600" },
-                                { icon: BookOpen, number: "500K+", label: "Lessons Completed", color: "text-pink-600" }
+                                { icon: Users, number: "2000+", label: t('about.happy_families'), color: "text-blue-600" },
+                                { icon: Award, number: "98%", label: t('about.success_rate'), color: "text-emerald-600" },
+                                { icon: Globe, number: "15+", label: t('about.countries'), color: "text-purple-600" },
+                                { icon: BookOpen, number: "500K+", label: t('about.lessons_completed'), color: "text-pink-600" }
                             ].map((stat, index) => (
                                 <motion.div
                                     key={index}
@@ -124,7 +123,7 @@ export default function About({ auth }) {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                             >
-                                <span>Start Your Journey</span>
+                                <span>{t('about.start_journey')}</span>
                                 <ChevronRight size={20} />
                             </motion.button>
                             <motion.button
@@ -133,7 +132,7 @@ export default function About({ auth }) {
                                 whileTap={{ scale: 0.95 }}
                             >
                                 <PlayCircle size={20} />
-                                <span>Watch Our Story</span>
+                                <span>{t('about.watch_story')}</span>
                             </motion.button>
                         </motion.div>
                     </div>
@@ -150,11 +149,10 @@ export default function About({ auth }) {
                             transition={{ duration: 0.8 }}
                         >
                             <h2 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-8">
-                                Our DNA
+                                {t('about.our_dna')}
                             </h2>
                             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                                Built on values that transform learning into an adventure of discovery, 
-                                creativity, and boundless growth.
+                                {t('about.dna_subtitle')}
                             </p>
                         </motion.div>
 
@@ -166,9 +164,9 @@ export default function About({ auth }) {
                             transition={{ delay: 0.2, duration: 0.6 }}
                         >
                             {[
-                                { id: 'mission', label: 'Our Mission', icon: Target },
-                                { id: 'vision', label: 'Our Vision', icon: Star },
-                                { id: 'values', label: 'Our Values', icon: Heart }
+                                { id: 'mission', label: t('about.mission'), icon: Target },
+                                { id: 'vision', label: t('about.vision'), icon: Star },
+                                { id: 'values', label: t('about.values'), icon: Heart }
                             ].map((tab) => {
                                 const Icon = tab.icon;
                                 return (
@@ -205,12 +203,9 @@ export default function About({ auth }) {
                                     transition={{ duration: 0.5 }}
                                 >
                                     <Target className="text-purple-600 mx-auto mb-6" size={64} />
-                                    <h3 className="text-4xl font-bold text-gray-800 mb-6">Igniting Lifelong Learning</h3>
+                                    <h3 className="text-4xl font-bold text-gray-800 mb-6">{t('about.mission_title')}</h3>
                                     <p className="text-lg text-gray-600 leading-relaxed max-w-4xl mx-auto">
-                                        We believe every child is a natural genius waiting to be discovered. Our mission is to create 
-                                        an environment where curiosity thrives, confidence builds, and learning becomes the greatest 
-                                        adventure of all. Through innovative programs that blend ancient wisdom with modern technology, 
-                                        we unlock each child's unique potential and prepare them for a future without limits.
+                                        {t('about.mission_description')}
                                     </p>
                                 </motion.div>
                             )}
@@ -223,12 +218,9 @@ export default function About({ auth }) {
                                     transition={{ duration: 0.5 }}
                                 >
                                     <Star className="text-blue-600 mx-auto mb-6" size={64} />
-                                    <h3 className="text-4xl font-bold text-gray-800 mb-6">A World of Brilliant Minds</h3>
+                                    <h3 className="text-4xl font-bold text-gray-800 mb-6">{t('about.vision_title')}</h3>
                                     <p className="text-lg text-gray-600 leading-relaxed max-w-4xl mx-auto">
-                                        We envision a world where every child has access to transformative education that celebrates 
-                                        their individuality while building essential skills for tomorrow. A world where learning is 
-                                        joyful, meaningful, and deeply connected to real-life success. We're building the foundation 
-                                        for the next generation of innovators, creators, and leaders who will shape our future.
+                                        {t('about.vision_description')}
                                     </p>
                                 </motion.div>
                             )}
@@ -240,15 +232,15 @@ export default function About({ auth }) {
                                     transition={{ duration: 0.5 }}
                                 >
                                     <Heart className="text-pink-600 mx-auto mb-6" size={64} />
-                                    <h3 className="text-4xl font-bold text-gray-800 mb-8 text-center">What Drives Us Forward</h3>
+                                    <h3 className="text-4xl font-bold text-gray-800 mb-8 text-center">{t('about.values_title')}</h3>
                                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                                         {[
-                                            { icon: Sparkles, title: "Innovation", desc: "Pioneering educational methods that inspire wonder" },
-                                            { icon: Shield, title: "Safety First", desc: "Creating secure, nurturing environments for growth" },
-                                            { icon: Users, title: "Inclusivity", desc: "Celebrating every child's unique journey and style" },
-                                            { icon: TrendingUp, title: "Excellence", desc: "Delivering world-class education with proven results" },
-                                            { icon: Heart, title: "Compassion", desc: "Leading with empathy, understanding, and kindness" },
-                                            { icon: Zap, title: "Empowerment", desc: "Building confidence that lasts a lifetime" }
+                                            { icon: Sparkles, title: t('about.innovation'), desc: t('about.innovation_desc') },
+                                            { icon: Shield, title: t('about.safety_first'), desc: t('about.safety_desc') },
+                                            { icon: Users, title: t('about.inclusivity'), desc: t('about.inclusivity_desc') },
+                                            { icon: TrendingUp, title: t('about.excellence'), desc: t('about.excellence_desc') },
+                                            { icon: Heart, title: t('about.compassion'), desc: t('about.compassion_desc') },
+                                            { icon: Zap, title: t('about.empowerment'), desc: t('about.empowerment_desc') }
                                         ].map((value, index) => (
                                             <motion.div
                                                 key={index}
@@ -284,11 +276,10 @@ export default function About({ auth }) {
                             transition={{ duration: 0.8 }}
                         >
                             <h2 className="text-5xl md:text-6xl font-extrabold mb-8">
-                                Creating Real Impact
+                                {t('about.creating_impact')}
                             </h2>
                             <p className="text-xl mb-16 max-w-3xl mx-auto leading-relaxed opacity-90">
-                                Every day, we witness the transformation of young minds into confident, creative, 
-                                and capable individuals ready to change the world.
+                                {t('about.impact_subtitle')}
                             </p>
                         </motion.div>
 
@@ -296,21 +287,21 @@ export default function About({ auth }) {
                             {[
                                 {
                                     icon: TrendingUp,
-                                    title: "Academic Excellence",
-                                    description: "95% of our students show significant improvement in math performance within the first 3 months",
-                                    metric: "3x faster learning"
+                                    title: t('about.academic_excellence'),
+                                    description: t('about.academic_desc'),
+                                    metric: t('about.academic_metric')
                                 },
                                 {
                                     icon: Sparkles,
-                                    title: "Creative Confidence",
-                                    description: "Children develop problem-solving skills and creative thinking that extends far beyond academics",
-                                    metric: "100+ projects created"
+                                    title: t('about.creative_confidence'),
+                                    description: t('about.creative_desc'),
+                                    metric: t('about.creative_metric')
                                 },
                                 {
                                     icon: Globe,
-                                    title: "Global Community",
-                                    description: "Connecting families worldwide in a shared mission to nurture the next generation of leaders",
-                                    metric: "15+ countries served"
+                                    title: t('about.global_community'),
+                                    description: t('about.global_desc'),
+                                    metric: t('about.global_metric')
                                 }
                             ].map((impact, index) => (
                                 <motion.div
@@ -341,38 +332,38 @@ export default function About({ auth }) {
                             transition={{ duration: 0.8 }}
                         >
                             <h2 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-8">
-                                Questions? We've Got Answers
+                                {t('about.faq_title')}
                             </h2>
                             <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                                Everything you need to know about our programs, approach, and community.
+                                {t('about.faq_subtitle')}
                             </p>
                         </motion.div>
 
                         <div className="space-y-4">
                             {[
                                 {
-                                    question: "What makes Abacoding different from other educational programs?",
-                                    answer: "Our unique blend of ancient abacus wisdom with modern coding creativity creates an unparalleled learning experience. We don't just teach math and programming – we build cognitive skills, confidence, and creativity that serve children for life. Our personalized approach ensures every child learns at their own pace while having fun."
+                                    question: t('about.faq_1_q'),
+                                    answer: t('about.faq_1_a')
                                 },
                                 {
-                                    question: "What age groups do you serve, and how do you adapt to different learning styles?",
-                                    answer: "We welcome children ages 5-14 across all our programs. Our expert instructors are trained to recognize different learning styles – visual, auditory, kinesthetic, and logical learners all thrive in our environment. We use gamification, storytelling, hands-on activities, and interactive technology to ensure every child finds their perfect learning path."
+                                    question: t('about.faq_2_q'),
+                                    answer: t('about.faq_2_a')
                                 },
                                 {
-                                    question: "Do I need any prior experience or special equipment to get started?",
-                                    answer: "Absolutely not! Our programs are designed for complete beginners. We provide all necessary materials and guide families through every step. For our coding programs, a basic computer with internet access is all you need. Our abacus programs include physical abacus tools as part of the enrollment."
+                                    question: t('about.faq_3_q'),
+                                    answer: t('about.faq_3_a')
                                 },
                                 {
-                                    question: "How do you track progress and communicate with parents?",
-                                    answer: "We believe parents are crucial partners in their child's learning journey. You'll receive regular progress reports, have access to our parent dashboard, and get personalized insights about your child's development. We also offer monthly parent workshops and one-on-one consultations to ensure you're equipped to support your child's growth at home."
+                                    question: t('about.faq_4_q'),
+                                    answer: t('about.faq_4_a')
                                 },
                                 {
-                                    question: "What kind of results can we expect, and how quickly?",
-                                    answer: "Most families notice improvements in confidence and enthusiasm within the first few weeks. Academic improvements typically become apparent within 2-3 months. However, every child is unique – some show dramatic changes quickly, while others develop more gradually. What's consistent is that children develop a genuine love for learning that lasts a lifetime."
+                                    question: t('about.faq_5_q'),
+                                    answer: t('about.faq_5_a')
                                 },
                                 {
-                                    question: "How flexible are your programs for busy family schedules?",
-                                    answer: "We understand modern families are busy! That's why we offer flexible scheduling options, including weekend and evening sessions. Our online components can be accessed anytime, and we provide makeup sessions for missed classes. We work with you to create a learning schedule that fits your family's lifestyle."
+                                    question: t('about.faq_6_q'),
+                                    answer: t('about.faq_6_a')
                                 }
                             ].map((faq, index) => (
                                 <motion.div
@@ -425,14 +416,14 @@ export default function About({ auth }) {
                             transition={{ delay: 0.4, duration: 0.6 }}
                         >
                             <p className="text-lg text-gray-600 mb-6">
-                                Still have questions? We're here to help!
+                                {t('about.still_questions')}
                             </p>
                             <motion.button
                                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-full text-lg shadow-xl hover:shadow-2xl transition-all duration-300 inline-flex items-center space-x-2"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                             >
-                                <span>Contact Our Team</span>
+                                <span>{t('about.contact_team')}</span>
                                 <ChevronRight size={20} />
                             </motion.button>
                         </motion.div>
@@ -456,11 +447,10 @@ export default function About({ auth }) {
                             transition={{ duration: 0.8 }}
                         >
                             <h2 className="text-5xl md:text-6xl font-extrabold mb-8">
-                                Ready to Begin This Amazing Journey?
+                                {t('about.ready_journey')}
                             </h2>
                             <p className="text-xl mb-12 max-w-2xl mx-auto leading-relaxed opacity-90">
-                                Join thousands of families who've discovered the joy of learning with us. 
-                                Your child's extraordinary future starts with a single step.
+                                {t('about.cta_subtitle')}
                             </p>
                         </motion.div>
 
@@ -476,7 +466,7 @@ export default function About({ auth }) {
                                 whileTap={{ scale: 0.95 }}
                             >
                                 <Sparkles size={20} />
-                                <span>Explore Our Programs</span>
+                                <span>{t('about.explore_programs')}</span>
                             </motion.button>
                             <motion.button
                                 className="border-2 border-white text-white hover:bg-white hover:text-purple-600 font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 inline-flex items-center space-x-2"
@@ -484,7 +474,7 @@ export default function About({ auth }) {
                                 whileTap={{ scale: 0.95 }}
                             >
                                 <PlayCircle size={20} />
-                                <span>Book a Free Demo</span>
+                                <span>{t('about.book_demo')}</span>
                             </motion.button>
                         </motion.div>
 
@@ -496,15 +486,15 @@ export default function About({ auth }) {
                         >
                             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                                 <div className="text-3xl font-bold mb-2">100%</div>
-                                <div className="text-sm opacity-90">Risk-free trial</div>
+                                <div className="text-sm opacity-90">{t('about.risk_free_trial')}</div>
                             </div>
                             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                                 <div className="text-3xl font-bold mb-2">24/7</div>
-                                <div className="text-sm opacity-90">Parent support</div>
+                                <div className="text-sm opacity-90">{t('about.parent_support')}</div>
                             </div>
                             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
                                 <div className="text-3xl font-bold mb-2">98%</div>
-                                <div className="text-sm opacity-90">Satisfaction rate</div>
+                                <div className="text-sm opacity-90">{t('about.satisfaction_rate')}</div>
                             </div>
                         </motion.div>
                     </div>

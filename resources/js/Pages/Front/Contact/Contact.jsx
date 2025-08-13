@@ -63,7 +63,7 @@ export default function ContactUs({ auth }) {
             console.log(formData, "formdata");
             const response = await axios.post("/contact", formData);
             setSuccessMessage(
-                response.data.message || "Message sent successfully!"
+                response.data.message || t('contact.message_sent_success')
             );
             setFormData({ name: "", email: "", message: "" });
             // Reset form
@@ -78,7 +78,7 @@ export default function ContactUs({ auth }) {
             } else {
                 // Other errors
                 setErrorMessage(
-                    "Something went wrong. Please try again later."
+                    t('contact.form_error')
                 );
             }
         }
@@ -86,7 +86,7 @@ export default function ContactUs({ auth }) {
 
     return (
         <>
-            <Head title={t('contact')} />
+            <Head title={t('contact.page_title')} />
             <GuestFrontLayout auth={auth}>
                 <div className="bg-white text-gray-800 overflow-hidden">
                     {/* Modern Hero Section */}
@@ -108,7 +108,7 @@ export default function ContactUs({ auth }) {
                             >
                                 <MessageCircle className="text-purple-600 mr-2" size={20} />
                                 <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    We're Here to Help Your Family Succeed
+                                    {t('contact.hero_badge')}
                                 </span>
                             </motion.div>
 
@@ -120,11 +120,11 @@ export default function ContactUs({ auth }) {
                                 transition={{ delay: 0.2, duration: 0.8 }}
                             >
                                 <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                                    Let's Start This
+                                    {t('contact.hero_title_1')}
                                 </span>
                                 <br />
                                 <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                                    Amazing Journey
+                                    {t('contact.hero_title_2')}
                                 </span>
                             </motion.h1>
 
@@ -135,9 +135,8 @@ export default function ContactUs({ auth }) {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.6, duration: 0.8 }}
                             >
-                                Have questions? Want to schedule a demo? Or ready to enroll? 
-                                Our dedicated team is here to guide you every step of the way.
-                                <span className="font-semibold text-purple-600"> Your child's future is our priority.</span>
+                                {t('contact.hero_subtitle')}
+                                <span className="font-semibold text-purple-600"> {t('contact.hero_subtitle_accent')}</span>
                             </motion.p>
 
                             {/* Quick Contact Options */}
@@ -148,9 +147,9 @@ export default function ContactUs({ auth }) {
                                 transition={{ delay: 0.8, duration: 0.8 }}
                             >
                                 {[
-                                    { icon: Phone, title: "Quick Call", desc: "Speak with our experts instantly", action: "Call Now" },
-                                    { icon: Mail, title: "Email Support", desc: "Detailed questions & enrollment", action: "Send Email" },
-                                    { icon: MessageCircle, title: "Live Chat", desc: "Get immediate answers", action: "Start Chat" }
+                                    { icon: Phone, title: t('contact.quick_call'), desc: t('contact.quick_call_desc'), action: t('contact.quick_call_action') },
+                                    { icon: Mail, title: t('contact.email_support'), desc: t('contact.email_support_desc'), action: t('contact.email_support_action') },
+                                    { icon: MessageCircle, title: t('contact.live_chat'), desc: t('contact.live_chat_desc'), action: t('contact.live_chat_action') }
                                 ].map((option, index) => (
                                     <motion.div
                                         key={index}
@@ -183,10 +182,10 @@ export default function ContactUs({ auth }) {
                                 >
                                     <div className="text-center mb-8">
                                         <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-                                            Send Us a Message
+                                            {t('contact.send_message_title')}
                                         </h2>
                                         <p className="text-gray-600 leading-relaxed">
-                                            Fill out the form below and we'll get back to you within 24 hours with personalized guidance for your child's learning journey.
+                                            {t('contact.form_subtitle')}
                                         </p>
                                     </div>
 
@@ -194,7 +193,7 @@ export default function ContactUs({ auth }) {
                                         {/* Name Field */}
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Your Name *
+                                                {t('contact.your_name')} {t('contact.required_field')}
                                             </label>
                                             <input
                                                 type="text"
@@ -204,7 +203,7 @@ export default function ContactUs({ auth }) {
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 ${
                                                     errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-purple-300'
                                                 }`}
-                                                placeholder="Enter your full name"
+                                                placeholder={t('contact.your_name_placeholder')}
                                             />
                                             {errors.name && (
                                                 <motion.p
@@ -221,7 +220,7 @@ export default function ContactUs({ auth }) {
                                         {/* Email Field */}
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Email Address *
+                                                {t('contact.email_address')} {t('contact.required_field')}
                                             </label>
                                             <input
                                                 type="email"
@@ -231,7 +230,7 @@ export default function ContactUs({ auth }) {
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 ${
                                                     errors.email ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-purple-300'
                                                 }`}
-                                                placeholder="your.email@example.com"
+                                                placeholder={t('contact.email_placeholder')}
                                             />
                                             {errors.email && (
                                                 <motion.p
@@ -248,7 +247,7 @@ export default function ContactUs({ auth }) {
                                         {/* Message Field */}
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Your Message *
+                                                {t('contact.your_message')} {t('contact.required_field')}
                                             </label>
                                             <textarea
                                                 name="message"
@@ -258,7 +257,7 @@ export default function ContactUs({ auth }) {
                                                 className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all duration-300 resize-none ${
                                                     errors.message ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-purple-300'
                                                 }`}
-                                                placeholder="Tell us about your child's age, interests, and what you'd like to know about our programs..."
+                                                placeholder={t('contact.message_placeholder')}
                                             />
                                             {errors.message && (
                                                 <motion.p
@@ -303,7 +302,7 @@ export default function ContactUs({ auth }) {
                                             whileTap={{ scale: 0.98 }}
                                         >
                                             <Send size={20} />
-                                            <span>Send Message</span>
+                                            <span>{t('contact.send_message')}</span>
                                         </motion.button>
                                     </form>
                                 </motion.div>
@@ -317,10 +316,10 @@ export default function ContactUs({ auth }) {
                                 >
                                     <div className="text-center lg:text-left">
                                         <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-6">
-                                            Get in Touch
+                                            {t('contact.get_in_touch')}
                                         </h2>
                                         <p className="text-xl text-gray-600 leading-relaxed mb-12">
-                                            We're here to answer your questions, schedule demos, and help you choose the perfect program for your child.
+                                            {t('contact.contact_subtitle')}
                                         </p>
                                     </div>
 
@@ -329,27 +328,27 @@ export default function ContactUs({ auth }) {
                                         {[
                                             {
                                                 icon: Mail,
-                                                title: "Email Us",
-                                                info: "abacoding@abacoding.com",
-                                                desc: "For detailed inquiries & enrollment",
+                                                title: t('contact.email_us'),
+                                                info: t('contact.email_info'),
+                                                desc: t('contact.email_desc'),
                                                 color: "text-blue-600",
                                                 bg: "bg-blue-50",
                                                 border: "border-blue-200"
                                             },
                                             {
                                                 icon: Phone,
-                                                title: "Call Us",
-                                                info: "+1 (555) 123-4567",
-                                                desc: "Mon-Fri 9AM-6PM EST",
+                                                title: t('contact.call_us'),
+                                                info: t('contact.phone_info'),
+                                                desc: t('contact.phone_desc'),
                                                 color: "text-emerald-600",
                                                 bg: "bg-emerald-50",
                                                 border: "border-emerald-200"
                                             },
                                             {
                                                 icon: Clock,
-                                                title: "Response Time",
-                                                info: "Within 24 Hours",
-                                                desc: "We prioritize every inquiry",
+                                                title: t('contact.response_time'),
+                                                info: t('contact.response_info'),
+                                                desc: t('contact.response_desc'),
                                                 color: "text-purple-600",
                                                 bg: "bg-purple-50",
                                                 border: "border-purple-200"
@@ -381,8 +380,8 @@ export default function ContactUs({ auth }) {
                                         whileInView={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.4, duration: 0.6 }}
                                     >
-                                        <h3 className="text-2xl font-bold mb-4">Follow Our Journey</h3>
-                                        <p className="mb-6 opacity-90">Join our community and see amazing student achievements!</p>
+                                        <h3 className="text-2xl font-bold mb-4">{t('contact.follow_journey')}</h3>
+                                        <p className="mb-6 opacity-90">{t('contact.social_subtitle')}</p>
                                         
                                         <div className="flex justify-center space-x-6">
                                             {[
@@ -416,19 +415,19 @@ export default function ContactUs({ auth }) {
                                 transition={{ duration: 0.8 }}
                             >
                                 <h2 className="text-5xl font-extrabold mb-8">
-                                    Why Families Choose to Connect With Us
+                                    {t('contact.why_choose_title')}
                                 </h2>
                                 <p className="text-xl mb-16 max-w-3xl mx-auto leading-relaxed opacity-90">
-                                    We're not just an education provider – we're your partners in your child's success story.
+                                    {t('contact.why_choose_subtitle')}
                                 </p>
                             </motion.div>
 
                             <div className="grid md:grid-cols-4 gap-8">
                                 {[
-                                    { icon: Heart, title: "Personal Care", desc: "Every family gets individualized attention" },
-                                    { icon: Star, title: "Proven Results", desc: "98% parent satisfaction rate" },
-                                    { icon: Shield, title: "Trusted Approach", desc: "Safe, nurturing learning environment" },
-                                    { icon: Zap, title: "Quick Response", desc: "Fast, helpful answers to all questions" }
+                                    { icon: Heart, title: t('contact.personal_care'), desc: t('contact.personal_care_desc') },
+                                    { icon: Star, title: t('contact.proven_results'), desc: t('contact.proven_results_desc') },
+                                    { icon: Shield, title: t('contact.trusted_approach'), desc: t('contact.trusted_approach_desc') },
+                                    { icon: Zap, title: t('contact.quick_response'), desc: t('contact.quick_response_desc') }
                                 ].map((reason, index) => (
                                     <motion.div
                                         key={index}
@@ -452,7 +451,7 @@ export default function ContactUs({ auth }) {
                                 transition={{ delay: 0.6, duration: 0.8 }}
                             >
                                 <p className="text-2xl font-semibold mb-8">
-                                    Ready to give your child the gift of extraordinary learning?
+                                    {t('contact.ready_question')}
                                 </p>
                                 <motion.button
                                     className="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 inline-flex items-center space-x-2"
@@ -460,7 +459,7 @@ export default function ContactUs({ auth }) {
                                     whileTap={{ scale: 0.95 }}
                                 >
                                     <Sparkles size={20} />
-                                    <span>Start the Conversation</span>
+                                    <span>{t('contact.start_conversation')}</span>
                                 </motion.button>
                             </motion.div>
                         </div>

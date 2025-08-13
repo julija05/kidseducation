@@ -8,6 +8,7 @@ import UpdateLanguagePreferenceForm from './Partials/UpdateLanguagePreferenceFor
 import SimpleThemeSelector from '@/Components/SimpleThemeSelector';
 import AvatarSelector from '@/Components/AvatarSelector';
 import { useTranslation } from '@/hooks/useTranslation';
+import StudentNavBar from '@/Components/StudentNavBar';
 import { useAvatar } from '@/hooks/useAvatar.jsx';
 
 export default function Edit({ mustVerifyEmail, status }) {
@@ -45,18 +46,10 @@ export default function Edit({ mustVerifyEmail, status }) {
     };
 
     const customHeader = (
-        <>
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
-                <User className="text-white" size={24} />
-            </div>
-            <button
-                onClick={() => router.visit(route("dashboard"))}
-                className="flex flex-col text-left hover:opacity-80 transition-opacity"
-            >
-                <span className="text-2xl font-bold">Abacoding</span>
-                <span className="text-xs opacity-75 -mt-1">{t('profile.panel_subtitle')}</span>
-            </button>
-        </>
+        <StudentNavBar 
+            panelType="profile"
+            icon={Settings}
+        />
     );
 
     const profileSections = [

@@ -2,249 +2,15 @@ import Dropdown from "@/Components/Dropdown";
 import { Link, usePage, router } from "@inertiajs/react";
 import { useState, useEffect, useMemo } from "react";
 import { User, ChevronDown, Bell, Calculator } from "lucide-react";
+import { motion } from "framer-motion";
 import StudentNotifications from "@/Components/Dashboard/StudentNotifications";
 import AbacusSimulator from "@/Components/AbacusSimulator";
+import StudentNavBar from "@/Components/StudentNavBar";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useTheme, ThemeProvider } from "@/hooks/useTheme.jsx";
 import ThemeManager from "@/Components/ThemeManager";
 import { useAvatar } from "@/hooks/useAvatar.jsx";
 
-function AuthenticatedLayoutContent({
-    children,
-    programConfig = null,
-    showSideNavigation = false,
-    customHeader = null,
-}) {
-    const { props } = usePage();
-    const user = props.auth.user;
-    const { t } = useTranslation();
-    const { theme: userTheme, setTemporaryTheme } = useTheme();
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [showAbacus, setShowAbacus] = useState(false);
-    
-    // Check if user is a student (has student role)
-    const isStudent = user.roles && user.roles.includes('student');
-    
-    // Get notification data from props if available
-    const { notifications = [], unreadNotificationCount = 0, nextClass = null, enrolledProgram = null } = props;
-    
-    // Check if student is enrolled in Mental Arithmetic program
-    const isMentalArithmeticStudent = isStudent && enrolledProgram && 
-        (enrolledProgram.name === 'Mental Arithmetic Mastery' || 
-         enrolledProgram.translated_name === 'Ментална Аритметика') && 
-        enrolledProgram.approvalStatus === 'approved';
-
-    // Use program config if provided, otherwise use user's theme
-    const theme = useMemo(() => {
-        return programConfig ? {
-            name: programConfig.name || "Dashboard",
-            color: programConfig.color || `bg-gradient-to-r ${userTheme.primary}`,
-            lightColor: programConfig.lightColor || `bg-gradient-to-br ${userTheme.primaryLight}`,
-            borderColor: programConfig.borderColor || userTheme.primaryBorder,
-            textColor: programConfig.textColor || userTheme.primaryText,
-        } : {
-            name: "Dashboard",
-            color: `bg-gradient-to-r ${userTheme.primary}`,
-            lightColor: `bg-gradient-to-br ${userTheme.primaryLight}`,
-            borderColor: userTheme.primaryBorder,
-            textColor: userTheme.primaryText,
-        };
-    }, [programConfig, userTheme]);
-
-    // Set temporary theme if program config is provided
-    useEffect(() => {
-        if (programConfig) {
-            setTemporaryTheme(programConfig);
-        } else {
-            setTemporaryTheme(null);
-        }
-    }, [programConfig, setTemporaryTheme]);
-
-    const handleMarkAllAsRead = () => {
-        router.patch('/dashboard/notifications/mark-all-read', {}, {
-            preserveScroll: true,
-            preserveState: true,
-        });
-    };
-
-    // Ensure we have a valid background color class
-    const headerBgClass =
-        theme.color && theme.color.startsWith("bg-")
-            ? theme.color
-            : "bg-gray-700";
-
-    return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="text-white shadow-lg" style={headerStyle}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            {customHeader ? (
-                                customHeader
-                            ) : (
-                                <>
-                                    <User
-                                        className="mr-3 text-white"
-                                        size={32}
-                                    />
-                                    <Link 
-                                        href={route("dashboard")}
-                                        className="text-white hover:text-gray-200 transition-colors"
-                                    >
-                                        <div className="flex flex-col">
-                                            <span className="text-2xl font-bold">Abacoding</span>
-                                            <span className="text-xs opacity-75 -mt-1">program panel</span>
-                                        </div>
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            {/* Abacus Icon for Mental Arithmetic students */}
-                            {isMentalArithmeticStudent && (
-                                <button
-                                    onClick={() => setShowAbacus(true)}
-                                    className="flex items-center gap-2 px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all duration-200 text-white text-sm"
-                                    title={t('dashboard.open_abacus_simulator')}
-                                >
-                                    <Calculator size={18} />
-                                    <span className="hidden sm:inline">{t('dashboard.abacus')}</span>
-                                </button>
-                            )}
-                            
-                            {/* Student Notifications */}
-                            {isStudent && (
-                                <StudentNotifications
-                                    notifications={notifications}
-                                    unreadCount={unreadNotificationCount}
-                                    nextClass={null} // Don't show next class in header, only on dashboard
-                                    headerMode={true}
-                                    onMarkAllAsRead={handleMarkAllAsRead}
-                                />
-                            )}
-
-                            {/* User Dropdown - Fixed with better visibility */}
-                            <div className="relative">
-                                <Dropdown>
-                                <Dropdown.Trigger>
-                                    <span className="inline-flex rounded-md">
-                                        <button
-                                            type="button"
-                                            className="flex items-center space-x-3 px-4 py-2 text-white hover:bg-white hover:bg-opacity-20 rounded-lg transition-all duration-200 border-2 border-white border-opacity-30 hover:border-opacity-50 shadow-sm"
-                                        >
-                                            <div className="text-right">
-                                                <p className="text-xs opacity-90">
-                                                    {t('dashboard.welcome_back')},
-                                                </p>
-                                                <p className="font-semibold text-sm text-white">
-                                                    {user.name}
-                                                </p>
-                                            </div>
-                                            <div className="w-8 h-8 bg-white bg-opacity-30 rounded-full flex items-center justify-center border border-white border-opacity-20">
-                                                {avatarData && avatarData.type === 'emoji' ? (
-                                                    <span className="text-sm">{avatarData.value}</span>
-                                                ) : (
-                                                    <User size={16} className="text-white" />
-                                                )}
-                                            </div>
-                                            <ChevronDown
-                                                size={16}
-                                                className="opacity-90 text-white"
-                                            />
-                                        </button>
-                                    </span>
-                                </Dropdown.Trigger>
-
-                                <Dropdown.Content>
-                                    <Dropdown.Link
-                                        href={route("dashboard")}
-                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                        {t('nav.dashboard')}
-                                    </Dropdown.Link>
-                                    {isStudent && (
-                                        <Dropdown.Link
-                                            href={route("my-schedule")}
-                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                        >
-                                            {t('nav.my_schedule')}
-                                        </Dropdown.Link>
-                                    )}
-                                    <Dropdown.Link
-                                        href={route("profile.edit")}
-                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                        {t('nav.profile_settings')}
-                                    </Dropdown.Link>
-                                    
-                                    {/* Email Verification Status */}
-                                    <div className="px-4 py-2 border-t border-gray-100">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-500">{t('profile.email_status')}:</span>
-                                            {user.email_verified_at ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                                    </svg>
-                                                    {t('verification.verified')}
-                                                </span>
-                                            ) : (
-                                                <Link
-                                                    href={route("verification.notice")}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full hover:bg-yellow-200"
-                                                >
-                                                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                                    </svg>
-                                                    {t('verification.verify')}
-                                                </Link>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="border-t border-gray-100 my-1"></div>
-                                    <Dropdown.Link
-                                        href={route("logout")}
-                                        method="post"
-                                        as="button"
-                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                    >
-                                        {t('nav.log_out')}
-                                    </Dropdown.Link>
-                                </Dropdown.Content>
-                            </Dropdown>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content */}
-            <main className="flex-1">{children}</main>
-            
-            {/* Floating Abacus Button - Only for Mental Arithmetic students */}
-            {isMentalArithmeticStudent && (
-                <div className="fixed bottom-6 right-6 z-40">
-                    <button
-                        onClick={() => setShowAbacus(true)}
-                        className="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-amber-300"
-                        title={t('dashboard.open_abacus_simulator')}
-                        aria-label={t('dashboard.open_abacus_simulator')}
-                    >
-                        <Calculator size={24} />
-                    </button>
-                </div>
-            )}
-            
-            {/* Abacus Simulator Modal */}
-            <AbacusSimulator 
-                isOpen={showAbacus} 
-                onClose={() => setShowAbacus(false)} 
-            />
-        </div>
-    );
-}
 
 export default function AuthenticatedLayout(props) {
     // Temporarily disable ThemeProvider to test if it's causing the loop
@@ -351,54 +117,63 @@ function AuthenticatedLayoutContentSimple({
     return (
         <div className="min-h-screen bg-gray-50">
             <ThemeManager />
-            {/* Header */}
-            <header 
-                className="shadow-lg border-b-2 border-white border-opacity-20"
+            {/* Modern Header */}
+            <motion.header 
+                className="backdrop-blur-lg shadow-xl border-b border-white/20 relative overflow-visible"
                 style={{
-                    background: themeGradients[activeTheme],
-                    backgroundImage: themeGradients[activeTheme],
+                    background: `${themeGradients[activeTheme]}, rgba(255, 255, 255, 0.1)`,
+                    backdropFilter: 'blur(16px)',
                     color: 'white',
-                    minHeight: '72px',
+                    minHeight: '80px',
                     width: '100%',
                     position: 'relative',
                     zIndex: 10
                 }}
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                {/* Background decorative elements */}
+                <div className="absolute inset-0">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
+                    <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-2xl transform -translate-x-1/3 translate-y-1/3" />
+                </div>
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center">
+                        <motion.div 
+                            className="flex items-center"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.1 }}
+                        >
                             {customHeader ? (
                                 customHeader
                             ) : (
-                                <>
-                                    <User
-                                        className="mr-3 text-white"
-                                        size={32}
-                                    />
-                                    <Link 
-                                        href={route("dashboard")}
-                                        className="text-white hover:text-gray-200 transition-colors"
-                                    >
-                                        <div className="flex flex-col">
-                                            <span className="text-2xl font-bold">Abacoding</span>
-                                            <span className="text-xs opacity-75 -mt-1">program panel</span>
-                                        </div>
-                                    </Link>
-                                </>
+                                <StudentNavBar 
+                                    panelType="dashboard"
+                                    program={enrolledProgram}
+                                />
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="flex items-center gap-4">
-                            {/* Abacus Icon for Mental Arithmetic students */}
+                        <motion.div 
+                            className="flex items-center gap-4"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                        >
+                            {/* Modern Abacus Icon for Mental Arithmetic students */}
                             {isMentalArithmeticStudent && (
-                                <button
+                                <motion.button
                                     onClick={() => setShowAbacus(true)}
-                                    className="flex items-center gap-2 px-3 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all duration-200 text-white text-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-xl transition-all duration-200 text-white text-sm border border-white/30 shadow-lg"
                                     title={t('dashboard.open_abacus_simulator')}
+                                    whileHover={{ scale: 1.05, y: -2 }}
+                                    whileTap={{ scale: 0.95 }}
                                 >
                                     <Calculator size={18} />
-                                    <span className="hidden sm:inline">{t('dashboard.abacus')}</span>
-                                </button>
+                                    <span className="hidden sm:inline font-medium">{t('dashboard.abacus')}</span>
+                                </motion.button>
                             )}
                             
                             {/* Student Notifications */}
@@ -412,14 +187,16 @@ function AuthenticatedLayoutContentSimple({
                                 />
                             )}
 
-                            {/* User Dropdown - Fixed with better visibility */}
+                            {/* Modern User Dropdown */}
                             <div className="relative">
                                 <Dropdown>
                                 <Dropdown.Trigger>
                                     <span className="inline-flex rounded-md">
-                                        <button
+                                        <motion.button
                                             type="button"
-                                            className="flex items-center space-x-3 px-4 py-2 text-white hover:bg-white hover:bg-opacity-20 rounded-lg transition-all duration-200 border-2 border-white border-opacity-30 hover:border-opacity-50 shadow-sm"
+                                            className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-white/20 rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-lg backdrop-blur-sm bg-white/10"
+                                            whileHover={{ scale: 1.05, y: -2 }}
+                                            whileTap={{ scale: 0.95 }}
                                         >
                                             <div className="text-right">
                                                 <p className="text-xs opacity-90">
@@ -429,39 +206,45 @@ function AuthenticatedLayoutContentSimple({
                                                     {user.name}
                                                 </p>
                                             </div>
-                                            <div className="w-8 h-8 bg-white bg-opacity-30 rounded-full flex items-center justify-center border border-white border-opacity-20">
+                                            <motion.div 
+                                                className="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 shadow-lg"
+                                                whileHover={{ rotate: 5 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
                                                 {avatarData && avatarData.type === 'emoji' ? (
-                                                    <span className="text-sm">{avatarData.value}</span>
+                                                    <span className="text-lg">{avatarData.value}</span>
                                                 ) : (
-                                                    <User size={16} className="text-white" />
+                                                    <User size={18} className="text-white" />
                                                 )}
-                                            </div>
-                                            <ChevronDown
-                                                size={16}
-                                                className="opacity-90 text-white"
-                                            />
-                                        </button>
+                                            </motion.div>
+                                            <motion.div
+                                                animate={{ rotate: [0, 5, -5, 0] }}
+                                                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                            >
+                                                <ChevronDown
+                                                    size={16}
+                                                    className="opacity-90 text-white"
+                                                />
+                                            </motion.div>
+                                        </motion.button>
                                     </span>
                                 </Dropdown.Trigger>
 
                                 <Dropdown.Content>
                                     <Dropdown.Link
                                         href={route("dashboard")}
-                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
                                         {t('nav.dashboard')}
                                     </Dropdown.Link>
                                     {isStudent && (
                                         <Dropdown.Link
                                             href={route("my-schedule")}
-                                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             {t('nav.my_schedule')}
                                         </Dropdown.Link>
                                     )}
                                     <Dropdown.Link
                                         href={route("profile.edit")}
-                                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
                                         {t('nav.profile_settings')}
                                     </Dropdown.Link>
@@ -495,33 +278,53 @@ function AuthenticatedLayoutContentSimple({
                                         href={route("logout")}
                                         method="post"
                                         as="button"
-                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
                                     >
                                         {t('nav.log_out')}
                                     </Dropdown.Link>
                                 </Dropdown.Content>
                             </Dropdown>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
-            </header>
+            </motion.header>
 
             {/* Main Content */}
             <main className="flex-1">{children}</main>
             
-            {/* Floating Abacus Button - Only for Mental Arithmetic students */}
+            {/* Modern Floating Abacus Button - Only for Mental Arithmetic students */}
             {isMentalArithmeticStudent && (
-                <div className="fixed bottom-6 right-6 z-40">
-                    <button
+                <motion.div 
+                    className="fixed bottom-6 right-6 z-40"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6, delay: 0.5, type: "spring" }}
+                >
+                    <motion.button
                         onClick={() => setShowAbacus(true)}
-                        className="bg-amber-500 hover:bg-amber-600 text-white p-4 rounded-full shadow-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-amber-300"
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white p-4 rounded-full shadow-2xl border border-white/20 backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-amber-300/50"
                         title={t('dashboard.open_abacus_simulator')}
                         aria-label={t('dashboard.open_abacus_simulator')}
+                        whileHover={{ scale: 1.1, y: -5 }}
+                        whileTap={{ scale: 0.9 }}
+                        animate={{ 
+                            boxShadow: [
+                                "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                                "0 25px 50px -12px rgba(245, 158, 11, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                                "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                            ]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     >
-                        <Calculator size={24} />
-                    </button>
-                </div>
+                        <motion.div
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            <Calculator size={24} />
+                        </motion.div>
+                    </motion.button>
+                </motion.div>
             )}
             
             {/* Abacus Simulator Modal */}
