@@ -539,6 +539,30 @@ return [
         'rejected' => 'Application Rejected',
         'approved' => 'Approved',
         'enrollment_pending_other' => 'Another enrollment pending',
+        
+        // Abacus Simulator
+        'abacus' => 'Abacus',
+        'open_abacus_simulator' => 'Open Abacus Simulator',
+        'abacus_simulator' => 'Abacus Simulator',
+        'disable_sound' => 'Disable Sound',
+        'enable_sound' => 'Enable Sound',
+        'hide_value' => 'Hide Value',
+        'show_value' => 'Show Value',
+        'reset' => 'Reset',
+        'quick_set' => 'Quick Set Numbers:',
+        'heaven_bead' => 'Heaven bead (worth 5) - Column :column',
+        'earth_bead' => 'Earth bead :bead - Column :column',
+        'how_to_use' => 'How to Use',
+        'click_red_beads' => 'Click red beads (heaven beads) to count by 5s',
+        'click_blue_beads' => 'Click blue beads (earth beads) to count by 1s',
+        'each_column_earth' => 'Each column can hold up to 4 earth beads (worth 1 each)',
+        'earth_beads_move' => 'Earth beads move together when clicked',
+        'each_column_digit' => 'Each column represents a digit position (ones, tens, hundreds, etc.)',
+        'tips' => 'Tips',
+        'use_heaven_beads' => 'Use heaven beads for numbers 5-9 in each column',
+        'practice_addition' => 'Practice addition and subtraction with different numbers',
+        'try_quick_set' => 'Try the quick set buttons to see number patterns',
+        'sound_toggle' => 'Toggle sound effects on/off for a better experience',
     ],
 
     // Lessons
@@ -610,6 +634,103 @@ return [
         'today' => 'Today',
         'tomorrow' => 'Tomorrow',
         'yesterday' => 'Yesterday',
+    ],
+
+    // Profile page
+    'profile' => [
+        'title' => 'My Profile',
+        'super_learner' => 'Super Learner',
+        'learning_hero' => 'Learning Hero',
+        'hey_greeting' => 'Hey, :name! 👋',
+        'level_text' => 'Level :level :title',
+        
+        // Avatar types
+        'avatars' => [
+            'superhero' => 'Superhero',
+            'space_explorer' => 'Space Explorer',
+            'artist' => 'Artist',
+            'scientist' => 'Scientist',
+            'actor' => 'Actor',
+            'lightning_kid' => 'Lightning Kid',
+            'star_student' => 'Star Student',
+            'goal_crusher' => 'Goal Crusher',
+        ],
+        
+        // Stats
+        'stats' => [
+            'learning_streak' => 'Learning Streak',
+            'lessons_done' => 'Lessons Completed',
+            'points_earned' => 'Points Earned',
+            'level' => 'Level',
+            'math_hero' => 'Math Hero',
+            'days' => 'days',
+        ],
+        
+        // Badges
+        'badges' => [
+            'student' => 'Student',
+            'streak_days' => ':count Day Streak',
+            'verified' => 'Verified',
+            'verify_email' => 'Verify Email',
+        ],
+        
+        // Navigation sections
+        'navigation' => [
+            'overview' => 'Profile Overview',
+            'settings' => 'Settings',
+            'achievements' => 'Achievements',
+            'security' => 'Security',
+        ],
+        
+        // Achievements
+        'achievements_list' => [
+            'first_steps' => [
+                'name' => 'First Steps',
+                'description' => 'Completed your first lesson!',
+            ],
+            'speed_demon' => [
+                'name' => 'Speed Demon', 
+                'description' => 'Solved 10 problems in under 5 minutes',
+            ],
+            'streak_master' => [
+                'name' => 'Streak Master',
+                'description' => 'Learn for 7 days in a row',
+            ],
+            'math_wizard' => [
+                'name' => 'Math Wizard',
+                'description' => 'Complete all math lessons',
+            ],
+            'code_ninja' => [
+                'name' => 'Code Ninja',
+                'description' => 'Build your first game',
+            ],
+            'super_star' => [
+                'name' => 'Super Star',
+                'description' => 'Earn 2000 points',
+            ],
+        ],
+        
+        // Section titles
+        'choose_avatar' => 'Choose Your Avatar',
+        'your_achievements' => 'Your Achievements',
+        'profile_settings' => 'Profile Settings',
+        'security_settings' => 'Security Settings',
+        
+        // Settings descriptions
+        'profile_info_desc' => 'Update your account details',
+        'language_pref_desc' => 'Choose your preferred language',
+        'password_desc' => 'Change your account password',
+        'delete_account_desc' => 'Permanently delete your account',
+        
+        // Form titles
+        'profile_information' => 'Profile Information',
+        'language_preference' => 'Language Preference',
+        'language_preference_description' => 'Choose your preferred language for the interface',
+        'language_saved' => 'Language preference saved successfully!',
+        'language_note' => 'Note',
+        'language_note_description' => 'Language changes will take effect immediately on the interface.',
+        'update_password' => 'Update Password',
+        'delete_account' => 'Delete Account',
     ],
 
     // Common

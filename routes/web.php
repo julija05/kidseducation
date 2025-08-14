@@ -31,12 +31,26 @@ use App\Http\Controllers\Student\ReviewController;
 use App\Http\Controllers\DemoController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\HelpController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Language switching
+// Language switching - IMPORTANT: Specific routes must come before parameterized routes
+Route::post('/language/set-preference', [LanguageController::class, 'setPreference'])->name('language.set-preference')->middleware('auth');
 Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch.post');
-Route::post('/language/set-preference', [LanguageController::class, 'setPreference'])->name('language.set-preference')->middleware('auth');
+
+// Debug route for language preference
+Route::post('/debug/language-preference', function(Request $request) {
+    \Log::info('DEBUG: Language preference request', [
+        'all_data' => $request->all(),
+        'method' => $request->method(),
+        'user' => Auth::user()?->only(['id', 'name', 'language_preference']),
+    ]);
+    
+    // Return an Inertia response instead of JSON
+    return back()->with('success', 'Debug route hit successfully');
+})->middleware('auth');
 
 // Student dashboard
 Route::middleware(['auth', 'verified', 'role:student'])->group(function () {

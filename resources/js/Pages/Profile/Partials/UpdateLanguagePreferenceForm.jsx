@@ -1,17 +1,18 @@
 import { useForm, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Globe, Check } from 'lucide-react';
+import { Globe, Check, AlertCircle } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function UpdateLanguagePreferenceForm({ className = '' }) {
     const { t } = useTranslation();
     const user = usePage().props.auth.user;
     
-    const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
-        language_preference: user.language_preference || 'en',
-    });
-
     const [selectedLanguage, setSelectedLanguage] = useState(user.language_preference || 'en');
+    
+    const { data, setData, post, processing, recentlySuccessful, errors } = useForm({
+        language: user.language_preference || 'en',
+        first_time: false
+    });
 
     const languages = [
         {
@@ -32,24 +33,26 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
 
     const handleLanguageSelect = (languageCode) => {
         setSelectedLanguage(languageCode);
-        setData('language_preference', languageCode);
+        setData('language', languageCode);
     };
 
     const submit = (e) => {
         e.preventDefault();
 
-        // Use the dedicated language preference endpoint instead
-        router.post('/language/set-preference', {
-            language: selectedLanguage,
-            first_time: false
-        }, {
+        console.log('Submitting language preference:', data);
+        console.log('Using route URL:', route('language.set-preference'));
+
+        // Now that route order is fixed, use the simple approach
+        post(route('language.set-preference'), {
             preserveScroll: true,
-            onSuccess: () => {
-                // Don't reload at all - let Inertia handle the response
-                // The language change will take effect on the next page request
+            onSuccess: (response) => {
+                console.log('Language preference updated successfully:', response);
+                // Force a page reload to apply language changes immediately
+                setTimeout(() => window.location.reload(), 500);
             },
             onError: (errors) => {
                 console.error('Error updating language preference:', errors);
+                console.error('Error details:', JSON.stringify(errors, null, 2));
             }
         });
     };
@@ -128,11 +131,6 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
                     ))}
                 </div>
 
-                {errors.language_preference && (
-                    <div className="text-sm text-red-600">
-                        {errors.language_preference}
-                    </div>
-                )}
 
                 <div className="flex items-center gap-4">
                     <button
@@ -175,6 +173,13 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
                             <Check className="w-4 h-4 mr-1" />
                             {t('profile.language_saved')}
                         </p>
+                    )}
+
+                    {Object.keys(errors).length > 0 && (
+                        <div className="text-sm text-red-600 flex items-center">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            {errors.language || 'An error occurred while updating language preference'}
+                        </div>
                     )}
                 </div>
 
