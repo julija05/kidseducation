@@ -1,5 +1,6 @@
 import "../css/app.css";
 import "./bootstrap";
+import "./routeOverride"; // Global route override for locale preservation
 
 import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";

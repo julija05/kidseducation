@@ -3,8 +3,10 @@ import { Link, router } from "@inertiajs/react";
 import { MessageSquare, Star, Plus, Edit, Trash2, Send } from "lucide-react";
 import StarRating from "@/Components/StarRating";
 import ReviewCard from "@/Components/ReviewCard";
+import { useAvatar } from "@/hooks/useAvatar.jsx";
 
 export default function ReviewSection({ enrolledProgram, program, userReview, canReview }) {
+    const { avatarData } = useAvatar();
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [reviewData, setReviewData] = useState({
         rating: 5,
@@ -54,7 +56,11 @@ export default function ReviewSection({ enrolledProgram, program, userReview, ca
                 <div className="space-y-4">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <h4 className="font-medium text-blue-900 mb-2">Your Review</h4>
-                        <ReviewCard review={userReview} showUserName={false} />
+                        <ReviewCard 
+                            review={{...userReview, is_current_user: true}} 
+                            showUserName={false} 
+                            currentUserAvatar={avatarData}
+                        />
                     </div>
                     <div className="flex space-x-3">
                         <Link

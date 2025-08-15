@@ -29,6 +29,8 @@ return [
     'verification' => [
         'verified' => 'Verified',
         'verify' => 'Verify',
+        'email_verified_title' => 'Email Address Verified',
+        'email_verified_description' => 'Your email address has been successfully verified.',
     ],
 
     // Common actions
@@ -420,10 +422,14 @@ return [
     // Common form fields
     'forms' => [
         'name' => 'Name',
+        'first_name' => 'First Name',
+        'last_name' => 'Last Name',
         'email' => 'Email',
         'password' => 'Password',
         'confirm_password' => 'Confirm Password',
         'subject' => 'Subject',
+        'address' => 'Address',
+        'address_placeholder' => 'Enter your address',
     ],
 
     // Common messages
@@ -717,13 +723,43 @@ return [
         'security_settings' => 'Security Settings',
         
         // Settings descriptions
-        'profile_info_desc' => 'Update your account details',
-        'language_pref_desc' => 'Choose your preferred language',
-        'password_desc' => 'Change your account password',
-        'delete_account_desc' => 'Permanently delete your account',
+        'profile_info_desc' => 'Update your personal information and account details',
+        'language_pref_desc' => 'Choose your preferred language for the interface',
+        'password_desc' => 'Keep your account secure with a strong password',
+        'delete_account_desc' => 'Permanently delete your account and all data',
+        'settings_saved' => 'Settings saved successfully!',
+        'profile_updated' => 'Your profile has been updated',
+        'changes_saved' => 'Changes saved',
+        'card_profile_title' => 'Personal Information',
+        'card_profile_desc' => 'Manage your name, email, and other basic information',
+        'card_language_title' => 'Language Settings',
+        'card_language_desc' => 'Switch between available languages',
+        'card_password_title' => 'Password & Security',
+        'card_password_desc' => 'Update your password and security settings',
+        'card_danger_title' => 'Danger Zone',
+        'card_danger_desc' => 'Irreversible account actions',
+        
+        // Avatar
+        'choose_your_avatar' => 'Choose Your Avatar',
+        'select_avatar_that_represents' => 'Select an avatar that represents you best',
+        'avatar_tip' => 'Pro Tip',
+        'avatar_tip_description' => 'Your avatar will appear throughout the platform. Choose one that reflects your personality!',
+        'change_avatar' => 'Change Avatar',
+        'avatars' => [
+            'default' => 'Default',
+            'student' => 'Student',
+            'reader' => 'Book Lover',
+            'star' => 'Star',
+            'explorer' => 'Explorer',
+            'thinker' => 'Thinker',
+            'creative' => 'Creative',
+            'winner' => 'Winner',
+            'problem_solver' => 'Problem Solver',
+        ],
         
         // Form titles
         'profile_information' => 'Profile Information',
+        'profile_information_description' => 'Update your profile information and email address.',
         'language_preference' => 'Language Preference',
         'language_preference_description' => 'Choose your preferred language for the interface',
         'language_saved' => 'Language preference saved successfully!',
@@ -736,5 +772,57 @@ return [
     // Common
     'common' => [
         'or' => 'or',
+    ],
+
+    // Error Pages
+    'errors' => [
+        '404' => [
+            'title' => 'Page Not Found - Abacoding',
+            'heading' => 'Oops! Page Not Found',
+            'message' => 'It looks like the page you\'re looking for doesn\'t exist or may have been moved to a new location.',
+            'suggestion' => 'Don\'t worry! Let\'s get you back on track with your learning adventure.',
+            'go_home' => 'Go to Homepage',
+            'go_back' => 'Go Back',
+            'helpful_links' => 'Here are some helpful links:',
+            'explore_programs' => 'Discover learning programs',
+            'view_dashboard' => 'Check your progress',
+            'get_help' => 'Get help and support',
+            'mascot_message' => 'I\'m here to help you find your way back!',
+        ],
+        '500' => [
+            'title' => 'Server Error - Abacoding',
+            'heading' => 'Something Went Wrong',
+            'message' => 'We\'re experiencing some technical difficulties on our end. This is not your fault!',
+            'technical_info' => 'Technical Information',
+            'working_on_it' => 'Our team has been notified and is working to fix this issue as quickly as possible.',
+            'try_again' => 'Try Again',
+            'go_home' => 'Go to Homepage',
+            'what_can_do' => 'What you can do while we fix this:',
+            'wait_retry' => 'Wait & Retry',
+            'wait_retry_desc' => 'Give us a few minutes and try refreshing the page',
+            'check_status' => 'Check Status',
+            'check_status_desc' => 'Visit our status page for updates',
+            'contact_support' => 'Contact Support',
+            'contact_support_desc' => 'Let us know if the problem persists',
+            'mascot_message' => 'Don\'t worry! I\'m working hard to fix this.',
+        ],
+        '403' => [
+            'title' => 'Access Forbidden - Abacoding',
+            'heading' => 'Access Not Allowed',
+            'message' => 'Sorry, you don\'t have permission to access this area of the website.',
+            'access_denied' => 'Access Denied',
+            'permission_required' => 'You need special permissions or a different account type to view this content.',
+            'login' => 'Login',
+            'go_home' => 'Go to Homepage',
+            'go_back' => 'Go Back',
+            'what_can_do' => 'What you can do:',
+            'check_account' => 'Check Account',
+            'check_account_desc' => 'Make sure you\'re logged into the correct account',
+            'request_access' => 'Request Access',
+            'request_access_desc' => 'Contact your teacher or administrator',
+            'contact_admin' => 'Contact Support',
+            'contact_admin_desc' => 'Get help with account permissions',
+            'mascot_message' => 'This area is protected for your safety!',
+        ],
     ],
 ];

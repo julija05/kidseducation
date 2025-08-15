@@ -4,9 +4,14 @@ import { Calendar, Star, Target, Zap, Trophy, Rocket, TrendingUp, Award, Sparkle
 import { iconMap } from "@/Utils/iconMapping";
 import { useTranslation } from "@/hooks/useTranslation";
 import { motion } from "framer-motion";
+import { useAvatar } from "@/hooks/useAvatar.jsx";
+import { usePage } from '@inertiajs/react';
 
 export default function ProgressOverview({ enrolledProgram, nextClass }) {
     const { t } = useTranslation();
+    const { avatarData } = useAvatar();
+    const { auth } = usePage().props;
+    const user = auth.user;
     
     const ProgramIcon =
         iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
@@ -63,11 +68,18 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                     <div className="flex-1">
                         <div className="flex items-center mb-6">
                             <motion.div 
-                                className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-6 shadow-lg"
+                                className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mr-6 shadow-lg border-4 border-white"
                                 animate={{ scale: [1, 1.1, 1] }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                whileHover={{ rotate: [0, 10, -10, 0] }}
                             >
-                                <span className="text-3xl">👋</span>
+                                {avatarData && avatarData.type === 'emoji' ? (
+                                    <span className="text-3xl">{avatarData.value}</span>
+                                ) : (
+                                    <span className="text-2xl font-bold text-blue-600">
+                                        {user.name ? user.name.charAt(0).toUpperCase() : '👋'}
+                                    </span>
+                                )}
                             </motion.div>
                             <div>
                                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

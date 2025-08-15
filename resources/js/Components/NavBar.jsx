@@ -5,12 +5,14 @@ import Logo from "../../assets/logo.png";
 import { Menu, X, Home, BookOpen, User, HelpCircle, Mail, LogIn, UserPlus, LayoutDashboard } from "lucide-react";
 import LanguageSelector from "./LanguageSelector";
 import { useTranslation } from "../hooks/useTranslation";
+import { useRouteWithLocale } from "../Utils/routeHelpers";
 
 const NavBar = React.memo(() => {
     const page = usePage();
     const { auth, url } = page.props;
     const currentUrl = url || window.location.pathname;
     const { t } = useTranslation();
+    const { routeWithLocale } = useRouteWithLocale();
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -25,30 +27,20 @@ const NavBar = React.memo(() => {
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
-    // Safe route helper
-    const safeRoute = (routeName, fallback = '#') => {
-        try {
-            return route(routeName);
-        } catch (error) {
-            console.warn(`Route '${routeName}' not found, using fallback`);
-            return fallback;
-        }
-    };
-
-    // Navigation items with icons
+    // Navigation items with icons - now preserving locale parameters
     const navItems = [
-        { href: safeRoute("landing.index", "/"), label: t('nav.home'), icon: Home },
-        { href: safeRoute("programs.index", "/programs"), label: t('nav.programs'), icon: BookOpen },
-        { href: safeRoute("about.index", "/about"), label: t('nav.about'), icon: User },
-        { href: safeRoute("articles.index", "/articles"), label: t('nav.help'), icon: HelpCircle },
-        { href: safeRoute("contact.index", "/contact"), label: t('nav.contact'), icon: Mail },
+        { href: routeWithLocale("landing.index"), label: t('nav.home'), icon: Home },
+        { href: routeWithLocale("programs.index"), label: t('nav.programs'), icon: BookOpen },
+        { href: routeWithLocale("about.index"), label: t('nav.about'), icon: User },
+        { href: routeWithLocale("articles.index"), label: t('nav.help'), icon: HelpCircle },
+        { href: routeWithLocale("contact.index"), label: t('nav.contact'), icon: Mail },
     ];
 
     const authItems = auth?.user 
-        ? [{ href: safeRoute("dashboard", "/dashboard"), label: t('nav.dashboard'), icon: LayoutDashboard }]
+        ? [{ href: routeWithLocale("dashboard"), label: t('nav.dashboard'), icon: LayoutDashboard }]
         : [
-            { href: safeRoute("login", "/login"), label: t('nav.login'), icon: LogIn },
-            { href: safeRoute("register", "/register"), label: t('nav.register'), icon: UserPlus }
+            { href: routeWithLocale("login"), label: t('nav.login'), icon: LogIn },
+            { href: routeWithLocale("register"), label: t('nav.register'), icon: UserPlus }
           ];
 
     const isActive = (href) => {
@@ -77,7 +69,7 @@ const NavBar = React.memo(() => {
                             transition={{ delay: 0.2 }}
                         >
                             <Link
-                                href={safeRoute("landing.index", "/")}
+                                href={routeWithLocale("landing.index")}
                                 className="flex items-center space-x-2 font-bold text-xl lg:text-2xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
                             >
                                 <span>Abacoding</span>

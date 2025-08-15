@@ -39,7 +39,7 @@ const Trigger = ({ children }) => {
 const Content = ({
     align = 'right',
     width = '48',
-    contentClasses = 'py-2 bg-white/95 backdrop-blur-lg border border-white/30 shadow-xl',
+    contentClasses = 'py-3 bg-white/98 backdrop-blur-xl border border-gray-200 shadow-2xl',
     children,
 }) => {
     const { open, setOpen } = useContext(DropDownContext);
@@ -75,15 +75,15 @@ const Content = ({
                         position: 'absolute',
                         top: '100%',
                         right: '0',
-                        minWidth: '240px',
-                        maxWidth: '300px',
+                        minWidth: '260px',
+                        maxWidth: '320px',
                         zIndex: 1000,
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        backdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                        borderRadius: '12px',
-                        marginTop: '12px'
+                        backgroundColor: 'rgba(255, 255, 255, 0.99)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(229, 231, 235, 0.8)',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                        borderRadius: '16px',
+                        marginTop: '8px'
                     }}
                 >
                     <div
@@ -105,7 +105,7 @@ const DropdownLink = ({ className = '', children, ...props }) => {
         <Link
             {...props}
             className={
-                'block w-full px-4 py-3 text-start text-sm leading-5 text-gray-700 font-medium transition duration-150 ease-in-out hover:bg-blue-50 focus:bg-blue-50 focus:outline-none hover:text-blue-700 ' +
+                'block w-full px-4 py-3 text-start text-sm leading-5 text-gray-800 font-medium transition duration-150 ease-in-out hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 focus:bg-blue-50 focus:outline-none hover:text-blue-700 hover:shadow-sm border-l-4 border-transparent hover:border-blue-400 ' +
                 className
             }
         >

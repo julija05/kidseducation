@@ -26,31 +26,42 @@ class SetLocale
             'user_authenticated' => Auth::check(),
         ];
 
-        // Priority order: User preference > URL parameter > Session > Default
+        // Unified locale detection for consistent user experience
         $locale = null;
+        $urlLocale = $request->get('locale');
+        $sessionLocale = $request->hasSession() ? Session::get('locale') : null;
+        $configLocale = config('app.locale');
         
-        // Check if user is authenticated and has a language preference
-        if (Auth::check() && Auth::user()->language_preference) {
+        $debugInfo['url_locale'] = $urlLocale;
+        $debugInfo['session_locale'] = $sessionLocale;
+        $debugInfo['config_locale'] = $configLocale;
+        
+        // Priority 1: URL parameter (for explicit language switching)
+        if ($urlLocale && in_array($urlLocale, config('app.supported_locales', ['en', 'mk']))) {
+            $locale = $urlLocale;
+            $debugInfo['source'] = 'url_parameter';
+            
+            // Update authenticated user's preference for consistency
+            if (Auth::check() && Auth::user()->language_preference !== $urlLocale) {
+                Auth::user()->update(['language_preference' => $urlLocale]);
+                $debugInfo['updated_user_preference'] = true;
+            }
+        }
+        // Priority 2: Authenticated user's saved preference
+        elseif (Auth::check() && Auth::user()->language_preference) {
             $locale = Auth::user()->language_preference;
             $debugInfo['source'] = 'user_preference';
             $debugInfo['user_preference'] = $locale;
         }
-        
-        // Fall back to URL parameter, session, or default
-        if (!$locale) {
-            $urlLocale = $request->get('locale');
-            $sessionLocale = $request->hasSession() ? Session::get('locale') : null;
-            $configLocale = config('app.locale');
-            
-            $debugInfo['url_locale'] = $urlLocale;
-            $debugInfo['session_locale'] = $sessionLocale;
-            $debugInfo['config_locale'] = $configLocale;
-            
-            $locale = $urlLocale ?? $sessionLocale ?? $configLocale;
-            
-            if ($urlLocale) $debugInfo['source'] = 'url_parameter';
-            elseif ($sessionLocale) $debugInfo['source'] = 'session';
-            else $debugInfo['source'] = 'config_default';
+        // Priority 3: Session locale (for guest users)
+        elseif ($sessionLocale) {
+            $locale = $sessionLocale;
+            $debugInfo['source'] = 'session';
+        }
+        // Priority 4: Default config locale
+        else {
+            $locale = $configLocale;
+            $debugInfo['source'] = 'config_default';
         }
         
         // Validate locale

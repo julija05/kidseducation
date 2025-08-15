@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useTheme, ThemeProvider } from "@/hooks/useTheme.jsx";
 import ThemeManager from "@/Components/ThemeManager";
 import { useAvatar } from "@/hooks/useAvatar.jsx";
+import { useRouteWithLocale } from "@/Utils/routeHelpers";
 
 
 export default function AuthenticatedLayout(props) {
@@ -28,6 +29,7 @@ function AuthenticatedLayoutContentSimple({
     const user = props.auth.user;
     const { t } = useTranslation();
     const { avatarData, renderAvatar } = useAvatar();
+    const { routeWithLocale } = useRouteWithLocale();
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [showAbacus, setShowAbacus] = useState(false);
     const [currentTheme, setCurrentTheme] = useState(() => {
@@ -212,9 +214,11 @@ function AuthenticatedLayoutContentSimple({
                                                 transition={{ duration: 0.2 }}
                                             >
                                                 {avatarData && avatarData.type === 'emoji' ? (
-                                                    <span className="text-lg">{avatarData.value}</span>
+                                                    <span className="text-xl">{avatarData.value}</span>
                                                 ) : (
-                                                    <User size={18} className="text-white" />
+                                                    <span className="text-xl font-bold text-white">
+                                                        {user.name ? user.name.charAt(0).toUpperCase() : '👤'}
+                                                    </span>
                                                 )}
                                             </motion.div>
                                             <motion.div
@@ -231,56 +235,96 @@ function AuthenticatedLayoutContentSimple({
                                 </Dropdown.Trigger>
 
                                 <Dropdown.Content>
-                                    <Dropdown.Link
-                                        href={route("dashboard")}
-                                    >
-                                        {t('nav.dashboard')}
-                                    </Dropdown.Link>
-                                    {isStudent && (
+                                    {/* Avatar & User Info Section */}
+                                    <div className="px-4 py-4 border-b border-gray-200">
+                                        <div className="flex items-center gap-3">
+                                            <motion.div 
+                                                className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center border-2 border-blue-200 shadow-sm"
+                                                whileHover={{ scale: 1.05 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                {avatarData && avatarData.type === 'emoji' ? (
+                                                    <span className="text-2xl">{avatarData.value}</span>
+                                                ) : (
+                                                    <span className="text-xl font-bold text-blue-700">
+                                                        {user.name ? user.name.charAt(0).toUpperCase() : '👤'}
+                                                    </span>
+                                                )}
+                                            </motion.div>
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-gray-900 text-sm">
+                                                    {user.name}
+                                                </p>
+                                                <p className="text-xs text-gray-500 truncate">
+                                                    {user.email}
+                                                </p>
+                                                <Link
+                                                    href={routeWithLocale("profile.edit")}
+                                                    className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-1 inline-flex items-center gap-1"
+                                                >
+                                                    🎭 {t('profile.change_avatar')}
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Navigation Links */}
+                                    <div className="px-2 pt-2">
                                         <Dropdown.Link
-                                            href={route("my-schedule")}
+                                            href={routeWithLocale("dashboard")}
+                                            className="rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700"
                                         >
-                                            {t('nav.my_schedule')}
+                                            🏠 {t('nav.dashboard')}
                                         </Dropdown.Link>
-                                    )}
-                                    <Dropdown.Link
-                                        href={route("profile.edit")}
-                                    >
-                                        {t('nav.profile_settings')}
-                                    </Dropdown.Link>
+                                        {isStudent && (
+                                            <Dropdown.Link
+                                                href={routeWithLocale("my-schedule")}
+                                                className="rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700"
+                                            >
+                                                📅 {t('nav.my_schedule')}
+                                            </Dropdown.Link>
+                                        )}
+                                        <Dropdown.Link
+                                            href={routeWithLocale("profile.edit")}
+                                            className="rounded-lg hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700"
+                                        >
+                                            ⚙️ {t('nav.profile_settings')}
+                                        </Dropdown.Link>
+                                    </div>
                                     
                                     {/* Email Verification Status */}
-                                    <div className="px-4 py-2 border-t border-gray-100">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs text-gray-500">{t('profile.email_status')}:</span>
-                                            {user.email_verified_at ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                    <div className="px-3 py-2 mx-2 my-1">
+                                        {user.email_verified_at ? (
+                                            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg border border-green-200">
+                                                <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
                                                     <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
                                                     {t('verification.verified')}
                                                 </span>
-                                            ) : (
-                                                <Link
-                                                    href={route("verification.notice")}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full hover:bg-yellow-200"
-                                                >
+                                            </div>
+                                        ) : (
+                                            <Link
+                                                href={routeWithLocale("verification.notice")}
+                                                className="flex items-center gap-2 px-3 py-2 bg-yellow-50 hover:bg-yellow-100 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-all duration-200"
+                                            >
+                                                <span className="inline-flex items-center gap-1 text-yellow-700 text-xs font-medium">
                                                     <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                                     </svg>
                                                     {t('verification.verify')}
-                                                </Link>
-                                            )}
-                                        </div>
+                                                </span>
+                                            </Link>
+                                        )}
                                     </div>
-                                    <div className="border-t border-gray-100 my-1"></div>
+                                    <div className="border-t border-gray-200 my-2"></div>
                                     <Dropdown.Link
-                                        href={route("logout")}
+                                        href={routeWithLocale("logout")}
                                         method="post"
                                         as="button"
-                                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                        className="text-white font-semibold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:bg-red-600 hover:text-white shadow-lg border-l-4 border-red-400 hover:border-red-500 rounded-lg mx-2 mb-2"
                                     >
-                                        {t('nav.log_out')}
+                                        🚪 {t('nav.log_out')}
                                     </Dropdown.Link>
                                 </Dropdown.Content>
                             </Dropdown>

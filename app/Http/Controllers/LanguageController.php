@@ -12,15 +12,17 @@ class LanguageController extends Controller
 {
     /**
      * Switch the application language
+     * Now uses unified logic for consistent user experience
      */
     public function switch(Request $request, $locale)
     {
         \Log::info('=== LANGUAGE SWITCH START ===', [
             'requested_locale' => $locale,
             'current_session_locale' => Session::get('locale'),
+            'user_authenticated' => Auth::check(),
+            'user_current_preference' => Auth::check() ? Auth::user()->language_preference : null,
             'session_id' => $request->session()->getId(),
             'referer' => $request->header('referer'),
-            'user_agent' => $request->header('user-agent')
         ]);
 
         // Validate locale
@@ -29,22 +31,50 @@ class LanguageController extends Controller
             abort(404);
         }
 
-        // Store locale in session
+        // Store locale in session (for guest users and immediate effect)
         Session::put('locale', $locale);
         Session::save(); // Force save
+        
+        // For authenticated users, also update their saved preference for consistency
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->language_preference !== $locale) {
+                $user->update([
+                    'language_preference' => $locale,
+                    'language_selected' => true
+                ]);
+                \Log::info('Updated user language preference', [
+                    'user_id' => $user->id,
+                    'old_preference' => $user->language_preference,
+                    'new_preference' => $locale,
+                ]);
+            }
+        }
         
         \Log::info('Language switched successfully', [
             'new_locale' => $locale,
             'session_after_save' => Session::get('locale'),
-            'session_id' => $request->session()->getId()
+            'user_preference_updated' => Auth::check(),
         ]);
 
-        // Redirect back with cache busting to force fresh page load
+        // Redirect with language parameter to ensure immediate consistency
         $redirectUrl = $request->header('referer', '/');
-        $separator = strpos($redirectUrl, '?') !== false ? '&' : '?';
-        $redirectUrl .= $separator . 'v=' . time();
         
-        return redirect($redirectUrl)
+        // Add/update locale parameter in URL for immediate effect
+        $parsedUrl = parse_url($redirectUrl);
+        $queryParams = [];
+        if (isset($parsedUrl['query'])) {
+            parse_str($parsedUrl['query'], $queryParams);
+        }
+        $queryParams['locale'] = $locale;
+        $queryParams['v'] = time(); // Cache busting
+        
+        $newUrl = ($parsedUrl['scheme'] ?? 'http') . '://' . 
+                  ($parsedUrl['host'] ?? $request->getHost()) . 
+                  ($parsedUrl['path'] ?? '/') . 
+                  '?' . http_build_query($queryParams);
+        
+        return redirect($newUrl)
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');

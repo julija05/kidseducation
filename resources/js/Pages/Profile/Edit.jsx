@@ -5,6 +5,7 @@ import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import UpdateLanguagePreferenceForm from './Partials/UpdateLanguagePreferenceForm';
+import AvatarSelector from '@/Components/AvatarSelector';
 import { useTranslation } from '@/hooks/useTranslation';
 import StudentNavBar from '@/Components/StudentNavBar';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -430,43 +431,104 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         {t('profile.profile_settings')}
                                     </h2>
                                     
-                                    <div className="grid gap-6 lg:grid-cols-2">
-                                        {/* Profile Information */}
+                                    {/* Avatar Selector Card */}
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.0, duration: 0.4 }}
+                                        whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+                                        className="group rounded-3xl bg-gradient-to-br from-purple-50 to-pink-50 p-8 shadow-xl border border-purple-200 hover:border-purple-300 transition-all duration-300 mb-8"
+                                    >
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <h3 className="text-xl font-bold text-gray-900">
+                                                {t('profile.choose_your_avatar')}
+                                            </h3>
+                                            <motion.div 
+                                                className="p-2 rounded-full bg-purple-100"
+                                                whileHover={{ scale: 1.1, rotate: 10 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <Palette className="h-5 w-5 text-purple-600" />
+                                            </motion.div>
+                                        </div>
+                                        <div className="bg-white rounded-2xl p-6 shadow-md border border-purple-100">
+                                            <AvatarSelector currentAvatar={user.avatar_preference} />
+                                        </div>
+                                    </motion.div>
+
+                                    <div className="grid gap-8 lg:grid-cols-2">
+                                        {/* Enhanced Profile Information Card */}
                                         <motion.div 
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.1, duration: 0.4 }}
-                                            className="rounded-2xl bg-white p-6 shadow-lg border-2 border-blue-100"
+                                            whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+                                            className="group rounded-3xl bg-gradient-to-br from-blue-50 to-indigo-50 p-8 shadow-xl border border-blue-200 hover:border-blue-300 transition-all duration-300"
                                         >
-                                            <div className="mb-4 flex items-center gap-3">
-                                                <div className="rounded-xl bg-blue-100 p-3">
-                                                    <Edit3 className="h-6 w-6 text-blue-600" />
+                                            <div className="mb-6 flex items-center gap-4">
+                                                <motion.div 
+                                                    whileHover={{ scale: 1.1, rotate: 5 }}
+                                                    className="rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-4 shadow-lg"
+                                                >
+                                                    <Edit3 className="h-7 w-7 text-white" />
+                                                </motion.div>
+                                                <div className="flex-1">
+                                                    <h3 className="text-2xl font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+                                                        {t('profile.card_profile_title')}
+                                                    </h3>
+                                                    <p className="text-sm text-blue-600 font-medium">
+                                                        {t('profile.card_profile_desc')}
+                                                    </p>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-xl font-bold text-gray-900">{t('profile.profile_information')}</h3>
-                                                    <p className="text-sm text-gray-600">{t('profile.profile_info_desc')}</p>
-                                                </div>
+                                                <motion.div
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    transition={{ delay: 0.3 }}
+                                                    className="rounded-full bg-blue-100 p-2"
+                                                >
+                                                    <User className="h-5 w-5 text-blue-600" />
+                                                </motion.div>
                                             </div>
-                                            {settingsComponents['profile-info']}
+                                            <div className="bg-white rounded-2xl p-6 shadow-md border border-blue-100">
+                                                {settingsComponents['profile-info']}
+                                            </div>
                                         </motion.div>
 
-                                        {/* Language */}
+                                        {/* Enhanced Language Settings Card */}
                                         <motion.div 
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.2, duration: 0.4 }}
-                                            className="rounded-2xl bg-white p-6 shadow-lg border-2 border-green-100"
+                                            whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+                                            className="group rounded-3xl bg-gradient-to-br from-green-50 to-emerald-50 p-8 shadow-xl border border-green-200 hover:border-green-300 transition-all duration-300"
                                         >
-                                            <div className="mb-4 flex items-center gap-3">
-                                                <div className="rounded-xl bg-green-100 p-3">
-                                                    <Languages className="h-6 w-6 text-green-600" />
+                                            <div className="mb-6 flex items-center gap-4">
+                                                <motion.div 
+                                                    whileHover={{ scale: 1.1, rotate: -5 }}
+                                                    className="rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-4 shadow-lg"
+                                                >
+                                                    <Globe className="h-7 w-7 text-white" />
+                                                </motion.div>
+                                                <div className="flex-1">
+                                                    <h3 className="text-2xl font-bold text-gray-900 mb-1 group-hover:text-green-700 transition-colors">
+                                                        {t('profile.card_language_title')}
+                                                    </h3>
+                                                    <p className="text-sm text-green-600 font-medium">
+                                                        {t('profile.card_language_desc')}
+                                                    </p>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-xl font-bold text-gray-900">{t('profile.language_preference')}</h3>
-                                                    <p className="text-sm text-gray-600">{t('profile.language_pref_desc')}</p>
-                                                </div>
+                                                <motion.div
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    transition={{ delay: 0.4 }}
+                                                    className="rounded-full bg-green-100 p-2"
+                                                >
+                                                    <Languages className="h-5 w-5 text-green-600" />
+                                                </motion.div>
                                             </div>
-                                            {settingsComponents['language']}
+                                            <div className="bg-white rounded-2xl p-6 shadow-md border border-green-100">
+                                                {settingsComponents['language']}
+                                            </div>
                                         </motion.div>
                                     </div>
                                 </motion.div>
@@ -486,43 +548,79 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         {t('profile.security_settings')}
                                     </h2>
                                     
-                                    <div className="grid gap-6">
-                                        {/* Password */}
+                                    <div className="space-y-8">
+                                        {/* Enhanced Password Security Card */}
                                         <motion.div 
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.1, duration: 0.4 }}
-                                            className="rounded-2xl bg-white p-6 shadow-lg border-2 border-orange-100"
+                                            whileHover={{ y: -5, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
+                                            className="group rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50 p-8 shadow-xl border border-orange-200 hover:border-orange-300 transition-all duration-300"
                                         >
-                                            <div className="mb-4 flex items-center gap-3">
-                                                <div className="rounded-xl bg-orange-100 p-3">
-                                                    <Lock className="h-6 w-6 text-orange-600" />
+                                            <div className="mb-6 flex items-center gap-4">
+                                                <motion.div 
+                                                    whileHover={{ scale: 1.1, rotate: 5 }}
+                                                    className="rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 p-4 shadow-lg"
+                                                >
+                                                    <Lock className="h-7 w-7 text-white" />
+                                                </motion.div>
+                                                <div className="flex-1">
+                                                    <h3 className="text-2xl font-bold text-gray-900 mb-1 group-hover:text-orange-700 transition-colors">
+                                                        {t('profile.card_password_title')}
+                                                    </h3>
+                                                    <p className="text-sm text-orange-600 font-medium">
+                                                        {t('profile.card_password_desc')}
+                                                    </p>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-xl font-bold text-gray-900">{t('profile.update_password')}</h3>
-                                                    <p className="text-sm text-gray-600">{t('profile.password_desc')}</p>
-                                                </div>
+                                                <motion.div
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    transition={{ delay: 0.3 }}
+                                                    className="rounded-full bg-orange-100 p-2"
+                                                >
+                                                    <Shield className="h-5 w-5 text-orange-600" />
+                                                </motion.div>
                                             </div>
-                                            {settingsComponents['password']}
+                                            <div className="bg-white rounded-2xl p-6 shadow-md border border-orange-100">
+                                                {settingsComponents['password']}
+                                            </div>
                                         </motion.div>
 
-                                        {/* Danger Zone */}
+                                        {/* Enhanced Danger Zone Card */}
                                         <motion.div 
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.2, duration: 0.4 }}
-                                            className="rounded-2xl bg-white p-6 shadow-lg border-2 border-red-200"
+                                            whileHover={{ y: -3, boxShadow: "0 25px 50px -12px rgba(220, 38, 38, 0.25)" }}
+                                            className="group rounded-3xl bg-gradient-to-br from-red-50 to-pink-50 p-8 shadow-xl border-2 border-red-200 hover:border-red-300 transition-all duration-300"
                                         >
-                                            <div className="mb-4 flex items-center gap-3">
-                                                <div className="rounded-xl bg-red-100 p-3">
-                                                    <UserX className="h-6 w-6 text-red-600" />
+                                            <div className="mb-6 flex items-center gap-4">
+                                                <motion.div 
+                                                    whileHover={{ scale: 1.05, rotate: -2 }}
+                                                    className="rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 p-4 shadow-lg"
+                                                >
+                                                    <UserX className="h-7 w-7 text-white" />
+                                                </motion.div>
+                                                <div className="flex-1">
+                                                    <h3 className="text-2xl font-bold text-red-900 mb-1 group-hover:text-red-700 transition-colors">
+                                                        {t('profile.card_danger_title')}
+                                                    </h3>
+                                                    <p className="text-sm text-red-600 font-medium">
+                                                        {t('profile.card_danger_desc')}
+                                                    </p>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-xl font-bold text-red-900">{t('profile.delete_account')}</h3>
-                                                    <p className="text-sm text-red-700">{t('profile.delete_account_desc')}</p>
-                                                </div>
+                                                <motion.div
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    transition={{ delay: 0.4 }}
+                                                    className="rounded-full bg-red-100 p-2"
+                                                >
+                                                    <Trash2 className="h-5 w-5 text-red-600" />
+                                                </motion.div>
                                             </div>
-                                            {settingsComponents['danger']}
+                                            <div className="bg-white rounded-2xl p-6 shadow-md border border-red-100">
+                                                {settingsComponents['danger']}
+                                            </div>
                                         </motion.div>
                                     </div>
                                 </motion.div>
