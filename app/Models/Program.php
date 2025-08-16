@@ -152,6 +152,12 @@ class Program extends Model
         return $this->level_requirements ?? $this->getDefaultLevelRequirements();
     }
     
+    // Get total lessons count for this program
+    public function getTotalLessonsCount(): int
+    {
+        return $this->lessons()->count();
+    }
+    
     // Translation accessors
     public function getTranslatedNameAttribute(): string
     {

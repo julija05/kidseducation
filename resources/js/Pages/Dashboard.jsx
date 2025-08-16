@@ -7,6 +7,7 @@ import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, Bo
 import ReviewSection from "@/Components/ReviewSection";
 import ReviewPromptModal from "@/Components/ReviewPromptModal";
 import StudentNavBar from "@/Components/StudentNavBar";
+import CertificateModal from "@/Components/Certificate/CertificateModal";
 
 // Import Dashboard components
 import {
@@ -16,6 +17,7 @@ import {
     ProgramContent,
     ProgressOverview,
 } from "@/Components/Dashboard";
+import CompletedPrograms from "@/Components/Dashboard/CompletedPrograms";
 import NextClassCard from "@/Components/Dashboard/NextClassCard";
 import FirstTimeLanguageSelector from "@/Components/FirstTimeLanguageSelector";
 import { iconMap } from "@/Utils/iconMapping";
@@ -27,6 +29,7 @@ export default function Dashboard() {
         enrolledProgram,
         pendingEnrollments,
         availablePrograms,
+        completedEnrollments,
         nextClass,
         pendingProgramId,
         notifications,
@@ -45,6 +48,8 @@ export default function Dashboard() {
     const [showLanguageModal, setShowLanguageModal] = useState(showLanguageSelector || false);
     const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
     const [showReviewPrompt, setShowReviewPrompt] = useState(shouldPromptReview || false);
+    const [showCertificateModal, setShowCertificateModal] = useState(false);
+    const [certificateProgram, setCertificateProgram] = useState(null);
 
     // Check for email verification success
     useEffect(() => {
@@ -57,6 +62,19 @@ export default function Dashboard() {
             setTimeout(() => setShowVerificationSuccess(false), 5000);
         }
     }, []);
+
+    // Check for program completion and show certificate modal
+    useEffect(() => {
+        if (enrolledProgram && enrolledProgram.progress >= 100 && enrolledProgram.approvalStatus === "approved") {
+            // Only show certificate modal once per session
+            const certificateShown = sessionStorage.getItem(`certificate_shown_${enrolledProgram.id}`);
+            if (!certificateShown) {
+                setCertificateProgram(enrolledProgram);
+                setShowCertificateModal(true);
+                sessionStorage.setItem(`certificate_shown_${enrolledProgram.id}`, 'true');
+            }
+        }
+    }, [enrolledProgram]);
 
 
     // Check if user came from program registration
@@ -80,6 +98,11 @@ export default function Dashboard() {
     const handleReviewLesson = (lessonId) => {
         // Navigate to the lesson page for review
         router.visit(route("lessons.show", lessonId));
+    };
+
+    const handleCertificateGenerated = (certificateData) => {
+        console.log('Certificate generated:', certificateData);
+        // You could add success notifications here
     };
 
     const handleEnrollConfirm = () => {
@@ -201,6 +224,17 @@ export default function Dashboard() {
                         onClose={() => setShowReviewPrompt(false)}
                     />
                 )}
+
+                {/* Certificate Modal */}
+                {certificateProgram && (
+                    <CertificateModal
+                        isOpen={showCertificateModal}
+                        onClose={() => setShowCertificateModal(false)}
+                        program={certificateProgram}
+                        enrollment={enrolledProgram}
+                        onGenerate={handleCertificateGenerated}
+                    />
+                )}
             </AuthenticatedLayout>
         );
     }
@@ -293,6 +327,14 @@ export default function Dashboard() {
                                 userDemoAccess={props.userDemoAccess || null}
                             />
                         </div>
+                    )}
+
+                    {/* Completed Programs with Certificate Functionality */}
+                    {completedEnrollments && completedEnrollments.length > 0 && (
+                        <CompletedPrograms 
+                            completedEnrollments={completedEnrollments}
+                            onCertificateGenerate={handleCertificateGenerated}
+                        />
                     )}
 
                     {/* Modern Program List */}
