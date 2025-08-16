@@ -31,6 +31,7 @@ use App\Http\Controllers\Student\ReviewController;
 use App\Http\Controllers\DemoController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\HelpController;
+use App\Http\Controllers\SecurityController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -41,19 +42,19 @@ Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('l
 Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch.post');
 
 // Debug route for language preference
-Route::post('/debug/language-preference', function(Request $request) {
+Route::post('/debug/language-preference', function (Request $request) {
     \Log::info('DEBUG: Language preference request', [
         'all_data' => $request->all(),
         'method' => $request->method(),
         'user' => Auth::user()?->only(['id', 'name', 'language_preference']),
     ]);
-    
+
     // Return an Inertia response instead of JSON
     return back()->with('success', 'Debug route hit successfully');
 })->middleware('auth');
 
 // Student dashboard
-Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:student', 'kids.security'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
@@ -74,10 +75,10 @@ Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
-    
+
     // Student notification actions
     Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');
-    
+
     // Student schedule routes
     Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
 
@@ -105,6 +106,23 @@ Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
         Route::get('/{review}/edit', [ReviewController::class, 'edit'])->name('edit');
         Route::patch('/{review}', [ReviewController::class, 'update'])->name('update');
         Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy');
+    });
+
+    // Security routes for students
+    Route::prefix('security')->name('security.')->group(function () {
+        Route::post('/log-activity', [SecurityController::class, 'logActivity'])->name('log-activity');
+        Route::post('/moderate-content', [SecurityController::class, 'moderateContent'])->name('moderate-content');
+        Route::get('/status', [SecurityController::class, 'getSecurityStatus'])->name('status');
+        Route::post('/trigger-warning', [SecurityController::class, 'triggerSecurityWarning'])->name('trigger-warning');
+        Route::get('/time-limits', [SecurityController::class, 'checkTimeLimits'])->name('time-limits');
+        Route::post('/send-parent-notification', [SecurityController::class, 'sendDemoParentNotification'])->name('send-parent-notification');
+        Route::post('/configure-parent-notifications', [SecurityController::class, 'configureParentNotifications'])->name('configure-parent-notifications');
+        Route::get('/demo', function () {
+            return inertia('Security/Demo');
+        })->name('demo');
+        Route::get('/parent-notifications', function () {
+            return inertia('Security/ParentNotificationDemo');
+        })->name('parent-notifications');
     });
 });
 
@@ -206,12 +224,12 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
         Route::get('/', [AdminClassScheduleController::class, 'index'])->name('index');
         Route::get('/create', [AdminClassScheduleController::class, 'create'])->name('create');
         Route::post('/', [AdminClassScheduleController::class, 'store'])->name('store');
-        
+
         // AJAX endpoints - MUST be before /{classSchedule} routes to avoid conflicts
         Route::get('/programs/{program}/lessons', [AdminClassScheduleController::class, 'getLessonsForProgram'])->name('program-lessons');
         Route::get('/programs/{program}/students', [AdminClassScheduleController::class, 'getStudentsForProgram'])->name('program-students');
         Route::post('/check-conflicts', [AdminClassScheduleController::class, 'checkConflicts'])->name('check-conflicts');
-        
+
         Route::get('/{classSchedule}', [AdminClassScheduleController::class, 'show'])->name('show');
         Route::get('/{classSchedule}/edit', [AdminClassScheduleController::class, 'edit'])->name('edit');
         Route::put('/{classSchedule}', [AdminClassScheduleController::class, 'update'])->name('update');

@@ -20,6 +20,10 @@ import NextClassCard from "@/Components/Dashboard/NextClassCard";
 import FirstTimeLanguageSelector from "@/Components/FirstTimeLanguageSelector";
 import { iconMap } from "@/Utils/iconMapping";
 
+// Import Security components
+import SecurityStatusCard from "@/Components/Security/SecurityStatusCard";
+import TimeLimitWarning from "@/Components/Security/TimeLimitWarning";
+
 export default function Dashboard() {
     const { props } = usePage();
     const { t } = useTranslation();
@@ -157,6 +161,13 @@ export default function Dashboard() {
                         </div>
                     )}
 
+                        {/* Security Status Card */}
+                        <SecurityStatusCard 
+                            user={student}
+                            sessionTimeRemaining={25} // Demo: 25 minutes remaining
+                            securityLevel="high"
+                        />
+
                         {/* Modern Next Class Card */}
                         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
                             <NextClassCard nextClass={nextClass} />
@@ -201,6 +212,19 @@ export default function Dashboard() {
                         onClose={() => setShowReviewPrompt(false)}
                     />
                 )}
+
+                {/* Time Limit Warning */}
+                <TimeLimitWarning 
+                    remainingMinutes={25} // Demo: 25 minutes remaining
+                    dailyLimit={120} // 2 hours daily limit
+                    onTakeBreak={() => {
+                        // Could redirect to a break page or show break activities
+                        console.log('Taking a break...');
+                    }}
+                    onContinue={() => {
+                        console.log('Continuing learning...');
+                    }}
+                />
             </AuthenticatedLayout>
         );
     }
@@ -315,6 +339,18 @@ export default function Dashboard() {
                         }}
                     />
                 )}
+
+                {/* Time Limit Warning for All Students */}
+                <TimeLimitWarning 
+                    remainingMinutes={25} // Demo: 25 minutes remaining
+                    dailyLimit={120} // 2 hours daily limit
+                    onTakeBreak={() => {
+                        console.log('Taking a break...');
+                    }}
+                    onContinue={() => {
+                        console.log('Continuing learning...');
+                    }}
+                />
                 </div>
             </div>
         </AuthenticatedLayout>
