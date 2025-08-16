@@ -5,11 +5,9 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
-use Spatie\Permission\Middlewares\RoleMiddleware;
-use Spatie\Permission\Middlewares\PermissionMiddleware;
-use Spatie\Permission\Middlewares\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\CacheHeaders::class,
         ]);
         $middleware->alias([
+            'auth' => \App\Http\Middleware\HandleAuthentication::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
@@ -131,6 +130,29 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             
             return null;
+        });
+
+        // Handle authentication exceptions (session expiration)
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, Request $request) {
+            Log::info('Authentication exception caught', [
+                'url' => $request->url(),
+                'method' => $request->method(),
+                'session_exists' => $request->hasSession(),
+                'session_id' => $request->hasSession() ? $request->session()->getId() : null,
+                'is_inertia' => $request->header('X-Inertia'),
+                'expects_json' => $request->expectsJson(),
+            ]);
+
+            // For Inertia requests, return 401 to trigger client-side redirect
+            if ($request->header('X-Inertia')) {
+                return response()->json([
+                    'message' => 'Unauthenticated.',
+                    'redirect' => route('login')
+                ], 401);
+            }
+
+            // For regular requests, redirect to login
+            return redirect()->guest(route('login'));
         });
 
         $exceptions->render(function (\Throwable $e, Request $request) use ($getUserLocale, $getTranslations) {

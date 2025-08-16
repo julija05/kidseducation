@@ -52,3 +52,30 @@ createInertiaApp({
     },
 });
 
+// Handle authentication errors (session expiration)
+router.on('error', (event) => {
+    const { detail } = event
+    
+    // Handle 401 (authentication) errors - session expired
+    if (detail.response && detail.response.status === 401) {
+        console.log('Session expired, redirecting to login...')
+        
+        // If the response includes a redirect URL, use it
+        if (detail.response.data && detail.response.data.redirect) {
+            window.location.href = detail.response.data.redirect
+        } else {
+            // Fallback to login route
+            window.location.href = '/login'
+        }
+        
+        return false // Prevent default error handling
+    }
+    
+    // Handle 419 (CSRF token mismatch) errors
+    if (detail.response && detail.response.status === 419) {
+        console.log('CSRF token expired, refreshing page...')
+        window.location.reload()
+        return false
+    }
+});
+
