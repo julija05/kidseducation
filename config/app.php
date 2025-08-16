@@ -98,6 +98,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Custom Error Pages
+    |--------------------------------------------------------------------------
+    |
+    | This value determines whether to show custom error pages for HTTP errors
+    | like 404, 500, etc. When enabled, beautiful custom error pages will be
+    | displayed instead of the default Laravel error pages.
+    |
+    */
+
+    'custom_error_pages' => env('CUSTOM_ERROR_PAGES', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

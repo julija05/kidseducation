@@ -177,7 +177,21 @@ export default function StudentNotifications({ notifications = [], unreadCount =
 
                 {/* Notifications Dropdown */}
                 {showNotifications && (
-                    <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                    <div 
+                        style={{ 
+                            position: 'absolute',
+                            top: '100%',
+                            right: '0',
+                            zIndex: 1000,
+                            minHeight: '200px',
+                            width: '384px',
+                            backgroundColor: 'white',
+                            border: '1px solid rgba(0, 0, 0, 0.15)',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                            borderRadius: '12px',
+                            marginTop: '8px'
+                        }}
+                    >
                         <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.notifications')}</h3>
@@ -299,8 +313,9 @@ export default function StudentNotifications({ notifications = [], unreadCount =
             {/* Close dropdown when clicking outside */}
             {showNotifications && (
                 <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0"
                     onClick={() => setShowNotifications(false)}
+                    style={{ zIndex: 999 }}
                 ></div>
             )}
         </div>

@@ -3,9 +3,10 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Sparkles, Play } from "lucide-react";
+import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen } from "lucide-react";
 import ReviewSection from "@/Components/ReviewSection";
 import ReviewPromptModal from "@/Components/ReviewPromptModal";
+import StudentNavBar from "@/Components/StudentNavBar";
 
 // Import Dashboard components
 import {
@@ -101,29 +102,9 @@ export default function Dashboard() {
         const ProgramIcon =
             iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
 
-        const customHeader = (
-            <div className="flex items-center">
-                <div 
-                    className="p-2 rounded-lg mr-4"
-                    style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-                >
-                    <ProgramIcon size={28} className="text-white" />
-                </div>
-                <div>
-                    <h1 className="text-2xl font-bold text-white">
-                        {enrolledProgram.translated_name || enrolledProgram.name}
-                    </h1>
-                    <p className="text-sm text-white opacity-90">
-                        {t('dashboard.learning_adventure_subtitle')}
-                    </p>
-                </div>
-            </div>
-        );
-
         return (
             <AuthenticatedLayout
                 programConfig={enrolledProgram.theme}
-                customHeader={customHeader}
             >
                 <Head title={`${enrolledProgram.translated_name || enrolledProgram.name} Dashboard`} />
 
@@ -133,7 +114,15 @@ export default function Dashboard() {
                     onClose={() => setShowLanguageModal(false)}
                 />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+                    {/* Background decorative elements */}
+                    <div className="absolute inset-0">
+                        <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 animate-pulse" />
+                        <div className="absolute bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-pink-200 to-yellow-200 rounded-full blur-3xl opacity-30 animate-pulse" style={{animationDelay: '2s'}} />
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-emerald-200 to-cyan-200 rounded-full blur-3xl opacity-20 animate-pulse" style={{animationDelay: '1s'}} />
+                    </div>
+                    
+                    <div className="relative z-5 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
                     {/* Email Verification Success Message */}
                     {showVerificationSuccess && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm">
@@ -168,33 +157,40 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    {/* Next Class Card */}
-                    <NextClassCard nextClass={nextClass} />
+                        {/* Modern Next Class Card */}
+                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                            <NextClassCard nextClass={nextClass} />
+                        </div>
 
-                    {/* Progress Overview */}
-                    <ProgressOverview
-                        enrolledProgram={enrolledProgram}
-                        nextClass={nextClass}
-                    />
+                        {/* Modern Progress Overview */}
+                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                            <ProgressOverview
+                                enrolledProgram={enrolledProgram}
+                                nextClass={nextClass}
+                            />
+                        </div>
 
-                    {/* Program Content */}
-                    <div className="bg-white border border-gray-200 rounded-lg shadow-md p-8">
-                        <ProgramContent
-                            program={enrolledProgram}
-                            onStartLesson={handleStartLesson}
-                            onReviewLesson={handleReviewLesson}
-                        />
+                        {/* Modern Program Content */}
+                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                            <ProgramContent
+                                program={enrolledProgram}
+                                onStartLesson={handleStartLesson}
+                                onReviewLesson={handleReviewLesson}
+                            />
+                        </div>
+
+                        {/* Modern Review Section */}
+                        {program && (
+                            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                                <ReviewSection
+                                    enrolledProgram={enrolledProgram}
+                                    program={program}
+                                    userReview={userReview}
+                                    canReview={canReview}
+                                />
+                            </div>
+                        )}
                     </div>
-
-                    {/* Review Section */}
-                    {program && (
-                        <ReviewSection
-                            enrolledProgram={enrolledProgram}
-                            program={program}
-                            userReview={userReview}
-                            canReview={canReview}
-                        />
-                    )}
                 </div>
 
                 {/* Review Prompt Modal */}
@@ -220,32 +216,40 @@ export default function Dashboard() {
                 onClose={() => setShowLanguageModal(false)}
             />
             
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-                {/* Welcome Message for New Users */}
-                {flash?.welcome && (
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 shadow-sm">
-                        <div className="text-center">
-                            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                                <Sparkles className="text-green-600" size={24} />
-                            </div>
-                            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                {t('programs_page.welcome_title')}
-                            </h2>
-                            <p className="text-gray-600 mb-4">
-                                {t('programs_page.welcome_subtitle')}
-                            </p>
-                            <div className="bg-white rounded-xl p-4 border border-blue-200">
-                                <div className="flex items-center justify-center space-x-2 text-blue-600 mb-2">
-                                    <Play size={20} />
-                                    <span className="font-semibold">{t('demo.try_demo_first')}</span>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 relative overflow-hidden">
+                {/* Background decorative elements */}
+                <div className="absolute inset-0">
+                    <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full blur-3xl opacity-30 animate-pulse" />
+                    <div className="absolute bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-blue-200 to-cyan-200 rounded-full blur-3xl opacity-30 animate-pulse" style={{animationDelay: '2s'}} />
+                    <div className="absolute top-1/2 right-1/3 w-80 h-80 bg-gradient-to-r from-yellow-200 to-orange-200 rounded-full blur-3xl opacity-20 animate-pulse" style={{animationDelay: '1s'}} />
+                </div>
+                
+                <div className="relative z-5 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                    {/* Modern Welcome Message for New Users */}
+                    {flash?.welcome && (
+                        <div className="bg-white/80 backdrop-blur-lg border border-white/50 rounded-3xl p-8 shadow-xl">
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mb-6 shadow-lg">
+                                    <Sparkles className="text-white" size={28} />
                                 </div>
-                                <p className="text-sm text-gray-600">
-                                    {t('demo.demo_instructions')}
+                                <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
+                                    {t('programs_page.welcome_title')}
+                                </h2>
+                                <p className="text-gray-600 mb-6 text-lg">
+                                    {t('programs_page.welcome_subtitle')}
                                 </p>
+                                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-6 border border-blue-200/50 backdrop-blur-sm">
+                                    <div className="flex items-center justify-center space-x-3 text-blue-600 mb-3">
+                                        <Play size={24} className="animate-bounce" />
+                                        <span className="font-bold text-lg">{t('demo.try_demo_first')}</span>
+                                    </div>
+                                    <p className="text-gray-600">
+                                        {t('demo.demo_instructions')}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
                 {/* Email Verification Success Message */}
                 {showVerificationSuccess && (
@@ -281,20 +285,24 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* Show pending enrollment notification if exists */}
-                {pendingEnrollments && pendingEnrollments.length > 0 && (
-                    <PendingEnrollment 
-                        enrollment={pendingEnrollments[0]} 
-                        userDemoAccess={props.userDemoAccess || null}
-                    />
-                )}
+                    {/* Modern Pending Enrollment */}
+                    {pendingEnrollments && pendingEnrollments.length > 0 && (
+                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                            <PendingEnrollment 
+                                enrollment={pendingEnrollments[0]} 
+                                userDemoAccess={props.userDemoAccess || null}
+                            />
+                        </div>
+                    )}
 
-                {/* Always show available programs */}
-                <ProgramList
-                    programs={availablePrograms || []}
-                    userEnrollments={pendingEnrollments || []}
-                    userDemoAccess={props.userDemoAccess || null}
-                />
+                    {/* Modern Program List */}
+                    <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                        <ProgramList
+                            programs={availablePrograms || []}
+                            userEnrollments={pendingEnrollments || []}
+                            userDemoAccess={props.userDemoAccess || null}
+                        />
+                    </div>
 
                 {/* Enrollment Confirmation Modal */}
                 {showEnrollModal && selectedProgram && (
@@ -307,6 +315,7 @@ export default function Dashboard() {
                         }}
                     />
                 )}
+                </div>
             </div>
         </AuthenticatedLayout>
     );

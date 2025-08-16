@@ -1,9 +1,14 @@
 import { usePage } from '@inertiajs/react';
 
 export const useTranslation = () => {
-    const { locale } = usePage().props;
+    const { locale } = usePage().props || {};
     
     const t = (key, replacements = {}) => {
+        // If locale or translations are not available, return the key
+        if (!locale || !locale.translations) {
+            return key;
+        }
+        
         // Split the key by dots to navigate nested objects
         const keys = key.split('.');
         let value = locale.translations;
@@ -33,5 +38,5 @@ export const useTranslation = () => {
         return translatedValue;
     };
     
-    return { t, locale: locale.current };
+    return { t, locale: locale?.current || 'en' };
 };

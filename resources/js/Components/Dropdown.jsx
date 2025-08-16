@@ -27,8 +27,9 @@ const Trigger = ({ children }) => {
 
             {open && (
                 <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0"
                     onClick={() => setOpen(false)}
+                    style={{ zIndex: 999 }}
                 ></div>
             )}
         </>
@@ -38,7 +39,7 @@ const Trigger = ({ children }) => {
 const Content = ({
     align = 'right',
     width = '48',
-    contentClasses = 'py-1 bg-white',
+    contentClasses = 'py-3 bg-white/98 backdrop-blur-xl border border-gray-200 shadow-2xl',
     children,
 }) => {
     const { open, setOpen } = useContext(DropDownContext);
@@ -69,12 +70,25 @@ const Content = ({
                 leaveTo="opacity-0 scale-95"
             >
                 <div
-                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
                     onClick={() => setOpen(false)}
+                    style={{ 
+                        position: 'absolute',
+                        top: '100%',
+                        right: '0',
+                        minWidth: '260px',
+                        maxWidth: '320px',
+                        zIndex: 1000,
+                        backgroundColor: 'rgba(255, 255, 255, 0.99)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(229, 231, 235, 0.8)',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                        borderRadius: '16px',
+                        marginTop: '8px'
+                    }}
                 >
                     <div
                         className={
-                            `rounded-md ring-1 ring-black ring-opacity-5 ` +
+                            `rounded-xl ring-1 ring-white/30 ring-opacity-30 ` +
                             contentClasses
                         }
                     >
@@ -91,7 +105,7 @@ const DropdownLink = ({ className = '', children, ...props }) => {
         <Link
             {...props}
             className={
-                'block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ' +
+                'block w-full px-4 py-3 text-start text-sm leading-5 text-gray-800 font-medium transition duration-150 ease-in-out hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 focus:bg-blue-50 focus:outline-none hover:text-blue-700 hover:shadow-sm border-l-4 border-transparent hover:border-blue-400 ' +
                 className
             }
         >

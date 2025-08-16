@@ -142,45 +142,58 @@ export default function AbacusSimulator({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div 
+            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white rounded-2xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-auto transform transition-all duration-300 scale-100"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Modern Header with Gradient */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-2xl">
                     <div className="flex items-center gap-4">
-                        <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.abacus_simulator')}</h2>
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                            <span className="text-2xl">🧮</span>
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold">{t('dashboard.abacus_simulator')}</h2>
+                            <p className="text-amber-100 text-sm">Mental Arithmetic Practice Tool</p>
+                        </div>
                         {showValue && (
-                            <div className="bg-blue-100 px-4 py-2 rounded-lg">
-                                <span className="text-lg font-mono font-bold text-blue-900">
+                            <div className="bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm border border-white/30 ml-6">
+                                <div className="text-xs text-amber-100 mb-1">Current Value</div>
+                                <span className="text-2xl font-mono font-bold text-white">
                                     {calculateValue().toLocaleString()}
                                 </span>
                             </div>
                         )}
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                        {/* Controls */}
+                    <div className="flex items-center gap-3">
+                        {/* Modern Controls */}
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="p-3 rounded-xl hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/30"
                             title={soundEnabled ? t('dashboard.disable_sound') : t('dashboard.enable_sound')}
                         >
                             {soundEnabled ? (
-                                <Volume2 className="w-5 h-5 text-gray-600" />
+                                <Volume2 className="w-5 h-5 text-white" />
                             ) : (
-                                <VolumeX className="w-5 h-5 text-gray-600" />
+                                <VolumeX className="w-5 h-5 text-white" />
                             )}
                         </button>
                         
                         <button
                             onClick={() => setShowValue(!showValue)}
-                            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                            className="px-4 py-2 text-sm bg-white/20 hover:bg-white/30 rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/30 text-white"
                         >
                             {showValue ? t('dashboard.hide_value') : t('dashboard.show_value')}
                         </button>
                         
                         <button
                             onClick={resetAbacus}
-                            className="flex items-center gap-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/30"
                         >
                             <RotateCcw className="w-4 h-4" />
                             {t('dashboard.reset')}
@@ -188,26 +201,31 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                         
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="p-3 rounded-xl hover:bg-red-500/20 transition-all duration-200 backdrop-blur-sm border border-white/30"
                         >
-                            <X className="w-5 h-5 text-gray-600" />
+                            <X className="w-5 h-5 text-white" />
                         </button>
                     </div>
                 </div>
 
-                {/* Quick Number Input */}
-                <div className="p-4 border-b border-gray-200 bg-gray-50">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-gray-600">{t('dashboard.quick_set')}</span>
-                        {[0, 123, 456, 789, 1234, 5678, 9999].map(num => (
-                            <button
-                                key={num}
-                                onClick={() => setNumber(num)}
-                                className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors"
-                            >
-                                {num.toLocaleString()}
-                            </button>
-                        ))}
+                {/* Enhanced Quick Number Input */}
+                <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="flex items-center gap-4 flex-wrap">
+                        <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                            <span className="text-lg">⚡</span>
+                            {t('dashboard.quick_set')}
+                        </span>
+                        <div className="flex gap-2 flex-wrap">
+                            {[0, 123, 456, 789, 1234, 5678, 9999].map(num => (
+                                <button
+                                    key={num}
+                                    onClick={() => setNumber(num)}
+                                    className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
+                                >
+                                    {num.toLocaleString()}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -314,26 +332,59 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                     </div>
                 </div>
 
-                {/* Instructions */}
-                <div className="p-4 bg-gray-50 text-sm text-gray-600">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <h4 className="font-semibold text-gray-800 mb-2">{t('dashboard.how_to_use')}</h4>
-                            <ul className="space-y-1">
-                                <li>• {t('dashboard.click_red_beads')}</li>
-                                <li>• {t('dashboard.click_blue_beads')}</li>
-                                <li>• {t('dashboard.each_column_earth')}</li>
-                                <li>• {t('dashboard.earth_beads_move')}</li>
-                                <li>• {t('dashboard.each_column_digit')}</li>
+                {/* Enhanced Instructions */}
+                <div className="p-6 bg-gradient-to-r from-gray-50 to-blue-50 text-sm">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <span className="text-lg">📚</span>
+                                {t('dashboard.how_to_use')}
+                            </h4>
+                            <ul className="space-y-3">
+                                <li className="flex items-start gap-3">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-gray-700">{t('dashboard.click_red_beads')}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-gray-700">{t('dashboard.click_blue_beads')}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-gray-700">{t('dashboard.each_column_earth')}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-gray-700">{t('dashboard.earth_beads_move')}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-gray-700">{t('dashboard.each_column_digit')}</span>
+                                </li>
                             </ul>
                         </div>
-                        <div>
-                            <h4 className="font-semibold text-gray-800 mb-2">{t('dashboard.tips')}</h4>
-                            <ul className="space-y-1">
-                                <li>• {t('dashboard.use_heaven_beads')}</li>
-                                <li>• {t('dashboard.practice_addition')}</li>
-                                <li>• {t('dashboard.try_quick_set')}</li>
-                                <li>• {t('dashboard.sound_toggle')}</li>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <span className="text-lg">💡</span>
+                                {t('dashboard.tips')}
+                            </h4>
+                            <ul className="space-y-3">
+                                <li className="flex items-start gap-3">
+                                    <span className="text-amber-500 mt-1 flex-shrink-0">✨</span>
+                                    <span className="text-gray-700">{t('dashboard.use_heaven_beads')}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-green-500 mt-1 flex-shrink-0">🧮</span>
+                                    <span className="text-gray-700">{t('dashboard.practice_addition')}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-blue-500 mt-1 flex-shrink-0">⚡</span>
+                                    <span className="text-gray-700">{t('dashboard.try_quick_set')}</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <span className="text-purple-500 mt-1 flex-shrink-0">🔊</span>
+                                    <span className="text-gray-700">{t('dashboard.sound_toggle')}</span>
+                                </li>
                             </ul>
                         </div>
                     </div>

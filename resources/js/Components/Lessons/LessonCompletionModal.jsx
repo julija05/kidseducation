@@ -1,6 +1,9 @@
 import React from "react";
 import { CheckCircle, ArrowRight, X } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAvatar } from "@/hooks/useAvatar.jsx";
+import { usePage } from '@inertiajs/react';
+import { motion } from "framer-motion";
 
 export default function LessonCompletionModal({
     show,
@@ -10,21 +13,67 @@ export default function LessonCompletionModal({
     onClose,
 }) {
     const { t } = useTranslation();
+    const { avatarData } = useAvatar();
+    const { auth } = usePage().props;
+    const user = auth.user;
 
     if (!show) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+            <motion.div 
+                className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+            >
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-t-xl p-6 text-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <CheckCircle size={32} className="text-white" />
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-t-xl p-6 text-center relative overflow-hidden">
+                    {/* Celebration confetti effect */}
+                    <div className="absolute inset-0">
+                        <motion.div className="absolute top-2 left-4 text-yellow-300"
+                            animate={{ y: [0, -10, 0], rotate: [0, 180, 360] }}
+                            transition={{ duration: 2, repeat: Infinity }}>⭐</motion.div>
+                        <motion.div className="absolute top-3 right-6 text-yellow-300"
+                            animate={{ y: [0, -15, 0], rotate: [0, -180, -360] }}
+                            transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}>🎉</motion.div>
+                        <motion.div className="absolute bottom-4 left-6 text-yellow-300"
+                            animate={{ y: [0, -8, 0], rotate: [0, 90, 180] }}
+                            transition={{ duration: 1.8, repeat: Infinity, delay: 1 }}>✨</motion.div>
+                        <motion.div className="absolute bottom-3 right-4 text-yellow-300"
+                            animate={{ y: [0, -12, 0], rotate: [0, -90, -180] }}
+                            transition={{ duration: 1.3, repeat: Infinity, delay: 0.3 }}>🎊</motion.div>
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">
-                        {t('lessons.lesson_completed_title')}
+                    
+                    {/* Avatar with celebration */}
+                    <div className="relative z-10 flex items-center justify-center gap-4 mb-4">
+                        <motion.div 
+                            className="w-16 h-16 bg-white bg-opacity-30 rounded-full flex items-center justify-center border-4 border-white shadow-lg"
+                            animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity }}
+                        >
+                            {avatarData && avatarData.type === 'emoji' ? (
+                                <span className="text-3xl">{avatarData.value}</span>
+                            ) : (
+                                <span className="text-2xl font-bold text-white">
+                                    {user.name ? user.name.charAt(0).toUpperCase() : '🎉'}
+                                </span>
+                            )}
+                        </motion.div>
+                        
+                        <motion.div 
+                            className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center"
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
+                        >
+                            <CheckCircle size={24} className="text-white" />
+                        </motion.div>
+                    </div>
+                    
+                    <h2 className="text-2xl font-bold text-white mb-2 relative z-10">
+                        🎉 {t('lessons.lesson_completed_title')} 🎉
                     </h2>
-                    <p className="text-green-100">
+                    <p className="text-green-100 relative z-10">
                         {t('lessons.lesson_completed_message')}
                     </p>
                 </div>
@@ -93,7 +142,7 @@ export default function LessonCompletionModal({
                 >
                     <X size={20} />
                 </button>
-            </div>
+            </motion.div>
         </div>
     );
 }

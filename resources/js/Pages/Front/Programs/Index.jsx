@@ -1,11 +1,11 @@
 import React from "react";
-import { Link, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useTranslation } from "@/hooks/useTranslation";
 import { iconMap } from "@/Utils/iconMapping";
-import { BookOpen, Star, Sparkles, Clock, ArrowRight, Users, Award, Play } from "lucide-react";
+import { BookOpen, Star, Sparkles, Clock, ArrowRight, Users, Award, Play, Zap, Target, Trophy } from "lucide-react";
 import StarRating from "@/Components/StarRating";
 
 const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments = [] }) => {
@@ -43,32 +43,87 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
     const LayoutComponent = auth.user ? AuthenticatedLayout : GuestFrontLayout;
     
     return (
-        <LayoutComponent auth={auth}>
-            <section className="relative bg-gradient-to-br from-gray-50 to-white py-20 px-6 overflow-hidden">
+        <>
+            <Head title={t('programs')} />
+            <LayoutComponent auth={auth}>
+            <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-20 px-6 overflow-hidden">
+                {/* Enhanced decorative elements */}
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-40 animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-200 to-yellow-200 rounded-full blur-3xl opacity-40 animate-pulse" 
+                     style={{animationDelay: '2s'}} />
+                <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gradient-to-r from-emerald-200 to-cyan-200 rounded-full blur-3xl opacity-30 animate-pulse" 
+                     style={{animationDelay: '1s'}} />
+                
+                {/* Floating particles */}
+                <motion.div
+                    className="absolute top-20 left-20 w-4 h-4 bg-blue-400 rounded-full"
+                    animate={{
+                        y: [0, -30, 0],
+                        x: [0, 20, 0],
+                        opacity: [0.4, 1, 0.4]
+                    }}
+                    transition={{
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                />
+                <motion.div
+                    className="absolute top-40 right-32 w-3 h-3 bg-purple-400 rounded-full"
+                    animate={{
+                        y: [0, -20, 0],
+                        opacity: [0.5, 1, 0.5]
+                    }}
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1
+                    }}
+                />
+                <motion.div
+                    className="absolute bottom-32 left-1/3 w-2 h-2 bg-emerald-400 rounded-full"
+                    animate={{
+                        y: [0, -25, 0],
+                        x: [0, 15, 0],
+                        opacity: [0.6, 1, 0.6]
+                    }}
+                    transition={{
+                        duration: 5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 2
+                    }}
+                />
                 {/* Welcome Message for New Users */}
                 {flash?.welcome && (
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="max-w-4xl mx-auto mb-12"
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        className="max-w-4xl mx-auto mb-12 relative z-10"
                     >
-                        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-2xl p-6">
+                        <div className="bg-white/70 backdrop-blur-lg border border-white/20 rounded-3xl p-8 shadow-2xl">
                             <div className="text-center">
-                                <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                                    <Sparkles className="text-green-600" size={24} />
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                                <motion.div 
+                                    className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mb-6 shadow-lg"
+                                    animate={{ rotate: [0, 360] }}
+                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                >
+                                    <Sparkles className="text-white" size={32} />
+                                </motion.div>
+                                <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
                                     {t('programs_page.welcome_title')}
                                 </h2>
-                                <p className="text-gray-600 mb-4">
+                                <p className="text-lg text-gray-600 mb-6">
                                     {t('programs_page.welcome_subtitle')}
                                 </p>
-                                <div className="bg-white rounded-xl p-4 border border-blue-200">
-                                    <div className="flex items-center justify-center space-x-2 text-blue-600 mb-2">
-                                        <Play size={20} />
-                                        <span className="font-semibold">{t('demo.try_demo_first')}</span>
+                                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-6 border border-blue-200/50 backdrop-blur-sm">
+                                    <div className="flex items-center justify-center space-x-3 text-blue-600 mb-3">
+                                        <Play size={24} className="animate-bounce" />
+                                        <span className="font-bold text-lg">{t('demo.try_demo_first')}</span>
                                     </div>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-gray-600">
                                         {t('demo.demo_instructions')}
                                     </p>
                                 </div>
@@ -78,54 +133,97 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                 )}
 
                 {/* Hero Section */}
-                <div className="max-w-7xl mx-auto text-center mb-16">
+                <div className="max-w-7xl mx-auto text-center mb-16 relative z-10">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="mb-8"
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="mb-12"
                     >
-                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                            {t('programs_page.discover_title')} <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">{t('programs_page.learning_programs')}</span>
+                        <div className="flex justify-center mb-8">
+                            <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+                                className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-6 rounded-full shadow-2xl"
+                            >
+                                <BookOpen className="w-16 h-16 text-white" />
+                            </motion.div>
+                        </div>
+                        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                            {t('programs_page.discover_title')} 
+                            <br className="hidden sm:block" />
+                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
+                                {t('programs_page.learning_programs')}
+                            </span>
                         </h1>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                        <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto mb-8">
                             {t('programs_page.subtitle')}
                         </p>
+                        <div className="w-32 h-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full mx-auto"></div>
                     </motion.div>
                 </div>
 
                 {/* Demo Limitations Notice - Only show for logged in users without enrollments */}
                 {auth.user && !userEnrollments.length && (
-                    <div className="max-w-4xl mx-auto mb-8">
-                        <div className="bg-gradient-to-r from-blue-50 to-orange-50 border border-blue-200 rounded-2xl p-6">
+                    <motion.div 
+                        className="max-w-4xl mx-auto mb-12 relative z-10"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        <div className="bg-white/60 backdrop-blur-lg border border-white/30 rounded-3xl p-8 shadow-xl">
                             <div className="text-center">
-                                <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mb-4">
-                                    <Play className="text-orange-600" size={24} />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                <motion.div 
+                                    className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-400 to-red-400 rounded-full mb-6 shadow-lg"
+                                    animate={{ 
+                                        scale: [1, 1.1, 1],
+                                        rotate: [0, 10, -10, 0]
+                                    }}
+                                    transition={{ 
+                                        duration: 3,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                >
+                                    <Play className="text-white" size={32} />
+                                </motion.div>
+                                <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-4">
                                     {t('demo.demo_info_title')}
                                 </h3>
-                                <div className="text-gray-600 space-y-2">
-                                    <p className="text-sm">
-                                        ✨ {t('demo.one_program_only')}
-                                    </p>
-                                    <p className="text-sm">
-                                        ⏰ {t('demo.expires_seven_days')}
-                                    </p>
-                                    <p className="text-sm">
-                                        📚 {t('demo.first_lesson_only')}
-                                    </p>
-                                    <p className="text-sm font-medium text-blue-600">
-                                        🎯 {t('demo.choose_wisely')}
-                                    </p>
+                                <div className="grid md:grid-cols-2 gap-4 text-gray-700">
+                                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200/50">
+                                        <Zap className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                                        <p className="text-sm font-medium">
+                                            {t('demo.one_program_only')}
+                                        </p>
+                                    </div>
+                                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200/50">
+                                        <Clock className="w-6 h-6 text-purple-500 mx-auto mb-2" />
+                                        <p className="text-sm font-medium">
+                                            {t('demo.expires_seven_days')}
+                                        </p>
+                                    </div>
+                                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200/50">
+                                        <BookOpen className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                                        <p className="text-sm font-medium">
+                                            {t('demo.first_lesson_only')}
+                                        </p>
+                                    </div>
+                                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200/50">
+                                        <Target className="w-6 h-6 text-orange-500 mx-auto mb-2" />
+                                        <p className="text-sm font-bold text-orange-600">
+                                            {t('demo.choose_wisely')}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* Programs Grid */}
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-7xl mx-auto relative z-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {programs.map((program, index) => {
                             const color = colors[index % colors.length];
@@ -156,55 +254,85 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                             return (
                                 <motion.div
                                     key={program.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                    whileHover={{ y: -4 }}
+                                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                                    transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
+                                    whileHover={{ y: -8, scale: 1.02 }}
                                     className="group"
                                 >
-                                    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden h-full flex flex-col">
+                                    <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 border border-white/30 overflow-hidden h-full flex flex-col backdrop-saturate-150">
                                             {/* Header with Icon */}
-                                            <div className={`${color.light} relative p-8 text-center ${color.border} border-b`}>
-                                                {/* Background Pattern */}
-                                                <div className="absolute inset-0 opacity-5">
-                                                    <div className="absolute top-4 left-4">
+                                            <div className={`${color.light}/60 backdrop-blur-sm relative p-8 text-center border-b border-white/30`}>
+                                                {/* Enhanced Background Pattern */}
+                                                <div className="absolute inset-0 opacity-10">
+                                                    <motion.div 
+                                                        className="absolute top-4 left-4"
+                                                        animate={{ rotate: [0, 360] }}
+                                                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                                    >
                                                         <div className="w-8 h-8 border-2 border-current rounded-full opacity-20"></div>
-                                                    </div>
-                                                    <div className="absolute top-8 right-6">
+                                                    </motion.div>
+                                                    <motion.div 
+                                                        className="absolute top-8 right-6"
+                                                        animate={{ scale: [1, 1.2, 1] }}
+                                                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                                    >
                                                         <div className="w-4 h-4 border border-current rounded opacity-30"></div>
-                                                    </div>
-                                                    <div className="absolute bottom-6 left-8">
-                                                        <div className="w-6 h-6 border border-current rotate-45 opacity-25"></div>
-                                                    </div>
+                                                    </motion.div>
+                                                    <motion.div 
+                                                        className="absolute bottom-6 left-8"
+                                                        animate={{ rotate: [0, 45, 90, 45, 0] }}
+                                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                                    >
+                                                        <div className="w-6 h-6 border border-current opacity-25"></div>
+                                                    </motion.div>
                                                 </div>
                                                 
-                                                {/* Icon */}
-                                                <div className={`${color.primary} inline-flex p-4 rounded-2xl shadow-sm group-hover:scale-110 transition-transform duration-300`}>
-                                                    <Icon size={48} className="text-white" />
-                                                </div>
+                                                {/* Enhanced Icon */}
+                                                <motion.div 
+                                                    className={`${color.primary} inline-flex p-6 rounded-3xl shadow-lg group-hover:shadow-xl transition-all duration-500 relative overflow-hidden`}
+                                                    whileHover={{ rotate: [0, 5, -5, 0] }}
+                                                    transition={{ duration: 0.5 }}
+                                                >
+                                                    <div className="absolute inset-0 bg-white/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                                    <Icon size={56} className="text-white relative z-10" />
+                                                </motion.div>
                                                 
-                                                {/* Badge */}
-                                                <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-yellow-500">
+                                                {/* Enhanced Badge */}
+                                                <motion.div 
+                                                    className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg border-2 border-white"
+                                                    animate={{ rotate: [0, 10, -10, 0] }}
+                                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                                >
+                                                    <Sparkles className="w-3 h-3 inline mr-1" />
                                                     {t('programs_page.new_badge')}
-                                                </div>
+                                                </motion.div>
                                             </div>
 
                                             {/* Content */}
-                                            <div className="p-6 flex-1 flex flex-col">
-                                                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                                            <div className="p-8 flex-1 flex flex-col bg-gradient-to-b from-white/50 to-white/30 backdrop-blur-sm">
+                                                <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
                                                     {program.name}
                                                 </h3>
-                                                <p className="text-gray-600 text-sm leading-relaxed mb-4 flex-1">
+                                                <p className="text-gray-700 leading-relaxed mb-6 flex-1">
                                                     {program.description}
                                                 </p>
 
                                                 {/* Rating */}
-                                                <div className="mb-4">
-                                                    <div className="flex items-center space-x-2">
-                                                        <StarRating rating={program.average_rating || 0} size={16} />
-                                                        <span className="text-sm text-gray-600">
-                                                            {program.average_rating > 0 ? `${program.average_rating} (${program.total_reviews_count} review${program.total_reviews_count !== 1 ? 's' : ''})` : 'No reviews yet'}
-                                                        </span>
+                                                <div className="mb-6">
+                                                    <div className="flex items-center justify-between bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/40">
+                                                        <div className="flex items-center space-x-2">
+                                                            <StarRating rating={program.average_rating || 0} size={18} />
+                                                            <span className="text-sm text-gray-600 font-medium">
+                                                                {program.average_rating > 0 ? `${program.average_rating}` : 'New'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center space-x-1 text-gray-500">
+                                                            <Trophy className="w-4 h-4" />
+                                                            <span className="text-xs font-medium">
+                                                                {program.total_reviews_count || 0} reviews
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 
@@ -319,7 +447,8 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                     </div>
                 </div>
             </section>
-        </LayoutComponent>
+            </LayoutComponent>
+        </>
     );
 };
 
