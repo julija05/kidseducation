@@ -31,6 +31,7 @@ use App\Http\Controllers\Student\ReviewController;
 use App\Http\Controllers\DemoController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\HelpController;
+use App\Http\Controllers\CertificateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -105,6 +106,15 @@ Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
         Route::get('/{review}/edit', [ReviewController::class, 'edit'])->name('edit');
         Route::patch('/{review}', [ReviewController::class, 'update'])->name('update');
         Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy');
+    });
+
+    // Certificate routes for students
+    Route::prefix('certificates')->name('certificates.')->group(function () {
+        Route::get('/', [CertificateController::class, 'index'])->name('index');
+        Route::post('/programs/{program:slug}/generate', [CertificateController::class, 'generate'])->name('generate');
+        Route::get('/programs/{program:slug}/check', [CertificateController::class, 'checkEligibility'])->name('check');
+        Route::get('/view/{filename}', [CertificateController::class, 'view'])->name('view');
+        Route::get('/download/{filename}', [CertificateController::class, 'download'])->name('download');
     });
 });
 

@@ -17,6 +17,7 @@
         "spatie/laravel-permission": "^6.17",
         "symfony/http-client": "^7.2",
         "symfony/postmark-mailer": "^7.2",
+        "tecnickcom/tcpdf": "^6.10",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

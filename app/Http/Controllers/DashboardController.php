@@ -69,7 +69,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Get approved enrollment if exists
+        // Get approved enrollment if exists (active only - completed programs go to main dashboard)
         $currentLocale = app()->getLocale();
         $approvedEnrollment = $user->enrollments()
             ->with(['program' => function ($query) use ($currentLocale) {
@@ -91,6 +91,13 @@ class DashboardController extends Controller
             ->where('approval_status', 'approved')
             ->first();
 
+        // Get completed enrollments for certificate functionality
+        $completedEnrollments = $user->enrollments()
+            ->with('program')
+            ->where('status', 'completed')
+            ->where('approval_status', 'approved')
+            ->get();
+
         // Get pending enrollments
         $pendingEnrollments = $user->enrollments()
             ->with('program')
@@ -107,7 +114,12 @@ class DashboardController extends Controller
 
         // If user has pending enrollments
         if ($pendingEnrollments->isNotEmpty()) {
-            return $this->renderPendingDashboard($user, $pendingEnrollments, $studentData);
+            return $this->renderPendingDashboard($user, $pendingEnrollments, $studentData, $completedEnrollments);
+        }
+
+        // If user has completed enrollments but no active ones - show main dashboard with certificate functionality
+        if ($completedEnrollments->isNotEmpty()) {
+            return $this->renderCompletedDashboard($user, $completedEnrollments, $request, $studentData);
         }
 
         // No enrollments - show available programs
@@ -253,7 +265,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function renderPendingDashboard($user, $pendingEnrollments, $studentData = [])
+    private function renderPendingDashboard($user, $pendingEnrollments, $studentData = [], $completedEnrollments = [])
     {
         $formattedPending = $pendingEnrollments->map(function ($enrollment) {
             return [
@@ -278,10 +290,28 @@ class DashboardController extends Controller
         // Still get available programs in case they want to browse
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
+        // Format completed enrollments for certificate functionality
+        $formattedCompleted = collect($completedEnrollments)->map(function ($enrollment) {
+            return [
+                'id' => $enrollment->id,
+                'progress' => $enrollment->progress,
+                'completed_at' => $enrollment->completed_at,
+                'quiz_points' => $enrollment->quiz_points,
+                'highest_unlocked_level' => $enrollment->highest_unlocked_level,
+                'program' => [
+                    'id' => $enrollment->program->id,
+                    'slug' => $enrollment->program->slug,
+                    'name' => $enrollment->program->name,
+                    'translated_name' => $enrollment->program->translated_name,
+                ],
+            ];
+        });
+
         return $this->createView('Dashboard', [
             'enrolledProgram' => null,
             'pendingEnrollments' => $formattedPending,
             'availablePrograms' => $availablePrograms,
+            'completedEnrollments' => $formattedCompleted,
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
@@ -304,6 +334,55 @@ class DashboardController extends Controller
             'enrolledProgram' => null,
             'pendingEnrollments' => [],
             'availablePrograms' => $availablePrograms,
+            'nextClass' => $studentData['nextScheduledClass'] ?? null,
+            'pendingProgramId' => $pendingProgramId,
+            'notifications' => $studentData['notifications'] ?? [],
+            'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => !$user->language_selected,
+            'userDemoAccess' => $user->hasDemoAccess() ? [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => $user->demo_expires_at,
+                'days_remaining' => $user->getDemoRemainingDays(),
+            ] : null,
+        ]);
+    }
+
+    private function renderCompletedDashboard($user, $completedEnrollments, $request, $studentData = [])
+    {
+        // Format completed enrollments for certificate functionality
+        $formattedCompleted = $completedEnrollments->map(function ($enrollment) {
+            return [
+                'id' => $enrollment->id,
+                'progress' => $enrollment->progress,
+                'completed_at' => $enrollment->completed_at,
+                'quiz_points' => $enrollment->quiz_points,
+                'highest_unlocked_level' => $enrollment->highest_unlocked_level,
+                'status' => $enrollment->status,
+                'program' => [
+                    'id' => $enrollment->program->id,
+                    'slug' => $enrollment->program->slug,
+                    'name' => $enrollment->program->name,
+                    'translated_name' => $enrollment->program->translated_name,
+                    'description' => $enrollment->program->description,
+                    'translated_description' => $enrollment->program->translated_description,
+                ],
+            ];
+        });
+
+        // Get available programs for new enrollments
+        $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
+
+        // Check for pending program enrollment from session
+        $pendingProgramId = session('pending_enrollment_program_id');
+        if ($pendingProgramId) {
+            session()->forget('pending_enrollment_program_id');
+        }
+
+        return $this->createView('Dashboard', [
+            'enrolledProgram' => null,
+            'pendingEnrollments' => [],
+            'availablePrograms' => $availablePrograms,
+            'completedEnrollments' => $formattedCompleted,
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
             'pendingProgramId' => $pendingProgramId,
             'notifications' => $studentData['notifications'] ?? [],
