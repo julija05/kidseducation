@@ -825,4 +825,92 @@ return [
             'mascot_message' => 'This area is protected for your safety!',
         ],
     ],
+
+    // Footer
+    'footer' => [
+        'company_description' => 'Empowering young minds through innovative math and coding education. Where learning meets adventure and every child becomes a digital creator.',
+        'company_tagline' => 'Transforming young minds through innovative learning',
+        'mission_statement' => 'To empower young minds with essential skills for the digital future while fostering a love for lifelong learning.',
+        
+        // Company section
+        'company' => 'Company',
+        'about_us' => 'About Us',
+        'our_mission' => 'Our Mission',
+        'careers' => 'Careers',
+        'press' => 'Press',
+        'blog' => 'Blog',
+        
+        // Programs section
+        'programs' => 'Programs',
+        'mental_arithmetic' => 'Mental Arithmetic',
+        'coding_adventures' => 'Coding Adventures',
+        'all_programs' => 'All Programs',
+        'program_pricing' => 'Pricing',
+        'free_trial' => 'Free Trial',
+        
+        // Support section
+        'support' => 'Support',
+        'help_center' => 'Help Center',
+        'contact_us' => 'Contact Us',
+        'faq' => 'FAQ',
+        'tutorials' => 'Tutorials',
+        'system_status' => 'System Status',
+        
+        // Legal section
+        'legal' => 'Legal',
+        'privacy_policy' => 'Privacy Policy',
+        'terms_of_service' => 'Terms of Service',
+        'cookies_policy' => 'Cookies Policy',
+        'safety_guidelines' => 'Safety Guidelines',
+        
+        // Contact info
+        'contact_info' => 'Contact Information',
+        'email' => 'Email',
+        'phone' => 'Phone',
+        'address' => 'Address',
+        'business_hours' => 'Business Hours',
+        'mon_fri' => 'Monday - Friday',
+        'sat_sun' => 'Saturday - Sunday',
+        'hours_weekday' => '9:00 AM - 6:00 PM EST',
+        'hours_weekend' => '10:00 AM - 4:00 PM EST',
+        
+        // Social media
+        'follow_us' => 'Follow Us',
+        'social_description' => 'Join our community and see amazing student achievements!',
+        'facebook' => 'Facebook',
+        'twitter' => 'Twitter',
+        'instagram' => 'Instagram',
+        'youtube' => 'YouTube',
+        'linkedin' => 'LinkedIn',
+        
+        // Newsletter
+        'newsletter_title' => 'Stay Updated',
+        'newsletter_description' => 'Get the latest updates on new programs, learning tips, and special offers.',
+        'newsletter_placeholder' => 'Enter your email address',
+        'subscribe' => 'Subscribe',
+        'subscribing' => 'Subscribing...',
+        'newsletter_success' => 'Thank you for subscribing!',
+        'newsletter_error' => 'Something went wrong. Please try again.',
+        'newsletter_privacy' => 'We respect your privacy. No spam, just valuable content.',
+        
+        // Bottom section
+        'copyright' => '© :year Abacoding. All rights reserved.',
+        'built_with_love' => 'Built with ❤️ for young learners worldwide',
+        'language_selector' => 'Language',
+        'select_language' => 'Select Language',
+        
+        // Awards & Recognition
+        'awards_title' => 'Awards & Recognition',
+        'award_education_excellence' => 'Education Excellence Award 2023',
+        'award_innovation' => 'Innovation in EdTech 2023',
+        'award_parent_choice' => 'Parent\'s Choice Gold Award',
+        
+        // Security & Trust
+        'security_title' => 'Security & Trust',
+        'secure_platform' => 'Secure Learning Platform',
+        'coppa_compliant' => 'COPPA Compliant',
+        'data_protected' => 'Data Protected',
+        'safe_environment' => 'Safe Environment',
+        'trusted_by_families' => 'Trusted by 50+ families',
+    ],
 ];
