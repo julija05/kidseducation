@@ -6,6 +6,7 @@ import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
 import NavBar from "@/Components/NavBar";
+import PasswordStrengthIndicator from "@/Components/PasswordStrengthIndicator";
 import { Lock, Eye, EyeOff, Shield, Key, CheckCircle } from "lucide-react";
 import resetPasswordIllustration from "../../../assets/kid-no-bg.png";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -29,12 +30,6 @@ export default function ResetPassword({ token, email, auth }) {
         });
     };
 
-    const passwordRequirements = [
-        { text: t('auth.reset_password.requirement_length'), met: data.password.length >= 8 },
-        { text: t('auth.reset_password.requirement_uppercase'), met: /[A-Z]/.test(data.password) },
-        { text: t('auth.reset_password.requirement_lowercase'), met: /[a-z]/.test(data.password) },
-        { text: t('auth.reset_password.requirement_number'), met: /\d/.test(data.password) },
-    ];
 
     return (
         <>
@@ -128,25 +123,7 @@ export default function ResetPassword({ token, email, auth }) {
                                     </button>
                                 </div>
                                 <InputError message={errors.password} className="mt-2" />
-                                
-                                {/* Password Requirements */}
-                                {data.password && (
-                                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                                        <p className="text-xs font-medium text-gray-700 mb-2">{t('auth.reset_password.password_requirements')}</p>
-                                        <div className="space-y-1">
-                                            {passwordRequirements.map((req, index) => (
-                                                <div key={index} className="flex items-center text-xs">
-                                                    <CheckCircle 
-                                                        className={`h-3 w-3 mr-2 ${req.met ? 'text-green-500' : 'text-gray-300'}`}
-                                                    />
-                                                    <span className={req.met ? 'text-green-600' : 'text-gray-500'}>
-                                                        {req.text}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                <PasswordStrengthIndicator password={data.password} />
                             </div>
 
                             {/* Confirm Password Field */}

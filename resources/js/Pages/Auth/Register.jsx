@@ -6,6 +6,7 @@ import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
 import NavBar from "@/Components/NavBar";
+import PasswordStrengthIndicator from "@/Components/PasswordStrengthIndicator";
 import { UserPlus, Mail, Lock, User, Eye, EyeOff, Sparkles, Shield, Check } from "lucide-react";
 import registerIllustration from "../../../assets/kid-no-bg.png";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -26,8 +27,16 @@ export default function Register({ auth }) {
     const submit = (e) => {
         e.preventDefault();
 
+        console.log('Registration data:', data);
+        
         post(route("register"), {
             onFinish: () => reset("password", "password_confirmation"),
+            onError: (errors) => {
+                console.log('Registration errors:', errors);
+            },
+            onSuccess: () => {
+                console.log('Registration successful');
+            }
         });
     };
 
@@ -270,6 +279,7 @@ export default function Register({ auth }) {
                                     </button>
                                 </div>
                                 <InputError message={errors.password} className="mt-2" />
+                                <PasswordStrengthIndicator password={data.password} />
                             </motion.div>
 
                             {/* Confirm Password Field */}
@@ -342,6 +352,24 @@ export default function Register({ auth }) {
                                     .
                                 </p>
                             </motion.div>
+
+                            {/* Global Error Display */}
+                            {Object.keys(errors).length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-red-50 border border-red-200 rounded-xl p-4"
+                                >
+                                    <p className="text-red-800 font-medium mb-2">Please fix the following errors:</p>
+                                    <ul className="text-sm text-red-700 space-y-1">
+                                        {Object.entries(errors).map(([field, messages]) => (
+                                            <li key={field}>
+                                                <strong>{field}:</strong> {Array.isArray(messages) ? messages[0] : messages}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </motion.div>
+                            )}
 
                             {/* Submit Button */}
                             <motion.div
