@@ -1,6 +1,6 @@
 // resources/js/Components/Dashboard/ProgressOverview.jsx
-import React from "react";
-import { Calendar, Star, Target, Zap, Trophy, Rocket, TrendingUp, Award, Sparkles } from "lucide-react";
+import React, { useState } from "react";
+import { Calendar, Star, Target, Zap, Trophy, Rocket, TrendingUp, Award, Sparkles, Download, FileText } from "lucide-react";
 import { iconMap } from "@/Utils/iconMapping";
 import { useTranslation } from "@/hooks/useTranslation";
 import { motion } from "framer-motion";
@@ -12,6 +12,7 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
     const { avatarData } = useAvatar();
     const { auth } = usePage().props;
     const user = auth.user;
+    const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
     
     const ProgramIcon =
         iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
@@ -54,6 +55,35 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
     };
 
     const achievements = getAchievements();
+
+    // Certificate generation handler
+    const handleGenerateCertificate = async () => {
+        setIsGeneratingCertificate(true);
+        try {
+            const response = await fetch(`/certificates/programs/${enrolledProgram.slug}/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+            });
+
+            const result = await response.json();
+            
+            if (result.success && result.download_url) {
+                // Open download in new tab
+                window.open(result.download_url, '_blank');
+            } else {
+                console.error('Certificate generation failed:', result.message);
+                alert('Failed to generate certificate: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Certificate generation error:', error);
+            alert('Failed to generate certificate. Please try again.');
+        } finally {
+            setIsGeneratingCertificate(false);
+        }
+    };
 
     return (
         <div className="space-y-8">
@@ -272,6 +302,80 @@ export default function ProgressOverview({ enrolledProgram, nextClass }) {
                         )}
                     </div>
                 </motion.div>
+
+                {/* Certificate Card - Only show when program is completed */}
+                {progressPercentage >= 100 && (
+                    <motion.div 
+                        className="bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-2xl shadow-lg p-6 border-2 border-yellow-200/50 hover:shadow-xl transition-all duration-300"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.5 }}
+                        whileHover={{ y: -5 }}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-gray-800">🎓 Certificate of Completion</h3>
+                            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-2 rounded-lg shadow-md">
+                                <Award size={20} className="text-white" />
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-yellow-200/50">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <span className="text-2xl">🏆</span>
+                                    <div>
+                                        <h4 className="font-semibold text-gray-800">Congratulations!</h4>
+                                        <p className="text-sm text-gray-600">You completed {enrolledProgram.translated_name || enrolledProgram.name}</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                                    <div>
+                                        <div className="font-bold text-blue-600">{currentLevel}</div>
+                                        <div className="text-gray-500">Levels</div>
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-orange-600">{quizPoints}</div>
+                                        <div className="text-gray-500">Points</div>
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-green-600">100%</div>
+                                        <div className="text-gray-500">Complete</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <motion.button
+                                onClick={handleGenerateCertificate}
+                                disabled={isGeneratingCertificate}
+                                className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                {isGeneratingCertificate ? (
+                                    <>
+                                        <motion.div
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                        >
+                                            <FileText size={16} />
+                                        </motion.div>
+                                        Generating Certificate...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download size={16} />
+                                        Download Your Certificate
+                                    </>
+                                )}
+                            </motion.button>
+                            
+                            <p className="text-xs text-center text-gray-500">
+                                Your official completion certificate includes your name, completion date, levels completed, and total points earned.
+                            </p>
+                        </div>
+                    </motion.div>
+                )}
             </div>
         </div>
     );
