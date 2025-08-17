@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import NavBar from "@/Components/NavBar";
@@ -31,6 +31,22 @@ export default function HelpIndex({ auth }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [openFAQ, setOpenFAQ] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState("all");
+
+    // Handle scrolling to section based on URL hash
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash) {
+            const element = document.querySelector(hash);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100); // Small delay to ensure page is fully loaded
+            }
+        }
+    }, []);
 
     const helpCategories = [
         {
@@ -332,6 +348,7 @@ export default function HelpIndex({ auth }) {
 
                 {/* Help Categories */}
                 <motion.section 
+                    id="tutorials-guides"
                     className="py-16 px-4 relative z-10"
                     variants={containerVariants}
                     initial="hidden"

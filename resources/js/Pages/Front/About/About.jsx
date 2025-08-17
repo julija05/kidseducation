@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
@@ -19,12 +20,26 @@ import {
     ChevronRight,
     PlayCircle
 } from "lucide-react";
-import { useState } from "react";
-
 export default function About({ auth }) {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('mission');
     const [activeFAQ, setActiveFAQ] = useState(null);
+
+    // Handle scrolling to section based on URL hash
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash) {
+            const element = document.querySelector(hash);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100); // Small delay to ensure page is fully loaded
+            }
+        }
+    }, []);
     
     const [missionRef, missionInView] = useInView({
         triggerOnce: true,
@@ -323,7 +338,7 @@ export default function About({ auth }) {
                 </section>
 
                 {/* Modern Interactive FAQ Section */}
-                <section className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+                <section id="faq" className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
                     <div className="max-w-4xl mx-auto">
                         <motion.div
                             className="text-center mb-16"

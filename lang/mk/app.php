@@ -775,6 +775,94 @@ return [
         'or' => 'или',
     ],
 
+    // Footer
+    'footer' => [
+        'company_description' => 'Оспособување млади умови преку иновативно образование за математика и програмирање. Каде учењето се среќава со авантура и секое дете станува дигитален креатор.',
+        'company_tagline' => 'Трансформирање на младите умови преку иновативно учење',
+        'mission_statement' => 'Да ги оспособиме младите умови со суштинските вештини за дигиталната иднина додека негуваме љубов кон доживотното учење.',
+        
+        // Company section
+        'company' => 'Компанија',
+        'about_us' => 'За нас',
+        'our_mission' => 'Наша мисија',
+        'careers' => 'Кариери',
+        'press' => 'Медиуми',
+        'blog' => 'Блог',
+        
+        // Programs section
+        'programs' => 'Програми',
+        'mental_arithmetic' => 'Ментална аритметика',
+        'coding_adventures' => 'Програмерски авантури',
+        'all_programs' => 'Сите програми',
+        'program_pricing' => 'Цени',
+        'free_trial' => 'Бесплатен пробен период',
+        
+        // Support section
+        'support' => 'Поддршка',
+        'help_center' => 'Центар за помош',
+        'contact_us' => 'Контактирај не',
+        'faq' => 'Често поставувани прашања',
+        'tutorials' => 'Упатства',
+        'system_status' => 'Статус на системот',
+        
+        // Legal section
+        'legal' => 'Правни',
+        'privacy_policy' => 'Политика за приватност',
+        'terms_of_service' => 'Услови за користење',
+        'cookies_policy' => 'Политика за колачиња',
+        'safety_guidelines' => 'Безбедносни упатства',
+        
+        // Contact info
+        'contact_info' => 'Контакт информации',
+        'email' => 'Е-пошта',
+        'phone' => 'Телефон',
+        'address' => 'Адреса',
+        'business_hours' => 'Работно време',
+        'mon_fri' => 'Понеделник - Петок',
+        'sat_sun' => 'Сабота - Недела',
+        'hours_weekday' => '9:00 - 18:00 EST',
+        'hours_weekend' => '10:00 - 16:00 EST',
+        
+        // Social media
+        'follow_us' => 'Следете не',
+        'social_description' => 'Придружете се на нашата заедница и видете ги неверојатните постигнувања на студентите!',
+        'facebook' => 'Facebook',
+        'twitter' => 'Twitter',
+        'instagram' => 'Instagram',
+        'youtube' => 'YouTube',
+        'linkedin' => 'LinkedIn',
+        
+        // Newsletter
+        'newsletter_title' => 'Останете во тек',
+        'newsletter_description' => 'Добивајте најнови ажурирања за нови програми, совети за учење и специјални понуди.',
+        'newsletter_placeholder' => 'Внесете ја вашата е-пошта адреса',
+        'subscribe' => 'Претплати се',
+        'subscribing' => 'Се претплаќам...',
+        'newsletter_success' => 'Ви благодариме што се претплативте!',
+        'newsletter_error' => 'Нешто не е во ред. Ве молиме обидете се повторно.',
+        'newsletter_privacy' => 'Ја почитуваме вашата приватност. Без спам, само вредни содржини.',
+        
+        // Bottom section
+        'copyright' => '© :year Abacoding. Сите права се задржани.',
+        'built_with_love' => 'Изградено со ❤️ за младите ученици ширум светот',
+        'language_selector' => 'Јазик',
+        'select_language' => 'Изберете јазик',
+        
+        // Awards & Recognition
+        'awards_title' => 'Награди и признанија',
+        'award_education_excellence' => 'Награда за образовна извонредност 2023',
+        'award_innovation' => 'Иновација во EdTech 2023',
+        'award_parent_choice' => 'Златна награда од избор на родители',
+        
+        // Security & Trust
+        'security_title' => 'Безбедност и доверба',
+        'secure_platform' => 'Безбедна платформа за учење',
+        'coppa_compliant' => 'COPPA усогласена',
+        'data_protected' => 'Заштитени податоци',
+        'safe_environment' => 'Безбедна средина',
+        'trusted_by_families' => 'Се доверуваат 50+ семејства',
+    ],
+
     // Error Pages
     'errors' => [
         '404' => [

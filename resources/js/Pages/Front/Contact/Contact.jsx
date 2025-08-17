@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Head } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
@@ -44,6 +44,22 @@ export default function ContactUs({ auth }) {
         email: "",
         message: "",
     });
+
+    // Handle scrolling to section based on URL hash
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash) {
+            const element = document.querySelector(hash);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100); // Small delay to ensure page is fully loaded
+            }
+        }
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -170,7 +186,7 @@ export default function ContactUs({ auth }) {
                     </section>
 
                     {/* Modern Contact Form Section */}
-                    <section className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+                    <section id="contact-form" className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
                         <div className="max-w-7xl mx-auto">
                             <div className="grid lg:grid-cols-2 gap-16 items-start">
                                 {/* Contact Form */}
@@ -309,6 +325,7 @@ export default function ContactUs({ auth }) {
 
                                 {/* Contact Information */}
                                 <motion.div
+                                    id="get-in-touch"
                                     initial={{ opacity: 0, x: 50 }}
                                     whileInView={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.8 }}

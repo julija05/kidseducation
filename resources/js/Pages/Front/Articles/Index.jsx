@@ -8,6 +8,22 @@ import { BookOpen, Target, Megaphone, ArrowRight, Search, Star, Calendar, User, 
 export default function ArticleIndex({ articles, currentCategory, categories, categoriesWithArticles, categoryName, currentLocale }) {
     const { props } = usePage();
     const { t, locale } = useTranslation();
+
+    // Handle scrolling to section based on URL hash
+    React.useEffect(() => {
+        const hash = window.location.hash;
+        if (hash) {
+            const element = document.querySelector(hash);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 100);
+            }
+        }
+    }, []);
     
     // Fallback to categories if categoriesWithArticles is not available yet
     const availableCategories = categoriesWithArticles || categories || {};
@@ -204,6 +220,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                             {/* Category Navigation */}
                             {Object.keys(availableCategories).length > 1 && (
                                 <motion.div 
+                                    id="tutorials-guides"
                                     className="flex flex-wrap justify-center gap-4 mb-16"
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
