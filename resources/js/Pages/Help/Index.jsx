@@ -308,7 +308,10 @@ export default function HelpIndex({ auth }) {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-800 mb-2">Live Chat</h3>
                                 <p className="text-gray-600 mb-4">Get instant help from our support team</p>
-                                <button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-300">
+                                <button 
+                                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-300"
+                                    onClick={() => window.dispatchEvent(new CustomEvent('openChat'))}
+                                >
                                     Start Chat
                                 </button>
                             </motion.div>
@@ -323,7 +326,10 @@ export default function HelpIndex({ auth }) {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-800 mb-2">Email Support</h3>
                                 <p className="text-gray-600 mb-4">Send us a detailed message</p>
-                                <button className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-300">
+                                <button 
+                                    className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-300"
+                                    onClick={() => window.open('mailto:support@abacoding.com', '_self')}
+                                >
                                     Send Email
                                 </button>
                             </motion.div>
@@ -338,7 +344,10 @@ export default function HelpIndex({ auth }) {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-800 mb-2">Video Tutorials</h3>
                                 <p className="text-gray-600 mb-4">Watch step-by-step guides</p>
-                                <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-300">
+                                <button 
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-300"
+                                    onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
+                                >
                                     Watch Now
                                 </button>
                             </motion.div>
@@ -404,7 +413,10 @@ export default function HelpIndex({ auth }) {
                                             ))}
                                         </div>
                                         
-                                        <button className="mt-6 w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                                        <button 
+                                            className="mt-6 w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                                            onClick={() => alert('Feature coming soon! Articles will be available shortly.')}
+                                        >
                                             <span>View All Articles</span>
                                             <ChevronRight className="w-4 h-4" />
                                         </button>

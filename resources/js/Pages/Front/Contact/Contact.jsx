@@ -163,14 +163,15 @@ export default function ContactUs({ auth }) {
                                 transition={{ delay: 0.8, duration: 0.8 }}
                             >
                                 {[
-                                    { icon: Phone, title: t('contact.quick_call'), desc: t('contact.quick_call_desc'), action: t('contact.quick_call_action') },
-                                    { icon: Mail, title: t('contact.email_support'), desc: t('contact.email_support_desc'), action: t('contact.email_support_action') },
-                                    { icon: MessageCircle, title: t('contact.live_chat'), desc: t('contact.live_chat_desc'), action: t('contact.live_chat_action') }
+                                    { icon: Sparkles, title: t('contact.schedule_demo'), desc: t('contact.schedule_demo_desc'), action: t('contact.schedule_demo_action'), onClick: () => window.location.href = route('demo.access', { program: 'mental-arithmetic-mastery' }) },
+                                    { icon: Mail, title: t('contact.email_support'), desc: t('contact.email_support_desc'), action: t('contact.email_support_action'), onClick: () => document.getElementById('contact-form').scrollIntoView({ behavior: 'smooth' }) },
+                                    { icon: MessageCircle, title: t('contact.live_chat'), desc: t('contact.live_chat_desc'), action: t('contact.live_chat_action'), onClick: () => window.dispatchEvent(new CustomEvent('openChat')) }
                                 ].map((option, index) => (
                                     <motion.div
                                         key={index}
                                         className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 cursor-pointer group"
                                         whileHover={{ scale: 1.05, y: -5 }}
+                                        onClick={option.onClick}
                                     >
                                         <option.icon className="text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" size={32} />
                                         <h3 className="text-xl font-bold text-gray-800 mb-2">{option.title}</h3>
@@ -402,16 +403,17 @@ export default function ContactUs({ auth }) {
                                         
                                         <div className="flex justify-center space-x-6">
                                             {[
-                                                { icon: Facebook, color: "hover:bg-blue-700" },
-                                                { icon: Instagram, color: "hover:bg-pink-700" },
-                                                { icon: Linkedin, color: "hover:bg-blue-800" },
-                                                { icon: Twitter, color: "hover:bg-cyan-600" }
+                                                { icon: Facebook, color: "hover:bg-blue-700", url: "https://facebook.com/abacoding" },
+                                                { icon: Instagram, color: "hover:bg-pink-700", url: "https://instagram.com/abacoding" },
+                                                { icon: Linkedin, color: "hover:bg-blue-800", url: "https://linkedin.com/company/abacoding" },
+                                                { icon: Twitter, color: "hover:bg-cyan-600", url: "https://twitter.com/abacoding" }
                                             ].map((social, index) => (
                                                 <motion.button
                                                     key={index}
                                                     className={`p-3 rounded-xl bg-white/20 ${social.color} transition-all duration-300`}
                                                     whileHover={{ scale: 1.1 }}
                                                     whileTap={{ scale: 0.9 }}
+                                                    onClick={() => window.open(social.url, '_blank', 'noopener,noreferrer')}
                                                 >
                                                     <social.icon size={24} />
                                                 </motion.button>
@@ -474,6 +476,7 @@ export default function ContactUs({ auth }) {
                                     className="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 inline-flex items-center space-x-2"
                                     whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
+                                    onClick={() => window.dispatchEvent(new CustomEvent('openChat'))}
                                 >
                                     <Sparkles size={20} />
                                     <span>{t('contact.start_conversation')}</span>

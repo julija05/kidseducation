@@ -100,6 +100,84 @@ const Home = ({ auth }) => {
                         <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
                     </div>
 
+                    {/* Floating Kid Photos */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        {/* Happy Kids Group - Top Left */}
+                        <motion.div
+                            className="absolute top-20 left-8 hidden lg:block"
+                            initial={{ opacity: 0, x: -50, y: -50 }}
+                            animate={{ opacity: 1, x: 0, y: 0 }}
+                            transition={{ delay: 1.2, duration: 1, type: "spring" }}
+                        >
+                            <div className="relative">
+                                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl transform hover:scale-110 transition-transform duration-300">
+                                    <img 
+                                        src="/images/kids/happy-kids-group.jpg" 
+                                        alt="Happy children learning together"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                                    <Star size={12} className="text-yellow-600 fill-current" />
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Kids Learning - Top Right */}
+                        <motion.div
+                            className="absolute top-32 right-12 hidden lg:block"
+                            initial={{ opacity: 0, x: 50, y: -50 }}
+                            animate={{ opacity: 1, x: 0, y: 0 }}
+                            transition={{ delay: 1.4, duration: 1, type: "spring" }}
+                        >
+                            <div className="relative">
+                                <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-xl transform hover:scale-110 transition-transform duration-300">
+                                    <img 
+                                        src="/images/kids/kids-learning.jpg" 
+                                        alt="Children in classroom learning"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
+                                    <Check size={10} className="text-green-600" />
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Kids Studying - Bottom Left */}
+                        <motion.div
+                            className="absolute bottom-32 left-2 hidden lg:block"
+                            initial={{ opacity: 0, x: -50, y: 50 }}
+                            animate={{ opacity: 1, x: 0, y: 0 }}
+                            transition={{ delay: 1.6, duration: 1, type: "spring" }}
+                        >
+                            <div className="relative">
+                                <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-xl transform hover:scale-110 transition-transform duration-300">
+                                    <img 
+                                        src="/images/kids/kids-studying.jpg" 
+                                        alt="Girls studying together"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="absolute -top-1 -left-1 w-6 h-6 bg-pink-400 rounded-full flex items-center justify-center">
+                                    <Heart size={12} className="text-pink-600 fill-current" />
+                                </div>
+                            </div>
+                        </motion.div>
+
+
+                        <motion.div
+                            className="absolute bottom-40 right-20 hidden lg:block"
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 2.2, duration: 0.6 }}
+                        >
+                            <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-lg">
+                                <Sparkles size={16} className="text-white" />
+                            </div>
+                        </motion.div>
+                    </div>
+
                     {/* Main Content */}
                     <motion.div
                         className="text-center max-w-5xl mx-auto"
@@ -109,13 +187,13 @@ const Home = ({ auth }) => {
                     >
                         {/* Dynamic Badge */}
                         <motion.div
-                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full border border-blue-200 mb-8"
+                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full border border-blue-200 mb-8 max-w-md mx-auto"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2, duration: 0.6 }}
                         >
-                            <Sparkles className="text-purple-600 mr-2" size={20} />
-                            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            <Sparkles className="text-purple-600 mr-2 flex-shrink-0" size={20} />
+                            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center leading-tight">
                                 {t('home.trusted_by_families', { count: 50 })}
                             </span>
                         </motion.div>

@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\AdminQuizController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Admin\AdminChatController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Front\AboutController;
@@ -183,6 +185,19 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::post('/notifications/cleanup', [NotificationController::class, 'cleanup'])->name('notifications.cleanup');
 
+    // Chat Routes
+    Route::prefix('chat')->name('chat.')->group(function () {
+        Route::get('/', [AdminChatController::class, 'index'])->name('index');
+        Route::get('/conversations', [AdminChatController::class, 'getConversations'])->name('conversations');
+        Route::post('/conversations/{conversation}/take', [AdminChatController::class, 'takeConversation'])->name('take');
+        Route::post('/send', [AdminChatController::class, 'sendMessage'])->name('send');
+        Route::get('/conversations/{conversation}/messages', [AdminChatController::class, 'getMessages'])->name('messages');
+        Route::post('/conversations/{conversation}/close', [AdminChatController::class, 'closeConversation'])->name('close');
+        Route::delete('/conversations/{conversation}', [AdminChatController::class, 'deleteConversation'])->name('delete');
+        Route::post('/conversations/{conversation}/transfer', [AdminChatController::class, 'transferConversation'])->name('transfer');
+        Route::get('/stats', [AdminChatController::class, 'getStats'])->name('stats');
+    });
+
     // Test Email Route (only in non-production)
     Route::get('/test-email', [TestEmailController::class, 'testStudentEmail'])->name('test.email');
 
@@ -246,6 +261,13 @@ Route::get('/', [LandingController::class, 'index'])->name('landing.index');
 Route::get('/about', [AboutController::class, 'index'])->name('about.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'create'])->name('contact.create');
+
+// Chat routes (public)
+Route::post('/chat/init', [ChatController::class, 'initChat'])->name('chat.init');
+Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+Route::get('/chat/{conversation}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+Route::post('/chat/{conversation}/close', [ChatController::class, 'closeConversation'])->name('chat.close');
+Route::get('/chat/{conversation}/status', [ChatController::class, 'checkStatus'])->name('chat.status');
 Route::get('/signupkid', [SignUpKidController::class, 'index'])->name('signupkid.index');
 Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
 Route::get('/programs/{program:slug}', [ProgramController::class, 'show'])->name('programs.show');

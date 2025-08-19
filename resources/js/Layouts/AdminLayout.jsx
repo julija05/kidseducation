@@ -1,6 +1,7 @@
 import { Link, usePage, router } from "@inertiajs/react";
 import FlashMessage from "@/Components/FlashMessage";
 import Notifications from "@/Components/Admin/Notifications";
+import ChatNotifications from "@/Components/Admin/ChatNotifications";
 
 export default function AdminLayout({ children }) {
     const { auth, notifications } = usePage().props;
@@ -76,6 +77,14 @@ export default function AdminLayout({ children }) {
                             Class Schedules
                         </Link>
                     </li>
+                    <li className="mb-4">
+                        <Link
+                            href={route("admin.chat.index")}
+                            className="hover:text-gray-300 transition-colors"
+                        >
+                            Live Chat Support
+                        </Link>
+                    </li>
                 </ul>
             </aside>
 
@@ -88,6 +97,7 @@ export default function AdminLayout({ children }) {
                         <span className="font-semibold">{auth.user.name}</span>
                     </div>
                     <div className="flex items-center gap-4">
+                        <ChatNotifications />
                         <Notifications
                             notifications={notifications?.recent || []}
                             unreadCount={notifications?.unread_count || 0}
