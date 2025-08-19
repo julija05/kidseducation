@@ -137,6 +137,7 @@ export default function About({ auth }) {
                                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-full text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 inline-flex items-center space-x-2"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
+                                onClick={() => window.location.href = route('programs.index')}
                             >
                                 <span>{t('about.start_journey')}</span>
                                 <ChevronRight size={20} />
@@ -437,6 +438,7 @@ export default function About({ auth }) {
                                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-full text-lg shadow-xl hover:shadow-2xl transition-all duration-300 inline-flex items-center space-x-2"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
+                                onClick={() => window.location.href = route('contact.index')}
                             >
                                 <span>{t('about.contact_team')}</span>
                                 <ChevronRight size={20} />
@@ -479,6 +481,7 @@ export default function About({ auth }) {
                                 className="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 inline-flex items-center space-x-2"
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
+                                onClick={() => window.location.href = route('programs.index')}
                             >
                                 <Sparkles size={20} />
                                 <span>{t('about.explore_programs')}</span>
@@ -487,9 +490,10 @@ export default function About({ auth }) {
                                 className="border-2 border-white text-white hover:bg-white hover:text-purple-600 font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 inline-flex items-center space-x-2"
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
+                                onClick={() => window.location.href = route('demo.access', { program: 'mental-arithmetic-mastery' })}
                             >
                                 <PlayCircle size={20} />
-                                <span>{t('about.book_demo')}</span>
+                                <span>{t('about.try_demo')}</span>
                             </motion.button>
                         </motion.div>
 
