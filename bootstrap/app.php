@@ -23,6 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\EnsureDemoAccess::class,
             \App\Http\Middleware\CacheHeaders::class,
         ]);
+        
+        // Exclude chat routes from CSRF verification (for guest users and admin)
+        $middleware->validateCsrfTokens(except: [
+            'chat/*',
+            'admin/chat/*',
+        ]);
+        
         $middleware->alias([
             'auth' => \App\Http\Middleware\HandleAuthentication::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

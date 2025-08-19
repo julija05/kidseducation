@@ -271,4 +271,45 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query->whereNotNull('demo_created_at')
                     ->where('demo_expires_at', '<', now());
     }
+
+    /**
+     * Chat conversations where user is the initiator
+     */
+    public function chatConversations(): HasMany
+    {
+        return $this->hasMany(ChatConversation::class);
+    }
+
+    /**
+     * Chat conversations where user is the admin handler
+     */
+    public function adminChatConversations(): HasMany
+    {
+        return $this->hasMany(ChatConversation::class, 'admin_id');
+    }
+
+    /**
+     * Chat messages sent by this user
+     */
+    public function chatMessages(): HasMany
+    {
+        return $this->hasMany(\App\Models\ChatMessage::class, 'sender_id');
+    }
+
+    /**
+     * Get unread chat messages count for admin
+     */
+    public function getUnreadChatMessagesCount(): int
+    {
+        if (!$this->isAdmin()) {
+            return 0;
+        }
+
+        return \App\Models\ChatMessage::whereHas('conversation', function ($query) {
+            $query->where('admin_id', $this->id);
+        })
+        ->where('sender_type', '!=', 'admin')
+        ->where('is_read', false)
+        ->count();
+    }
 }
