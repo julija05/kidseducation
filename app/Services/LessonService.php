@@ -128,7 +128,7 @@ class LessonService
     /**
      * Complete a lesson for a user
      */
-    public function completeLessonForUser(Lesson $lesson, User $user, float $score = null): LessonProgress
+    public function completeLessonForUser(Lesson $lesson, User $user, ?float $score = null): LessonProgress
     {
         $progress = LessonProgress::firstOrCreate(
             [
@@ -158,7 +158,7 @@ class LessonService
     /**
      * Update lesson progress for a user
      */
-    public function updateLessonProgress(Lesson $lesson, User $user, int $percentage, array $sessionData = null): LessonProgress
+    public function updateLessonProgress(Lesson $lesson, User $user, int $percentage, ?array $sessionData = null): LessonProgress
     {
         $progress = LessonProgress::where('user_id', $user->id)
             ->where('lesson_id', $lesson->id)
@@ -168,7 +168,7 @@ class LessonService
 
         if ($sessionData) {
             $progress->update([
-                'session_data' => array_merge($progress->session_data ?? [], $sessionData)
+                'session_data' => array_merge($progress->session_data ?? [], $sessionData),
             ]);
         }
 
@@ -186,7 +186,7 @@ class LessonService
             ->get();
 
         foreach ($levelLessons as $levelLesson) {
-            if (!$levelLesson->hasUserCompleted($user)) {
+            if (! $levelLesson->hasUserCompleted($user)) {
                 return false;
             }
         }
@@ -227,7 +227,7 @@ class LessonService
             ->where('approval_status', 'approved')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return false;
         }
 

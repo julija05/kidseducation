@@ -15,6 +15,7 @@ class ChatController extends Controller
     public function __construct(
         private ChatEmergencyAlertService $emergencyAlertService
     ) {}
+
     /**
      * Initialize or get existing chat conversation
      */
@@ -27,7 +28,7 @@ class ChatController extends Controller
             'content_type' => $request->header('Content-Type'),
             'accept' => $request->header('Accept'),
         ]);
-        
+
         try {
             $sessionId = $request->session()->getId();
             $user = Auth::user();
@@ -35,14 +36,15 @@ class ChatController extends Controller
             Log::info('Chat init attempt', [
                 'session_id' => $sessionId,
                 'user_id' => $user?->id,
-                'user_authenticated' => $user !== null
+                'user_authenticated' => $user !== null,
             ]);
-            
+
             if (empty($sessionId)) {
                 Log::error('Empty session ID in chat init');
+
                 return response()->json([
                     'error' => 'Session not available',
-                    'message' => 'Please refresh the page and try again'
+                    'message' => 'Please refresh the page and try again',
                 ], 400);
             }
 
@@ -63,9 +65,9 @@ class ChatController extends Controller
                 if ($conversation && $conversation->status === 'closed') {
                     Log::info('Found closed conversation for guest, resetting for new conversation', [
                         'conversation_id' => $conversation->id,
-                        'session_id' => $sessionId
+                        'session_id' => $sessionId,
                     ]);
-                    
+
                     // Reset the closed conversation for reuse
                     $conversation->update([
                         'status' => 'draft',
@@ -73,16 +75,16 @@ class ChatController extends Controller
                         'visitor_name' => null,
                         'visitor_email' => null,
                         'initial_message' => null,
-                        'last_activity_at' => now()
+                        'last_activity_at' => now(),
                     ]);
-                    
+
                     // Delete old messages to start fresh
                     $conversation->messages()->delete();
                 }
             }
 
             // Create new conversation if none exists
-            if (!$conversation) {
+            if (! $conversation) {
                 $conversation = ChatConversation::create([
                     'session_id' => $sessionId,
                     'user_id' => $user?->id,
@@ -92,7 +94,7 @@ class ChatController extends Controller
 
                 Log::info('Created new conversation', [
                     'conversation_id' => $conversation->id,
-                    'session_id' => $sessionId
+                    'session_id' => $sessionId,
                 ]);
             }
 
@@ -104,18 +106,18 @@ class ChatController extends Controller
                 'messages' => $messages,
             ]);
         } catch (\Exception $e) {
-            Log::error('Chat init error: ' . $e->getMessage(), [
+            Log::error('Chat init error: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->all(),
                 'session_id' => $request->session()->getId(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json([
                 'error' => 'Failed to initialize chat',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -131,7 +133,7 @@ class ChatController extends Controller
         $user = Auth::user();
 
         // Update conversation with visitor info if provided
-        if (!$user && $request->filled('visitor_name')) {
+        if (! $user && $request->filled('visitor_name')) {
             $conversation->update([
                 'visitor_name' => $validated['visitor_name'],
                 'visitor_email' => $validated['visitor_email'] ?? null,
@@ -140,7 +142,7 @@ class ChatController extends Controller
         }
 
         // Check if this will be the first message from a guest user
-        $isFirstGuestMessage = !$user && $conversation->messages()->whereIn('sender_type', ['guest', 'user'])->count() === 0;
+        $isFirstGuestMessage = ! $user && $conversation->messages()->whereIn('sender_type', ['guest', 'user'])->count() === 0;
 
         // Create the message
         $message = ChatMessage::create([
@@ -178,7 +180,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        if (!$user && $conversation->session_id !== $request->session()->getId()) {
+        if (! $user && $conversation->session_id !== $request->session()->getId()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -206,7 +208,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        if (!$user && $conversation->session_id !== $request->session()->getId()) {
+        if (! $user && $conversation->session_id !== $request->session()->getId()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -228,7 +230,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        if (!$user && $conversation->session_id !== $request->session()->getId()) {
+        if (! $user && $conversation->session_id !== $request->session()->getId()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -246,15 +248,14 @@ class ChatController extends Controller
     {
         // Change conversation status from 'draft' to 'waiting' to trigger admin notifications
         $conversation->update(['status' => 'waiting']);
-        
+
         Log::info('Chat conversation activated', [
             'conversation_id' => $conversation->id,
             'message_id' => $message->id,
             'visitor_name' => $conversation->visitor_name,
-            'status_changed' => 'draft -> waiting'
+            'status_changed' => 'draft -> waiting',
         ]);
-        
+
         $this->emergencyAlertService->sendAlert($conversation, $message);
     }
-
 }

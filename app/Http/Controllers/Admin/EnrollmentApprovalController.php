@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EnrollmentApprovedMail;
 use App\Models\Enrollment;
 use App\Models\User;
-use App\Mail\EnrollmentApprovedMail;
-use App\Mail\EnrollmentRejectedMail;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Inertia\Inertia;
 
 class EnrollmentApprovalController extends Controller
 {
@@ -26,11 +24,11 @@ class EnrollmentApprovalController extends Controller
 
         // Check if we need to highlight a specific user
         $highlightUserId = $request->get('highlight_user');
-        
+
         if ($highlightUserId) {
             // Order by highlighted user first, then by creation date
-            $query->orderByRaw("CASE WHEN user_id = ? THEN 0 ELSE 1 END", [$highlightUserId])
-                  ->orderBy('created_at', 'asc');
+            $query->orderByRaw('CASE WHEN user_id = ? THEN 0 ELSE 1 END', [$highlightUserId])
+                ->orderBy('created_at', 'asc');
         } else {
             $query->orderBy('created_at', 'asc');
         }
@@ -39,7 +37,7 @@ class EnrollmentApprovalController extends Controller
 
         return $this->createView('Admin/Enrollments/Pending', [
             'enrollments' => $pendingEnrollments->toArray(),
-            'highlight_user_id' => $highlightUserId
+            'highlight_user_id' => $highlightUserId,
         ]);
     }
 
@@ -73,7 +71,7 @@ class EnrollmentApprovalController extends Controller
         return $this->createView('Admin/Enrollments/Index', [
             'enrollments' => $enrollments,
             'currentStatus' => $request->status ?? 'all',
-            'searchTerm' => $request->search ?? ''
+            'searchTerm' => $request->search ?? '',
         ]);
     }
 
@@ -93,11 +91,11 @@ class EnrollmentApprovalController extends Controller
                 'approval_status' => 'approved',
                 'status' => 'active',
                 'approved_at' => now(),
-                'approved_by' => auth()->id()
+                'approved_by' => auth()->id(),
             ]);
 
             // Create notification
-            $notificationService = new NotificationService();
+            $notificationService = new NotificationService;
             $notificationService->createEnrollmentNotification($enrollment, 'approved');
 
             // Send approval email to student (if mail class exists)
@@ -114,8 +112,9 @@ class EnrollmentApprovalController extends Controller
 
             return redirect()->back()->with('success', 'Enrollment approved successfully! The student has been notified.');
         } catch (\Exception $e) {
-            Log::error('Error approving enrollment: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Error approving enrollment: ' . $e->getMessage());
+            Log::error('Error approving enrollment: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Error approving enrollment: '.$e->getMessage());
         }
     }
 
@@ -131,7 +130,7 @@ class EnrollmentApprovalController extends Controller
 
         // Validate the rejection reason
         $request->validate([
-            'rejection_reason' => 'nullable|string|max:500'
+            'rejection_reason' => 'nullable|string|max:500',
         ]);
 
         DB::beginTransaction();
@@ -142,10 +141,10 @@ class EnrollmentApprovalController extends Controller
                 'status' => 'cancelled',
                 'rejection_reason' => $request->rejection_reason,
                 'rejected_at' => now(),
-                'rejected_by' => auth()->id()
+                'rejected_by' => auth()->id(),
             ]);
 
-            if (!$updated) {
+            if (! $updated) {
                 throw new \Exception('Failed to update enrollment');
             }
 
@@ -159,7 +158,7 @@ class EnrollmentApprovalController extends Controller
             DB::commit();
 
             // Create notification
-            $notificationService = new NotificationService();
+            $notificationService = new NotificationService;
             $notificationService->createEnrollmentNotification($enrollment, 'rejected');
 
             // Send rejection email to student (if needed)
@@ -171,9 +170,70 @@ class EnrollmentApprovalController extends Controller
             Log::error('Error rejecting enrollment:', [
                 'enrollment_id' => $enrollment->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            return redirect()->back()->with('error', 'Error rejecting enrollment: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Error rejecting enrollment: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Block user access to learning dashboard
+     */
+    public function blockAccess(Request $request, Enrollment $enrollment)
+    {
+        // Only allow blocking approved enrollments
+        if ($enrollment->approval_status !== 'approved') {
+            return redirect()->back()->with('error', 'Can only block access for approved enrollments.');
+        }
+
+        // Validate the block reason
+        $request->validate([
+            'block_reason' => 'required|string|max:500',
+        ]);
+
+        try {
+            $enrollment->update([
+                'access_blocked' => true,
+                'block_reason' => $request->block_reason,
+                'blocked_at' => now(),
+                'blocked_by' => auth()->id(),
+            ]);
+
+            // Create notification
+            $notificationService = new NotificationService;
+            $notificationService->createEnrollmentNotification($enrollment, 'blocked');
+
+            return redirect()->back()->with('success', 'User access blocked successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error blocking access: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Error blocking access: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Unblock user access to learning dashboard
+     */
+    public function unblockAccess(Enrollment $enrollment)
+    {
+        try {
+            $enrollment->update([
+                'access_blocked' => false,
+                'block_reason' => null,
+                'blocked_at' => null,
+                'blocked_by' => null,
+            ]);
+
+            // Create notification
+            $notificationService = new NotificationService;
+            $notificationService->createEnrollmentNotification($enrollment, 'unblocked');
+
+            return redirect()->back()->with('success', 'User access restored successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error unblocking access: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Error unblocking access: '.$e->getMessage());
         }
     }
 }

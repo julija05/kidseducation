@@ -3,13 +3,15 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ImageService
 {
     private string $disk;
+
     private string $directory;
+
     private array $config;
 
     public function __construct(string $type = 'programs')
@@ -25,6 +27,7 @@ class ImageService
     public function store(UploadedFile $file): string
     {
         $this->validateFile($file);
+
         return $file->store($this->directory, $this->disk);
     }
 
@@ -33,7 +36,7 @@ class ImageService
      */
     public function delete(?string $imagePath): bool
     {
-        if (!$imagePath || !Storage::disk($this->disk)->exists($imagePath)) {
+        if (! $imagePath || ! Storage::disk($this->disk)->exists($imagePath)) {
             return false;
         }
 
@@ -57,13 +60,13 @@ class ImageService
      */
     public function getUrl(?string $imagePath): ?string
     {
-        if (!$imagePath) {
+        if (! $imagePath) {
             return null;
         }
 
         try {
             // Check if file exists
-            if (!Storage::disk($this->disk)->exists($imagePath)) {
+            if (! Storage::disk($this->disk)->exists($imagePath)) {
                 return $this->getDefaultImageUrl();
             }
 
@@ -72,8 +75,9 @@ class ImageService
         } catch (\Exception $e) {
             Log::warning("Failed to generate URL for image: {$imagePath}", [
                 'disk' => $this->disk,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return $this->getDefaultImageUrl();
         }
     }
@@ -97,7 +101,7 @@ class ImageService
 
             if ($fullUrl) {
                 // If disk has a configured URL, build it manually
-                return rtrim($fullUrl, '/') . '/' . ltrim($imagePath, '/');
+                return rtrim($fullUrl, '/').'/'.ltrim($imagePath, '/');
             }
 
             // Fallback: try the direct approach with error suppression
@@ -114,9 +118,9 @@ class ImageService
     private function getFallbackUrl(string $imagePath): string
     {
         return match ($this->disk) {
-            'public' => asset('storage/' . $imagePath),
+            'public' => asset('storage/'.$imagePath),
             'local' => asset($imagePath),
-            default => asset('storage/' . $imagePath),
+            default => asset('storage/'.$imagePath),
         };
     }
 
@@ -131,11 +135,11 @@ class ImageService
         $cloudUrl = config("filesystems.disks.{$this->disk}.url");
 
         if ($cloudUrl) {
-            return rtrim($cloudUrl, '/') . '/' . ltrim($imagePath, '/');
+            return rtrim($cloudUrl, '/').'/'.ltrim($imagePath, '/');
         }
 
         // Final fallback
-        return asset('storage/' . $imagePath);
+        return asset('storage/'.$imagePath);
     }
 
     /**
@@ -145,7 +149,7 @@ class ImageService
     {
         $defaultImagePath = $this->getDefaultImagePath();
 
-        if (!$defaultImagePath) {
+        if (! $defaultImagePath) {
             return null;
         }
 
@@ -154,7 +158,7 @@ class ImageService
                 return Storage::url($defaultImagePath);
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to generate default image URL", ['error' => $e->getMessage()]);
+            Log::warning('Failed to generate default image URL', ['error' => $e->getMessage()]);
         }
 
         return null;
@@ -169,11 +173,11 @@ class ImageService
         $allowedTypes = $this->config['validation']['allowed_types'];
 
         if ($file->getSize() > $maxSize) {
-            throw new \InvalidArgumentException("File size exceeds maximum allowed size.");
+            throw new \InvalidArgumentException('File size exceeds maximum allowed size.');
         }
 
-        if (!in_array($file->getClientOriginalExtension(), $allowedTypes)) {
-            throw new \InvalidArgumentException("File type not allowed.");
+        if (! in_array($file->getClientOriginalExtension(), $allowedTypes)) {
+            throw new \InvalidArgumentException('File type not allowed.');
         }
     }
 
@@ -183,6 +187,7 @@ class ImageService
     public function getDefaultImagePath(): ?string
     {
         $type = array_search($this->directory, $this->config['directories']);
+
         return $this->config['defaults'][$type] ?? null;
     }
 }

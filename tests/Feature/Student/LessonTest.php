@@ -2,50 +2,53 @@
 
 namespace Tests\Feature\Student;
 
-use App\Models\User;
-use App\Models\Program;
-use App\Models\Lesson;
-use App\Models\LessonResource;
 use App\Models\Enrollment;
+use App\Models\Lesson;
 use App\Models\LessonProgress;
+use App\Models\LessonResource;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class LessonTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $student;
+
     private User $admin;
+
     private Program $program;
+
     private Lesson $lesson;
+
     private Enrollment $enrollment;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create roles safely
         $this->createRoles();
-        
+
         // Create test users
         $this->student = User::factory()->create();
         $this->student->assignRole('student');
-        
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
 
         // Create test data
         $this->program = Program::factory()->create();
         $this->lesson = Lesson::factory()->create(['program_id' => $this->program->id]);
-        
+
         $this->enrollment = Enrollment::factory()->create([
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'active',
-            'approval_status' => 'approved'
+            'approval_status' => 'approved',
         ]);
     }
 
@@ -55,10 +58,9 @@ class LessonTest extends TestCase
             ->get("/lessons/{$this->lesson->id}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Dashboard/Lessons/Show')
-                ->has('lesson')
-                ->where('lesson.id', $this->lesson->id)
+        $response->assertInertia(fn ($page) => $page->component('Dashboard/Lessons/Show')
+            ->has('lesson')
+            ->where('lesson.id', $this->lesson->id)
         );
     }
 
@@ -92,11 +94,11 @@ class LessonTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
-        
+
         $this->assertDatabaseHas('lesson_progress', [
             'user_id' => $this->student->id,
             'lesson_id' => $this->lesson->id,
-            'status' => 'in_progress'
+            'status' => 'in_progress',
         ]);
     }
 
@@ -106,7 +108,7 @@ class LessonTest extends TestCase
         LessonProgress::factory()->create([
             'user_id' => $this->student->id,
             'lesson_id' => $this->lesson->id,
-            'status' => 'in_progress'
+            'status' => 'in_progress',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -125,7 +127,7 @@ class LessonTest extends TestCase
         LessonProgress::factory()->create([
             'user_id' => $this->student->id,
             'lesson_id' => $this->lesson->id,
-            'status' => 'in_progress'
+            'status' => 'in_progress',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -134,18 +136,18 @@ class LessonTest extends TestCase
                 'Accept' => 'application/json',
             ])
             ->post("/lessons/{$this->lesson->id}/complete", [
-                'score' => 85
+                'score' => 85,
             ]);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
-        
+
         $this->assertDatabaseHas('lesson_progress', [
             'user_id' => $this->student->id,
             'lesson_id' => $this->lesson->id,
             'status' => 'completed',
             'score' => 85,
-            'progress_percentage' => 100
+            'progress_percentage' => 100,
         ]);
     }
 
@@ -155,16 +157,16 @@ class LessonTest extends TestCase
             'user_id' => $this->student->id,
             'lesson_id' => $this->lesson->id,
             'status' => 'in_progress',
-            'progress_percentage' => 25
+            'progress_percentage' => 25,
         ]);
 
         $response = $this->actingAs($this->student)
             ->patch("/lessons/{$this->lesson->id}/progress", [
-                'progress_percentage' => 75
+                'progress_percentage' => 75,
             ]);
 
         $response->assertStatus(200);
-        
+
         $progress->refresh();
         $this->assertEquals(75, $progress->progress_percentage);
     }
@@ -174,15 +176,14 @@ class LessonTest extends TestCase
         $resource = LessonResource::factory()->create([
             'lesson_id' => $this->lesson->id,
             'type' => 'video',
-            'title' => 'Test Video'
+            'title' => 'Test Video',
         ]);
 
         $response = $this->actingAs($this->student)
             ->get("/lessons/{$this->lesson->id}");
 
-        $response->assertInertia(fn ($page) => 
-            $page->has('lesson.resources', 1)
-                ->where('lesson.resources.0.title', 'Test Video')
+        $response->assertInertia(fn ($page) => $page->has('lesson.resources', 1)
+            ->where('lesson.resources.0.title', 'Test Video')
         );
     }
 
@@ -198,21 +199,21 @@ class LessonTest extends TestCase
             'file_path' => $testFilePath,
             'file_name' => 'test-download.pdf',
             'mime_type' => 'application/pdf',
-            'is_downloadable' => true
+            'is_downloadable' => true,
         ]);
 
         $response = $this->actingAs($this->student)
             ->get("/lesson-resources/{$resource->id}/download");
 
         $response->assertStatus(200);
-        
+
         // Clean up test file
         \Illuminate\Support\Facades\Storage::delete($testFilePath);
     }
 
     public function test_student_can_stream_lesson_resource(): void
     {
-        // Create a test file in storage  
+        // Create a test file in storage
         $testFilePath = 'lesson-resources/test-stream.mp4';
         \Illuminate\Support\Facades\Storage::put($testFilePath, 'Test video content for streaming');
 
@@ -221,14 +222,14 @@ class LessonTest extends TestCase
             'type' => 'video',
             'file_path' => $testFilePath,
             'file_name' => 'test-stream.mp4',
-            'mime_type' => 'video/mp4'
+            'mime_type' => 'video/mp4',
         ]);
 
         $response = $this->actingAs($this->student)
             ->get("/lesson-resources/{$resource->id}/stream");
 
         $response->assertStatus(200);
-        
+
         // Clean up test file
         \Illuminate\Support\Facades\Storage::delete($testFilePath);
     }
@@ -237,7 +238,7 @@ class LessonTest extends TestCase
     {
         $resource = LessonResource::factory()->create([
             'lesson_id' => $this->lesson->id,
-            'type' => 'video'
+            'type' => 'video',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -255,10 +256,10 @@ class LessonTest extends TestCase
     {
         $otherStudent = User::factory()->create();
         $otherStudent->assignRole('student');
-        
+
         $resource = LessonResource::factory()->create([
             'lesson_id' => $this->lesson->id,
-            'type' => 'document'
+            'type' => 'document',
         ]);
 
         $response = $this->actingAs($otherStudent)
@@ -285,7 +286,7 @@ class LessonTest extends TestCase
         LessonProgress::factory()->create([
             'user_id' => $this->student->id,
             'lesson_id' => $this->lesson->id,
-            'status' => 'in_progress'
+            'status' => 'in_progress',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -310,14 +311,14 @@ class LessonTest extends TestCase
             'type' => 'video',
             'file_path' => $testFilePath,
             'file_name' => 'test-video.mp4',
-            'mime_type' => 'video/mp4'
+            'mime_type' => 'video/mp4',
         ]);
 
         $response = $this->actingAs($this->student)
             ->get("/lesson-resources/{$resource->id}/preview");
 
         $response->assertStatus(200);
-        
+
         // Clean up test file
         \Illuminate\Support\Facades\Storage::delete($testFilePath);
     }
@@ -333,7 +334,7 @@ class LessonTest extends TestCase
             'type' => 'document',
             'file_path' => $testFilePath,
             'file_name' => 'test-document.pdf',
-            'mime_type' => 'application/pdf'
+            'mime_type' => 'application/pdf',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -341,7 +342,7 @@ class LessonTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
-        
+
         // Clean up test file
         \Illuminate\Support\Facades\Storage::delete($testFilePath);
     }

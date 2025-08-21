@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Tests\TestCase;
 
 class EmailVerificationFlowTest extends TestCase
@@ -52,7 +52,7 @@ class EmailVerificationFlowTest extends TestCase
         $response = $this->actingAs($user)->get('/verify-email');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn($page) => $page
+        $response->assertInertia(fn ($page) => $page
             ->component('Auth/VerifyEmail')
         );
     }
@@ -60,14 +60,14 @@ class EmailVerificationFlowTest extends TestCase
     public function test_resend_verification_email_works(): void
     {
         Notification::fake();
-        
+
         $user = User::factory()->unverified()->create();
 
         $response = $this->actingAs($user)->post('/email/verification-notification');
 
         $response->assertRedirect();
         $response->assertSessionHas('status', 'verification-link-sent');
-        
+
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 

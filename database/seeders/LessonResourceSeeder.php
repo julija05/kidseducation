@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Lesson;
 use App\Models\LessonResource;
+use Illuminate\Database\Seeder;
 
 class LessonResourceSeeder extends Seeder
 {
@@ -30,11 +29,11 @@ class LessonResourceSeeder extends Seeder
                 'description' => 'Watch this video to learn the concepts',
                 'title_translations' => [
                     'en' => 'Video Tutorial',
-                    'mk' => 'Видео урок'
+                    'mk' => 'Видео урок',
                 ],
                 'description_translations' => [
                     'en' => 'Watch this video to learn the concepts',
-                    'mk' => 'Погледнете го ова видео за да ги научите концептите'
+                    'mk' => 'Погледнете го ова видео за да ги научите концептите',
                 ],
                 'type' => 'video',
                 'resource_url' => 'https://www.youtube.com/watch?v=example',
@@ -46,11 +45,11 @@ class LessonResourceSeeder extends Seeder
                 'description' => 'Download and complete this worksheet',
                 'title_translations' => [
                     'en' => 'Practice Worksheet',
-                    'mk' => 'Работен лист за вежбање'
+                    'mk' => 'Работен лист за вежбање',
                 ],
                 'description_translations' => [
                     'en' => 'Download and complete this worksheet',
-                    'mk' => 'Преземете и пополнете го овој работен лист'
+                    'mk' => 'Преземете и пополнете го овој работен лист',
                 ],
                 'type' => 'document',
                 'file_name' => 'practice_worksheet.pdf',

@@ -82,7 +82,7 @@ return [
         // Programs section
         'transform_learning' => 'Transform Learning Into Adventure',
         'revolutionary_programs' => 'Our revolutionary programs combine ancient wisdom with cutting-edge technology to create an unparalleled learning experience for your child.',
-        
+
         // Math Mastery
         'math_mastery' => 'Math Mastery',
         'abacus_subtitle' => 'Abacus Mental Arithmetic',
@@ -140,14 +140,14 @@ return [
     'about' => [
         'title' => 'About Abacoding',
         'page_title' => 'About',
-        
+
         // Hero section
         'hero_badge' => 'Empowering Young Minds Since 2020',
         'hero_title_1' => 'Where Dreams',
         'hero_title_2' => 'Meet Discovery',
         'hero_subtitle' => 'We\'re not just an education platform – we\'re architects of curiosity, builders of confidence, and champions of every child\'s unlimited potential.',
         'hero_subtitle_accent' => 'Your child\'s future starts here.',
-        
+
         // Hero stats
         'happy_families' => 'Happy Families',
         'success_rate' => 'Success Rate',
@@ -155,22 +155,22 @@ return [
         'lessons_completed' => 'Lessons Completed',
         'start_journey' => 'Start Your Journey',
         'watch_story' => 'Watch Our Story',
-        
+
         // Mission & Values section
         'our_dna' => 'Our DNA',
         'dna_subtitle' => 'Built on values that transform learning into an adventure of discovery, creativity, and boundless growth.',
         'mission' => 'Our Mission',
         'vision' => 'Our Vision',
         'values' => 'Our Values',
-        
+
         // Mission content
         'mission_title' => 'Igniting Lifelong Learning',
         'mission_description' => 'We believe every child is a natural genius waiting to be discovered. Our mission is to create an environment where curiosity thrives, confidence builds, and learning becomes the greatest adventure of all. Through innovative programs that blend ancient wisdom with modern technology, we unlock each child\'s unique potential and prepare them for a future without limits.',
-        
+
         // Vision content
         'vision_title' => 'A World of Brilliant Minds',
         'vision_description' => 'We envision a world where every child has access to transformative education that celebrates their individuality while building essential skills for tomorrow. A world where learning is joyful, meaningful, and deeply connected to real-life success. We\'re building the foundation for the next generation of innovators, creators, and leaders who will shape our future.',
-        
+
         // Values content
         'values_title' => 'What Drives Us Forward',
         'innovation' => 'Innovation',
@@ -185,7 +185,7 @@ return [
         'compassion_desc' => 'Leading with empathy, understanding, and kindness',
         'empowerment' => 'Empowerment',
         'empowerment_desc' => 'Building confidence that lasts a lifetime',
-        
+
         // Impact section
         'creating_impact' => 'Creating Real Impact',
         'impact_subtitle' => 'Every day, we witness the transformation of young minds into confident, creative, and capable individuals ready to change the world.',
@@ -198,7 +198,7 @@ return [
         'global_community' => 'Global Community',
         'global_desc' => 'Connecting families worldwide in a shared mission to nurture the next generation of leaders',
         'global_metric' => '15+ countries served',
-        
+
         // FAQ section
         'faq_title' => 'Questions? We\'ve Got Answers',
         'faq_subtitle' => 'Everything you need to know about our programs, approach, and community.',
@@ -216,7 +216,7 @@ return [
         'faq_6_a' => 'We understand modern families are busy! That\'s why we offer flexible scheduling options, including weekend and evening sessions. Our online components can be accessed anytime, and we provide makeup sessions for missed classes. We work with you to create a learning schedule that fits your family\'s lifestyle.',
         'still_questions' => 'Still have questions? We\'re here to help!',
         'contact_team' => 'Contact Our Team',
-        
+
         // CTA section
         'ready_journey' => 'Ready to Begin This Amazing Journey?',
         'cta_subtitle' => 'Join thousands of families who\'ve discovered the joy of learning with us. Your child\'s extraordinary future starts with a single step.',
@@ -232,14 +232,14 @@ return [
     'contact' => [
         'title' => 'Contact Us',
         'page_title' => 'Contact',
-        
+
         // Hero section
         'hero_badge' => 'We\'re Here to Help Your Family Succeed',
         'hero_title_1' => 'Let\'s Start This',
         'hero_title_2' => 'Amazing Journey',
         'hero_subtitle' => 'Have questions? Want to schedule a demo? Or ready to enroll? Our dedicated team is here to guide you every step of the way.',
         'hero_subtitle_accent' => 'Your child\'s future is our priority.',
-        
+
         // Quick contact options
         'quick_call' => 'Quick Call',
         'quick_call_desc' => 'Speak with our experts instantly',
@@ -253,7 +253,7 @@ return [
         'live_chat' => 'Live Chat',
         'live_chat_desc' => 'Get immediate answers',
         'live_chat_action' => 'Start Chat',
-        
+
         // Contact form
         'send_message_title' => 'Send Us a Message',
         'form_subtitle' => 'Fill out the form below and we\'ll get back to you within 24 hours with personalized guidance for your child\'s learning journey.',
@@ -265,7 +265,7 @@ return [
         'message_placeholder' => 'Tell us about your child\'s age, interests, and what you\'d like to know about our programs...',
         'required_field' => '*',
         'send_message' => 'Send Message',
-        
+
         // Contact info section
         'get_in_touch' => 'Get in Touch',
         'contact_subtitle' => 'We\'re here to answer your questions, schedule demos, and help you choose the perfect program for your child.',
@@ -278,11 +278,11 @@ return [
         'response_time' => 'Response Time',
         'response_info' => 'Within 24 Hours',
         'response_desc' => 'We prioritize every inquiry',
-        
+
         // Social media
         'follow_journey' => 'Follow Our Journey',
         'social_subtitle' => 'Join our community and see amazing student achievements!',
-        
+
         // Why choose section
         'why_choose_title' => 'Why Families Choose to Connect With Us',
         'why_choose_subtitle' => 'We\'re not just an education provider – we\'re your partners in your child\'s success story.',
@@ -296,7 +296,7 @@ return [
         'quick_response_desc' => 'Fast, helpful answers to all questions',
         'ready_question' => 'Ready to give your child the gift of extraordinary learning?',
         'start_conversation' => 'Start the Conversation',
-        
+
         // Form messages
         'message_sent_success' => 'Message sent successfully!',
         'form_error' => 'Something went wrong. Please try again later.',
@@ -341,6 +341,7 @@ return [
         'track_progress_desc' => 'Monitor learning achievements and milestones',
         'earn_rewards' => 'Earn Rewards',
         'earn_rewards_desc' => 'Get recognition for completing challenges',
+        'per_month' => 'per month',
     ],
 
     // Demo translations
@@ -479,7 +480,7 @@ return [
         'more_achievements' => 'more achievements',
         'no_achievements_yet' => 'No achievements yet',
         'keep_learning' => 'Keep learning to unlock them!',
-        
+
         // Next Class Card
         'next_class' => 'Next Class',
         'stay_connected' => 'Stay connected with your learning journey',
@@ -501,13 +502,13 @@ return [
         'ready_to_join' => 'Ready to Join!',
         'click_to_join' => 'Click the button below to join your class',
         'join_meeting' => 'Join Meeting',
-        
+
         // Notifications
         'notifications' => 'Notifications',
         'unread' => 'unread',
         'no_notifications' => 'No notifications yet',
         'welcome_back' => 'Welcome back',
-        
+
         // General dashboard
         'learning_adventure_subtitle' => 'Your Learning Adventure Dashboard',
         'welcome_to_program' => 'Welcome to',
@@ -549,7 +550,7 @@ return [
         'required' => 'Required',
         'coming_soon' => 'Coming Soon',
         'resources_being_prepared' => 'Resources are being prepared for this lesson',
-        
+
         // Program selection
         'available_programs' => 'Available Programs',
         'pick_adventure' => 'Pick your learning adventure',
@@ -560,7 +561,7 @@ return [
         'rejected' => 'Application Rejected',
         'approved' => 'Approved',
         'enrollment_pending_other' => 'Another enrollment pending',
-        
+
         // Abacus Simulator
         'abacus' => 'Abacus',
         'open_abacus_simulator' => 'Open Abacus Simulator',
@@ -664,7 +665,7 @@ return [
         'learning_hero' => 'Learning Hero',
         'hey_greeting' => 'Hey, :name! 👋',
         'level_text' => 'Level :level :title',
-        
+
         // Avatar types
         'avatars' => [
             'superhero' => 'Superhero',
@@ -676,7 +677,7 @@ return [
             'star_student' => 'Star Student',
             'goal_crusher' => 'Goal Crusher',
         ],
-        
+
         // Stats
         'stats' => [
             'learning_streak' => 'Learning Streak',
@@ -686,7 +687,7 @@ return [
             'math_hero' => 'Math Hero',
             'days' => 'days',
         ],
-        
+
         // Badges
         'badges' => [
             'student' => 'Student',
@@ -694,7 +695,7 @@ return [
             'verified' => 'Verified',
             'verify_email' => 'Verify Email',
         ],
-        
+
         // Navigation sections
         'navigation' => [
             'overview' => 'Profile Overview',
@@ -702,7 +703,7 @@ return [
             'achievements' => 'Achievements',
             'security' => 'Security',
         ],
-        
+
         // Achievements
         'achievements_list' => [
             'first_steps' => [
@@ -710,7 +711,7 @@ return [
                 'description' => 'Completed your first lesson!',
             ],
             'speed_demon' => [
-                'name' => 'Speed Demon', 
+                'name' => 'Speed Demon',
                 'description' => 'Solved 10 problems in under 5 minutes',
             ],
             'streak_master' => [
@@ -730,13 +731,13 @@ return [
                 'description' => 'Earn 2000 points',
             ],
         ],
-        
+
         // Section titles
         'choose_avatar' => 'Choose Your Avatar',
         'your_achievements' => 'Your Achievements',
         'profile_settings' => 'Profile Settings',
         'security_settings' => 'Security Settings',
-        
+
         // Settings descriptions
         'profile_info_desc' => 'Update your personal information and account details',
         'language_pref_desc' => 'Choose your preferred language for the interface',
@@ -753,7 +754,7 @@ return [
         'card_password_desc' => 'Update your password and security settings',
         'card_danger_title' => 'Danger Zone',
         'card_danger_desc' => 'Irreversible account actions',
-        
+
         // Avatar
         'choose_your_avatar' => 'Choose Your Avatar',
         'select_avatar_that_represents' => 'Select an avatar that represents you best',
@@ -771,7 +772,7 @@ return [
             'winner' => 'Winner',
             'problem_solver' => 'Problem Solver',
         ],
-        
+
         // Form titles
         'profile_information' => 'Profile Information',
         'profile_information_description' => 'Update your profile information and email address.',
@@ -846,7 +847,7 @@ return [
         'company_description' => 'Empowering young minds through innovative math and coding education. Where learning meets adventure and every child becomes a digital creator.',
         'company_tagline' => 'Transforming young minds through innovative learning',
         'mission_statement' => 'To empower young minds with essential skills for the digital future while fostering a love for lifelong learning.',
-        
+
         // Company section
         'company' => 'Company',
         'about_us' => 'About Us',
@@ -854,7 +855,7 @@ return [
         'careers' => 'Careers',
         'press' => 'Press',
         'blog' => 'Blog',
-        
+
         // Programs section
         'programs' => 'Programs',
         'mental_arithmetic' => 'Mental Arithmetic',
@@ -862,7 +863,7 @@ return [
         'all_programs' => 'All Programs',
         'program_pricing' => 'Pricing',
         'free_trial' => 'Free Trial',
-        
+
         // Support section
         'support' => 'Support',
         'help_center' => 'Help Center',
@@ -870,14 +871,14 @@ return [
         'faq' => 'FAQ',
         'tutorials' => 'Tutorials',
         'system_status' => 'System Status',
-        
+
         // Legal section
         'legal' => 'Legal',
         'privacy_policy' => 'Privacy Policy',
         'terms_of_service' => 'Terms of Service',
         'cookies_policy' => 'Cookies Policy',
         'safety_guidelines' => 'Safety Guidelines',
-        
+
         // Contact info
         'contact_info' => 'Contact Information',
         'email' => 'Email',
@@ -888,7 +889,7 @@ return [
         'sat_sun' => 'Saturday - Sunday',
         'hours_weekday' => '9:00 AM - 6:00 PM EST',
         'hours_weekend' => '10:00 AM - 4:00 PM EST',
-        
+
         // Social media
         'follow_us' => 'Follow Us',
         'social_description' => 'Join our community and see amazing student achievements!',
@@ -897,7 +898,7 @@ return [
         'instagram' => 'Instagram',
         'youtube' => 'YouTube',
         'linkedin' => 'LinkedIn',
-        
+
         // Newsletter
         'newsletter_title' => 'Stay Updated',
         'newsletter_description' => 'Get the latest updates on new programs, learning tips, and special offers.',
@@ -907,19 +908,19 @@ return [
         'newsletter_success' => 'Thank you for subscribing!',
         'newsletter_error' => 'Something went wrong. Please try again.',
         'newsletter_privacy' => 'We respect your privacy. No spam, just valuable content.',
-        
+
         // Bottom section
         'copyright' => '© :year Abacoding. All rights reserved.',
         'built_with_love' => 'Built with ❤️ for young learners worldwide',
         'language_selector' => 'Language',
         'select_language' => 'Select Language',
-        
+
         // Awards & Recognition
         'awards_title' => 'Awards & Recognition',
         'award_education_excellence' => 'Education Excellence Award 2023',
         'award_innovation' => 'Innovation in EdTech 2023',
         'award_parent_choice' => 'Parent\'s Choice Gold Award',
-        
+
         // Security & Trust
         'security_title' => 'Security & Trust',
         'secure_platform' => 'Secure Learning Platform',

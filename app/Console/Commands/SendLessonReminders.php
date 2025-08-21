@@ -42,17 +42,17 @@ class SendLessonReminders extends Command
         foreach ($schedules as $schedule) {
             // Check if it needs a reminder (within 24 hours)
             $hoursUntilLesson = now()->diffInHours($schedule->scheduled_at, false);
-            
+
             if ($hoursUntilLesson <= 24 && $hoursUntilLesson > 0) {
                 $this->info("Sending reminder for: {$schedule->title} at {$schedule->getFormattedScheduledTime()}");
-                
+
                 SendLessonReminder::dispatch($schedule);
                 $remindersSent++;
             }
         }
 
         $this->info("Processed {$schedules->count()} lessons, dispatched {$remindersSent} reminder jobs.");
-        
+
         return 0;
     }
 }

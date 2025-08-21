@@ -62,7 +62,9 @@ export default function ProgramDetailsSection({ program }) {
                                     </div>
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-green-600">€{program.price}</div>
-                                        <div className="text-sm text-gray-500">{t('programs_page.total_price')}</div>
+                                        <div className="text-sm text-gray-500">
+                                            {program.requires_monthly_payment ? t('programs_page.per_month') : t('programs_page.total_price')}
+                                        </div>
                                     </div>
                                     <div className="text-center">
                                         <div className="text-2xl font-bold text-purple-600">24/7</div>

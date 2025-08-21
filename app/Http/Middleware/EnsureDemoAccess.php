@@ -18,12 +18,12 @@ class EnsureDemoAccess
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
         // Check if user has pending enrollment with demo access
-        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists() 
+        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists()
                                         && $user->demo_program_slug;
 
         // If user has active demo access OR pending enrollment demo access
@@ -39,7 +39,7 @@ class EnsureDemoAccess
                 if ($lesson && $user->canAccessLessonInDemo($lesson)) {
                     return $next($request);
                 }
-                
+
                 // Redirect to demo dashboard if trying to access other lessons
                 return redirect()->route('demo.dashboard', $user->demo_program_slug)
                     ->with('error', 'Demo access is limited to the first lesson only.');
@@ -51,7 +51,7 @@ class EnsureDemoAccess
                 if ($lessonResource && $user->canAccessLessonInDemo($lessonResource->lesson)) {
                     return $next($request);
                 }
-                
+
                 // Block access to other lesson resources
                 return redirect()->route('demo.dashboard', $user->demo_program_slug)
                     ->with('error', 'Demo access is limited to the first lesson resources only.');
@@ -84,17 +84,17 @@ class EnsureDemoAccess
         }
 
         // If user has expired demo access and no pending enrollment, show expired page
-        if ($user->isDemoExpired() && $request->routeIs('demo.*') && !$hasPendingEnrollmentDemoAccess) {
+        if ($user->isDemoExpired() && $request->routeIs('demo.*') && ! $hasPendingEnrollmentDemoAccess) {
             return redirect()->route('demo.expired');
         }
 
         // If user doesn't have demo access and trying to access demo routes
-        if (!$user->hasDemoAccess() && !$user->isDemoExpired() && !$hasPendingEnrollmentDemoAccess && $request->routeIs('demo.*')) {
+        if (! $user->hasDemoAccess() && ! $user->isDemoExpired() && ! $hasPendingEnrollmentDemoAccess && $request->routeIs('demo.*')) {
             // Allow access to demo access route (to start demo)
             if ($request->routeIs('demo.access')) {
                 return $next($request);
             }
-            
+
             return redirect()->route('dashboard');
         }
 

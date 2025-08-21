@@ -4,16 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassSchedule;
-use App\Models\User;
-use App\Models\Program;
-use App\Models\Lesson;
 use App\Models\Enrollment;
+use App\Models\Lesson;
+use App\Models\Program;
+use App\Models\User;
 use App\Services\NotificationService;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class AdminClassScheduleController extends Controller
 {
@@ -60,18 +59,18 @@ class AdminClassScheduleController extends Controller
         }
 
         // Search by student name (individual or group classes)
-        if ($request->has('search') && !empty($request->search)) {
+        if ($request->has('search') && ! empty($request->search)) {
             $query->where(function ($q) use ($request) {
                 // Search in individual student
                 $q->whereHas('student', function ($subQ) use ($request) {
-                    $subQ->where('name', 'like', '%' . $request->search . '%')
-                         ->orWhere('email', 'like', '%' . $request->search . '%');
+                    $subQ->where('name', 'like', '%'.$request->search.'%')
+                        ->orWhere('email', 'like', '%'.$request->search.'%');
                 })
                 // Search in group students
-                ->orWhereHas('students', function ($subQ) use ($request) {
-                    $subQ->where('name', 'like', '%' . $request->search . '%')
-                         ->orWhere('email', 'like', '%' . $request->search . '%');
-                });
+                    ->orWhereHas('students', function ($subQ) use ($request) {
+                        $subQ->where('name', 'like', '%'.$request->search.'%')
+                            ->orWhere('email', 'like', '%'.$request->search.'%');
+                    });
             });
         }
 
@@ -114,11 +113,11 @@ class AdminClassScheduleController extends Controller
         $students = User::role('student')
             ->whereHas('enrollments', function ($query) {
                 $query->where('approval_status', 'approved')
-                      ->where('status', 'active');
+                    ->where('status', 'active');
             })
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
-            
+
         $admins = User::role('admin')->orderBy('name')->get(['id', 'name']);
         $programs = Program::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
@@ -138,8 +137,8 @@ class AdminClassScheduleController extends Controller
             $studentsByProgram = User::role('student')
                 ->whereHas('enrollments', function ($query) use ($request) {
                     $query->where('program_id', $request->program_id)
-                          ->where('approval_status', 'approved')
-                          ->where('status', 'active');
+                        ->where('approval_status', 'approved')
+                        ->where('status', 'active');
                 })
                 ->orderBy('name')
                 ->get(['id', 'name', 'email']);
@@ -187,13 +186,14 @@ class AdminClassScheduleController extends Controller
         }
 
         // Determine if it's a group class
-        $isGroupClass = $request->boolean('is_group_class') || !empty($validated['student_ids']);
+        $isGroupClass = $request->boolean('is_group_class') || ! empty($validated['student_ids']);
         $studentIds = $isGroupClass ? ($validated['student_ids'] ?? []) : (isset($validated['student_id']) ? [$validated['student_id']] : []);
-        
+
         // Validate student selection
         $studentIds = array_filter($studentIds); // Remove null values
         if (empty($studentIds)) {
             $errorField = $isGroupClass ? 'student_ids' : 'student_id';
+
             return back()->withErrors([$errorField => 'At least one student must be selected.']);
         }
 
@@ -205,7 +205,7 @@ class AdminClassScheduleController extends Controller
         $validated['max_students'] = $isGroupClass ? min(count($studentIds), $validated['max_students'] ?? 5) : 1;
 
         // Validate that students are enrolled in the program if program is selected
-        if (!empty($validated['program_id'])) {
+        if (! empty($validated['program_id'])) {
             foreach ($studentIds as $studentId) {
                 $enrollment = Enrollment::where('user_id', $studentId)
                     ->where('program_id', $validated['program_id'])
@@ -213,8 +213,9 @@ class AdminClassScheduleController extends Controller
                     ->where('status', 'active')
                     ->first();
 
-                if (!$enrollment) {
+                if (! $enrollment) {
                     $student = User::find($studentId);
+
                     return back()->withErrors(['program_id' => "Student {$student->name} is not enrolled in the selected program."]);
                 }
             }
@@ -225,6 +226,7 @@ class AdminClassScheduleController extends Controller
         if (ClassSchedule::hasConflict($validated['admin_id'], $scheduledAt, $validated['duration_minutes'])) {
             $conflicts = ClassSchedule::getConflicts($validated['admin_id'], $scheduledAt, $validated['duration_minutes']);
             $conflictTitles = $conflicts->pluck('title')->implode(', ');
+
             return back()->withErrors(['scheduled_at' => "The selected time conflicts with: {$conflictTitles}"]);
         }
 
@@ -232,7 +234,7 @@ class AdminClassScheduleController extends Controller
             DB::beginTransaction();
 
             // Set student_id for individual classes
-            if (!$isGroupClass) {
+            if (! $isGroupClass) {
                 $validated['student_id'] = $studentIds[0];
             } else {
                 $validated['student_id'] = null; // Group classes don't use student_id
@@ -253,7 +255,7 @@ class AdminClassScheduleController extends Controller
                     $scheduleForNotification = clone $schedule;
                     $scheduleForNotification->student_id = $studentId;
                     $scheduleForNotification->student = $student;
-                    
+
                     $this->notificationService->createScheduleNotification($scheduleForNotification, 'scheduled');
                 }
             }
@@ -264,7 +266,7 @@ class AdminClassScheduleController extends Controller
             DB::commit();
 
             $studentCount = count($studentIds);
-            $message = $isGroupClass 
+            $message = $isGroupClass
                 ? "Group class scheduled successfully! {$studentCount} students have been notified."
                 : 'Class scheduled successfully! Student has been notified.';
 
@@ -276,9 +278,10 @@ class AdminClassScheduleController extends Controller
             \Log::error('Failed to create class schedule', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
             ]);
-            return back()->withErrors(['error' => 'Failed to create schedule: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to create schedule: '.$e->getMessage()]);
         }
     }
 
@@ -308,7 +311,7 @@ class AdminClassScheduleController extends Controller
         $students = User::role('student')
             ->whereHas('enrollments', function ($query) {
                 $query->where('approval_status', 'approved')
-                      ->where('status', 'active');
+                    ->where('status', 'active');
             })
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
@@ -364,6 +367,7 @@ class AdminClassScheduleController extends Controller
         if (ClassSchedule::hasConflict($validated['admin_id'], $scheduledAt, $validated['duration_minutes'], $classSchedule->id)) {
             $conflicts = ClassSchedule::getConflicts($validated['admin_id'], $scheduledAt, $validated['duration_minutes'], $classSchedule->id);
             $conflictTitles = $conflicts->pluck('title')->implode(', ');
+
             return back()->withErrors(['scheduled_at' => "The selected time conflicts with: {$conflictTitles}"]);
         }
 
@@ -371,7 +375,7 @@ class AdminClassScheduleController extends Controller
             DB::beginTransaction();
 
             $wasRescheduled = $classSchedule->scheduled_at->ne($validated['scheduled_at']);
-            
+
             $classSchedule->update($validated);
 
             // If rescheduled, notify student and reset status
@@ -382,8 +386,8 @@ class AdminClassScheduleController extends Controller
 
             DB::commit();
 
-            $message = $wasRescheduled 
-                ? 'Class updated and student notified of the time change.' 
+            $message = $wasRescheduled
+                ? 'Class updated and student notified of the time change.'
                 : 'Class updated successfully.';
 
             return redirect()->route('admin.class-schedules.index')
@@ -391,7 +395,8 @@ class AdminClassScheduleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to update schedule: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to update schedule: '.$e->getMessage()]);
         }
     }
 
@@ -400,7 +405,7 @@ class AdminClassScheduleController extends Controller
      */
     public function cancel(Request $request, ClassSchedule $classSchedule): RedirectResponse
     {
-        if (!$classSchedule->canBeCancelled()) {
+        if (! $classSchedule->canBeCancelled()) {
             return back()->with('error', 'This class cannot be cancelled.');
         }
 
@@ -422,7 +427,8 @@ class AdminClassScheduleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to cancel class: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to cancel class: '.$e->getMessage()]);
         }
     }
 
@@ -457,7 +463,8 @@ class AdminClassScheduleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to complete class: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Failed to complete class: '.$e->getMessage()]);
         }
     }
 
@@ -468,11 +475,11 @@ class AdminClassScheduleController extends Controller
     {
         // Find program by ID instead of using route model binding with slug
         $program = Program::find($programId);
-        
-        if (!$program) {
+
+        if (! $program) {
             return response()->json(['error' => 'Program not found'], 404);
         }
-        
+
         $lessons = $program->lessons()
             ->where('is_active', true)
             ->orderBy('level')
@@ -489,16 +496,16 @@ class AdminClassScheduleController extends Controller
     {
         // Find program by ID instead of using route model binding with slug
         $program = Program::find($programId);
-        
-        if (!$program) {
+
+        if (! $program) {
             return response()->json(['error' => 'Program not found'], 404);
         }
-        
+
         $students = User::role('student')
             ->whereHas('enrollments', function ($query) use ($program) {
                 $query->where('program_id', $program->id)
-                      ->where('approval_status', 'approved')
-                      ->where('status', 'active');
+                    ->where('approval_status', 'approved')
+                    ->where('status', 'active');
             })
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
@@ -520,19 +527,19 @@ class AdminClassScheduleController extends Controller
 
         $scheduledAt = \Carbon\Carbon::parse($request->scheduled_at);
         $conflicts = ClassSchedule::getConflicts(
-            $request->admin_id, 
-            $scheduledAt, 
-            $request->duration_minutes, 
+            $request->admin_id,
+            $scheduledAt,
+            $request->duration_minutes,
             $request->exclude_id
         );
 
         return response()->json([
             'has_conflicts' => $conflicts->isNotEmpty(),
             'conflicts' => $conflicts->map(function ($schedule) {
-                $students = $schedule->is_group_class 
+                $students = $schedule->is_group_class
                     ? $schedule->students->pluck('name')->join(', ')
                     : ($schedule->student ? $schedule->student->name : 'No student assigned');
-                
+
                 return [
                     'id' => $schedule->id,
                     'title' => $schedule->title,
@@ -545,7 +552,7 @@ class AdminClassScheduleController extends Controller
                     'type' => $schedule->getTypeLabel(),
                 ];
             }),
-            'message' => $conflicts->isNotEmpty() 
+            'message' => $conflicts->isNotEmpty()
                 ? 'You are busy during this time. Please choose a different time slot.'
                 : 'No conflicts found for this time slot.',
         ]);

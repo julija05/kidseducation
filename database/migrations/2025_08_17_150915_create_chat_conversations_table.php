@@ -22,7 +22,7 @@ return new class extends Migration
             $table->text('initial_message')->nullable();
             $table->timestamp('last_activity_at')->useCurrent();
             $table->timestamps();
-            
+
             $table->index(['status', 'admin_id']);
             $table->index(['user_id', 'status']);
             $table->index('session_id');

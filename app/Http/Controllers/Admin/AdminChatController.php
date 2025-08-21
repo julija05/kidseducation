@@ -21,7 +21,7 @@ class AdminChatController extends Controller
     public function index()
     {
         $admin = Auth::user();
-        
+
         // Get conversation counts
         $waitingCount = ChatConversation::waiting()->count();
         $activeCount = ChatConversation::active()->assignedTo($admin->id)->count();
@@ -31,7 +31,7 @@ class AdminChatController extends Controller
         $conversations = ChatConversation::with(['user', 'admin', 'latestMessage'])
             ->where(function ($query) use ($admin) {
                 $query->where('status', 'waiting')
-                      ->orWhere('admin_id', $admin->id);
+                    ->orWhere('admin_id', $admin->id);
             })
             ->orderBy('last_activity_at', 'desc')
             ->paginate(20);
@@ -68,7 +68,7 @@ class AdminChatController extends Controller
             // For 'all' status, show waiting conversations AND conversations assigned to this admin
             $query->where(function ($q) use ($admin) {
                 $q->where('status', 'waiting')
-                  ->orWhere('admin_id', $admin->id);
+                    ->orWhere('admin_id', $admin->id);
             });
         }
 
@@ -152,7 +152,7 @@ class AdminChatController extends Controller
         $admin = Auth::user();
 
         // Verify admin has access to this conversation
-        if (!$this->adminCanAccessConversation($admin, $conversation)) {
+        if (! $this->adminCanAccessConversation($admin, $conversation)) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -204,7 +204,7 @@ class AdminChatController extends Controller
         $newAdmin = User::findOrFail($validated['admin_id']);
 
         // Verify new admin has admin role
-        if (!$newAdmin->hasRole('admin')) {
+        if (! $newAdmin->hasRole('admin')) {
             return response()->json(['error' => 'Target user is not an admin'], 400);
         }
 
@@ -280,5 +280,4 @@ class AdminChatController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Conversation deleted successfully']);
     }
-
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreStudentRequest extends FormRequest
@@ -24,11 +24,11 @@ class StoreStudentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name'    => 'required|string|max:255',
-            'last_name'     => 'required|string|max:255',
-            'email'         => 'email|max:255|unique:students,email',
-            'phone'         => 'string|max:20',
-            'date_of_birth' => 'date|before:today', 
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'email|max:255|unique:students,email',
+            'phone' => 'string|max:20',
+            'date_of_birth' => 'date|before:today',
         ];
     }
 
@@ -40,5 +40,4 @@ class StoreStudentRequest extends FormRequest
                 ->withInput()
         );
     }
-
 }

@@ -40,12 +40,18 @@ class EnrollmentController extends Controller
     {
         $user = $request->user();
 
+        // Check if user is suspended
+        if ($user->isSuspended()) {
+            return redirect()->route('programs.show', $program->slug)
+                ->with('error', 'Your account is suspended. Please contact admin@abacoding.com to resolve this issue.');
+        }
+
         Log::info('Enrollment attempt started', [
             'user_id' => $user->id,
             'user_email' => $user->email,
             'program_id' => $program->id,
             'program_slug' => $program->slug,
-            'user_verified' => $user->hasVerifiedEmail()
+            'user_verified' => $user->hasVerifiedEmail(),
         ]);
 
         // Check if already enrolled
@@ -59,8 +65,9 @@ class EnrollmentController extends Controller
                 'program_id' => $program->id,
                 'existing_enrollment_id' => $existingEnrollment->id,
                 'existing_status' => $existingEnrollment->status,
-                'existing_approval' => $existingEnrollment->approval_status
+                'existing_approval' => $existingEnrollment->approval_status,
             ]);
+
             return redirect()->route('programs.show', $program->slug)
                 ->with('error', 'You already have an enrollment request for this program.');
         }
@@ -72,19 +79,19 @@ class EnrollmentController extends Controller
             ->first();
 
         if ($existingAnyEnrollment) {
-            $message = $existingAnyEnrollment->approval_status === 'pending' 
+            $message = $existingAnyEnrollment->approval_status === 'pending'
                 ? 'You already have a pending enrollment request. Please wait for approval or cancel your current request before enrolling in another program.'
                 : 'You can only be enrolled in one program at a time. Please complete your current program first.';
-            
+
             Log::info('Enrollment blocked - user has existing enrollment', [
                 'user_id' => $user->id,
                 'existing_enrollment_id' => $existingAnyEnrollment->id,
                 'existing_program_id' => $existingAnyEnrollment->program_id,
                 'existing_approval_status' => $existingAnyEnrollment->approval_status,
                 'existing_status' => $existingAnyEnrollment->status,
-                'requested_program_id' => $program->id
+                'requested_program_id' => $program->id,
             ]);
-            
+
             return redirect()->route('programs.show', $program->slug)
                 ->with('error', $message);
         }
@@ -105,28 +112,29 @@ class EnrollmentController extends Controller
                 'user_id' => $user->id,
                 'program_id' => $program->id,
                 'status' => $enrollment->status,
-                'approval_status' => $enrollment->approval_status
+                'approval_status' => $enrollment->approval_status,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to create enrollment', [
                 'user_id' => $user->id,
                 'program_id' => $program->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return redirect()->route('programs.show', $program->slug)
                 ->with('error', 'Failed to create enrollment. Please try again.');
         }
 
         // Create notification for admins
-        $notificationService = new NotificationService();
+        $notificationService = new NotificationService;
         $notificationService->createEnrollmentNotification($enrollment, 'pending');
 
         // Send email to admin
         try {
             Mail::send(new AdminEnrollmentNotification($enrollment));
         } catch (\Exception $e) {
-            \Log::error('Failed to send admin enrollment notification email: ' . $e->getMessage());
+            \Log::error('Failed to send admin enrollment notification email: '.$e->getMessage());
         }
 
         // Send confirmation email to student
@@ -134,18 +142,18 @@ class EnrollmentController extends Controller
             'student_email' => $user->email,
             'student_name' => $user->name,
             'program_name' => $program->name,
-            'enrollment_id' => $enrollment->id
+            'enrollment_id' => $enrollment->id,
         ]);
 
         try {
             $mail = new StudentEnrollmentConfirmation($enrollment);
             Mail::to($user->email)->send($mail);
-            \Log::info('Student enrollment email sent successfully to: ' . $user->email);
+            \Log::info('Student enrollment email sent successfully to: '.$user->email);
         } catch (\Exception $e) {
             \Log::error('Failed to send student enrollment confirmation email', [
                 'error' => $e->getMessage(),
                 'student_email' => $user->email,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
         }
 
@@ -200,7 +208,7 @@ class EnrollmentController extends Controller
         // Only allow cancellation of pending enrollments
         if ($enrollment->approval_status !== 'pending') {
             return redirect()->route('programs.show', $enrollment->program->slug)
-            ->with('error', 'You can only leave the waiting list for pending requests.');
+                ->with('error', 'You can only leave the waiting list for pending requests.');
         }
 
         // Delete the enrollment

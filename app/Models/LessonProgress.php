@@ -66,7 +66,7 @@ class LessonProgress extends Model
         ]);
     }
 
-    public function markAsCompleted(float $score = null): void
+    public function markAsCompleted(?float $score = null): void
     {
         $this->update([
             'status' => 'completed',

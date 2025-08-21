@@ -14,7 +14,6 @@ class HandleAuthentication extends Middleware
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @param  mixed  ...$guards
      * @return mixed
      */
@@ -22,9 +21,9 @@ class HandleAuthentication extends Middleware
     {
         try {
             // Check if session exists but is invalid/expired
-            if ($request->hasSession() && !$this->auth->guard()->check()) {
+            if ($request->hasSession() && ! $this->auth->guard()->check()) {
                 $sessionId = $request->session()->getId();
-                
+
                 // Log potential session expiration
                 Log::info('Checking authentication state', [
                     'url' => $request->url(),
@@ -34,7 +33,7 @@ class HandleAuthentication extends Middleware
                     'is_inertia' => $request->header('X-Inertia') ? true : false,
                 ]);
             }
-            
+
             return parent::handle($request, $next, ...$guards);
         } catch (AuthenticationException $e) {
             // Handle session expiration gracefully for Inertia requests
@@ -47,12 +46,12 @@ class HandleAuthentication extends Middleware
                     'user_agent' => $request->header('User-Agent'),
                     'is_inertia' => $request->header('X-Inertia') ? true : false,
                 ]);
-                
+
                 // Clear the expired session to prevent issues
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
             }
-            
+
             // Re-throw to let our exception handler deal with it
             throw $e;
         }

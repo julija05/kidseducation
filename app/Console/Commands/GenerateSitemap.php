@@ -10,12 +10,13 @@ use Illuminate\Support\Facades\Storage;
 class GenerateSitemap extends Command
 {
     protected $signature = 'sitemap:generate';
+
     protected $description = 'Generate sitemap.xml for the website';
 
     public function handle()
     {
-        $sitemap = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $sitemap .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+        $sitemap = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
+        $sitemap .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">'."\n";
 
         $baseUrl = config('app.url');
         $now = now()->toW3cString();
@@ -31,7 +32,7 @@ class GenerateSitemap extends Command
         ];
 
         foreach ($staticPages as $url => $settings) {
-            $sitemap .= $this->createUrl($baseUrl . $url, $now, $settings['priority'], $settings['changefreq'], true);
+            $sitemap .= $this->createUrl($baseUrl.$url, $now, $settings['priority'], $settings['changefreq'], true);
         }
 
         // Programs
@@ -40,14 +41,14 @@ class GenerateSitemap extends Command
             foreach ($programs as $program) {
                 $slug = $program->slug ?? $program->id;
                 $sitemap .= $this->createUrl(
-                    $baseUrl . '/programs/' . $slug,
+                    $baseUrl.'/programs/'.$slug,
                     $program->updated_at->toW3cString(),
                     '0.8',
                     'weekly'
                 );
             }
         } catch (\Exception $e) {
-            $this->warn('Could not fetch programs: ' . $e->getMessage());
+            $this->warn('Could not fetch programs: '.$e->getMessage());
         }
 
         // Articles
@@ -56,21 +57,21 @@ class GenerateSitemap extends Command
             foreach ($articles as $article) {
                 $slug = $article->slug ?? $article->id;
                 $sitemap .= $this->createUrl(
-                    $baseUrl . '/articles/' . $slug,
+                    $baseUrl.'/articles/'.$slug,
                     $article->updated_at->toW3cString(),
                     '0.7',
                     'monthly'
                 );
             }
         } catch (\Exception $e) {
-            $this->warn('Could not fetch articles: ' . $e->getMessage());
+            $this->warn('Could not fetch articles: '.$e->getMessage());
         }
 
         // Article categories
         $categories = ['how_to_use', 'tutorials', 'updates', 'news'];
         foreach ($categories as $category) {
             $sitemap .= $this->createUrl(
-                $baseUrl . '/articles?category=' . $category,
+                $baseUrl.'/articles?category='.$category,
                 $now,
                 '0.6',
                 'weekly'
@@ -83,6 +84,7 @@ class GenerateSitemap extends Command
         Storage::disk('public')->put('../sitemap.xml', $sitemap);
 
         $this->info('Sitemap generated successfully at public/sitemap.xml');
+
         return 0;
     }
 
@@ -93,7 +95,7 @@ class GenerateSitemap extends Command
         $url .= "        <lastmod>{$lastmod}</lastmod>\n";
         $url .= "        <changefreq>{$changefreq}</changefreq>\n";
         $url .= "        <priority>{$priority}</priority>\n";
-        
+
         // Add alternate language links for multilingual pages
         if ($multilingual) {
             $baseUrl = config('app.url');
@@ -101,9 +103,9 @@ class GenerateSitemap extends Command
             $url .= "        <xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"{$baseUrl}{$path}?lang=en\" />\n";
             $url .= "        <xhtml:link rel=\"alternate\" hreflang=\"mk\" href=\"{$baseUrl}{$path}?lang=mk\" />\n";
         }
-        
+
         $url .= "    </url>\n";
-        
+
         return $url;
     }
 }

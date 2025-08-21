@@ -67,7 +67,7 @@ class AdminLessonResourceController extends Controller
         // Handle file upload - FIXED TO USE LOCAL DISK
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $path = $file->store('lesson-resources/' . $lesson->id); // Removed 'private' disk
+            $path = $file->store('lesson-resources/'.$lesson->id); // Removed 'private' disk
 
             $resourceData['file_path'] = $path;
             $resourceData['file_name'] = $file->getClientOriginalName();
@@ -85,7 +85,7 @@ class AdminLessonResourceController extends Controller
     public function edit(Lesson $lesson, LessonResource $resource)
     {
         // Ensure resource has language field for backwards compatibility
-        if (!isset($resource->language)) {
+        if (! isset($resource->language)) {
             $resource->language = 'en';
         }
 
@@ -128,7 +128,7 @@ class AdminLessonResourceController extends Controller
             }
 
             $file = $request->file('file');
-            $path = $file->store('lesson-resources/' . $lesson->id); // Removed 'private' disk
+            $path = $file->store('lesson-resources/'.$lesson->id); // Removed 'private' disk
 
             $updateData['file_path'] = $path;
             $updateData['file_name'] = $file->getClientOriginalName();
@@ -196,12 +196,12 @@ class AdminLessonResourceController extends Controller
             'metadata' => [
                 'platform' => 'youtube',
                 'added_via' => 'quick_add',
-            ]
+            ],
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'YouTube video added successfully.'
+            'message' => 'YouTube video added successfully.',
         ]);
     }
 }

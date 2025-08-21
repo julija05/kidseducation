@@ -27,27 +27,28 @@ class DemoController extends Controller
     public function showDemoForm($programSlug)
     {
         $program = Program::where('slug', $programSlug)->firstOrFail();
-        
+
         // If user is already logged in, handle demo logic
         if (Auth::check()) {
             $user = Auth::user();
-            
+
             // Check if user already has demo access for this program
             if ($user->hasDemoAccess() && $user->demo_program_slug === $programSlug) {
                 return redirect()->route('demo.dashboard', $programSlug);
             }
-            
+
             // Check if user has demo access for a different program
             if ($user->hasDemoAccess() && $user->demo_program_slug !== $programSlug) {
                 return redirect()->route('dashboard')
                     ->with('error', 'You can only have one demo active at a time. Please complete or expire your current demo before starting a new one.');
             }
-            
+
             // Start demo for logged-in user
             $user->startDemo($programSlug);
+
             return redirect()->route('demo.dashboard', $programSlug);
         }
-        
+
         return Inertia::render('Demo/Access', [
             'program' => [
                 'id' => $program->id,
@@ -61,7 +62,7 @@ class DemoController extends Controller
                 'lightColor' => $program->light_color,
                 'borderColor' => $program->border_color,
                 'textColor' => $program->text_color,
-            ]
+            ],
         ]);
     }
 
@@ -83,7 +84,7 @@ class DemoController extends Controller
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
-            'name' => $request->first_name . ' ' . $request->last_name,
+            'name' => $request->first_name.' '.$request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'language_preference' => app()->getLocale(),
@@ -109,14 +110,14 @@ class DemoController extends Controller
     public function dashboard($programSlug)
     {
         $user = Auth::user();
-        
+
         // Check if user has regular demo access
         $hasRegularDemoAccess = $user->hasDemoAccess() && $user->demo_program_slug === $programSlug;
-        
+
         // Check if user has pending enrollment with demo access
-        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists() 
+        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists()
                                         && $user->demo_program_slug === $programSlug;
-        
+
         // Log debug information
         \Log::info('Demo dashboard access attempt', [
             'user_id' => $user->id,
@@ -128,21 +129,22 @@ class DemoController extends Controller
             'demo_expires_at' => $user->demo_expires_at,
             'is_demo_expired' => $user->isDemoExpired(),
         ]);
-        
+
         // Verify user has some form of demo access for the correct program
-        if (!$hasRegularDemoAccess && !$hasPendingEnrollmentDemoAccess) {
+        if (! $hasRegularDemoAccess && ! $hasPendingEnrollmentDemoAccess) {
             \Log::info('Demo dashboard access denied - no valid access', [
                 'user_id' => $user->id,
                 'program_slug' => $programSlug,
             ]);
-            
+
             // If demo expired and no pending enrollment, show expired page
             if ($user->isDemoExpired() && $user->demo_program_slug === $programSlug) {
                 return redirect()->route('demo.expired');
             }
+
             return redirect()->route('programs.index');
         }
-        
+
         \Log::info('Demo dashboard access granted', [
             'user_id' => $user->id,
             'program_slug' => $programSlug,
@@ -150,12 +152,12 @@ class DemoController extends Controller
         ]);
 
         $program = $user->getDemoProgram();
-        if (!$program) {
+        if (! $program) {
             return redirect()->route('programs.index');
         }
 
         // Calculate days remaining
-        if ($hasPendingEnrollmentDemoAccess && !$hasRegularDemoAccess) {
+        if ($hasPendingEnrollmentDemoAccess && ! $hasRegularDemoAccess) {
             // Users with pending enrollments get unlimited demo access
             $daysRemaining = 999;
         } else {
@@ -177,7 +179,7 @@ class DemoController extends Controller
                 ->where('language', $currentLocale)
                 ->orderBy('order')
                 ->get()
-                ->map(fn($resource) => $this->resourceService->formatResourceForFrontend($resource));
+                ->map(fn ($resource) => $this->resourceService->formatResourceForFrontend($resource));
 
             $formattedLesson = [
                 'id' => $firstLesson->id,
@@ -197,17 +199,17 @@ class DemoController extends Controller
         // Get other lessons to show as locked
         $otherLessons = $program->lessons()
             ->where('is_active', true)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('level', '>', 1)
-                      ->orWhere(function($subQuery) {
-                          $subQuery->where('level', 1)
-                                   ->where('order_in_level', '>', 1);
-                      });
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('level', 1)
+                            ->where('order_in_level', '>', 1);
+                    });
             })
             ->orderBy('level')
             ->orderBy('order_in_level')
             ->get()
-            ->map(function($lesson) {
+            ->map(function ($lesson) {
                 return [
                     'id' => $lesson->id,
                     'title' => $lesson->title,
@@ -235,7 +237,7 @@ class DemoController extends Controller
             ],
             'firstLesson' => $formattedLesson,
             'lockedLessons' => $otherLessons,
-            'demoExpiresAt' => $hasPendingEnrollmentDemoAccess && !$hasRegularDemoAccess ? null : $user->demo_expires_at,
+            'demoExpiresAt' => $hasPendingEnrollmentDemoAccess && ! $hasRegularDemoAccess ? null : $user->demo_expires_at,
             'daysRemaining' => $daysRemaining,
         ]);
     }
@@ -254,19 +256,19 @@ class DemoController extends Controller
     public function convertToEnrollment(Request $request, $programSlug)
     {
         $user = Auth::user();
-        
+
         // Check if user has regular demo access
         $hasRegularDemoAccess = $user->hasDemoAccess() && $user->demo_program_slug === $programSlug;
-        
+
         // Check if user has pending enrollment with demo access
-        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists() 
+        $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists()
                                         && $user->demo_program_slug === $programSlug;
-        
+
         // Verify user has some form of demo access for the correct program
-        if (!$hasRegularDemoAccess && !$hasPendingEnrollmentDemoAccess) {
+        if (! $hasRegularDemoAccess && ! $hasPendingEnrollmentDemoAccess) {
             return redirect()->route('programs.index');
         }
-        
+
         // If user already has a pending enrollment, redirect to dashboard
         if ($hasPendingEnrollmentDemoAccess) {
             return redirect()->route('dashboard')
@@ -274,7 +276,7 @@ class DemoController extends Controller
         }
 
         $program = $user->getDemoProgram();
-        if (!$program) {
+        if (! $program) {
             return redirect()->route('programs.index');
         }
 
@@ -298,14 +300,15 @@ class DemoController extends Controller
                 'enrollment_id' => $enrollment->id,
                 'user_id' => $user->id,
                 'program_id' => $program->id,
-                'converted_from_demo' => true
+                'converted_from_demo' => true,
             ]);
         } catch (\Exception $e) {
             \Log::error('Failed to create enrollment from demo', [
                 'user_id' => $user->id,
                 'program_id' => $program->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return back()->with('error', 'Failed to create enrollment. Please try again.');
         }
 
@@ -319,6 +322,7 @@ class DemoController extends Controller
     public function logout()
     {
         Auth::logout();
+
         return redirect()->route('programs.index');
     }
 }

@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
-use App\Models\Enrollment;
 use App\Services\CertificateGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CertificateController extends Controller
 {
@@ -25,8 +24,8 @@ class CertificateController extends Controller
     public function generate(Request $request, Program $program)
     {
         $user = Auth::user();
-        
-        if (!$user->hasRole('student')) {
+
+        if (! $user->hasRole('student')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -36,18 +35,18 @@ class CertificateController extends Controller
             ->where('status', 'completed')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return response()->json([
                 'error' => 'Program not completed',
-                'message' => 'You must complete all lessons in this program to generate a certificate.'
+                'message' => 'You must complete all lessons in this program to generate a certificate.',
             ], 400);
         }
 
         // Get language from request, default to English
         $language = $request->input('language', 'en');
-        
+
         // Validate language
-        if (!in_array($language, ['en', 'mk'])) {
+        if (! in_array($language, ['en', 'mk'])) {
             $language = 'en';
         }
 
@@ -56,7 +55,7 @@ class CertificateController extends Controller
             $downloadUrl = $this->certificateService->getCertificateUrl($filename);
 
             $isHtmlCertificate = pathinfo($filename, PATHINFO_EXTENSION) === 'html';
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Certificate generated successfully!',
@@ -75,12 +74,12 @@ class CertificateController extends Controller
                 'student_id' => $user->id,
                 'program_id' => $program->id,
                 'language' => $language,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'error' => 'Certificate generation failed',
-                'message' => 'Unable to generate certificate at this time. Please try again later.'
+                'message' => 'Unable to generate certificate at this time. Please try again later.',
             ], 500);
         }
     }
@@ -91,25 +90,25 @@ class CertificateController extends Controller
     public function download(string $filename)
     {
         $user = Auth::user();
-        
-        if (!$user->hasRole('student')) {
+
+        if (! $user->hasRole('student')) {
             abort(403, 'Unauthorized');
         }
 
         // Security: Ensure filename belongs to the authenticated user
-        $certificatePath = 'certificates/' . $filename;
-        
+        $certificatePath = 'certificates/'.$filename;
+
         // Check if file exists using Storage or direct file access
         $fileExists = false;
         try {
             $fileExists = Storage::disk('private')->exists($certificatePath);
         } catch (\Exception $e) {
             // Fallback: check direct file system
-            $fullPath = storage_path('app/private/' . $certificatePath);
+            $fullPath = storage_path('app/private/'.$certificatePath);
             $fileExists = file_exists($fullPath);
         }
-        
-        if (!$fileExists) {
+
+        if (! $fileExists) {
             abort(404, 'Certificate not found');
         }
 
@@ -125,13 +124,13 @@ class CertificateController extends Controller
                 $file = Storage::disk('private')->get($certificatePath);
             } catch (\Exception $storageException) {
                 // Fallback: direct file access
-                $fullPath = storage_path('app/private/' . $certificatePath);
-                if (!file_exists($fullPath)) {
+                $fullPath = storage_path('app/private/'.$certificatePath);
+                if (! file_exists($fullPath)) {
                     abort(404, 'Certificate not found');
                 }
                 $file = file_get_contents($fullPath);
             }
-            
+
             // Determine file type and MIME type
             $fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
             switch ($fileExtension) {
@@ -146,12 +145,12 @@ class CertificateController extends Controller
                     $mimeType = 'image/png';
                     break;
             }
-            
+
             // Create a user-friendly download filename
             $programId = $filenameParts[1];
             $program = Program::find($programId);
-            $baseDownloadName = 'Certificate_' . ($program ? $program->name : 'Program') . '_' . $user->first_name . '_' . $user->last_name;
-            $downloadName = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $baseDownloadName) . '.' . $fileExtension;
+            $baseDownloadName = 'Certificate_'.($program ? $program->name : 'Program').'_'.$user->first_name.'_'.$user->last_name;
+            $downloadName = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $baseDownloadName).'.'.$fileExtension;
 
             if ($fileExtension === 'html') {
                 // For HTML certificates, display in browser instead of forcing download
@@ -162,14 +161,14 @@ class CertificateController extends Controller
                 // For PDF/PNG, force download
                 return response($file)
                     ->header('Content-Type', $mimeType)
-                    ->header('Content-Disposition', 'attachment; filename="' . $downloadName . '"')
+                    ->header('Content-Disposition', 'attachment; filename="'.$downloadName.'"')
                     ->header('Content-Length', strlen($file));
             }
         } catch (\Exception $e) {
             Log::error('Certificate download failed', [
                 'student_id' => $user->id,
                 'filename' => $filename,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             abort(500, 'Failed to download certificate');
@@ -182,20 +181,20 @@ class CertificateController extends Controller
     public function view(string $filename)
     {
         $user = Auth::user();
-        
-        if (!$user->hasRole('student')) {
+
+        if (! $user->hasRole('student')) {
             abort(403, 'Unauthorized');
         }
 
         // Security: Ensure filename belongs to the authenticated user
-        $certificatePath = 'certificates/' . $filename;
-        
+        $certificatePath = 'certificates/'.$filename;
+
         // Check if file exists and is HTML
         $fileExtension = pathinfo($filename, PATHINFO_EXTENSION);
         if ($fileExtension !== 'html') {
             return redirect()->route('certificates.download', ['filename' => $filename]);
         }
-        
+
         // Check if file exists using Storage or direct file access
         $fileExists = false;
         $file = null;
@@ -206,14 +205,14 @@ class CertificateController extends Controller
             }
         } catch (\Exception $e) {
             // Fallback: check direct file system
-            $fullPath = storage_path('app/private/' . $certificatePath);
+            $fullPath = storage_path('app/private/'.$certificatePath);
             $fileExists = file_exists($fullPath);
             if ($fileExists) {
                 $file = file_get_contents($fullPath);
             }
         }
-        
-        if (!$fileExists || !$file) {
+
+        if (! $fileExists || ! $file) {
             abort(404, 'Certificate not found');
         }
 
@@ -234,8 +233,8 @@ class CertificateController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
-        if (!$user->hasRole('student')) {
+
+        if (! $user->hasRole('student')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -245,10 +244,10 @@ class CertificateController extends Controller
             ->get();
 
         $certificates = [];
-        
+
         foreach ($completedEnrollments as $enrollment) {
             $existingCert = $this->certificateService->certificateExists($user, $enrollment->program);
-            
+
             $certificates[] = [
                 'program_id' => $enrollment->program->id,
                 'program_name' => $enrollment->program->name,
@@ -273,8 +272,8 @@ class CertificateController extends Controller
     public function checkEligibility(Program $program)
     {
         $user = Auth::user();
-        
-        if (!$user->hasRole('student')) {
+
+        if (! $user->hasRole('student')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -282,7 +281,7 @@ class CertificateController extends Controller
             ->where('program_id', $program->id)
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return response()->json([
                 'eligible' => false,
                 'reason' => 'Not enrolled in this program',

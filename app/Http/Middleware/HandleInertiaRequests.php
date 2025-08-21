@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Session;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -66,11 +65,11 @@ class HandleInertiaRequests extends Middleware
     {
         $locale = App::getLocale();
         $translationPath = lang_path("{$locale}/app.php");
-        
+
         if (file_exists($translationPath)) {
             return include $translationPath;
         }
-        
+
         return [];
     }
 }

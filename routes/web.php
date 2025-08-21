@@ -1,27 +1,31 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminArticleController;
+use App\Http\Controllers\Admin\AdminChatController;
 use App\Http\Controllers\Admin\AdminClassScheduleController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminNewsController;
-use App\Http\Controllers\Admin\AdminArticleController;
-use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\AdminQuizController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\TranslationController;
-use App\Http\Controllers\Admin\AdminChatController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ChatController;
-use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemoController;
 use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\SignUpKidController;
-use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\HelpController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonResourceController;
 use App\Http\Controllers\NewsController;
@@ -30,10 +34,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\QuizController;
 use App\Http\Controllers\Student\ReviewController;
-use App\Http\Controllers\DemoController;
-use App\Http\Controllers\LegalController;
-use App\Http\Controllers\HelpController;
-use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\TestEmailController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -44,24 +45,23 @@ Route::get('/language/{locale}', [LanguageController::class, 'switch'])->name('l
 Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch.post');
 
 // Debug route for language preference
-Route::post('/debug/language-preference', function(Request $request) {
+Route::post('/debug/language-preference', function (Request $request) {
     \Log::info('DEBUG: Language preference request', [
         'all_data' => $request->all(),
         'method' => $request->method(),
         'user' => Auth::user()?->only(['id', 'name', 'language_preference']),
     ]);
-    
+
     // Return an Inertia response instead of JSON
     return back()->with('success', 'Debug route hit successfully');
 })->middleware('auth');
 
 // Student dashboard
-Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
+Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
     Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
-
 
     // Individual lesson routes
     Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
@@ -77,10 +77,10 @@ Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
-    
+
     // Student notification actions
     Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');
-    
+
     // Student schedule routes
     Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
 
@@ -121,7 +121,7 @@ Route::middleware(['auth', 'verified', 'role:student'])->group(function () {
 });
 
 // Profile routes (shared)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -177,6 +177,18 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::get('/enrollments', [EnrollmentApprovalController::class, 'all'])->name('enrollments.index');
     Route::post('/enrollments/{enrollment}/approve', [EnrollmentApprovalController::class, 'approve'])->name('enrollments.approve');
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
+    Route::post('/enrollments/{enrollment}/block', [EnrollmentApprovalController::class, 'blockAccess'])->name('enrollments.block');
+    Route::post('/enrollments/{enrollment}/unblock', [EnrollmentApprovalController::class, 'unblockAccess'])->name('enrollments.unblock');
+
+    // User Management Routes
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [AdminUserController::class, 'index'])->name('index');
+        Route::get('/{user}', [AdminUserController::class, 'show'])->name('show');
+        Route::post('/{user}/block', [AdminUserController::class, 'block'])->name('block');
+        Route::post('/{user}/suspend', [AdminUserController::class, 'suspend'])->name('suspend');
+        Route::post('/{user}/activate', [AdminUserController::class, 'activate'])->name('activate');
+        Route::get('/api/statistics', [AdminUserController::class, 'statistics'])->name('statistics');
+    });
 
     // Notification Routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -231,12 +243,12 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
         Route::get('/', [AdminClassScheduleController::class, 'index'])->name('index');
         Route::get('/create', [AdminClassScheduleController::class, 'create'])->name('create');
         Route::post('/', [AdminClassScheduleController::class, 'store'])->name('store');
-        
+
         // AJAX endpoints - MUST be before /{classSchedule} routes to avoid conflicts
         Route::get('/programs/{program}/lessons', [AdminClassScheduleController::class, 'getLessonsForProgram'])->name('program-lessons');
         Route::get('/programs/{program}/students', [AdminClassScheduleController::class, 'getStudentsForProgram'])->name('program-students');
         Route::post('/check-conflicts', [AdminClassScheduleController::class, 'checkConflicts'])->name('check-conflicts');
-        
+
         Route::get('/{classSchedule}', [AdminClassScheduleController::class, 'show'])->name('show');
         Route::get('/{classSchedule}/edit', [AdminClassScheduleController::class, 'edit'])->name('edit');
         Route::put('/{classSchedule}', [AdminClassScheduleController::class, 'update'])->name('update');
@@ -253,7 +265,6 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
         Route::post('/resources/{resource:id}', [TranslationController::class, 'updateResource'])->name('resources.update');
     });
 });
-
 
 // Public routes (guests)
 
@@ -294,5 +305,4 @@ Route::prefix('demo')->name('demo.')->group(function () {
     Route::get('/expired', [DemoController::class, 'expired'])->name('expired');
 });
 
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

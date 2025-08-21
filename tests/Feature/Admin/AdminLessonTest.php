@@ -2,19 +2,21 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Models\User;
-use App\Models\Program;
 use App\Models\Lesson;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class AdminLessonTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $admin;
+
     private User $student;
+
     private Program $program;
 
     protected function setUp(): void
@@ -47,10 +49,9 @@ class AdminLessonTest extends TestCase
             ->get(route('admin.programs.lessons.index', $this->program->slug));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn($page) => 
-            $page->component('Admin/Programs/Lessons/Index')
-                ->has('program')
-                ->has('lessonsByLevel')
+        $response->assertInertia(fn ($page) => $page->component('Admin/Programs/Lessons/Index')
+            ->has('program')
+            ->has('lessonsByLevel')
         );
     }
 
@@ -60,11 +61,10 @@ class AdminLessonTest extends TestCase
             ->get(route('admin.programs.lessons.create', $this->program->slug));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn($page) => 
-            $page->component('Admin/Programs/Lessons/Create')
-                ->has('program')
-                ->has('availableLevels')
-                ->has('contentTypes')
+        $response->assertInertia(fn ($page) => $page->component('Admin/Programs/Lessons/Create')
+            ->has('program')
+            ->has('availableLevels')
+            ->has('contentTypes')
         );
     }
 
@@ -105,11 +105,10 @@ class AdminLessonTest extends TestCase
             ->get(route('admin.programs.lessons.edit', [$this->program->slug, $lesson->id]));
 
         $response->assertStatus(200);
-        $response->assertInertia(fn($page) => 
-            $page->component('Admin/Programs/Lessons/Edit')
-                ->has('program')
-                ->has('lesson')
-                ->where('lesson.id', $lesson->id)
+        $response->assertInertia(fn ($page) => $page->component('Admin/Programs/Lessons/Edit')
+            ->has('program')
+            ->has('lesson')
+            ->where('lesson.id', $lesson->id)
         );
     }
 
@@ -222,10 +221,9 @@ class AdminLessonTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->get(route('admin.programs.lessons.index', $this->program->slug));
 
-        $response->assertInertia(fn($page) => 
-            $page->has('lessonsByLevel', 2) // Should have 2 levels
-                ->where('lessonsByLevel.0.level', 1)
-                ->where('lessonsByLevel.1.level', 2)
+        $response->assertInertia(fn ($page) => $page->has('lessonsByLevel', 2) // Should have 2 levels
+            ->where('lessonsByLevel.0.level', 1)
+            ->where('lessonsByLevel.1.level', 2)
         );
     }
 

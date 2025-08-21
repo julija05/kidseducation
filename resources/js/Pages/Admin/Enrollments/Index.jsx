@@ -1,5 +1,5 @@
 // resources/js/Pages/Admin/Enrollments/Index.jsx
-import React from "react";
+import React, { useState } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, Link } from "@inertiajs/react";
 import {
@@ -11,6 +11,10 @@ import {
     CheckCircle,
     XCircle,
     Clock,
+    Lock,
+    Unlock,
+    Shield,
+    ShieldOff,
 } from "lucide-react";
 
 export default function AllEnrollments({
@@ -18,6 +22,10 @@ export default function AllEnrollments({
     currentStatus,
     searchTerm,
 }) {
+    const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+    const [showBlockModal, setShowBlockModal] = useState(false);
+    const [blockReason, setBlockReason] = useState("");
+    const [processing, setProcessing] = useState(false);
     const handleSearch = (e) => {
         e.preventDefault();
         const search = e.target.search.value;
@@ -32,6 +40,51 @@ export default function AllEnrollments({
             status,
             search: searchTerm,
         });
+    };
+
+    const handleBlockAccess = (enrollment) => {
+        setSelectedEnrollment(enrollment);
+        setShowBlockModal(true);
+        setBlockReason("");
+    };
+
+    const handleUnblockAccess = (enrollment) => {
+        if (
+            !confirm(
+                `Restore access for ${enrollment.user.name} in ${enrollment.program.name}?`
+            )
+        ) {
+            return;
+        }
+
+        setProcessing(true);
+        router.post(
+            route("admin.enrollments.unblock", enrollment.id),
+            {},
+            {
+                onFinish: () => setProcessing(false),
+            }
+        );
+    };
+
+    const submitBlock = () => {
+        if (!blockReason.trim()) {
+            alert("Please provide a reason for blocking access.");
+            return;
+        }
+
+        setProcessing(true);
+        router.post(
+            route("admin.enrollments.block", selectedEnrollment.id),
+            { block_reason: blockReason },
+            {
+                onFinish: () => {
+                    setProcessing(false);
+                    setShowBlockModal(false);
+                    setSelectedEnrollment(null);
+                },
+            }
+        );
     };
 
     const getStatusBadge = (status) => {
@@ -58,6 +111,28 @@ export default function AllEnrollments({
                     </span>
                 );
         }
+    };
+
+    const getAccessBadge = (enrollment) => {
+        if (enrollment.approval_status !== 'approved') {
+            return null; // No access badge for non-approved enrollments
+        }
+
+        if (enrollment.access_blocked) {
+            return (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <Lock className="w-3 h-3 mr-1" />
+                    Blocked
+                </span>
+            );
+        }
+
+        return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <Unlock className="w-3 h-3 mr-1" />
+                Active Access
+            </span>
+        );
     };
 
     return (
@@ -157,7 +232,13 @@ export default function AllEnrollments({
                                         Status
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Access
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Date
+                                    </th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>

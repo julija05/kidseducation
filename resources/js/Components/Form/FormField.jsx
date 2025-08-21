@@ -4,10 +4,12 @@ export default function FormField({
     name,
     type = "text",
     value,
+    checked,
     onChange,
     error,
     required = false,
     helper,
+    description,
     children,
     ...props
 }) {
@@ -47,6 +49,19 @@ export default function FormField({
             );
         }
 
+        if (type === "checkbox") {
+            return (
+                <input
+                    type="checkbox"
+                    name={name}
+                    checked={checked || false}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    {...props}
+                />
+            );
+        }
+
         return (
             <input
                 type={type}
@@ -59,12 +74,31 @@ export default function FormField({
         );
     };
 
+    if (type === "checkbox") {
+        return (
+            <div className="flex items-start">
+                <div className="flex items-center h-5">
+                    {renderInput()}
+                </div>
+                <div className="ml-3 text-sm">
+                    <label htmlFor={name} className="font-medium text-gray-700">
+                        {label} {required && <span className="text-red-500">*</span>}
+                    </label>
+                    {description && <p className="text-gray-500">{description}</p>}
+                    {helper && <p className="text-gray-500 mt-1">{helper}</p>}
+                    {error && <p className="text-red-500 mt-1">{error}</p>}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div>
             <label htmlFor={name} className="block text-sm font-medium text-gray-700">
                 {label} {required && <span className="text-red-500">*</span>}
             </label>
             {renderInput()}
+            {description && <p className="text-gray-500 text-sm mt-1">{description}</p>}
             {helper && <p className="text-gray-500 text-sm mt-1">{helper}</p>}
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </div>

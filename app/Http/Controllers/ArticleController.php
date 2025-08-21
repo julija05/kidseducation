@@ -14,7 +14,7 @@ class ArticleController extends Controller
     {
         $category = $request->get('category', 'how_to_use');
         $currentLocale = app()->getLocale();
-        
+
         try {
             $articles = News::published()
                 ->byCategory($category)
@@ -23,18 +23,18 @@ class ArticleController extends Controller
                 ->paginate(12);
         } catch (\Exception $e) {
             // Fallback if migration hasn't been applied yet
-            $articles = News::where('title', 'LIKE', '%' . $category . '%')
+            $articles = News::where('title', 'LIKE', '%'.$category.'%')
                 ->latest('created_at')
                 ->paginate(12);
         }
-            
-        return $this->createView("Front/Articles/Index", [
+
+        return $this->createView('Front/Articles/Index', [
             'articles' => $articles,
             'currentCategory' => $category,
             'categories' => $this->getPublicCategories(),
             'categoriesWithArticles' => $this->getCategoriesWithArticles($currentLocale),
             'categoryName' => $this->getCategoryTranslation($category),
-            'currentLocale' => $currentLocale
+            'currentLocale' => $currentLocale,
         ]);
     }
 
@@ -44,7 +44,7 @@ class ArticleController extends Controller
     public function show(Request $request, $slug)
     {
         $currentLocale = app()->getLocale();
-        
+
         try {
             $article = News::where('slug', $slug)->firstOrFail();
         } catch (\Exception $e) {
@@ -54,7 +54,7 @@ class ArticleController extends Controller
 
         // Check if published (only if column exists)
         try {
-            if (!$article->is_published) {
+            if (! $article->is_published) {
                 abort(404);
             }
         } catch (\Exception $e) {
@@ -62,10 +62,10 @@ class ArticleController extends Controller
         }
 
         // Check if article has translation for current locale
-        if (!$article->hasTranslation($currentLocale)) {
+        if (! $article->hasTranslation($currentLocale)) {
             abort(404); // Article not available in current language
         }
-        
+
         try {
             $relatedArticles = News::published()
                 ->byCategory($article->category)
@@ -81,8 +81,8 @@ class ArticleController extends Controller
                 ->limit(3)
                 ->get();
         }
-            
-        return $this->createView("Front/Articles/Show", [
+
+        return $this->createView('Front/Articles/Show', [
             'article' => $article,
             'relatedArticles' => $relatedArticles,
             'currentLocale' => $currentLocale,
@@ -92,8 +92,8 @@ class ArticleController extends Controller
                 'view_programs' => __('app.view_programs'),
                 'back_to' => __('app.back_to'),
                 'related_articles' => __('app.articles.related_articles'),
-                'read_more' => __('app.articles.read_more')
-            ]
+                'read_more' => __('app.articles.read_more'),
+            ],
         ]);
     }
 
@@ -103,13 +103,13 @@ class ArticleController extends Controller
     private function getPublicCategories(): array
     {
         $categories = News::CATEGORIES;
-        
+
         // Translate category names
         $translatedCategories = [];
         foreach ($categories as $key => $name) {
             $translatedCategories[$key] = $this->getCategoryTranslation($key);
         }
-        
+
         return $translatedCategories;
     }
 
@@ -120,28 +120,28 @@ class ArticleController extends Controller
     {
         $categoriesWithArticles = [];
         $publicCategories = $this->getPublicCategories();
-        
+
         foreach ($publicCategories as $key => $name) {
             try {
                 $hasArticles = News::published()
                     ->byCategory($key)
                     ->withTranslation($locale)
                     ->exists();
-                    
+
                 if ($hasArticles) {
                     $categoriesWithArticles[$key] = $this->getCategoryTranslation($key);
                 }
             } catch (\Exception $e) {
                 // Fallback if migration hasn't been applied yet
-                $hasArticles = News::where('title', 'LIKE', '%' . str_replace('_', ' ', $key) . '%')
+                $hasArticles = News::where('title', 'LIKE', '%'.str_replace('_', ' ', $key).'%')
                     ->exists();
-                    
+
                 if ($hasArticles) {
                     $categoriesWithArticles[$key] = $this->getCategoryTranslation($key);
                 }
             }
         }
-        
+
         return $categoriesWithArticles;
     }
 
@@ -154,9 +154,9 @@ class ArticleController extends Controller
             'how_to_use' => 'how_to_use_platform',
             'tutorials' => 'tutorials_guides',
             'updates' => 'platform_updates',
-            'news' => 'news_announcements'
+            'news' => 'news_announcements',
         ];
-        
+
         $key = $keyMap[$category] ?? null;
         if ($key) {
             $translation = __("app.articles.{$key}");
@@ -164,9 +164,10 @@ class ArticleController extends Controller
             if ($translation === "app.articles.{$key}") {
                 return News::CATEGORIES[$category] ?? ucfirst(str_replace('_', ' ', $category));
             }
+
             return $translation;
         }
-        
+
         // Fallback to the hardcoded value if translation key doesn't exist
         return News::CATEGORIES[$category] ?? 'Articles';
     }

@@ -30,7 +30,7 @@ class LessonScheduled extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: 'abacoding@abacoding.com',
-            subject: 'Lesson Scheduled - ' . $this->schedule->title,
+            subject: 'Lesson Scheduled - '.$this->schedule->title,
         );
     }
 

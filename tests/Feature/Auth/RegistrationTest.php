@@ -8,12 +8,12 @@ use Tests\Traits\CreatesRoles;
 
 class RegistrationTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create roles safely
         $this->createRoles();
     }
@@ -44,7 +44,7 @@ class RegistrationTest extends TestCase
         // Test weak password
         $response = $this->post('/register', [
             'first_name' => 'Test',
-            'last_name' => 'User', 
+            'last_name' => 'User',
             'email' => 'test@example.com',
             'password' => 'weak',
             'password_confirmation' => 'weak',

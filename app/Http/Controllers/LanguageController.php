@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 class LanguageController extends Controller
@@ -26,7 +25,7 @@ class LanguageController extends Controller
         ]);
 
         // Validate locale
-        if (!in_array($locale, config('app.supported_locales', ['en', 'mk']))) {
+        if (! in_array($locale, config('app.supported_locales', ['en', 'mk']))) {
             \Log::error('Invalid locale requested', ['locale' => $locale]);
             abort(404);
         }
@@ -34,14 +33,14 @@ class LanguageController extends Controller
         // Store locale in session (for guest users and immediate effect)
         Session::put('locale', $locale);
         Session::save(); // Force save
-        
+
         // For authenticated users, also update their saved preference for consistency
         if (Auth::check()) {
             $user = Auth::user();
             if ($user->language_preference !== $locale) {
                 $user->update([
                     'language_preference' => $locale,
-                    'language_selected' => true
+                    'language_selected' => true,
                 ]);
                 \Log::info('Updated user language preference', [
                     'user_id' => $user->id,
@@ -50,7 +49,7 @@ class LanguageController extends Controller
                 ]);
             }
         }
-        
+
         \Log::info('Language switched successfully', [
             'new_locale' => $locale,
             'session_after_save' => Session::get('locale'),
@@ -59,7 +58,7 @@ class LanguageController extends Controller
 
         // Redirect with language parameter to ensure immediate consistency
         $redirectUrl = $request->header('referer', '/');
-        
+
         // Add/update locale parameter in URL for immediate effect
         $parsedUrl = parse_url($redirectUrl);
         $queryParams = [];
@@ -68,12 +67,12 @@ class LanguageController extends Controller
         }
         $queryParams['locale'] = $locale;
         $queryParams['v'] = time(); // Cache busting
-        
-        $newUrl = ($parsedUrl['scheme'] ?? 'http') . '://' . 
-                  ($parsedUrl['host'] ?? $request->getHost()) . 
-                  ($parsedUrl['path'] ?? '/') . 
-                  '?' . http_build_query($queryParams);
-        
+
+        $newUrl = ($parsedUrl['scheme'] ?? 'http').'://'.
+                  ($parsedUrl['host'] ?? $request->getHost()).
+                  ($parsedUrl['path'] ?? '/').
+                  '?'.http_build_query($queryParams);
+
         return redirect($newUrl)
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
@@ -101,17 +100,17 @@ class LanguageController extends Controller
 
         try {
             \Log::info('Starting validation...');
-            
+
             $validated = $request->validate([
                 'language' => 'required|string|in:en,mk',
-                'first_time' => 'boolean'
+                'first_time' => 'boolean',
             ]);
 
             \Log::info('Validation passed', ['validated' => $validated]);
 
             $user = Auth::user();
-            
-            if (!$user) {
+
+            if (! $user) {
                 \Log::error('User not authenticated when trying to set language preference');
                 abort(401, 'Unauthorized');
             }
@@ -125,7 +124,7 @@ class LanguageController extends Controller
             // Update user's language preference
             $user->update([
                 'language_preference' => $request->language,
-                'language_selected' => true
+                'language_selected' => true,
             ]);
 
             // Also store in session for immediate effect
@@ -140,16 +139,15 @@ class LanguageController extends Controller
 
             // Return Inertia response to preserve scroll position
             return back()->with('success', 'Language preference updated successfully');
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Validation failed', [
                 'errors' => $e->errors(),
                 'user_id' => Auth::id(),
                 'request_data' => $request->all(),
             ]);
-            
+
             throw $e; // Let Laravel handle validation errors properly
-            
         } catch (\Exception $e) {
             \Log::error('Error updating language preference', [
                 'error' => $e->getMessage(),
@@ -157,7 +155,7 @@ class LanguageController extends Controller
                 'user_id' => Auth::id(),
                 'request_data' => $request->all(),
             ]);
-            
+
             return back()->withErrors(['language' => 'Failed to update language preference. Please try again.'])->withInput();
         }
     }

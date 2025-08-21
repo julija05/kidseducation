@@ -30,7 +30,7 @@ class LessonFactory extends Factory
             'metadata' => $this->faker->optional()->randomElement([
                 ['difficulty' => 'easy'],
                 ['difficulty' => 'medium', 'prerequisites' => []],
-                ['difficulty' => 'hard', 'tools_required' => ['computer', 'browser']]
+                ['difficulty' => 'hard', 'tools_required' => ['computer', 'browser']],
             ]),
         ];
     }

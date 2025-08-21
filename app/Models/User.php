@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Notifications\CustomResetPassword;
+use App\Notifications\CustomVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,14 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use App\Notifications\CustomVerifyEmail;
-use App\Notifications\CustomResetPassword;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -41,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'demo_created_at',
         'demo_expires_at',
         'demo_program_slug',
+        'status',
     ];
 
     /**
@@ -145,8 +145,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasDemoAccess(): bool
     {
-        return $this->demo_created_at && 
-               $this->demo_expires_at && 
+        return $this->demo_created_at &&
+               $this->demo_expires_at &&
                $this->demo_expires_at->isFuture();
     }
 
@@ -155,8 +155,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isDemoExpired(): bool
     {
-        return $this->demo_created_at && 
-               $this->demo_expires_at && 
+        return $this->demo_created_at &&
+               $this->demo_expires_at &&
                $this->demo_expires_at->isPast();
     }
 
@@ -166,7 +166,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canStartDemo(): bool
     {
         // If user has never had demo access, they can start
-        return !$this->demo_created_at;
+        return ! $this->demo_created_at;
     }
 
     /**
@@ -191,7 +191,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->hasDemoAccess() && $this->demo_program_slug) {
             return Program::where('slug', $this->demo_program_slug)->first();
         }
-        
+
         // Check if user has pending enrollment with demo access
         if ($this->enrollments()->where('approval_status', 'pending')->exists() && $this->demo_program_slug) {
             return Program::where('slug', $this->demo_program_slug)->first();
@@ -208,19 +208,21 @@ class User extends Authenticatable implements MustVerifyEmail
         // Regular demo access
         if ($this->hasDemoAccess()) {
             $demoProgram = $this->getDemoProgram();
-            if (!$demoProgram || $lesson->program_id !== $demoProgram->id) {
+            if (! $demoProgram || $lesson->program_id !== $demoProgram->id) {
                 return false;
             }
+
             // Only allow access to the first lesson (level 1, order_in_level 1)
             return $lesson->level === 1 && $lesson->order_in_level === 1;
         }
-        
+
         // Special case: Users with pending enrollments can access demo if they have demo_program_slug
         if ($this->enrollments()->where('approval_status', 'pending')->exists() && $this->demo_program_slug) {
             $demoProgram = \App\Models\Program::where('slug', $this->demo_program_slug)->first();
-            if (!$demoProgram || $lesson->program_id !== $demoProgram->id) {
+            if (! $demoProgram || $lesson->program_id !== $demoProgram->id) {
                 return false;
             }
+
             // Only allow access to the first lesson (level 1, order_in_level 1)
             return $lesson->level === 1 && $lesson->order_in_level === 1;
         }
@@ -233,7 +235,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getDemoRemainingDays(): int
     {
-        if (!$this->hasDemoAccess()) {
+        if (! $this->hasDemoAccess()) {
             return 0;
         }
 
@@ -246,7 +248,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeWithActiveDemoAccess($query)
     {
         return $query->whereNotNull('demo_created_at')
-                    ->where('demo_expires_at', '>', now());
+            ->where('demo_expires_at', '>', now());
     }
 
     /**
@@ -258,7 +260,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->is_demo_account || $this->hasDemoAccess()) {
             return true;
         }
-        
+
         // Users with pending enrollments but still have demo access
         return $this->enrollments()->where('approval_status', 'pending')->exists() && $this->demo_program_slug;
     }
@@ -269,7 +271,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeWithExpiredDemoAccess($query)
     {
         return $query->whereNotNull('demo_created_at')
-                    ->where('demo_expires_at', '<', now());
+            ->where('demo_expires_at', '<', now());
     }
 
     /**
@@ -301,15 +303,87 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getUnreadChatMessagesCount(): int
     {
-        if (!$this->isAdmin()) {
+        if (! $this->isAdmin()) {
             return 0;
         }
 
         return \App\Models\ChatMessage::whereHas('conversation', function ($query) {
             $query->where('admin_id', $this->id);
         })
-        ->where('sender_type', '!=', 'admin')
-        ->where('is_read', false)
-        ->count();
+            ->where('sender_type', '!=', 'admin')
+            ->where('is_read', false)
+            ->count();
+    }
+
+    /**
+     * Check if user is active (not blocked or suspended)
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Check if user is blocked
+     */
+    public function isBlocked(): bool
+    {
+        return $this->status === 'blocked';
+    }
+
+    /**
+     * Check if user is suspended
+     */
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
+    }
+
+    /**
+     * Block the user
+     */
+    public function block(): bool
+    {
+        return $this->update(['status' => 'blocked']);
+    }
+
+    /**
+     * Suspend the user
+     */
+    public function suspend(): bool
+    {
+        return $this->update(['status' => 'suspended']);
+    }
+
+    /**
+     * Activate the user
+     */
+    public function activate(): bool
+    {
+        return $this->update(['status' => 'active']);
+    }
+
+    /**
+     * Scope for active users only
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope for blocked users
+     */
+    public function scopeBlocked($query)
+    {
+        return $query->where('status', 'blocked');
+    }
+
+    /**
+     * Scope for suspended users
+     */
+    public function scopeSuspended($query)
+    {
+        return $query->where('status', 'suspended');
     }
 }

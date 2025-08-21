@@ -15,7 +15,7 @@ return new class extends Migration
             ->where('type', 'mental_arithmetic')
             ->whereJsonDoesntContain('settings->points_per_session', true)
             ->update([
-                'settings' => DB::raw("JSON_SET(COALESCE(settings, '{}'), '$.points_per_session', 10)")
+                'settings' => DB::raw("JSON_SET(COALESCE(settings, '{}'), '$.points_per_session', 10)"),
             ]);
     }
 
@@ -29,7 +29,7 @@ return new class extends Migration
             ->where('type', 'mental_arithmetic')
             ->whereJsonContains('settings->points_per_session', true)
             ->update([
-                'settings' => DB::raw("JSON_REMOVE(settings, '$.points_per_session')")
+                'settings' => DB::raw("JSON_REMOVE(settings, '$.points_per_session')"),
             ]);
     }
 };

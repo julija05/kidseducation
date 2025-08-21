@@ -18,7 +18,7 @@ class ForceEnglishForAdmin
     {
         // Force English locale for admin routes
         App::setLocale('en');
-        
+
         return $next($request);
     }
 }

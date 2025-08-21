@@ -21,7 +21,8 @@ class AdminNewsController extends Controller
     public function index()
     {
         $news = $this->newsService->getPaginatedNews(5);
-        return $this->createView("Admin/News/Index", ['news' => $news]);
+
+        return $this->createView('Admin/News/Index', ['news' => $news]);
     }
 
     /**
@@ -29,7 +30,7 @@ class AdminNewsController extends Controller
      */
     public function create()
     {
-        return $this->createView("Admin/News/Create");
+        return $this->createView('Admin/News/Create');
     }
 
     /**
@@ -39,6 +40,7 @@ class AdminNewsController extends Controller
     {
         try {
             $this->newsService->createNews($request);
+
             return redirect()
                 ->route('admin.news.index')
                 ->with('success', 'News post created successfully.');
@@ -55,7 +57,7 @@ class AdminNewsController extends Controller
      */
     public function show(News $news)
     {
-        return $this->createView("Admin/News/Show", ['news' => $news]);
+        return $this->createView('Admin/News/Show', ['news' => $news]);
     }
 
     /**
@@ -63,7 +65,7 @@ class AdminNewsController extends Controller
      */
     public function edit(News $news)
     {
-        return $this->createView("Admin/News/Edit", ['news' => $news]);
+        return $this->createView('Admin/News/Edit', ['news' => $news]);
     }
 
     /**
@@ -73,6 +75,7 @@ class AdminNewsController extends Controller
     {
         try {
             $this->newsService->updateNews($request, $news);
+
             return redirect()
                 ->route('admin.news.index')
                 ->with('success', 'News updated successfully.');
@@ -91,6 +94,7 @@ class AdminNewsController extends Controller
     {
         try {
             $this->newsService->deleteNews($news);
+
             return redirect()
                 ->route('admin.news.index')
                 ->with('success', 'News deleted successfully.');

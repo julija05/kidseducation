@@ -2,37 +2,40 @@
 
 namespace Tests\Feature;
 
-use App\Models\Quiz;
-use App\Models\QuizAttempt;
+use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\Program;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
 use App\Models\User;
-use App\Models\Enrollment;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class QuizFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     protected User $admin;
+
     protected User $student;
+
     protected Program $program;
+
     protected Lesson $lesson;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->createRoles();
-        
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
-        
+
         $this->student = User::factory()->create();
         $this->student->assignRole('student');
-        
+
         $this->program = Program::create([
             'name' => 'Math Program',
             'slug' => 'math-program',
@@ -148,9 +151,9 @@ class QuizFeatureTest extends TestCase
         $response->assertOk();
         $response->assertInertia(function ($page) use ($quiz) {
             $page->component('Student/Quiz/Show')
-                 ->has('quiz')
-                 ->where('quiz.id', $quiz->id)
-                 ->where('quiz.title', 'Mental Arithmetic Quiz');
+                ->has('quiz')
+                ->where('quiz.id', $quiz->id)
+                ->where('quiz.title', 'Mental Arithmetic Quiz');
         });
     }
 
@@ -210,11 +213,11 @@ class QuizFeatureTest extends TestCase
         $response->assertOk();
         $response->assertInertia(function ($page) use ($quiz, $attempt) {
             $page->component('Student/Quiz/Take')
-                 ->has('quiz')
-                 ->has('attempt')
-                 ->has('questions')
-                 ->where('quiz.id', $quiz->id)
-                 ->where('attempt.id', $attempt->id);
+                ->has('quiz')
+                ->has('attempt')
+                ->has('questions')
+                ->where('quiz.id', $quiz->id)
+                ->where('attempt.id', $attempt->id);
         });
     }
 
@@ -247,15 +250,15 @@ class QuizFeatureTest extends TestCase
             ],
             'correct_count' => 3,
             'total_sessions' => 3,
-            'percentage' => 100
+            'percentage' => 100,
         ]);
 
         $response = $this->post(route('student.quiz.submit', [$quiz->id, $attempt->id]), [
-            'answers' => [$flashCardResults]
+            'answers' => [$flashCardResults],
         ]);
 
         $response->assertRedirect(route('student.quiz.result', [$quiz->id, $attempt->id]));
-        
+
         $attempt->refresh();
         $this->assertEquals('completed', $attempt->status);
         $this->assertEquals(100, $attempt->score);
@@ -290,9 +293,9 @@ class QuizFeatureTest extends TestCase
                         'percentage' => 85,
                         'correct_count' => 2,
                         'total_sessions' => 3,
-                    ])
-                ]
-            ]
+                    ]),
+                ],
+            ],
         ]);
 
         $response = $this->get(route('student.quiz.result', [$quiz->id, $attempt->id]));
@@ -300,10 +303,10 @@ class QuizFeatureTest extends TestCase
         $response->assertOk();
         $response->assertInertia(function ($page) use ($quiz, $attempt) {
             $page->component('Student/Quiz/Result')
-                 ->has('quiz')
-                 ->has('attempt')
-                 ->where('quiz.id', $quiz->id)
-                 ->where('attempt.id', $attempt->id);
+                ->has('quiz')
+                ->has('attempt')
+                ->where('quiz.id', $quiz->id)
+                ->where('attempt.id', $attempt->id);
         });
     }
 
@@ -311,7 +314,7 @@ class QuizFeatureTest extends TestCase
     {
         $unenrolledStudent = User::factory()->create();
         $unenrolledStudent->assignRole('student');
-        
+
         $this->actingAs($unenrolledStudent);
 
         $quiz = Quiz::create([
@@ -373,8 +376,8 @@ class QuizFeatureTest extends TestCase
 
         $response->assertRedirect();
         $this->assertEquals(2, QuizAttempt::where('quiz_id', $quiz->id)
-                                        ->where('user_id', $this->student->id)
-                                        ->count());
+            ->where('user_id', $this->student->id)
+            ->count());
     }
 
     public function test_quiz_generation_produces_valid_sessions()
@@ -399,19 +402,19 @@ class QuizFeatureTest extends TestCase
 
         // Validate session structure
         $this->assertCount(3, $sessions);
-        
+
         foreach ($sessions as $session) {
             $this->assertArrayHasKey('session_id', $session);
             $this->assertArrayHasKey('numbers', $session);
             $this->assertArrayHasKey('correct_answer', $session);
             $this->assertArrayHasKey('display_time', $session);
-            
+
             // Validate numbers count
             $this->assertCount(5, $session['numbers']);
-            
+
             // Validate no negative results when disabled
             $this->assertGreaterThanOrEqual(0, $session['correct_answer']);
-            
+
             // Validate number ranges
             foreach ($session['numbers'] as $number) {
                 if (is_numeric($number)) {

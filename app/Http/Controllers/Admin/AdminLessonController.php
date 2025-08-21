@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Program;
 use App\Models\Lesson;
+use App\Models\Program;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class AdminLessonController extends Controller
 {
@@ -40,7 +40,7 @@ class AdminLessonController extends Controller
                         'resources_count' => $lesson->resources->count(),
                         'created_at' => $lesson->created_at,
                     ];
-                })->values()
+                })->values(),
             ];
         })->values();
 
@@ -62,7 +62,7 @@ class AdminLessonController extends Controller
     public function create(Program $program, Request $request)
     {
         $selectedLevel = $request->get('level', 1);
-        
+
         // Get next order number for the selected level
         $nextOrderInLevel = $program->lessons()
             ->where('level', $selectedLevel)
@@ -105,7 +105,7 @@ class AdminLessonController extends Controller
         ]);
 
         // If order_in_level is not provided, set it to the next available
-        if (!isset($validated['order_in_level'])) {
+        if (! isset($validated['order_in_level'])) {
             $validated['order_in_level'] = $program->lessons()
                 ->where('level', $validated['level'])
                 ->max('order_in_level') + 1;
@@ -226,7 +226,7 @@ class AdminLessonController extends Controller
                 ->where('program_id', $program->id)
                 ->update([
                     'level' => $lessonData['level'],
-                    'order_in_level' => $lessonData['order_in_level']
+                    'order_in_level' => $lessonData['order_in_level'],
                 ]);
         }
 

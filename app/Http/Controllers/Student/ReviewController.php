@@ -7,7 +7,6 @@ use App\Models\Program;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class ReviewController extends Controller
 {
@@ -20,7 +19,7 @@ class ReviewController extends Controller
         $reviews = $user->reviews()->with('reviewable')->orderBy('created_at', 'desc')->get();
 
         return $this->createView('Student/Reviews/Index', [
-            'reviews' => $reviews
+            'reviews' => $reviews,
         ]);
     }
 
@@ -37,7 +36,7 @@ class ReviewController extends Controller
             ->where('approval_status', 'approved')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return redirect()->route('programs.show', $program->slug)
                 ->with('error', 'You must be enrolled and approved in this program to leave a review.');
         }
@@ -59,7 +58,7 @@ class ReviewController extends Controller
                 'name' => $program->translated_name,
                 'description' => $program->translated_description,
                 'slug' => $program->slug,
-            ]
+            ],
         ]);
     }
 
@@ -76,7 +75,7 @@ class ReviewController extends Controller
             ->where('approval_status', 'approved')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return back()->with('error', 'You must be enrolled and approved in this program to leave a review.');
         }
 
@@ -129,7 +128,7 @@ class ReviewController extends Controller
                 'id' => $program->id,
                 'name' => $program->translated_name,
                 'slug' => $program->slug,
-            ]
+            ],
         ]);
     }
 

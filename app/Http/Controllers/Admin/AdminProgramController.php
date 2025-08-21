@@ -29,7 +29,7 @@ class AdminProgramController extends BaseAdminController
         $programs = $this->programService->getAllPrograms();
 
         return $this->createView('Admin/Programs/AdminPrograms', [
-            'programs' => $programs
+            'programs' => $programs,
         ]);
     }
 
@@ -51,7 +51,7 @@ class AdminProgramController extends BaseAdminController
         } catch (\Exception $e) {
             return redirect()
                 ->back()
-                ->with('error', 'Error occurred: ' . $e->getMessage())
+                ->with('error', 'Error occurred: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -76,7 +76,7 @@ class AdminProgramController extends BaseAdminController
         } catch (\Exception $e) {
             return redirect()
                 ->back()
-                ->with('error', 'Error occurred: ' . $e->getMessage())
+                ->with('error', 'Error occurred: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -92,7 +92,7 @@ class AdminProgramController extends BaseAdminController
         } catch (\Exception $e) {
             return redirect()
                 ->back()
-                ->with('error', 'Error occurred: ' . $e->getMessage());
+                ->with('error', 'Error occurred: '.$e->getMessage());
         }
     }
 }

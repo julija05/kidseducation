@@ -2,11 +2,11 @@
 
 namespace Tests\Unit;
 
-use App\Models\Quiz;
 use App\Models\Lesson;
 use App\Models\Program;
-use Tests\TestCase;
+use App\Models\Quiz;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class QuizTest extends TestCase
 {
@@ -15,7 +15,7 @@ class QuizTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create test data
         $this->program = Program::create([
             'name' => 'Math Program',
@@ -52,13 +52,13 @@ class QuizTest extends TestCase
                 'numbers_per_session' => 5,
                 'display_time' => 5,
                 'allow_negative' => true,
-            ]
+            ],
         ]);
 
         $sessions = $quiz->generateMentalArithmeticSessions(3);
 
         $this->assertCount(3, $sessions);
-        
+
         foreach ($sessions as $session) {
             $this->assertArrayHasKey('session_id', $session);
             $this->assertArrayHasKey('numbers', $session);
@@ -68,7 +68,6 @@ class QuizTest extends TestCase
             $this->assertEquals(5, $session['display_time']);
         }
     }
-
 
     public function it_prevents_negative_results_when_disabled()
     {
@@ -85,17 +84,16 @@ class QuizTest extends TestCase
                 'numbers_per_session' => 5,
                 'display_time' => 5,
                 'allow_negative' => false, // Key setting
-            ]
+            ],
         ]);
 
         $sessions = $quiz->generateMentalArithmeticSessions(10); // Generate more to test thoroughly
 
         foreach ($sessions as $session) {
-            $this->assertGreaterThanOrEqual(0, $session['correct_answer'], 
+            $this->assertGreaterThanOrEqual(0, $session['correct_answer'],
                 'Session result should not be negative when allow_negative is false');
         }
     }
-
 
     public function it_generates_sessions_with_multiplication()
     {
@@ -112,7 +110,7 @@ class QuizTest extends TestCase
                 'numbers_per_session' => 3,
                 'display_time' => 5,
                 'allow_negative' => false,
-            ]
+            ],
         ]);
 
         $sessions = $quiz->generateMentalArithmeticSessions(2);
@@ -129,7 +127,6 @@ class QuizTest extends TestCase
         }
     }
 
-
     public function it_generates_sessions_with_division()
     {
         $quiz = Quiz::create([
@@ -145,7 +142,7 @@ class QuizTest extends TestCase
                 'numbers_per_session' => 3,
                 'display_time' => 5,
                 'allow_negative' => false,
-            ]
+            ],
         ]);
 
         $sessions = $quiz->generateMentalArithmeticSessions(2);
@@ -156,7 +153,6 @@ class QuizTest extends TestCase
                 'Division should result in whole numbers');
         }
     }
-
 
     public function it_respects_number_range_settings()
     {
@@ -173,7 +169,7 @@ class QuizTest extends TestCase
                 'numbers_per_session' => 3,
                 'display_time' => 5,
                 'allow_negative' => false,
-            ]
+            ],
         ]);
 
         $sessions = $quiz->generateMentalArithmeticSessions(5);
@@ -187,7 +183,6 @@ class QuizTest extends TestCase
             }
         }
     }
-
 
     public function it_calculates_correct_answers_for_addition_only()
     {
@@ -204,18 +199,17 @@ class QuizTest extends TestCase
                 'numbers_per_session' => 4,
                 'display_time' => 5,
                 'allow_negative' => false,
-            ]
+            ],
         ]);
 
         $sessions = $quiz->generateMentalArithmeticSessions(1);
         $session = $sessions[0];
-        
+
         // Manually calculate the expected result
         $expectedResult = array_sum($session['numbers']);
-        
+
         $this->assertEquals($expectedResult, $session['correct_answer']);
     }
-
 
     public function it_returns_correct_type_display()
     {
@@ -230,7 +224,6 @@ class QuizTest extends TestCase
 
         $this->assertEquals('Mental Arithmetic', $quiz->type_display);
     }
-
 
     public function it_formats_time_limits_correctly()
     {
@@ -253,7 +246,6 @@ class QuizTest extends TestCase
         $this->assertEquals('30 seconds', $quiz->formatted_time_limit);
     }
 
-
     public function it_handles_empty_settings_gracefully()
     {
         $quiz = Quiz::create([
@@ -269,7 +261,7 @@ class QuizTest extends TestCase
         $sessions = $quiz->generateMentalArithmeticSessions(2);
 
         $this->assertCount(2, $sessions);
-        
+
         // Should use default values
         foreach ($sessions as $session) {
             $this->assertArrayHasKey('numbers', $session);

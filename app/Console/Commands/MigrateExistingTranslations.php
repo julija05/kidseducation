@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Program;
 use App\Models\Lesson;
 use App\Models\LessonResource;
+use App\Models\Program;
+use Illuminate\Console\Command;
 
 class MigrateExistingTranslations extends Command
 {
@@ -25,13 +25,13 @@ class MigrateExistingTranslations extends Command
     public function handle()
     {
         $this->info('Migrating existing content to translation format...');
-        
+
         // Migrate programs
         $this->info('Migrating programs...');
         $programCount = 0;
         Program::chunk(100, function ($programs) use (&$programCount) {
             foreach ($programs as $program) {
-                if (!$program->name_translations) {
+                if (! $program->name_translations) {
                     $program->update([
                         'name_translations' => ['en' => $program->name],
                         'description_translations' => ['en' => $program->description],
@@ -47,7 +47,7 @@ class MigrateExistingTranslations extends Command
         $lessonCount = 0;
         Lesson::chunk(100, function ($lessons) use (&$lessonCount) {
             foreach ($lessons as $lesson) {
-                if (!$lesson->title_translations) {
+                if (! $lesson->title_translations) {
                     $lesson->update([
                         'title_translations' => ['en' => $lesson->title],
                         'description_translations' => $lesson->description ? ['en' => $lesson->description] : null,
@@ -64,7 +64,7 @@ class MigrateExistingTranslations extends Command
         $resourceCount = 0;
         LessonResource::chunk(100, function ($resources) use (&$resourceCount) {
             foreach ($resources as $resource) {
-                if (!$resource->title_translations) {
+                if (! $resource->title_translations) {
                     $resource->update([
                         'title_translations' => ['en' => $resource->title],
                         'description_translations' => $resource->description ? ['en' => $resource->description] : null,

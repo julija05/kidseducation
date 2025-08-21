@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('enrollments', function (Blueprint $table) {
-            if (!Schema::hasColumn('enrollments', 'quiz_points')) {
+            if (! Schema::hasColumn('enrollments', 'quiz_points')) {
                 $table->integer('quiz_points')->default(0)->after('progress');
             }
-            if (!Schema::hasColumn('enrollments', 'highest_unlocked_level')) {
+            if (! Schema::hasColumn('enrollments', 'highest_unlocked_level')) {
                 $table->integer('highest_unlocked_level')->default(1)->after('quiz_points');
             }
         });
@@ -28,7 +28,7 @@ return new class extends Migration
             if (Schema::hasColumn('enrollments', 'highest_unlocked_level')) {
                 $columnsToDropColumn[] = 'highest_unlocked_level';
             }
-            if (!empty($columnsToDropColumn)) {
+            if (! empty($columnsToDropColumn)) {
                 $table->dropColumn($columnsToDropColumn);
             }
         });

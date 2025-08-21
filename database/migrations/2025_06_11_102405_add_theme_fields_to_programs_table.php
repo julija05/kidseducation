@@ -59,7 +59,7 @@ return new class extends Migration
                 'border_color',
                 'text_color',
                 'duration_weeks',
-                'is_active'
+                'is_active',
             ]);
         });
     }
@@ -79,7 +79,7 @@ return new class extends Migration
             $count = 1;
 
             while (DB::table('programs')->where('slug', $slug)->where('id', '!=', $program->id)->exists()) {
-                $slug = $originalSlug . '-' . $count;
+                $slug = $originalSlug.'-'.$count;
                 $count++;
             }
 

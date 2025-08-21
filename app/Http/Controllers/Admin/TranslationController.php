@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Program;
 use App\Models\Lesson;
 use App\Models\LessonResource;
+use App\Models\Program;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -26,7 +26,7 @@ class TranslationController extends Controller
                     'name_translations' => $program->name_translations,
                     'description_translations' => $program->description_translations,
                     'lessons_count' => $program->lessons->count(),
-                    'resources_count' => $program->lessons->sum(fn($lesson) => $lesson->resources->count()),
+                    'resources_count' => $program->lessons->sum(fn ($lesson) => $lesson->resources->count()),
                 ];
             });
 
@@ -81,20 +81,20 @@ class TranslationController extends Controller
 
         foreach ($request->translations as $locale => $translation) {
             $titleTranslations[$locale] = $translation['title'];
-            
-            if (!empty($translation['description'])) {
+
+            if (! empty($translation['description'])) {
                 $descriptionTranslations[$locale] = $translation['description'];
             }
-            
-            if (!empty($translation['content_body'])) {
+
+            if (! empty($translation['content_body'])) {
                 $contentBodyTranslations[$locale] = $translation['content_body'];
             }
         }
 
         $lesson->update([
             'title_translations' => $titleTranslations,
-            'description_translations' => !empty($descriptionTranslations) ? $descriptionTranslations : null,
-            'content_body_translations' => !empty($contentBodyTranslations) ? $contentBodyTranslations : null,
+            'description_translations' => ! empty($descriptionTranslations) ? $descriptionTranslations : null,
+            'content_body_translations' => ! empty($contentBodyTranslations) ? $contentBodyTranslations : null,
         ]);
 
         return back()->with('success', 'Lesson translations updated successfully!');
@@ -116,15 +116,15 @@ class TranslationController extends Controller
 
         foreach ($request->translations as $locale => $translation) {
             $titleTranslations[$locale] = $translation['title'];
-            
-            if (!empty($translation['description'])) {
+
+            if (! empty($translation['description'])) {
                 $descriptionTranslations[$locale] = $translation['description'];
             }
         }
 
         $resource->update([
             'title_translations' => $titleTranslations,
-            'description_translations' => !empty($descriptionTranslations) ? $descriptionTranslations : null,
+            'description_translations' => ! empty($descriptionTranslations) ? $descriptionTranslations : null,
         ]);
 
         return back()->with('success', 'Resource translations updated successfully!');

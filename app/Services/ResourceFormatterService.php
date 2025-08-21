@@ -39,8 +39,8 @@ class ResourceFormatterService
 
         // Add debug information (remove in production)
         $resourceData['debug_info'] = [
-            'has_resource_url' => !empty($resource->resource_url),
-            'has_file_path' => !empty($resource->file_path),
+            'has_resource_url' => ! empty($resource->resource_url),
+            'has_file_path' => ! empty($resource->file_path),
             'file_exists' => $resource->file_path ? Storage::exists($resource->file_path) : false,
             'can_download' => $resource->canDownload(),
             'can_stream' => $resource->canStream(),
@@ -51,7 +51,7 @@ class ResourceFormatterService
 
     public function formatResources(Collection $resources): array
     {
-        return $resources->map(fn($resource) => $this->formatResource($resource))->toArray();
+        return $resources->map(fn ($resource) => $this->formatResource($resource))->toArray();
     }
 
     private function getResourceUrl(LessonResource $resource): ?string

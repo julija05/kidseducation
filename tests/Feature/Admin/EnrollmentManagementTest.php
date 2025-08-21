@@ -2,32 +2,34 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Models\User;
-use App\Models\Program;
 use App\Models\Enrollment;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class EnrollmentManagementTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $admin;
+
     private User $student;
+
     private Program $program;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create roles safely
         $this->createRoles();
-        
+
         // Create test users
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
-        
+
         $this->student = User::factory()->create();
         $this->student->assignRole('student');
 
@@ -41,22 +43,21 @@ class EnrollmentManagementTest extends TestCase
         Enrollment::factory()->count(3)->create([
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         // Create approved enrollment (should not show)
         Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'active',
-            'approval_status' => 'approved'
+            'approval_status' => 'approved',
         ]);
 
         $response = $this->actingAs($this->admin)->get('/admin/enrollments/pending');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Admin/Enrollments/Pending')
-                ->has('enrollments', 3)
+        $response->assertInertia(fn ($page) => $page->component('Admin/Enrollments/Pending')
+            ->has('enrollments', 3)
         );
     }
 
@@ -65,9 +66,8 @@ class EnrollmentManagementTest extends TestCase
         $response = $this->actingAs($this->admin)->get('/admin/enrollments');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Admin/Enrollments/Index')
-                ->has('enrollments')
+        $response->assertInertia(fn ($page) => $page->component('Admin/Enrollments/Index')
+            ->has('enrollments')
         );
     }
 
@@ -77,7 +77,7 @@ class EnrollmentManagementTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->admin)
@@ -85,7 +85,7 @@ class EnrollmentManagementTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         $enrollment->refresh();
         $this->assertEquals('approved', $enrollment->approval_status);
         $this->assertEquals('active', $enrollment->status);
@@ -99,19 +99,19 @@ class EnrollmentManagementTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $rejectionReason = 'Student does not meet requirements';
 
         $response = $this->actingAs($this->admin)
             ->post("/admin/enrollments/{$enrollment->id}/reject", [
-                'rejection_reason' => $rejectionReason
+                'rejection_reason' => $rejectionReason,
             ]);
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         $enrollment->refresh();
         $this->assertEquals('rejected', $enrollment->approval_status);
         $this->assertEquals('cancelled', $enrollment->status);
@@ -126,7 +126,7 @@ class EnrollmentManagementTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'active',
-            'approval_status' => 'approved'
+            'approval_status' => 'approved',
         ]);
 
         $response = $this->actingAs($this->admin)
@@ -142,12 +142,12 @@ class EnrollmentManagementTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'cancelled',
-            'approval_status' => 'rejected'
+            'approval_status' => 'rejected',
         ]);
 
         $response = $this->actingAs($this->admin)
             ->post("/admin/enrollments/{$enrollment->id}/reject", [
-                'rejection_reason' => 'Test reason'
+                'rejection_reason' => 'Test reason',
             ]);
 
         $response->assertRedirect();
@@ -159,25 +159,25 @@ class EnrollmentManagementTest extends TestCase
         $enrollment = Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $routes = [
             '/admin/enrollments/pending',
             '/admin/enrollments',
             "/admin/enrollments/{$enrollment->id}/approve",
-            "/admin/enrollments/{$enrollment->id}/reject"
+            "/admin/enrollments/{$enrollment->id}/reject",
         ];
 
         foreach ($routes as $route) {
             $response = $this->actingAs($this->student);
-            
+
             if (str_contains($route, '/approve') || str_contains($route, '/reject')) {
                 $response = $response->post($route);
             } else {
                 $response = $response->get($route);
             }
-            
+
             $response->assertStatus(403);
         }
     }
@@ -187,12 +187,12 @@ class EnrollmentManagementTest extends TestCase
         $enrollment = Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $routes = [
             '/admin/enrollments/pending',
-            '/admin/enrollments'
+            '/admin/enrollments',
         ];
 
         foreach ($routes as $route) {
@@ -207,7 +207,7 @@ class EnrollmentManagementTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->admin)
@@ -215,7 +215,7 @@ class EnrollmentManagementTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         // You could add notification/email testing here if implemented
     }
 
@@ -225,7 +225,7 @@ class EnrollmentManagementTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->admin)
@@ -235,7 +235,7 @@ class EnrollmentManagementTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         $enrollment->refresh();
         $this->assertEquals('cancelled', $enrollment->status);
         $this->assertEquals('rejected', $enrollment->approval_status);
@@ -247,20 +247,19 @@ class EnrollmentManagementTest extends TestCase
         $pendingEnrollment = Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
-        
+
         $approvedEnrollment = Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'active',
-            'approval_status' => 'approved'
+            'approval_status' => 'approved',
         ]);
 
         $response = $this->actingAs($this->admin)->get('/admin/enrollments/pending');
 
-        $response->assertInertia(fn ($page) => 
-            $page->has('enrollments', 1)
-                ->where('enrollments.0.id', $pendingEnrollment->id)
+        $response->assertInertia(fn ($page) => $page->has('enrollments', 1)
+            ->where('enrollments.0.id', $pendingEnrollment->id)
         );
     }
 
@@ -270,16 +269,15 @@ class EnrollmentManagementTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->admin)->get('/admin/enrollments/pending');
 
-        $response->assertInertia(fn ($page) => 
-            $page->has('enrollments.0.user')
-                ->has('enrollments.0.program')
-                ->where('enrollments.0.user.id', $this->student->id)
-                ->where('enrollments.0.program.id', $this->program->id)
+        $response->assertInertia(fn ($page) => $page->has('enrollments.0.user')
+            ->has('enrollments.0.program')
+            ->where('enrollments.0.user.id', $this->student->id)
+            ->where('enrollments.0.program.id', $this->program->id)
         );
     }
 }

@@ -2,33 +2,32 @@
 
 namespace Tests\Feature\Student;
 
-use App\Models\User;
-use App\Models\Program;
-use App\Models\Lesson;
 use App\Models\Enrollment;
-use App\Models\LessonProgress;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class DashboardTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $student;
+
     private User $admin;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create roles safely
         $this->createRoles();
-        
+
         // Create test users
         $this->student = User::factory()->create();
         $this->student->assignRole('student');
-        
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
     }
@@ -58,15 +57,14 @@ class DashboardTest extends TestCase
     public function test_student_can_view_program_details(): void
     {
         $program = Program::factory()->create();
-        
+
         $response = $this->actingAs($this->student)
             ->get("/dashboard/programs/{$program->slug}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Dashboard/Programs/Show')
-                ->has('program')
-                ->where('program.slug', $program->slug)
+        $response->assertInertia(fn ($page) => $page->component('Dashboard/Programs/Show')
+            ->has('program')
+            ->where('program.slug', $program->slug)
         );
     }
 
@@ -82,20 +80,20 @@ class DashboardTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
     }
 
     public function test_student_cannot_enroll_twice_in_same_program(): void
     {
         $program = Program::factory()->create();
-        
+
         // Create existing enrollment
         Enrollment::factory()->create([
             'user_id' => $this->student->id,
             'program_id' => $program->id,
             'status' => 'active',
-            'approval_status' => 'approved'
+            'approval_status' => 'approved',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -112,7 +110,7 @@ class DashboardTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -127,13 +125,13 @@ class DashboardTest extends TestCase
     {
         $otherStudent = User::factory()->create();
         $otherStudent->assignRole('student');
-        
+
         $program = Program::factory()->create();
         $enrollment = Enrollment::factory()->create([
             'user_id' => $otherStudent->id,
             'program_id' => $program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->student)
@@ -149,14 +147,13 @@ class DashboardTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $program->id,
             'status' => 'active',
-            'approval_status' => 'approved'
+            'approval_status' => 'approved',
         ]);
 
         $response = $this->actingAs($this->student)->get('/dashboard');
 
-        $response->assertInertia(fn ($page) => 
-            $page->has('enrolledProgram')
-                ->where('enrolledProgram.id', $program->id) // Fixed: program data is directly in enrolledProgram, not nested
+        $response->assertInertia(fn ($page) => $page->has('enrolledProgram')
+            ->where('enrolledProgram.id', $program->id) // Fixed: program data is directly in enrolledProgram, not nested
         );
     }
 
@@ -166,9 +163,8 @@ class DashboardTest extends TestCase
 
         $response = $this->actingAs($this->student)->get('/dashboard');
 
-        $response->assertInertia(fn ($page) => 
-            $page->has('availablePrograms')
-                ->where('enrolledProgram', null)
+        $response->assertInertia(fn ($page) => $page->has('availablePrograms')
+            ->where('enrolledProgram', null)
         );
     }
 }

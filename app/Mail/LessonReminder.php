@@ -30,7 +30,7 @@ class LessonReminder extends Mailable implements ShouldQueue
     {
         return new Envelope(
             from: 'abacoding@abacoding.com',
-            subject: 'Lesson Reminder - ' . $this->schedule->title . ' Tomorrow',
+            subject: 'Lesson Reminder - '.$this->schedule->title.' Tomorrow',
         );
     }
 

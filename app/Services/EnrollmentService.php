@@ -23,6 +23,7 @@ class EnrollmentService
 
         if ($totalLessons === 0) {
             $enrollment->update(['progress' => 0]);
+
             return;
         }
 
@@ -32,7 +33,7 @@ class EnrollmentService
         $updateData = ['progress' => round($progressPercentage, 2)];
 
         // Mark as completed if all lessons are done
-        if ($progressPercentage >= 100 && !$enrollment->completed_at) {
+        if ($progressPercentage >= 100 && ! $enrollment->completed_at) {
             $updateData['completed_at'] = now();
             $updateData['status'] = 'completed';
         }
@@ -47,10 +48,12 @@ class EnrollmentService
     {
         // An enrollment is considered "active and approved" if it's approved and either active or paused
         // 'paused' is for approved users who haven't started yet
-        // 'active' is for users currently learning  
+        // 'active' is for users currently learning
         // 'completed' users should not be redirected to dashboard automatically
-        return $enrollment->approval_status === 'approved' && 
-               in_array($enrollment->status, ['active', 'paused']);
+        // 'access_blocked' users should not have learning access
+        return $enrollment->approval_status === 'approved' &&
+               in_array($enrollment->status, ['active', 'paused']) &&
+               ! $enrollment->access_blocked;
     }
 
     /**
@@ -77,7 +80,7 @@ class EnrollmentService
             ->orderBy('updated_at', 'desc')
             ->first();
 
-        if ($lastProgress && !$lastProgress->isCompleted()) {
+        if ($lastProgress && ! $lastProgress->isCompleted()) {
             // Continue with the lesson in progress
             return $lastProgress->lesson;
         }
@@ -90,12 +93,12 @@ class EnrollmentService
 
         foreach ($lessons as $lesson) {
             // We'll need to inject LessonService later to avoid circular dependency
-            if (!$this->isLessonUnlockedForUser($lesson, $user)) {
+            if (! $this->isLessonUnlockedForUser($lesson, $user)) {
                 continue;
             }
 
             $progress = $lesson->userProgress($user);
-            if (!$progress || !$progress->isCompleted()) {
+            if (! $progress || ! $progress->isCompleted()) {
                 return $lesson;
             }
         }
@@ -134,6 +137,9 @@ class EnrollmentService
             'progress' => round($enrollment->progress, 0),
             'status' => $enrollment->status,
             'approvalStatus' => $enrollment->approval_status,
+            'accessBlocked' => $enrollment->access_blocked,
+            'blockReason' => $enrollment->block_reason,
+            'blockedAt' => $enrollment->blocked_at?->format('M d, Y'),
             'enrolledAt' => $enrollment->enrolled_at->format('M d, Y'),
             'currentLevel' => $currentLevel,
             'totalLevels' => count($this->programService->getProgramLevels($program)),

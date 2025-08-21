@@ -3,11 +3,11 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\ClassSchedule;
-use App\Models\User;
-use App\Models\Program;
-use App\Models\Lesson;
 use App\Models\Enrollment;
+use App\Models\Lesson;
 use App\Models\Notification;
+use App\Models\Program;
+use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,52 +15,52 @@ use Tests\Traits\CreatesRoles;
 
 class ClassScheduleTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $admin;
+
     private User $student;
+
     private Program $program;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->createRoles();
-        
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
-        
+
         $this->student = User::factory()->create();
         $this->student->assignRole('student');
-        
+
         $this->program = Program::factory()->create();
     }
 
     public function test_admin_can_view_class_schedules_index(): void
     {
         ClassSchedule::factory()->count(3)->create();
-        
+
         $response = $this->actingAs($this->admin)->get('/admin/class-schedules');
-        
+
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Admin/ClassSchedules/Index')
-                ->has('schedules')
-                ->has('admins')
-                ->has('filters')
+        $response->assertInertia(fn ($page) => $page->component('Admin/ClassSchedules/Index')
+            ->has('schedules')
+            ->has('admins')
+            ->has('filters')
         );
     }
 
     public function test_admin_can_view_create_schedule_form(): void
     {
         $response = $this->actingAs($this->admin)->get('/admin/class-schedules/create');
-        
+
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Admin/ClassSchedules/Create')
-                ->has('students')
-                ->has('admins')
-                ->has('programs')
+        $response->assertInertia(fn ($page) => $page->component('Admin/ClassSchedules/Create')
+            ->has('students')
+            ->has('admins')
+            ->has('programs')
         );
     }
 
@@ -83,7 +83,7 @@ class ClassScheduleTest extends TestCase
 
         $response->assertRedirect('/admin/class-schedules');
         $response->assertSessionHas('success');
-        
+
         $this->assertDatabaseHas('class_schedules', [
             'student_id' => $this->student->id,
             'admin_id' => $this->admin->id,
@@ -127,7 +127,7 @@ class ClassScheduleTest extends TestCase
             ->post('/admin/class-schedules', $scheduleData);
 
         $response->assertRedirect('/admin/class-schedules');
-        
+
         $this->assertDatabaseHas('class_schedules', [
             'student_id' => $this->student->id,
             'program_id' => $this->program->id,
@@ -191,9 +191,8 @@ class ClassScheduleTest extends TestCase
             ->get("/admin/class-schedules/{$schedule->id}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Admin/ClassSchedules/Show')
-                ->has('schedule')
+        $response->assertInertia(fn ($page) => $page->component('Admin/ClassSchedules/Show')
+            ->has('schedule')
         );
     }
 
@@ -208,9 +207,8 @@ class ClassScheduleTest extends TestCase
             ->get("/admin/class-schedules/{$schedule->id}/edit");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Admin/ClassSchedules/Edit')
-                ->has('schedule')
+        $response->assertInertia(fn ($page) => $page->component('Admin/ClassSchedules/Edit')
+            ->has('schedule')
         );
     }
 
@@ -236,7 +234,7 @@ class ClassScheduleTest extends TestCase
             ->put("/admin/class-schedules/{$schedule->id}", $updateData);
 
         $response->assertRedirect('/admin/class-schedules');
-        
+
         $schedule->refresh();
         $this->assertEquals('Updated Title', $schedule->title);
         $this->assertEquals(90, $schedule->duration_minutes);
@@ -267,7 +265,7 @@ class ClassScheduleTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         $schedule->refresh();
         $this->assertEquals('cancelled', $schedule->status);
         $this->assertEquals('Student unavailable', $schedule->cancellation_reason);
@@ -296,7 +294,7 @@ class ClassScheduleTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         $schedule->refresh();
         $this->assertEquals('completed', $schedule->status);
         $this->assertEquals('Great progress on algebra', $schedule->session_notes);
@@ -312,8 +310,7 @@ class ClassScheduleTest extends TestCase
             ->get('/admin/class-schedules?status=completed');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->where('filters.status', 'completed')
+        $response->assertInertia(fn ($page) => $page->where('filters.status', 'completed')
         );
     }
 
@@ -326,8 +323,7 @@ class ClassScheduleTest extends TestCase
             ->get('/admin/class-schedules?date_filter=today');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->where('filters.date_filter', 'today')
+        $response->assertInertia(fn ($page) => $page->where('filters.date_filter', 'today')
         );
     }
 
@@ -335,7 +331,7 @@ class ClassScheduleTest extends TestCase
     {
         $student1 = User::factory()->create(['name' => 'John Doe']);
         $student2 = User::factory()->create(['name' => 'Jane Smith']);
-        
+
         ClassSchedule::factory()->create(['student_id' => $student1->id]);
         ClassSchedule::factory()->create(['student_id' => $student2->id]);
 
@@ -343,8 +339,7 @@ class ClassScheduleTest extends TestCase
             ->get('/admin/class-schedules?search=John');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->where('filters.search', 'John')
+        $response->assertInertia(fn ($page) => $page->where('filters.search', 'John')
         );
     }
 
@@ -355,7 +350,7 @@ class ClassScheduleTest extends TestCase
             'title' => 'Lesson 1',
             'is_active' => true,
         ]);
-        
+
         $lesson2 = Lesson::factory()->create([
             'program_id' => $this->program->id,
             'title' => 'Lesson 2',
@@ -395,15 +390,15 @@ class ClassScheduleTest extends TestCase
                 [
                     'id' => $existingSchedule->id,
                     'title' => $existingSchedule->title,
-                ]
-            ]
+                ],
+            ],
         ]);
     }
 
     public function test_student_cannot_access_class_schedule_routes(): void
     {
         $schedule = ClassSchedule::factory()->create();
-        
+
         $routes = [
             ['GET', '/admin/class-schedules'],
             ['GET', '/admin/class-schedules/create'],
@@ -417,7 +412,7 @@ class ClassScheduleTest extends TestCase
 
         foreach ($routes as [$method, $route]) {
             $response = $this->actingAs($this->student);
-            
+
             if ($method === 'GET') {
                 $response = $response->get($route);
             } elseif ($method === 'POST') {
@@ -432,7 +427,7 @@ class ClassScheduleTest extends TestCase
                     'type' => 'lesson',
                 ]);
             }
-            
+
             $response->assertStatus(403);
         }
     }
@@ -458,14 +453,14 @@ class ClassScheduleTest extends TestCase
             'title' => 'Test Class',
         ]);
 
-        $notificationService = new NotificationService();
+        $notificationService = new NotificationService;
         $notification = $notificationService->createScheduleNotification($schedule, 'scheduled');
 
         $this->assertEquals('Class Scheduled', $notification->title);
         $this->assertEquals('schedule', $notification->type);
         $this->assertStringContainsString('Test Class', $notification->message);
         $this->assertStringContainsString($this->admin->name, $notification->message);
-        
+
         $this->assertArrayHasKey('schedule_id', $notification->data);
         $this->assertArrayHasKey('student_id', $notification->data);
         $this->assertArrayHasKey('admin_id', $notification->data);

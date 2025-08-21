@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,15 +31,15 @@ class VerifyEmailController extends Controller
         // If user is already verified
         if ($user->hasVerifiedEmail()) {
             // Log them in if they're not already authenticated
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 Auth::login($user);
             }
-            
+
             // Check if this is a demo account
             if ($user->isDemoAccount()) {
                 return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
             }
-            
+
             return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
         }
 
@@ -50,7 +49,7 @@ class VerifyEmailController extends Controller
         }
 
         // Log the user in automatically after verification
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             Auth::login($user);
         }
 

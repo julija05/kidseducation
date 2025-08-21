@@ -86,7 +86,7 @@ class ClassSchedule extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'class_schedule_students', 'class_schedule_id', 'student_id')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     // Get all students (individual or group)
@@ -95,7 +95,7 @@ class ClassSchedule extends Model
         if ($this->is_group_class) {
             return $this->students;
         }
-        
+
         return $this->student ? collect([$this->student]) : collect();
     }
 
@@ -103,7 +103,7 @@ class ClassSchedule extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('scheduled_at', '>', now())
-                    ->whereIn('status', ['scheduled', 'confirmed']);
+            ->whereIn('status', ['scheduled', 'confirmed']);
     }
 
     public function scopeToday($query)
@@ -115,7 +115,7 @@ class ClassSchedule extends Model
     {
         return $query->whereBetween('scheduled_at', [
             now()->startOfWeek(),
-            now()->endOfWeek()
+            now()->endOfWeek(),
         ]);
     }
 
@@ -162,32 +162,32 @@ class ClassSchedule extends Model
 
     public function isUpcoming(): bool
     {
-        return $this->scheduled_at->isFuture() && !$this->isCancelled();
+        return $this->scheduled_at->isFuture() && ! $this->isCancelled();
     }
 
     public function canBeCancelled(): bool
     {
-        return !$this->isCancelled() && !$this->isCompleted() && !$this->isPast();
+        return ! $this->isCancelled() && ! $this->isCompleted() && ! $this->isPast();
     }
 
     public function canBeRescheduled(): bool
     {
-        return !$this->isCancelled() && !$this->isCompleted() && !$this->isPast();
+        return ! $this->isCancelled() && ! $this->isCompleted() && ! $this->isPast();
     }
 
     // Action methods
     public function confirm(): bool
     {
-        if (!$this->isScheduled()) {
+        if (! $this->isScheduled()) {
             return false;
         }
 
         return $this->update(['status' => 'confirmed']);
     }
 
-    public function cancel(string $reason = null, User $cancelledBy = null): bool
+    public function cancel(?string $reason = null, ?User $cancelledBy = null): bool
     {
-        if (!$this->canBeCancelled()) {
+        if (! $this->canBeCancelled()) {
             return false;
         }
 
@@ -199,7 +199,7 @@ class ClassSchedule extends Model
         ]);
     }
 
-    public function complete(string $notes = null, array $sessionData = null): bool
+    public function complete(?string $notes = null, ?array $sessionData = null): bool
     {
         if ($this->isCancelled() || $this->isCompleted()) {
             return false;
@@ -215,7 +215,7 @@ class ClassSchedule extends Model
 
     public function reschedule(\DateTime $newTime): bool
     {
-        if (!$this->canBeRescheduled()) {
+        if (! $this->canBeRescheduled()) {
             return false;
         }
 
@@ -257,7 +257,7 @@ class ClassSchedule extends Model
 
     public function getStatusColor(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'scheduled' => 'yellow',
             'confirmed' => 'green',
             'cancelled' => 'red',
@@ -268,7 +268,7 @@ class ClassSchedule extends Model
 
     public function getTypeLabel(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             'lesson' => 'Lesson',
             'assessment' => 'Assessment',
             'consultation' => 'Consultation',
@@ -286,19 +286,20 @@ class ClassSchedule extends Model
 
         // Send reminder between 12-48 hours before class
         $hoursUntilClass = now()->diffInHours($this->scheduled_at, false);
+
         return $hoursUntilClass >= 12 && $hoursUntilClass <= 48;
     }
 
     // Get enrollment for this class (if tied to a program)
     public function getEnrollment(): ?Enrollment
     {
-        if (!$this->program_id) {
+        if (! $this->program_id) {
             return null;
         }
 
         return Enrollment::where('user_id', $this->student_id)
-                        ->where('program_id', $this->program_id)
-                        ->first();
+            ->where('program_id', $this->program_id)
+            ->first();
     }
 
     // Group class methods
@@ -312,32 +313,33 @@ class ClassSchedule extends Model
         if ($this->is_group_class) {
             return $this->students()->count();
         }
-        
+
         return $this->student_id ? 1 : 0;
     }
 
     public function hasAvailableSpots(): bool
     {
-        if (!$this->is_group_class) {
+        if (! $this->is_group_class) {
             return $this->student_id === null;
         }
-        
+
         return $this->getStudentCount() < $this->max_students;
     }
 
     public function addStudent(User $student): bool
     {
-        if (!$this->hasAvailableSpots()) {
+        if (! $this->hasAvailableSpots()) {
             return false;
         }
 
         if ($this->is_group_class) {
-            if (!$this->students()->where('student_id', $student->id)->exists()) {
+            if (! $this->students()->where('student_id', $student->id)->exists()) {
                 $this->students()->attach($student->id);
+
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -346,12 +348,13 @@ class ClassSchedule extends Model
         if ($this->is_group_class) {
             return $this->students()->detach($student->id) > 0;
         }
-        
+
         if ($this->student_id === $student->id) {
             $this->update(['student_id' => null]);
+
             return true;
         }
-        
+
         return false;
     }
 
@@ -362,7 +365,7 @@ class ClassSchedule extends Model
     {
         $connection = \DB::connection();
         $driver = $connection->getDriverName();
-        
+
         switch ($driver) {
             case 'sqlite':
                 return "datetime({$column}, '+' || {$minutesColumn} || ' minutes')";
@@ -389,15 +392,15 @@ class ClassSchedule extends Model
                 $q->where(function ($subQ) use ($startTime, $endTimeSql) {
                     // New class starts during existing class
                     $subQ->where('scheduled_at', '<=', $startTime)
-                         ->whereRaw($endTimeSql . ' > ?', [$startTime]);
+                        ->whereRaw($endTimeSql.' > ?', [$startTime]);
                 })->orWhere(function ($subQ) use ($endTime, $endTimeSql) {
                     // New class ends during existing class
                     $subQ->where('scheduled_at', '<', $endTime)
-                         ->whereRaw($endTimeSql . ' >= ?', [$endTime]);
+                        ->whereRaw($endTimeSql.' >= ?', [$endTime]);
                 })->orWhere(function ($subQ) use ($startTime, $endTime, $endTimeSql) {
                     // New class completely contains existing class
                     $subQ->where('scheduled_at', '>=', $startTime)
-                         ->whereRaw($endTimeSql . ' <= ?', [$endTime]);
+                        ->whereRaw($endTimeSql.' <= ?', [$endTime]);
                 });
             });
 
@@ -421,13 +424,13 @@ class ClassSchedule extends Model
             ->where(function ($q) use ($startTime, $endTime, $endTimeSql) {
                 $q->where(function ($subQ) use ($startTime, $endTimeSql) {
                     $subQ->where('scheduled_at', '<=', $startTime)
-                         ->whereRaw($endTimeSql . ' > ?', [$startTime]);
+                        ->whereRaw($endTimeSql.' > ?', [$startTime]);
                 })->orWhere(function ($subQ) use ($endTime, $endTimeSql) {
                     $subQ->where('scheduled_at', '<', $endTime)
-                         ->whereRaw($endTimeSql . ' >= ?', [$endTime]);
+                        ->whereRaw($endTimeSql.' >= ?', [$endTime]);
                 })->orWhere(function ($subQ) use ($startTime, $endTime, $endTimeSql) {
                     $subQ->where('scheduled_at', '>=', $startTime)
-                         ->whereRaw($endTimeSql . ' <= ?', [$endTime]);
+                        ->whereRaw($endTimeSql.' <= ?', [$endTime]);
                 });
             });
 

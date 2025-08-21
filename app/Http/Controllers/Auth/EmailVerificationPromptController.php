@@ -20,10 +20,10 @@ class EmailVerificationPromptController extends Controller
             if ($request->user()->isDemoAccount()) {
                 return redirect()->intended(route('dashboard', absolute: false));
             }
-            
+
             return redirect()->intended(route('dashboard', absolute: false));
         }
-        
+
         return Inertia::render('Auth/VerifyEmail', ['status' => session('status')]);
     }
 }

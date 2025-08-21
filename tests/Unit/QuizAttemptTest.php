@@ -2,29 +2,31 @@
 
 namespace Tests\Unit;
 
+use App\Models\Lesson;
+use App\Models\Program;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\QuizQuestion;
-use App\Models\Lesson;
-use App\Models\Program;
 use App\Models\User;
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class QuizAttemptTest extends TestCase
 {
     use RefreshDatabase;
 
     protected User $user;
+
     protected Quiz $quiz;
+
     protected Quiz $mentalArithmeticQuiz;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
-        
+
         $program = Program::create([
             'name' => 'Math Program',
             'slug' => 'math-program',
@@ -63,7 +65,6 @@ class QuizAttemptTest extends TestCase
         ]);
     }
 
-
     public function it_calculates_score_for_mental_arithmetic_with_temporary_questions()
     {
         $attempt = QuizAttempt::create([
@@ -83,7 +84,7 @@ class QuizAttemptTest extends TestCase
             ],
             'correct_count' => 2,
             'total_sessions' => 3,
-            'percentage' => 67
+            'percentage' => 67,
         ];
 
         $attempt->recordAnswer('temp_mental_arithmetic', json_encode($flashCardResults));
@@ -95,7 +96,6 @@ class QuizAttemptTest extends TestCase
         $this->assertEquals(1, $attempt->correct_answers); // >= 50% threshold
         $this->assertEquals(1, $attempt->total_questions);
     }
-
 
     public function it_handles_perfect_mental_arithmetic_score()
     {
@@ -115,7 +115,7 @@ class QuizAttemptTest extends TestCase
             ],
             'correct_count' => 3,
             'total_sessions' => 3,
-            'percentage' => 100
+            'percentage' => 100,
         ];
 
         $attempt->recordAnswer('temp_mental_arithmetic', json_encode($flashCardResults));
@@ -126,7 +126,6 @@ class QuizAttemptTest extends TestCase
         $this->assertEquals(100, $attempt->score);
         $this->assertEquals(1, $attempt->correct_answers);
     }
-
 
     public function it_handles_zero_mental_arithmetic_score()
     {
@@ -146,7 +145,7 @@ class QuizAttemptTest extends TestCase
             ],
             'correct_count' => 0,
             'total_sessions' => 3,
-            'percentage' => 0
+            'percentage' => 0,
         ];
 
         $attempt->recordAnswer('temp_mental_arithmetic', json_encode($flashCardResults));
@@ -157,7 +156,6 @@ class QuizAttemptTest extends TestCase
         $this->assertEquals(0, $attempt->score);
         $this->assertEquals(0, $attempt->correct_answers); // < 50% threshold
     }
-
 
     public function it_calculates_score_for_regular_quiz_questions()
     {
@@ -202,7 +200,6 @@ class QuizAttemptTest extends TestCase
         $this->assertEquals(2, $attempt->total_questions);
     }
 
-
     public function it_handles_no_answers_gracefully()
     {
         $attempt = QuizAttempt::create([
@@ -220,7 +217,6 @@ class QuizAttemptTest extends TestCase
         $this->assertEquals(0, $attempt->correct_answers);
     }
 
-
     public function it_records_answers_with_string_and_integer_ids()
     {
         $attempt = QuizAttempt::create([
@@ -232,18 +228,17 @@ class QuizAttemptTest extends TestCase
 
         // Test with integer ID
         $attempt->recordAnswer(1, 'answer1');
-        
+
         // Test with string ID
         $attempt->recordAnswer('temp_mental_arithmetic', 'answer2');
 
         $answers = $attempt->answers;
-        
+
         $this->assertArrayHasKey('1', $answers);
         $this->assertArrayHasKey('temp_mental_arithmetic', $answers);
         $this->assertEquals('answer1', $answers['1']['answer']);
         $this->assertEquals('answer2', $answers['temp_mental_arithmetic']['answer']);
     }
-
 
     public function it_checks_if_questions_are_answered()
     {
@@ -258,11 +253,10 @@ class QuizAttemptTest extends TestCase
         $this->assertFalse($attempt->hasAnsweredQuestion('temp_mental_arithmetic'));
 
         $attempt->recordAnswer(1, 'answer');
-        
+
         $this->assertTrue($attempt->hasAnsweredQuestion(1));
         $this->assertFalse($attempt->hasAnsweredQuestion('temp_mental_arithmetic'));
     }
-
 
     public function it_completes_attempt_and_calculates_final_score()
     {
@@ -275,7 +269,7 @@ class QuizAttemptTest extends TestCase
 
         $flashCardResults = [
             'type' => 'flash_card_sessions',
-            'percentage' => 85
+            'percentage' => 85,
         ];
 
         $attempt->recordAnswer('temp_mental_arithmetic', json_encode($flashCardResults));
@@ -286,7 +280,6 @@ class QuizAttemptTest extends TestCase
         $this->assertNotNull($attempt->time_taken);
         $this->assertEquals(85, $attempt->score);
     }
-
 
     public function it_formats_student_data_correctly()
     {
@@ -311,7 +304,6 @@ class QuizAttemptTest extends TestCase
         $this->assertEquals(85.5, $formatted['score']);
         $this->assertEquals('Completed', $formatted['status_display']);
     }
-
 
     public function it_handles_invalid_mental_arithmetic_json()
     {
