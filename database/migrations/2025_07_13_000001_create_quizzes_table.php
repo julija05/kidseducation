@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('quizzes')) {
+        if (! Schema::hasTable('quizzes')) {
             Schema::create('quizzes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('lesson_id')->constrained()->onDelete('cascade');

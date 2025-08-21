@@ -17,7 +17,7 @@ class LessonProgressFactory extends Factory
     public function definition(): array
     {
         $status = $this->faker->randomElement(['not_started', 'in_progress', 'completed']);
-        $progressPercentage = match($status) {
+        $progressPercentage = match ($status) {
             'not_started' => 0,
             'in_progress' => $this->faker->numberBetween(1, 99),
             'completed' => 100,
@@ -34,7 +34,7 @@ class LessonProgressFactory extends Factory
             'session_data' => $this->faker->optional()->randomElement([
                 ['time_spent' => $this->faker->numberBetween(300, 3600)],
                 ['attempts' => $this->faker->numberBetween(1, 3)],
-                ['resources_viewed' => $this->faker->numberBetween(1, 5)]
+                ['resources_viewed' => $this->faker->numberBetween(1, 5)],
             ]),
         ];
     }

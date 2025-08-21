@@ -16,7 +16,7 @@ return new class extends Migration
             // Add fields for group classes
             $table->boolean('is_group_class')->default(false);
             $table->integer('max_students')->default(1);
-            
+
             // Make student_id nullable since group classes will use pivot table
             $table->foreignId('student_id')->nullable()->change();
         });
@@ -30,7 +30,7 @@ return new class extends Migration
 
             // Prevent duplicate enrollments
             $table->unique(['class_schedule_id', 'student_id']);
-            
+
             // Indexes for better performance
             $table->index('class_schedule_id');
             $table->index('student_id');
@@ -43,7 +43,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('class_schedule_students');
-        
+
         Schema::table('class_schedules', function (Blueprint $table) {
             $table->dropColumn(['is_group_class', 'max_students']);
             $table->foreignId('student_id')->nullable(false)->change();

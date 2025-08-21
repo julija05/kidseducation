@@ -12,24 +12,26 @@ use Tests\Traits\CreatesRoles;
 
 class NotificationIntegrationTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $admin;
+
     private User $student;
+
     private Program $program;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->createRoles();
-        
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
-        
+
         $this->student = User::factory()->create();
         $this->student->assignRole('student');
-        
+
         $this->program = Program::factory()->create();
     }
 
@@ -40,7 +42,7 @@ class NotificationIntegrationTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         // Step 2: Approve the enrollment (should create notification)
@@ -48,7 +50,7 @@ class NotificationIntegrationTest extends TestCase
             ->post("/admin/enrollments/{$enrollment->id}/approve");
 
         $response->assertRedirect();
-        
+
         // Step 3: Verify notification was created
         $this->assertEquals(1, Notification::count());
         $notification = Notification::first();
@@ -59,16 +61,15 @@ class NotificationIntegrationTest extends TestCase
         $anotherEnrollment = Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         $response = $this->actingAs($this->admin)
             ->get("/admin/enrollments/pending?highlight_user={$anotherEnrollment->user_id}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->has('highlight_user_id')
-                ->where('highlight_user_id', (string) $anotherEnrollment->user_id)
+        $response->assertInertia(fn ($page) => $page->has('highlight_user_id')
+            ->where('highlight_user_id', (string) $anotherEnrollment->user_id)
         );
 
         // Step 5: Test marking notification as read
@@ -84,15 +85,14 @@ class NotificationIntegrationTest extends TestCase
     {
         // Create some notifications
         $notification = Notification::factory()->enrollment()->create();
-        
+
         // Access any admin page and verify notifications are included
         $response = $this->actingAs($this->admin)->get('/admin/enrollments/pending');
-        
+
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->has('notifications')
-                ->has('notifications.recent')
-                ->has('notifications.unread_count')
+        $response->assertInertia(fn ($page) => $page->has('notifications')
+            ->has('notifications.recent')
+            ->has('notifications.unread_count')
         );
     }
 
@@ -102,17 +102,17 @@ class NotificationIntegrationTest extends TestCase
             'user_id' => $this->student->id,
             'program_id' => $this->program->id,
             'status' => 'paused',
-            'approval_status' => 'pending'
+            'approval_status' => 'pending',
         ]);
 
         // Reject the enrollment
         $response = $this->actingAs($this->admin)
             ->post("/admin/enrollments/{$enrollment->id}/reject", [
-                'rejection_reason' => 'Insufficient prerequisites'
+                'rejection_reason' => 'Insufficient prerequisites',
             ]);
 
         $response->assertRedirect();
-        
+
         // Verify notification structure
         $notification = Notification::first();
         $this->assertEquals('enrollment', $notification->type);
@@ -129,21 +129,21 @@ class NotificationIntegrationTest extends TestCase
             'program_id' => $this->program->id,
             'status' => 'paused',
             'approval_status' => 'pending',
-            'created_at' => now()->subHours(3)
+            'created_at' => now()->subHours(3),
         ]);
-        
+
         $secondEnrollment = Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'paused',
             'approval_status' => 'pending',
-            'created_at' => now()->subHours(2)
+            'created_at' => now()->subHours(2),
         ]);
-        
+
         $thirdEnrollment = Enrollment::factory()->create([
             'program_id' => $this->program->id,
             'status' => 'paused',
             'approval_status' => 'pending',
-            'created_at' => now()->subHours(1)
+            'created_at' => now()->subHours(1),
         ]);
 
         // Test highlighting the second enrollment (middle one chronologically)
@@ -151,10 +151,9 @@ class NotificationIntegrationTest extends TestCase
             ->get("/admin/enrollments/pending?highlight_user={$secondEnrollment->user_id}");
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->has('enrollments', 3)
-                ->where('enrollments.0.user.id', $secondEnrollment->user_id) // Should be first due to highlight
-                ->where('highlight_user_id', (string) $secondEnrollment->user_id)
+        $response->assertInertia(fn ($page) => $page->has('enrollments', 3)
+            ->where('enrollments.0.user.id', $secondEnrollment->user_id) // Should be first due to highlight
+            ->where('highlight_user_id', (string) $secondEnrollment->user_id)
         );
     }
 
@@ -168,26 +167,24 @@ class NotificationIntegrationTest extends TestCase
         $response = $this->actingAs($this->admin)->get('/admin/dashboard');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->has('notifications')
-                ->has('notifications.recent')
-                ->has('notifications.unread_count')
-                ->whereType('notifications.unread_count', 'integer')
+        $response->assertInertia(fn ($page) => $page->has('notifications')
+            ->has('notifications.recent')
+            ->has('notifications.unread_count')
+            ->whereType('notifications.unread_count', 'integer')
         );
     }
 
     public function test_admin_pages_consistently_include_notifications(): void
     {
         Notification::factory()->count(2)->create();
-        
+
         // Test that enrollments page includes notifications for dropdown
         $response = $this->actingAs($this->admin)->get('/admin/enrollments/pending');
-        
+
         $response->assertStatus(200);
-        $response->assertInertia(fn ($inertiaPage) => 
-            $inertiaPage->has('notifications')
-                ->has('notifications.recent')
-                ->has('notifications.unread_count')
+        $response->assertInertia(fn ($inertiaPage) => $inertiaPage->has('notifications')
+            ->has('notifications.recent')
+            ->has('notifications.unread_count')
         );
     }
 }

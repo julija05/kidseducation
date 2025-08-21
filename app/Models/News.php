@@ -4,26 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class News extends Model
 {
     /** @use HasFactory<\Database\Factories\NewsFactory> */
     use HasFactory;
-    
+
     protected $fillable = [
-        'title', 
-        'content', 
+        'title',
+        'content',
         'title_en',
         'title_mk',
         'content_en',
         'content_mk',
-        'image', 
-        'category', 
-        'slug', 
-        'is_published', 
-        'published_at'
+        'image',
+        'category',
+        'slug',
+        'is_published',
+        'published_at',
     ];
 
     protected $casts = [
@@ -37,7 +37,7 @@ class News extends Model
     protected $appends = [
         'translated_title',
         'translated_content',
-        'available_languages'
+        'available_languages',
     ];
 
     const CATEGORIES = [
@@ -50,7 +50,7 @@ class News extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->slug)) {
                 $model->slug = Str::slug($model->title);
@@ -86,7 +86,7 @@ class News extends Model
             return $query->where('category', $category);
         } catch (\Exception $e) {
             // Column doesn't exist yet, filter by title containing category for basic functionality
-            return $query->where('title', 'LIKE', '%' . str_replace('_', ' ', $category) . '%');
+            return $query->where('title', 'LIKE', '%'.str_replace('_', ' ', $category).'%');
         }
     }
 
@@ -96,9 +96,9 @@ class News extends Model
             'how_to_use' => 'how_to_use_platform',
             'tutorials' => 'tutorials_guides',
             'updates' => 'platform_updates',
-            'news' => 'news_announcements'
+            'news' => 'news_announcements',
         ];
-        
+
         $key = $keyMap[$this->category] ?? null;
         if ($key && function_exists('__')) {
             $translation = __("app.articles.{$key}");
@@ -106,9 +106,10 @@ class News extends Model
             if ($translation === "app.articles.{$key}") {
                 return self::CATEGORIES[$this->category] ?? ucfirst(str_replace('_', ' ', $this->category));
             }
+
             return $translation;
         }
-        
+
         // Fallback to the hardcoded value if translation key doesn't exist
         return self::CATEGORIES[$this->category] ?? $this->category;
     }
@@ -125,17 +126,17 @@ class News extends Model
     {
         $locale = app()->getLocale();
         $titleField = "title_{$locale}";
-        
+
         // Check if translation field exists and has content
-        if (Schema::hasColumn('news', $titleField) && !empty($this->$titleField)) {
+        if (Schema::hasColumn('news', $titleField) && ! empty($this->$titleField)) {
             return $this->$titleField;
         }
-        
+
         // Fallback to English
-        if (Schema::hasColumn('news', 'title_en') && !empty($this->title_en)) {
+        if (Schema::hasColumn('news', 'title_en') && ! empty($this->title_en)) {
             return $this->title_en;
         }
-        
+
         // Final fallback to original title field
         return $this->title;
     }
@@ -147,17 +148,17 @@ class News extends Model
     {
         $locale = app()->getLocale();
         $contentField = "content_{$locale}";
-        
+
         // Check if translation field exists and has content
-        if (Schema::hasColumn('news', $contentField) && !empty($this->$contentField)) {
+        if (Schema::hasColumn('news', $contentField) && ! empty($this->$contentField)) {
             return $this->$contentField;
         }
-        
+
         // Fallback to English
-        if (Schema::hasColumn('news', 'content_en') && !empty($this->content_en)) {
+        if (Schema::hasColumn('news', 'content_en') && ! empty($this->content_en)) {
             return $this->content_en;
         }
-        
+
         // Final fallback to original content field
         return $this->content;
     }
@@ -168,12 +169,12 @@ class News extends Model
     public function getAvailableLanguagesAttribute()
     {
         $languages = ['en']; // English is always available as fallback
-        
+
         // Check which translation fields have content
-        if (Schema::hasColumn('news', 'title_mk') && !empty($this->title_mk)) {
+        if (Schema::hasColumn('news', 'title_mk') && ! empty($this->title_mk)) {
             $languages[] = 'mk';
         }
-        
+
         return array_unique($languages);
     }
 
@@ -185,13 +186,13 @@ class News extends Model
         if ($locale === 'en') {
             return true; // English is default
         }
-        
+
         $titleField = "title_{$locale}";
         $contentField = "content_{$locale}";
-        
-        return Schema::hasColumn('news', $titleField) && 
-               !empty($this->$titleField) && 
-               !empty($this->$contentField);
+
+        return Schema::hasColumn('news', $titleField) &&
+               ! empty($this->$titleField) &&
+               ! empty($this->$contentField);
     }
 
     /**
@@ -202,26 +203,26 @@ class News extends Model
         if ($locale === 'en') {
             // English is default, check for title_en and content_en
             return $query->whereNotNull('title_en')
-                        ->where('title_en', '!=', '')
-                        ->whereNotNull('content_en')
-                        ->where('content_en', '!=', '');
+                ->where('title_en', '!=', '')
+                ->whereNotNull('content_en')
+                ->where('content_en', '!=', '');
         }
-        
+
         $titleField = "title_{$locale}";
         $contentField = "content_{$locale}";
-        
+
         try {
             // Check if translation columns exist
             if (Schema::hasColumn('news', $titleField) && Schema::hasColumn('news', $contentField)) {
                 return $query->whereNotNull($titleField)
-                            ->where($titleField, '!=', '')
-                            ->whereNotNull($contentField)
-                            ->where($contentField, '!=', '');
+                    ->where($titleField, '!=', '')
+                    ->whereNotNull($contentField)
+                    ->where($contentField, '!=', '');
             }
         } catch (\Exception $e) {
             // Columns don't exist, return empty query
         }
-        
+
         return $query->whereRaw('1 = 0'); // No results
     }
 

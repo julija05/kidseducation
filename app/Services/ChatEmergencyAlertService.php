@@ -18,21 +18,21 @@ class ChatEmergencyAlertService
     {
         try {
             $admins = User::role('admin')->get();
-            
+
             foreach ($admins as $admin) {
                 Mail::to($admin->email)->send(new EmergencyChatAlert($conversation, $message));
             }
-            
+
             Log::info('Emergency chat alert sent', [
                 'conversation_id' => $conversation->id,
                 'message_id' => $message->id,
-                'admin_count' => $admins->count()
+                'admin_count' => $admins->count(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to send emergency chat alert: ' . $e->getMessage(), [
+            Log::error('Failed to send emergency chat alert: '.$e->getMessage(), [
                 'conversation_id' => $conversation->id,
                 'message_id' => $message->id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
         }
     }

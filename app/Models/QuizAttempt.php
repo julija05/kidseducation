@@ -86,20 +86,22 @@ class QuizAttempt extends Model
 
     public function getFormattedTimeTakenAttribute(): ?string
     {
-        if (!$this->time_taken) return null;
+        if (! $this->time_taken) {
+            return null;
+        }
 
         if ($this->time_taken < 60) {
-            return $this->time_taken . ' second' . ($this->time_taken !== 1 ? 's' : '');
+            return $this->time_taken.' second'.($this->time_taken !== 1 ? 's' : '');
         }
 
         $minutes = floor($this->time_taken / 60);
         $seconds = $this->time_taken % 60;
 
         if ($seconds === 0) {
-            return $minutes . ' minute' . ($minutes !== 1 ? 's' : '');
+            return $minutes.' minute'.($minutes !== 1 ? 's' : '');
         }
 
-        return $minutes . 'm ' . $seconds . 's';
+        return $minutes.'m '.$seconds.'s';
     }
 
     public function getScorePercentageAttribute(): float
@@ -109,7 +111,7 @@ class QuizAttempt extends Model
 
     public function getPassedAttribute(): bool
     {
-        return $this->status === 'completed' && 
+        return $this->status === 'completed' &&
                $this->score >= $this->quiz->passing_score;
     }
 
@@ -126,20 +128,28 @@ class QuizAttempt extends Model
 
     public function isExpired(): bool
     {
-        if ($this->status !== 'in_progress') return false;
-        
+        if ($this->status !== 'in_progress') {
+            return false;
+        }
+
         $timeLimit = $this->quiz->time_limit;
-        if (!$timeLimit) return false;
+        if (! $timeLimit) {
+            return false;
+        }
 
         return $this->started_at->addSeconds($timeLimit)->isPast();
     }
 
     public function getRemainingTime(): ?int
     {
-        if ($this->status !== 'in_progress') return null;
-        
+        if ($this->status !== 'in_progress') {
+            return null;
+        }
+
         $timeLimit = $this->quiz->time_limit;
-        if (!$timeLimit) return null;
+        if (! $timeLimit) {
+            return null;
+        }
 
         $elapsed = now()->diffInSeconds($this->started_at);
         $remaining = $timeLimit - $elapsed;
@@ -149,12 +159,13 @@ class QuizAttempt extends Model
 
     public function calculateScore(): void
     {
-        if (!$this->answers) {
+        if (! $this->answers) {
             $this->update([
                 'score' => 0,
                 'earned_points' => 0,
                 'correct_answers' => 0,
             ]);
+
             return;
         }
 
@@ -168,9 +179,9 @@ class QuizAttempt extends Model
             $sessionCount = $this->quiz->settings['session_count'] ?? 3;
             $pointsPerSession = $this->quiz->settings['points_per_session'] ?? 10;
             $totalPoints = $sessionCount * $pointsPerSession;
-            
+
             $userAnswer = $this->answers['temp_mental_arithmetic']['answer'] ?? '';
-            
+
             // Try to parse the flash card results
             try {
                 $answerData = json_decode($userAnswer, true);
@@ -188,11 +199,11 @@ class QuizAttempt extends Model
             // Standard scoring for regular questions
             foreach ($this->quiz->questions as $question) {
                 $totalPoints += $question->points;
-                
+
                 $answerKey = (string) $question->id;
                 if (isset($this->answers[$answerKey])) {
                     $userAnswer = $this->answers[$answerKey]['answer'] ?? '';
-                    
+
                     if ($question->isAnswerCorrect($userAnswer)) {
                         $earnedPoints += $question->points;
                         $correctAnswers++;
@@ -207,7 +218,6 @@ class QuizAttempt extends Model
 
         $scorePercentage = $totalPoints > 0 ? ($earnedPoints / $totalPoints) * 100 : 0;
 
-
         $this->update([
             'total_points' => $totalPoints,
             'earned_points' => $earnedPoints,
@@ -220,8 +230,8 @@ class QuizAttempt extends Model
     public function complete(): void
     {
         $this->calculateScore();
-        
-        $timeTaken = $this->started_at ? 
+
+        $timeTaken = $this->started_at ?
             now()->diffInSeconds($this->started_at) : null;
 
         $this->update([
@@ -229,11 +239,11 @@ class QuizAttempt extends Model
             'completed_at' => now(),
             'time_taken' => $timeTaken,
         ]);
-        
+
         // Award points for completing quiz
         $this->awardQuizPoints();
     }
-    
+
     // Award points to user's enrollment for completing quiz
     private function awardQuizPoints(): void
     {
@@ -241,7 +251,7 @@ class QuizAttempt extends Model
             ->where('program_id', $this->quiz->lesson->program_id)
             ->where('approval_status', 'approved')
             ->first();
-            
+
         if ($enrollment) {
             // Check if this is the first time the user has passed this quiz
             $hasPassedBefore = $this->quiz->userAttempts($this->user)
@@ -249,9 +259,9 @@ class QuizAttempt extends Model
                 ->where('status', 'completed')
                 ->where('score', '>=', $this->quiz->passing_score)
                 ->exists();
-            
+
             // Only award points if this is the first time passing the quiz
-            if ($this->passed && !$hasPassedBefore) {
+            if ($this->passed && ! $hasPassedBefore) {
                 $pointsToAward = $this->earned_points ?? 0;
                 if ($pointsToAward > 0) {
                     $enrollment->addQuizPoints($pointsToAward);
@@ -271,7 +281,7 @@ class QuizAttempt extends Model
     public function expire(): void
     {
         $this->calculateScore();
-        
+
         $this->update([
             'status' => 'expired',
             'completed_at' => now(),
@@ -283,7 +293,7 @@ class QuizAttempt extends Model
     public function recordAnswer($questionId, string $answer, ?int $timeTaken = null): void
     {
         $answers = $this->answers ?? [];
-        
+
         $answers[(string) $questionId] = [
             'answer' => $answer,
             'answered_at' => now()->toISOString(),
@@ -296,6 +306,7 @@ class QuizAttempt extends Model
     public function getAnswerForQuestion($questionId): ?array
     {
         $answers = $this->answers ?? [];
+
         return $answers[(string) $questionId] ?? null;
     }
 

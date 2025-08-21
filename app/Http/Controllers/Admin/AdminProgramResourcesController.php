@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Program;
 use App\Models\Lesson;
 use App\Models\LessonResource;
+use App\Models\Program;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Inertia\Inertia;
 
 class AdminProgramResourcesController extends Controller
 {
-
     /**
      * Display program resources overview
      */
@@ -61,7 +59,7 @@ class AdminProgramResourcesController extends Controller
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error in AdminProgramResourcesController@index: ' . $e->getMessage());
+            Log::error('Error in AdminProgramResourcesController@index: '.$e->getMessage());
 
             return $this->createView('Admin/Resources/Index', [
                 'programs' => [],
@@ -71,7 +69,7 @@ class AdminProgramResourcesController extends Controller
                     'totalResources' => 0,
                     'resourcesByType' => [],
                 ],
-                'error' => 'Failed to load programs data.'
+                'error' => 'Failed to load programs data.',
             ]);
         }
     }
@@ -118,7 +116,7 @@ class AdminProgramResourcesController extends Controller
                 'slug' => $program->slug, // ADD SLUG HERE
                 'name' => $program->name,
                 'description' => $program->description,
-                'lessons' => []
+                'lessons' => [],
             ];
 
             // Add lessons if they exist
@@ -130,7 +128,7 @@ class AdminProgramResourcesController extends Controller
                         'description' => $lesson->description,
                         'level' => $lesson->level ?? 1,
                         'order_in_level' => $lesson->order_in_level ?? 1,
-                        'resources' => $lesson->resources ? $lesson->resources->toArray() : []
+                        'resources' => $lesson->resources ? $lesson->resources->toArray() : [],
                     ];
                 })->toArray();
             }
@@ -140,14 +138,14 @@ class AdminProgramResourcesController extends Controller
                 'resourceStats' => $resourceStats,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error in AdminProgramResourcesController@show: ' . $e->getMessage());
+            Log::error('Error in AdminProgramResourcesController@show: '.$e->getMessage());
 
             return $this->createView('Admin/Resources/ProgramResources', [
                 'program' => [
                     'id' => $program->id,
                     'slug' => $program->slug, // ADD SLUG HERE
                     'name' => $program->name,
-                    'lessons' => []
+                    'lessons' => [],
                 ],
                 'resourceStats' => [
                     'totalResources' => 0,
@@ -155,7 +153,7 @@ class AdminProgramResourcesController extends Controller
                     'documentCount' => 0,
                     'quizCount' => 0,
                 ],
-                'error' => 'Failed to load program resources.'
+                'error' => 'Failed to load program resources.',
             ]);
         }
     }
@@ -197,7 +195,7 @@ class AdminProgramResourcesController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error('Error in AdminProgramResourcesController@quickAdd: ' . $e->getMessage());
+            Log::error('Error in AdminProgramResourcesController@quickAdd: '.$e->getMessage());
 
             return redirect()
                 ->route('admin.resources.program.show', $program)
@@ -244,7 +242,7 @@ class AdminProgramResourcesController extends Controller
         // Handle file upload
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $path = $file->store('lesson-resources/' . $lesson->id);
+            $path = $file->store('lesson-resources/'.$lesson->id);
 
             $resourceData['file_path'] = $path;
             $resourceData['file_name'] = $file->getClientOriginalName();
@@ -266,7 +264,7 @@ class AdminProgramResourcesController extends Controller
 
         return redirect()
             ->route('admin.resources.program.show', $program)
-            ->with('success', 'Resource added successfully to ' . $lesson->title);
+            ->with('success', 'Resource added successfully to '.$lesson->title);
     }
 
     /**

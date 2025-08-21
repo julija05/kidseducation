@@ -65,7 +65,9 @@ class LessonResource extends Model
     // Basic accessors
     public function getFormattedFileSizeAttribute(): string
     {
-        if (!$this->file_size) return '';
+        if (! $this->file_size) {
+            return '';
+        }
 
         $bytes = (int) $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -74,7 +76,7 @@ class LessonResource extends Model
             $bytes /= 1024;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     public function getTypeDisplayAttribute(): string
@@ -113,7 +115,9 @@ class LessonResource extends Model
 
     public function getYouTubeVideoId(): ?string
     {
-        if (!$this->isYouTubeVideo()) return null;
+        if (! $this->isYouTubeVideo()) {
+            return null;
+        }
 
         if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $this->resource_url, $matches)) {
             return $matches[1];
@@ -125,7 +129,8 @@ class LessonResource extends Model
     public function getYouTubeEmbedUrl(): ?string
     {
         $videoId = $this->getYouTubeVideoId();
-        return $videoId ? "https://www.youtube.com/embed/{$videoId}?enablejsapi=1&origin=" . config('app.url') : null;
+
+        return $videoId ? "https://www.youtube.com/embed/{$videoId}?enablejsapi=1&origin=".config('app.url') : null;
     }
 
     // Download methods
@@ -136,7 +141,9 @@ class LessonResource extends Model
 
     public function getDownloadUrl(): ?string
     {
-        if (!$this->canDownload()) return null;
+        if (! $this->canDownload()) {
+            return null;
+        }
 
         return $this->file_path
             ? route('lesson-resources.download', $this->id)
@@ -194,6 +201,7 @@ class LessonResource extends Model
     public function getYouTubeThumbnail(): ?string
     {
         $videoId = $this->getYouTubeVideoId();
+
         return $videoId ? "https://img.youtube.com/vi/{$videoId}/maxresdefault.jpg" : null;
     }
 
@@ -205,7 +213,7 @@ class LessonResource extends Model
     {
         $progress = $this->lesson->userProgress($user);
 
-        if (!$progress || !isset($progress->session_data['viewed_resources'])) {
+        if (! $progress || ! isset($progress->session_data['viewed_resources'])) {
             return false;
         }
 
@@ -244,5 +252,4 @@ class LessonResource extends Model
             'view_percentage' => $totalEnrolled > 0 ? round(($viewedCount / $totalEnrolled) * 100, 1) : 0,
         ];
     }
-    
 }

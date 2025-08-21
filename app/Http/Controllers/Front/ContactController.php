@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Front;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreContactRequest;
 use App\Mail\ContactMessage;
 use Illuminate\Support\Facades\Log;
@@ -26,15 +25,15 @@ class ContactController extends Controller
 
             return response()->json([
                 'message' => 'Your message was sent successfully! We\'ll get back to you within 24 hours.',
-                'success' => true
+                'success' => true,
             ]);
         } catch (\Exception $e) {
-            Log::error('Contact form error: ' . $e->getMessage());
+            Log::error('Contact form error: '.$e->getMessage());
 
             return response()->json([
                 'message' => 'Sorry, there was an error sending your message. Please try again or contact us directly.',
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

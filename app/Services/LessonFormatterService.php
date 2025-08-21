@@ -27,7 +27,7 @@ class LessonFormatterService
             'duration_minutes' => $lesson->duration_minutes,
             'formatted_duration' => $lesson->formatted_duration,
             'resources' => $this->resourceFormatter->formatResources($lesson->resources),
-            'quizzes' => $lesson->quizzes ? $lesson->quizzes->map(fn($quiz) => [
+            'quizzes' => $lesson->quizzes ? $lesson->quizzes->map(fn ($quiz) => [
                 'id' => $quiz->id,
                 'title' => $quiz->title,
                 'description' => $quiz->description,
@@ -45,7 +45,7 @@ class LessonFormatterService
 
     public function formatLessonSummary(?Lesson $lesson): ?array
     {
-        if (!$lesson) {
+        if (! $lesson) {
             return null;
         }
 

@@ -30,8 +30,8 @@ class SendLessonReminder implements ShouldQueue
     public function handle(): void
     {
         // Check if reminder was already sent or if lesson is cancelled/completed
-        if ($this->schedule->reminder_sent_at || 
-            $this->schedule->isCancelled() || 
+        if ($this->schedule->reminder_sent_at ||
+            $this->schedule->isCancelled() ||
             $this->schedule->isCompleted()) {
             return;
         }
@@ -40,21 +40,21 @@ class SendLessonReminder implements ShouldQueue
         $this->schedule->refresh();
 
         // Double check it's still valid to send reminder
-        if (!$this->schedule->needsReminder()) {
+        if (! $this->schedule->needsReminder()) {
             return;
         }
 
         // Send reminder emails to all students
         $students = $this->schedule->getAllStudents();
-        
+
         foreach ($students as $student) {
             // Create a temporary schedule with student context for the email
             $scheduleForEmail = clone $this->schedule;
             $scheduleForEmail->student = $student;
-            
+
             // Ensure the student relationship is properly loaded
             $scheduleForEmail->setRelation('student', $student);
-            
+
             Mail::to($student->email)->send(new LessonReminder($scheduleForEmail));
         }
 

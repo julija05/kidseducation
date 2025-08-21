@@ -27,7 +27,7 @@ class HelpController extends Controller
                 'title' => 'Help Article',
                 'slug' => $slug,
                 'content' => 'Article content would go here...',
-            ]
+            ],
         ]);
     }
 
@@ -37,7 +37,7 @@ class HelpController extends Controller
     public function search(Request $request)
     {
         $query = $request->get('q');
-        
+
         // This would typically search articles in database
         $results = [
             // Mock search results
@@ -45,14 +45,14 @@ class HelpController extends Controller
                 'title' => 'Getting Started with Abacoding',
                 'excerpt' => 'Learn how to create your account and get started...',
                 'url' => route('help.article', 'getting-started'),
-                'category' => 'Getting Started'
+                'category' => 'Getting Started',
             ],
             // Add more mock results as needed
         ];
 
         return response()->json([
             'results' => $results,
-            'query' => $query
+            'query' => $query,
         ]);
     }
 }

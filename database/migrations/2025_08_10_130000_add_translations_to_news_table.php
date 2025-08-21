@@ -19,7 +19,7 @@ return new class extends Migration
         });
 
         // Migrate existing data to English fields
-        DB::statement("UPDATE news SET title_en = title, content_en = content WHERE title_en IS NULL");
+        DB::statement('UPDATE news SET title_en = title, content_en = content WHERE title_en IS NULL');
     }
 
     /**

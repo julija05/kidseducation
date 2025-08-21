@@ -44,9 +44,10 @@ class AuthenticatedSessionController extends Controller
             // Check if demo has expired
             if ($user->isDemoExpired()) {
                 Auth::logout();
+
                 return redirect()->route('demo.expired');
             }
-            
+
             // Redirect demo users to regular dashboard, they can browse but not access program dashboards
             return redirect()->intended(route('dashboard', absolute: false));
         }

@@ -48,7 +48,7 @@ class ArticleSeeder extends Seeder
                 'category' => 'how_to_use',
                 'is_published' => true,
                 'published_at' => now()->subHours(18),
-            ]
+            ],
         ];
 
         foreach ($articles as $articleData) {

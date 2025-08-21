@@ -14,11 +14,13 @@ class UpdateProgramRequest extends BaseProgramRequest
         $rules = $this->getSharedRules();
 
         // Make fields conditional for updates
-        $rules['name'] = 'sometimes|required|' . $rules['name'];
-        $rules['description'] = 'sometimes|required|' . $rules['description'];
-        $rules['duration'] = 'sometimes|required|' . $rules['duration'];
-        $rules['price'] = 'sometimes|required|' . $rules['price'];
-        $rules['image'] = 'sometimes|' . $rules['image'];
+        $rules['name'] = 'sometimes|required|'.$rules['name'];
+        $rules['description'] = 'sometimes|required|'.$rules['description'];
+        $rules['duration'] = 'sometimes|required|'.$rules['duration'];
+        $rules['price'] = 'sometimes|required|'.$rules['price'];
+        if (isset($rules['image'])) {
+            $rules['image'] = 'sometimes|'.$rules['image'];
+        }
 
         return $rules;
     }
@@ -49,6 +51,11 @@ class UpdateProgramRequest extends BaseProgramRequest
                 if ($key === 'image') {
                     return $value !== '' || $value === null;
                 }
+                // For boolean fields, keep false values
+                if ($key === 'requires_monthly_payment') {
+                    return true; // Always keep boolean fields
+                }
+
                 // Filter out empty strings but keep 0 values for other fields
                 return $value !== '' && $value !== null;
             })
@@ -57,6 +64,11 @@ class UpdateProgramRequest extends BaseProgramRequest
         // If image key exists but is null or empty, remove it completely
         if (array_key_exists('image', $filtered) && empty($filtered['image'])) {
             unset($filtered['image']);
+        }
+
+        // Handle checkbox fields - if not present, set to false
+        if (! array_key_exists('requires_monthly_payment', $filtered)) {
+            $filtered['requires_monthly_payment'] = false;
         }
 
         $this->replace($filtered);

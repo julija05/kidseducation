@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\LessonResource;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\Response;
 
 class StorageFileController extends Controller
 {
@@ -24,12 +22,12 @@ class StorageFileController extends Controller
             ->where('approval_status', 'approved')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             abort(403, 'Access denied');
         }
 
         // Check if file exists
-        if (!$resource->file_path || !Storage::exists($resource->file_path)) {
+        if (! $resource->file_path || ! Storage::exists($resource->file_path)) {
             abort(404, 'File not found');
         }
 
@@ -46,14 +44,14 @@ class StorageFileController extends Controller
 
         // For PDFs and images, display inline. For others, force download
         if (in_array($mimeType, ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'])) {
-            $headers['Content-Disposition'] = 'inline; filename="' . $fileName . '"';
+            $headers['Content-Disposition'] = 'inline; filename="'.$fileName.'"';
         } else {
-            $headers['Content-Disposition'] = 'attachment; filename="' . $fileName . '"';
+            $headers['Content-Disposition'] = 'attachment; filename="'.$fileName.'"';
         }
 
         // Add cache headers for better performance
         $headers['Cache-Control'] = 'private, max-age=3600';
-        $headers['Expires'] = gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT';
+        $headers['Expires'] = gmdate('D, d M Y H:i:s', time() + 3600).' GMT';
 
         return response($fileContent, 200, $headers);
     }
@@ -72,12 +70,12 @@ class StorageFileController extends Controller
             ->where('approval_status', 'approved')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             abort(403, 'Access denied');
         }
 
         // Check if file exists
-        if (!$resource->file_path || !Storage::exists($resource->file_path)) {
+        if (! $resource->file_path || ! Storage::exists($resource->file_path)) {
             abort(404, 'File not found');
         }
 
@@ -90,7 +88,7 @@ class StorageFileController extends Controller
         $headers = [
             'Content-Type' => $mimeType,
             'Content-Length' => strlen($fileContent),
-            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Disposition' => 'inline; filename="'.$fileName.'"',
             'Cache-Control' => 'private, max-age=3600',
             'X-Frame-Options' => 'SAMEORIGIN', // Allow embedding in iframes from same origin
         ];

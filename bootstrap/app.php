@@ -11,8 +11,8 @@ use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -23,13 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\EnsureDemoAccess::class,
             \App\Http\Middleware\CacheHeaders::class,
         ]);
-        
+
         // Exclude chat routes from CSRF verification (for guest users and admin)
         $middleware->validateCsrfTokens(except: [
             'chat/*',
             'admin/chat/*',
         ]);
-        
+
         $middleware->alias([
             'auth' => \App\Http\Middleware\HandleAuthentication::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'admin.english' => \App\Http\Middleware\ForceEnglishForAdmin::class,
             'cache' => \App\Http\Middleware\CacheHeaders::class,
+            'check.user.status' => \App\Http\Middleware\CheckUserStatus::class,
         ]);
         //
     })
@@ -49,11 +50,11 @@ return Application::configure(basePath: dirname(__DIR__))
             $urlLocale = $request->get('locale');
             $sessionLocale = $request->hasSession() ? Session::get('locale') : null;
             $configLocale = config('app.locale');
-            
+
             // Priority 1: URL parameter (for explicit language switching)
             if ($urlLocale && in_array($urlLocale, config('app.supported_locales', ['en', 'mk']))) {
                 $locale = $urlLocale;
-                
+
                 // Update authenticated user's preference for consistency
                 if (Auth::check() && Auth::user()->language_preference !== $urlLocale) {
                     Auth::user()->update(['language_preference' => $urlLocale]);
@@ -71,44 +72,45 @@ return Application::configure(basePath: dirname(__DIR__))
             else {
                 $locale = $configLocale;
             }
-            
+
             // Validate locale
-            if (!in_array($locale, config('app.supported_locales', ['en', 'mk']))) {
+            if (! in_array($locale, config('app.supported_locales', ['en', 'mk']))) {
                 $locale = config('app.locale');
             }
-            
+
             return $locale;
         };
-        
+
         // Helper function to get translations for a specific locale
         $getTranslations = function ($locale) {
             $translationPath = lang_path("{$locale}/app.php");
+
             return file_exists($translationPath) ? include $translationPath : [];
         };
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, Request $request) use ($getUserLocale, $getTranslations) {
             if ($request->wantsJson()) {
                 return null; // Let Laravel handle JSON responses
             }
-            
+
             // Show custom 404 page when custom error pages are enabled
             if (config('app.custom_error_pages', true)) {
                 // Get user's preferred locale and translations
                 $locale = $getUserLocale($request);
                 $translations = $getTranslations($locale);
-                
+
                 // Set the app locale for this request to ensure consistent language
                 app()->setLocale($locale);
-                
+
                 return Inertia::render('Errors/404', [
                     'status' => 404,
                     'locale' => [
                         'current' => $locale,
                         'supported' => config('app.supported_locales'),
                         'translations' => $translations,
-                    ]
+                    ],
                 ])->toResponse($request)->setStatusCode(404);
             }
-            
+
             return null;
         });
 
@@ -116,26 +118,26 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->wantsJson()) {
                 return null; // Let Laravel handle JSON responses
             }
-            
+
             // Show custom 403 page when custom error pages are enabled
             if (config('app.custom_error_pages', true)) {
                 // Get user's preferred locale and translations
                 $locale = $getUserLocale($request);
                 $translations = $getTranslations($locale);
-                
+
                 // Set the app locale for this request to ensure consistent language
                 app()->setLocale($locale);
-                
+
                 return Inertia::render('Errors/403', [
                     'status' => 403,
                     'locale' => [
                         'current' => $locale,
                         'supported' => config('app.supported_locales'),
                         'translations' => $translations,
-                    ]
+                    ],
                 ])->toResponse($request)->setStatusCode(403);
             }
-            
+
             return null;
         });
 
@@ -154,7 +156,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->header('X-Inertia')) {
                 return response()->json([
                     'message' => 'Unauthenticated.',
-                    'redirect' => route('login')
+                    'redirect' => route('login'),
                 ], 401);
             }
 
@@ -171,22 +173,22 @@ return Application::configure(basePath: dirname(__DIR__))
             // Only handle these as custom error pages in production or when explicitly enabled
             if (app()->environment('production') || config('app.custom_error_pages', true)) {
                 $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
-                
+
                 if ($status >= 500) {
                     // Get user's preferred locale and translations
                     $locale = $getUserLocale($request);
                     $translations = $getTranslations($locale);
-                    
+
                     // Set the app locale for this request to ensure consistent language
                     app()->setLocale($locale);
-                    
+
                     return Inertia::render('Errors/500', [
                         'status' => $status,
                         'locale' => [
                             'current' => $locale,
                             'supported' => config('app.supported_locales'),
                             'translations' => $translations,
-                        ]
+                        ],
                     ])->toResponse($request)->setStatusCode($status);
                 }
             }

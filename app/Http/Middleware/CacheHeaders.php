@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 
 class CacheHeaders
 {
@@ -18,6 +17,7 @@ class CacheHeaders
         $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
         $response->header('Pragma', 'no-cache');
         $response->header('Expires', '0');
+
         return $response;
 
         // Don't cache language switching requests
@@ -25,6 +25,7 @@ class CacheHeaders
             $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
             $response->header('Pragma', 'no-cache');
             $response->header('Expires', '0');
+
             return $response;
         }
 
@@ -33,12 +34,12 @@ class CacheHeaders
             $response->header('Cache-Control', 'no-cache, no-store, must-revalidate');
             $response->header('Pragma', 'no-cache');
             $response->header('Expires', '0');
+
             return $response;
         }
 
-
         // For all other pages (API endpoints, assets, etc.), allow caching
-        // Set default cache control  
+        // Set default cache control
         if ($cacheControl) {
             $response->header('Cache-Control', $cacheControl);
         } else {
@@ -59,7 +60,7 @@ class CacheHeaders
         $response->header('X-Frame-Options', 'SAMEORIGIN');
         $response->header('X-XSS-Protection', '1; mode=block');
         $response->header('Referrer-Policy', 'strict-origin-when-cross-origin');
-        
+
         return $response;
     }
 }

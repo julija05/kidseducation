@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Models\Program;
-
 use App\Repositories\Interfaces\ProgramRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -26,6 +25,7 @@ class ProgramRepository implements ProgramRepositoryInterface
     {
         $program = Program::create($data);
         $this->clearCache();
+
         return $program;
     }
 
@@ -35,6 +35,7 @@ class ProgramRepository implements ProgramRepositoryInterface
         if ($updated) {
             $this->clearCache();
         }
+
         return $updated;
     }
 
@@ -44,6 +45,7 @@ class ProgramRepository implements ProgramRepositoryInterface
         if ($deleted) {
             $this->clearCache();
         }
+
         return $deleted;
     }
 

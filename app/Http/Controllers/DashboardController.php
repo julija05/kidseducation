@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ResourceService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use App\Models\Lesson;
 use App\Models\ClassSchedule;
-use App\Models\Notification;
+use App\Models\Lesson;
 use App\Models\User;
 use App\Services\EnrollmentService;
 use App\Services\LessonService;
 use App\Services\NotificationService;
 use App\Services\ProgramService;
+use App\Services\ResourceService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
@@ -30,6 +28,11 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        // Check if user is suspended - show suspended dashboard
+        if ($user->isSuspended()) {
+            return $this->renderSuspendedDashboard($user);
+        }
+
         // DEBUG: Log dashboard access attempt
         \Log::info('Dashboard index accessed', [
             'user_id' => $user->id,
@@ -42,16 +45,17 @@ class DashboardController extends Controller
         // Check if this is a demo account - redirect to demo dashboard
         // IMPORTANT: Only redirect to demo if user has NO enrollments at all (pending or approved)
         // Users with pending enrollments should see dashboard with option to return to demo
-        if ($user->isDemoAccount() && !$user->enrollments()->exists()) {
+        if ($user->isDemoAccount() && ! $user->enrollments()->exists()) {
             \Log::info('Redirecting demo account to demo dashboard - no enrollments', [
                 'user_id' => $user->id,
                 'demo_program_slug' => $user->demo_program_slug,
                 'has_demo_access' => $user->hasDemoAccess(),
-                'enrollments_count' => $user->enrollments()->count()
+                'enrollments_count' => $user->enrollments()->count(),
             ]);
 
             if ($user->isDemoExpired()) {
                 Auth::logout();
+
                 return redirect()->route('demo.expired');
             }
 
@@ -65,11 +69,12 @@ class DashboardController extends Controller
                 'demo_program_slug' => $user->demo_program_slug,
                 'enrollments_count' => $user->enrollments()->count(),
                 'pending_enrollments' => $user->enrollments()->where('approval_status', 'pending')->count(),
-                'approved_enrollments' => $user->enrollments()->where('approval_status', 'approved')->count()
+                'approved_enrollments' => $user->enrollments()->where('approval_status', 'approved')->count(),
             ]);
         }
 
         // Get approved enrollment if exists (active only - completed programs go to main dashboard)
+        // Exclude blocked access enrollments
         $currentLocale = app()->getLocale();
         $approvedEnrollment = $user->enrollments()
             ->with(['program' => function ($query) use ($currentLocale) {
@@ -89,6 +94,14 @@ class DashboardController extends Controller
             }])
             ->where('status', 'active')
             ->where('approval_status', 'approved')
+            ->where('access_blocked', false)
+            ->first();
+
+        // Check if user has approved enrollment but access is blocked
+        $blockedEnrollment = $user->enrollments()
+            ->with('program')
+            ->where('approval_status', 'approved')
+            ->where('access_blocked', true)
             ->first();
 
         // Get completed enrollments for certificate functionality
@@ -106,6 +119,11 @@ class DashboardController extends Controller
 
         // Get student-specific data
         $studentData = $this->getStudentData($user);
+
+        // If user has blocked access, show blocked message
+        if ($blockedEnrollment) {
+            return $this->renderBlockedDashboard($user, $blockedEnrollment, $studentData);
+        }
 
         // If user has an approved enrollment
         if ($approvedEnrollment) {
@@ -210,7 +228,7 @@ class DashboardController extends Controller
 
                     // Add resources to the lesson data
                     $lesson['resources'] = $lessonModel && $lessonModel->resources->isNotEmpty()
-                        ? $lessonModel->resources->map(fn($resource) => $this->resourceService->formatResourceForFrontend($resource))->toArray()
+                        ? $lessonModel->resources->map(fn ($resource) => $this->resourceService->formatResourceForFrontend($resource))->toArray()
                         : [];
 
                     return $lesson;
@@ -225,7 +243,7 @@ class DashboardController extends Controller
             ->where('reviewable_id', $program->id)
             ->first();
 
-        $canReview = !$userReview;
+        $canReview = ! $userReview;
 
         // Check if program was recently completed and user hasn't reviewed yet
         $shouldPromptReview = false;
@@ -233,7 +251,7 @@ class DashboardController extends Controller
             $enrollment->status === 'completed' &&
             $enrollment->completed_at &&
             $enrollment->completed_at->isAfter(now()->subDays(7)) &&
-            !$userReview
+            ! $userReview
         ) {
             $shouldPromptReview = true;
         }
@@ -245,7 +263,7 @@ class DashboardController extends Controller
             'availablePrograms' => [],
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
-            'showLanguageSelector' => !$user->language_selected,
+            'showLanguageSelector' => ! $user->language_selected,
             'canReview' => $canReview,
             'userReview' => $userReview ? [
                 'id' => $userReview->id,
@@ -315,7 +333,7 @@ class DashboardController extends Controller
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
-            'showLanguageSelector' => !$user->language_selected,
+            'showLanguageSelector' => ! $user->language_selected,
             'userDemoAccess' => $this->getUserDemoAccessForPendingEnrollments($user),
         ]);
     }
@@ -338,7 +356,7 @@ class DashboardController extends Controller
             'pendingProgramId' => $pendingProgramId,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
-            'showLanguageSelector' => !$user->language_selected,
+            'showLanguageSelector' => ! $user->language_selected,
             'userDemoAccess' => $user->hasDemoAccess() ? [
                 'program_slug' => $user->demo_program_slug,
                 'expires_at' => $user->demo_expires_at,
@@ -387,7 +405,7 @@ class DashboardController extends Controller
             'pendingProgramId' => $pendingProgramId,
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
-            'showLanguageSelector' => !$user->language_selected,
+            'showLanguageSelector' => ! $user->language_selected,
             'userDemoAccess' => $user->hasDemoAccess() ? [
                 'program_slug' => $user->demo_program_slug,
                 'expires_at' => $user->demo_expires_at,
@@ -399,21 +417,28 @@ class DashboardController extends Controller
     public function startLesson(Request $request, $lessonId)
     {
         $user = $request->user();
+
+        // Check if user is suspended
+        if ($user->isSuspended()) {
+            return response()->json(['error' => 'Your account is suspended. Please contact admin@abacoding.com to resolve this issue.'], 403);
+        }
+
         $lesson = Lesson::findOrFail($lessonId);
 
-        // Check if user is enrolled and approved
+        // Check if user is enrolled and approved and not blocked
         $enrollment = $user->enrollments()
             ->where('program_id', $lesson->program_id)
             ->where('status', 'active')
             ->where('approval_status', 'approved')
+            ->where('access_blocked', false)
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
         }
 
         // Check if lesson is unlocked
-        if (!$this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
+        if (! $this->lessonService->isLessonUnlockedForUser($lesson, $user)) {
             return response()->json(['error' => 'Lesson is not unlocked'], 403);
         }
 
@@ -426,16 +451,23 @@ class DashboardController extends Controller
     public function completeLesson(Request $request, $lessonId)
     {
         $user = $request->user();
+
+        // Check if user is suspended
+        if ($user->isSuspended()) {
+            return response()->json(['error' => 'Your account is suspended. Please contact admin@abacoding.com to resolve this issue.'], 403);
+        }
+
         $lesson = Lesson::findOrFail($lessonId);
 
-        // Check enrollment and approval
+        // Check enrollment and approval and not blocked
         $enrollment = $user->enrollments()
             ->where('program_id', $lesson->program_id)
             ->where('status', 'active')
             ->where('approval_status', 'approved')
+            ->where('access_blocked', false)
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
         }
 
@@ -449,7 +481,7 @@ class DashboardController extends Controller
             'success' => true,
             'progress' => $progress,
             'enrollment_progress' => $enrollment->fresh()->progress,
-            'shouldPromptReview' => $shouldPromptReview
+            'shouldPromptReview' => $shouldPromptReview,
         ]);
     }
 
@@ -493,13 +525,12 @@ class DashboardController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'marked_count' => $markedCount
+                'marked_count' => $markedCount,
             ]);
         }
 
         return back();
     }
-
 
     /**
      * Get demo access info for users with pending enrollments
@@ -514,6 +545,7 @@ class DashboardController extends Controller
                 'program_slug' => $user->demo_program_slug,
                 'days_remaining' => $user->getDemoRemainingDays(),
             ]);
+
             return [
                 'program_slug' => $user->demo_program_slug,
                 'expires_at' => $user->demo_expires_at,
@@ -528,6 +560,7 @@ class DashboardController extends Controller
                 'program_slug' => $user->demo_program_slug,
                 'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
             ]);
+
             return [
                 'program_slug' => $user->demo_program_slug,
                 'expires_at' => null, // No expiration while enrollment is pending
@@ -564,9 +597,9 @@ class DashboardController extends Controller
 
         // Group schedules by status and time
         $groupedSchedules = [
-            'upcoming' => $schedules->filter(fn($s) => $s->isUpcoming())->sortBy('scheduled_at'),
-            'past' => $schedules->filter(fn($s) => $s->isPast())->sortByDesc('scheduled_at'),
-            'cancelled' => $schedules->filter(fn($s) => $s->isCancelled())->sortByDesc('scheduled_at'),
+            'upcoming' => $schedules->filter(fn ($s) => $s->isUpcoming())->sortBy('scheduled_at'),
+            'past' => $schedules->filter(fn ($s) => $s->isPast())->sortByDesc('scheduled_at'),
+            'cancelled' => $schedules->filter(fn ($s) => $s->isCancelled())->sortByDesc('scheduled_at'),
         ];
 
         // Format schedules for frontend
@@ -613,6 +646,73 @@ class DashboardController extends Controller
             'schedules' => $formattedSchedules,
             'upcoming_count' => $formattedSchedules['upcoming']->count(),
             'total_count' => $schedules->count(),
+        ]);
+    }
+
+    private function renderBlockedDashboard($user, $blockedEnrollment, $studentData = [])
+    {
+        return $this->createView('Dashboard', [
+            'enrollmentStatus' => 'blocked',
+            'blockedEnrollment' => [
+                'id' => $blockedEnrollment->id,
+                'program' => [
+                    'name' => $blockedEnrollment->program->translated_name,
+                    'slug' => $blockedEnrollment->program->slug,
+                ],
+                'block_reason' => $blockedEnrollment->block_reason,
+                'blocked_at' => $blockedEnrollment->blocked_at?->format('M d, Y'),
+            ],
+            'availablePrograms' => collect([]),
+            'nextClass' => $studentData['nextScheduledClass'] ?? null,
+            'notifications' => $studentData['notifications'] ?? [],
+            'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => ! $user->language_selected,
+            'userDemoAccess' => $user->hasDemoAccess() ? [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => $user->demo_expires_at,
+                'days_remaining' => $user->getDemoRemainingDays(),
+            ] : null,
+        ]);
+    }
+
+    private function renderSuspendedDashboard($user)
+    {
+        // Get student data (notifications, scheduled classes) even for suspended users
+        $studentData = $this->getStudentData($user);
+
+        // Get user's enrollment data to show what they're suspended from
+        $currentEnrollment = $user->enrollments()
+            ->with('program')
+            ->where('status', 'active')
+            ->where('approval_status', 'approved')
+            ->first();
+
+        // Get available programs but they won't be able to enroll
+        $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
+
+        return $this->createView('Dashboard', [
+            'userStatus' => 'suspended',
+            'enrolledProgram' => null,
+            'currentEnrollment' => $currentEnrollment ? [
+                'id' => $currentEnrollment->id,
+                'program' => [
+                    'name' => $currentEnrollment->program->name,
+                    'translated_name' => $currentEnrollment->program->translated_name,
+                    'slug' => $currentEnrollment->program->slug,
+                ],
+            ] : null,
+            'availablePrograms' => $availablePrograms,
+            'pendingEnrollments' => [],
+            'completedEnrollments' => [],
+            'nextClass' => $studentData['nextScheduledClass'] ?? null,
+            'notifications' => $studentData['notifications'] ?? [],
+            'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            'showLanguageSelector' => ! $user->language_selected,
+            'suspensionMessage' => [
+                'title' => 'Your account is suspended',
+                'message' => 'Your account has been temporarily suspended. Please contact the administrator to resolve this issue.',
+                'contact_email' => 'admin@abacoding.com',
+            ],
         ]);
     }
 }

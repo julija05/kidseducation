@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Notifications\CustomVerifyEmail;
 use App\Notifications\CustomResetPassword;
+use App\Notifications\CustomVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -43,10 +43,10 @@ class CustomEmailTemplatesTest extends TestCase
         $user = User::factory()->unverified()->create([
             'first_name' => 'John',
             'last_name' => 'Doe',
-            'email' => 'john@example.com'
+            'email' => 'john@example.com',
         ]);
 
-        $notification = new CustomVerifyEmail();
+        $notification = new CustomVerifyEmail;
         $mailMessage = $notification->toMail($user);
 
         $this->assertEquals('Verify Your Email Address - Abacoding', $mailMessage->subject);
@@ -61,7 +61,7 @@ class CustomEmailTemplatesTest extends TestCase
         $user = User::factory()->create([
             'first_name' => 'Jane',
             'last_name' => 'Smith',
-            'email' => 'jane@example.com'
+            'email' => 'jane@example.com',
         ]);
 
         $token = 'test-reset-token';

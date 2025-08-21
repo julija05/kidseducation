@@ -12,12 +12,12 @@ trait CreatesRoles
     protected function createRoles(): void
     {
         // Create student role if it doesn't exist
-        if (!Role::where('name', 'student')->where('guard_name', 'web')->exists()) {
+        if (! Role::where('name', 'student')->where('guard_name', 'web')->exists()) {
             Role::create(['name' => 'student', 'guard_name' => 'web']);
         }
 
         // Create admin role if it doesn't exist
-        if (!Role::where('name', 'admin')->where('guard_name', 'web')->exists()) {
+        if (! Role::where('name', 'admin')->where('guard_name', 'web')->exists()) {
             Role::create(['name' => 'admin', 'guard_name' => 'web']);
         }
     }
@@ -29,7 +29,7 @@ trait CreatesRoles
     {
         return Role::firstOrCreate([
             'name' => $name,
-            'guard_name' => $guard
+            'guard_name' => $guard,
         ]);
     }
 }

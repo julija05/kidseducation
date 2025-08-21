@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Only add columns if they don't exist
-            if (!Schema::hasColumn('users', 'theme_preference')) {
+            if (! Schema::hasColumn('users', 'theme_preference')) {
                 $table->string('theme_preference')->nullable()->default('default');
             }
-            if (!Schema::hasColumn('users', 'avatar_preference')) {
+            if (! Schema::hasColumn('users', 'avatar_preference')) {
                 $table->string('avatar_preference')->nullable()->default('default');
             }
         });

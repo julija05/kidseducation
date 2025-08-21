@@ -2,44 +2,45 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Program;
 use App\Models\Enrollment;
+use App\Models\Program;
+use Illuminate\Console\Command;
 
 class CleanupDuplicatePrograms extends Command
 {
     protected $signature = 'programs:cleanup-duplicates';
+
     protected $description = 'Clean up duplicate programs and merge translations';
 
     public function handle()
     {
         $this->info('🧹 Cleaning up duplicate programs...');
-        
+
         // Find duplicates by name
         $programNames = ['Mental Arithmetic Mastery', 'Coding for Kids(Scratch)'];
-        
+
         foreach ($programNames as $programName) {
             $programs = Program::where('name', $programName)->get();
-            
+
             if ($programs->count() > 1) {
                 $this->info("Found {$programs->count()} duplicates for: {$programName}");
-                
+
                 // Find the one with translations (keep this one)
                 $programWithTranslations = $programs->first(function ($program) {
-                    return $program->name_translations && 
+                    return $program->name_translations &&
                            isset($program->name_translations['mk']);
                 });
-                
+
                 // Find the one without translations (remove this one)
                 $programWithoutTranslations = $programs->first(function ($program) {
-                    return !$program->name_translations || 
-                           !isset($program->name_translations['mk']);
+                    return ! $program->name_translations ||
+                           ! isset($program->name_translations['mk']);
                 });
-                
+
                 if ($programWithTranslations && $programWithoutTranslations) {
                     $this->info("  ✓ Keeping program ID {$programWithTranslations->id} (has translations)");
                     $this->info("  ✗ Removing program ID {$programWithoutTranslations->id} (no translations)");
-                    
+
                     // Move any enrollments from the duplicate to the main program
                     $enrollments = Enrollment::where('program_id', $programWithoutTranslations->id)->get();
                     foreach ($enrollments as $enrollment) {
@@ -47,8 +48,8 @@ class CleanupDuplicatePrograms extends Command
                         $existingEnrollment = Enrollment::where('program_id', $programWithTranslations->id)
                             ->where('user_id', $enrollment->user_id)
                             ->first();
-                        
-                        if (!$existingEnrollment) {
+
+                        if (! $existingEnrollment) {
                             $enrollment->update(['program_id' => $programWithTranslations->id]);
                             $this->info("    → Moved enrollment for user {$enrollment->user_id}");
                         } else {
@@ -56,10 +57,10 @@ class CleanupDuplicatePrograms extends Command
                             $enrollment->delete();
                         }
                     }
-                    
+
                     // Delete the duplicate program
                     $programWithoutTranslations->delete();
-                    $this->info("    ✓ Deleted duplicate program");
+                    $this->info('    ✓ Deleted duplicate program');
                 } else {
                     $this->warn("  Could not identify which program to keep for: {$programName}");
                 }
@@ -67,21 +68,21 @@ class CleanupDuplicatePrograms extends Command
                 $this->info("No duplicates found for: {$programName}");
             }
         }
-        
+
         // Clean up the Test program if it exists and has no enrollments
         $testProgram = Program::where('name', 'Test')->first();
         if ($testProgram) {
             $hasEnrollments = $testProgram->enrollments()->exists();
-            if (!$hasEnrollments) {
+            if (! $hasEnrollments) {
                 $testProgram->delete();
                 $this->info("✓ Deleted 'Test' program (no enrollments)");
             } else {
                 $this->info("Kept 'Test' program (has enrollments)");
             }
         }
-        
+
         $this->info('🎉 Cleanup completed!');
-        
+
         // Show final status
         $this->info('Final program list:');
         $finalPrograms = Program::all();

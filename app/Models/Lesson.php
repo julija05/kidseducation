@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\HasTranslations;
 
 class Lesson extends Model
 {
@@ -56,9 +56,10 @@ class Lesson extends Model
         return $this->hasMany(LessonResource::class);
     }
 
-    public function resourcesByLanguage(string $language = null): HasMany
+    public function resourcesByLanguage(?string $language = null): HasMany
     {
         $language = $language ?? app()->getLocale();
+
         return $this->hasMany(LessonResource::class)->where('language', $language);
     }
 
@@ -95,15 +96,15 @@ class Lesson extends Model
     public function getFormattedDurationAttribute(): string
     {
         if ($this->duration_minutes < 60) {
-            return $this->duration_minutes . ' min';
+            return $this->duration_minutes.' min';
         }
 
         $hours = floor($this->duration_minutes / 60);
         $minutes = $this->duration_minutes % 60;
 
         return $minutes === 0
-            ? $hours . ' hr'
-            : $hours . ' hr ' . $minutes . ' min';
+            ? $hours.' hr'
+            : $hours.' hr '.$minutes.' min';
     }
 
     public function getContentTypeDisplayAttribute(): string
@@ -127,32 +128,34 @@ class Lesson extends Model
     public function hasUserCompleted(User $user): bool
     {
         $progress = $this->userProgress($user);
+
         return $progress && $progress->status === 'completed';
     }
 
     public function hasUserStarted(User $user): bool
     {
         $progress = $this->userProgress($user);
+
         return $progress && $progress->status !== 'not_started';
     }
-    
+
     // Check if this lesson is unlocked for a user based on level requirements
     public function isUnlockedForUser(User $user): bool
     {
         return $this->program->isLevelUnlockedForUser($user, $this->level);
     }
-    
+
     // Translation accessors
     public function getTranslatedTitleAttribute(): string
     {
         return $this->getTranslatedAttribute('title');
     }
-    
+
     public function getTranslatedDescriptionAttribute(): ?string
     {
         return $this->getTranslatedAttribute('description');
     }
-    
+
     public function getTranslatedContentBodyAttribute(): ?string
     {
         return $this->getTranslatedAttribute('content_body');

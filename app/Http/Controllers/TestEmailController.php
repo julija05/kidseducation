@@ -22,7 +22,7 @@ class TestEmailController extends Controller
         // Get the latest enrollment for testing
         $enrollment = Enrollment::with(['user', 'program'])->latest()->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return response()->json(['error' => 'No enrollment found for testing']);
         }
 
@@ -35,32 +35,32 @@ class TestEmailController extends Controller
                 'test_email' => $testEmail,
                 'enrollment_id' => $enrollment->id,
                 'student_name' => $enrollment->user->name,
-                'program_name' => $enrollment->program->name
+                'program_name' => $enrollment->program->name,
             ]);
 
             // Send the email
             Mail::to($testEmail)->send($mail);
 
-            Log::info('Test email sent successfully to: ' . $testEmail);
+            Log::info('Test email sent successfully to: '.$testEmail);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Test email sent to ' . $testEmail,
+                'message' => 'Test email sent to '.$testEmail,
                 'enrollment_details' => [
                     'student' => $enrollment->user->name,
                     'program' => $enrollment->program->name,
-                    'created_at' => $enrollment->created_at->format('Y-m-d H:i:s')
-                ]
+                    'created_at' => $enrollment->created_at->format('Y-m-d H:i:s'),
+                ],
             ]);
         } catch (\Exception $e) {
             Log::error('Test email failed', [
                 'error' => $e->getMessage(),
                 'test_email' => $testEmail,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to send test email: ' . $e->getMessage()
+                'error' => 'Failed to send test email: '.$e->getMessage(),
             ], 500);
         }
     }

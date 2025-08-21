@@ -2,19 +2,20 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Program;
 use App\Models\Enrollment;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+use App\Models\Program;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use TCPDF;
 
 class CertificateGeneratorService
 {
     private const CERTIFICATE_WIDTH = 1200;
+
     private const CERTIFICATE_HEIGHT = 850;
-    
+
     /**
      * Certificate text translations
      */
@@ -33,7 +34,7 @@ class CertificateGeneratorService
             'certificate_id' => 'Certificate ID',
             'print_instruction_title' => 'Certificate Ready for Download',
             'print_instruction_text' => 'Use your browser\'s "Print" function and choose "Save as PDF" to download this certificate.',
-            'print_instruction_shortcut' => 'Press Ctrl+P (Windows) or Cmd+P (Mac) to print/save as PDF'
+            'print_instruction_shortcut' => 'Press Ctrl+P (Windows) or Cmd+P (Mac) to print/save as PDF',
         ],
         'mk' => [
             'title' => 'СЕРТИФИКАТ ЗА ЗАВРШУВАЊЕ',
@@ -49,10 +50,10 @@ class CertificateGeneratorService
             'certificate_id' => 'ID на Сертификат',
             'print_instruction_title' => 'Сертификатот е Подготвен за Симнување',
             'print_instruction_text' => 'Користете ја функцијата "Печати" од вашиот прелистувач и изберете "Зачувај како PDF" за да го симнете сертификатот.',
-            'print_instruction_shortcut' => 'Притиснете Ctrl+P (Windows) или Cmd+P (Mac) за печатење/зачувување како PDF'
-        ]
+            'print_instruction_shortcut' => 'Притиснете Ctrl+P (Windows) или Cmd+P (Mac) за печатење/зачувување како PDF',
+        ],
     ];
-    
+
     /**
      * Get translation for a given key and language
      */
@@ -60,50 +61,51 @@ class CertificateGeneratorService
     {
         return self::TRANSLATIONS[$language][$key] ?? self::TRANSLATIONS['en'][$key] ?? $key;
     }
-    
+
     /**
      * Generate a completion certificate for a student
      */
     public function generateCertificate(User $student, Program $program, string $language = 'en'): string
     {
         $enrollment = $student->enrollments()->where('program_id', $program->id)->first();
-        
-        if (!$enrollment || $enrollment->status !== 'completed') {
+
+        if (! $enrollment || $enrollment->status !== 'completed') {
             throw new \Exception('Student has not completed this program');
         }
 
         // Create certificate content (image or HTML)
         $content = $this->createCertificateImage($student, $program, $enrollment, $language);
-        
+
         // Save certificate
         $filename = $this->saveCertificate($content, $student, $program, $language);
-        
+
         // Clean up memory if it's a GD resource or GdImage object
         if (is_resource($content) || ($content instanceof \GdImage)) {
             imagedestroy($content);
         }
-        
+
         return $filename;
     }
-    
+
     /**
      * Create the certificate content as HTML/PDF (fallback when GD not available)
      */
     private function createCertificateImage(User $student, Program $program, Enrollment $enrollment, string $language = 'en')
     {
         $gdAvailable = extension_loaded('gd');
-        
+
         Log::info('Certificate generation method selection', [
             'gd_available' => $gdAvailable,
-            'will_try' => 'PDF first, then ' . ($gdAvailable ? 'GD' : 'HTML') . ' fallback'
+            'will_try' => 'PDF first, then '.($gdAvailable ? 'GD' : 'HTML').' fallback',
         ]);
-        
+
         // Temporarily force HTML certificates until PDF issue is resolved
         Log::info('Using HTML certificate (PDF temporarily disabled for debugging)', [
-            'language' => $language
+            'language' => $language,
         ]);
+
         return $this->createPrintableHTMLCertificate($student, $program, $enrollment, $language);
-        
+
         /* PDF generation temporarily disabled for debugging
         try {
             return $this->createPDFCertificate($student, $program, $enrollment);
@@ -111,7 +113,7 @@ class CertificateGeneratorService
             Log::warning('PDF generation failed, using printable HTML fallback', [
                 'error' => $e->getMessage()
             ]);
-            
+
             return $this->createPrintableHTMLCertificate($student, $program, $enrollment);
         }
         */
@@ -122,98 +124,98 @@ class CertificateGeneratorService
      */
     private function createPDFCertificate(User $student, Program $program, Enrollment $enrollment)
     {
-        $fullName = trim($student->first_name . ' ' . $student->last_name);
+        $fullName = trim($student->first_name.' '.$student->last_name);
         $completionDate = $enrollment->completed_at ? $enrollment->completed_at->format('F j, Y') : Carbon::now()->format('F j, Y');
-        
+
         // Get total lessons count with fallback
-        $totalLessons = method_exists($program, 'getTotalLessonsCount') 
-            ? $program->getTotalLessonsCount() 
+        $totalLessons = method_exists($program, 'getTotalLessonsCount')
+            ? $program->getTotalLessonsCount()
             : $program->lessons()->count();
-            
+
         $completedLevels = $enrollment->highest_unlocked_level ?? 0;
         $totalPoints = $enrollment->quiz_points ?? 0;
-        $certificateId = 'CERT-' . strtoupper(substr(md5($enrollment->id . $enrollment->user_id . $enrollment->program_id), 0, 8));
+        $certificateId = 'CERT-'.strtoupper(substr(md5($enrollment->id.$enrollment->user_id.$enrollment->program_id), 0, 8));
 
         // Create new PDF document with simplified settings
         $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
-        
+
         // Set document information
         $pdf->SetCreator('Abacoding');
         $pdf->SetAuthor('Abacoding');
-        $pdf->SetTitle('Certificate - ' . $fullName);
-        
+        $pdf->SetTitle('Certificate - '.$fullName);
+
         // Remove default header/footer
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
-        
+
         // Set margins and auto page break
         $pdf->SetMargins(20, 20, 20);
         $pdf->SetAutoPageBreak(false, 0);
-        
+
         // Add a page
         $pdf->AddPage();
-        
+
         // Simple border
         $pdf->SetLineWidth(2);
         $pdf->SetDrawColor(218, 165, 32); // Gold
         $pdf->Rect(15, 15, 267, 180);
-        
+
         // Title
         $pdf->SetFont('helvetica', 'B', 28);
         $pdf->SetTextColor(25, 55, 109); // Dark blue
         $pdf->SetXY(20, 40);
         $pdf->Cell(257, 15, 'CERTIFICATE OF COMPLETION', 0, 1, 'C');
-        
+
         // Subtitle
         $pdf->SetFont('helvetica', '', 12);
         $pdf->SetTextColor(100, 100, 100);
         $pdf->SetXY(20, 60);
         $pdf->Cell(257, 8, 'This certifies that', 0, 1, 'C');
-        
+
         // Student name
         $pdf->SetFont('helvetica', 'B', 20);
         $pdf->SetTextColor(25, 55, 109);
         $pdf->SetXY(20, 80);
         $pdf->Cell(257, 12, $fullName, 0, 1, 'C');
-        
+
         // Achievement text
         $pdf->SetFont('helvetica', '', 11);
         $pdf->SetTextColor(100, 100, 100);
         $pdf->SetXY(20, 100);
         $pdf->Cell(257, 8, 'has successfully completed the program', 0, 1, 'C');
-        
+
         // Program name
         $pdf->SetFont('helvetica', 'B', 16);
         $pdf->SetTextColor(59, 130, 246); // Light blue
         $pdf->SetXY(20, 115);
         $pdf->Cell(257, 10, $program->name, 0, 1, 'C');
-        
+
         // Statistics in simple text format
         $pdf->SetFont('helvetica', '', 10);
         $pdf->SetTextColor(100, 100, 100);
         $pdf->SetXY(20, 140);
-        $pdf->Cell(257, 6, 'Levels Completed: ' . $completedLevels . ' | Total Points: ' . $totalPoints . ' | Lessons: ' . $totalLessons, 0, 1, 'C');
-        
+        $pdf->Cell(257, 6, 'Levels Completed: '.$completedLevels.' | Total Points: '.$totalPoints.' | Lessons: '.$totalLessons, 0, 1, 'C');
+
         // Completion date
         $pdf->SetXY(20, 155);
-        $pdf->Cell(257, 6, 'Date of Completion: ' . $completionDate, 0, 1, 'C');
-        
+        $pdf->Cell(257, 6, 'Date of Completion: '.$completionDate, 0, 1, 'C');
+
         // Platform
         $pdf->SetXY(20, 165);
         $pdf->Cell(257, 6, 'Abacoding - Kids Education Platform', 0, 1, 'C');
-        
+
         // Congratulations
         $pdf->SetFont('helvetica', 'B', 11);
         $pdf->SetTextColor(218, 165, 32); // Gold
         $pdf->SetXY(20, 180);
         $pdf->Cell(257, 8, 'Congratulations on your achievement!', 0, 1, 'C');
-        
+
         // Certificate ID
         $pdf->SetFont('helvetica', '', 8);
         $pdf->SetTextColor(150, 150, 150);
         $pdf->SetXY(20, 190);
-        $pdf->Cell(257, 5, 'Certificate ID: ' . $certificateId, 0, 1, 'C');
-        
+        $pdf->Cell(257, 5, 'Certificate ID: '.$certificateId, 0, 1, 'C');
+
         // Return PDF content as string
         return $pdf->Output('', 'S');
     }
@@ -225,7 +227,7 @@ class CertificateGeneratorService
     {
         // Create image
         $image = imagecreatetruecolor(self::CERTIFICATE_WIDTH, self::CERTIFICATE_HEIGHT);
-        
+
         // Colors
         $white = imagecolorallocate($image, 255, 255, 255);
         $gold = imagecolorallocate($image, 218, 165, 32);
@@ -233,23 +235,23 @@ class CertificateGeneratorService
         $lightBlue = imagecolorallocate($image, 59, 130, 246);
         $gray = imagecolorallocate($image, 75, 85, 99);
         $darkGray = imagecolorallocate($image, 31, 41, 55);
-        
+
         // Fill background
         imagefill($image, 0, 0, $white);
-        
+
         // Add decorative border
         $this->addBorder($image, $gold, $lightBlue);
-        
+
         // Add header
         $this->addHeader($image, $darkBlue, $gold);
-        
+
         // Add main content
         $this->addStudentInfo($image, $student, $darkBlue, $gray);
         $this->addProgramInfo($image, $program, $enrollment, $darkBlue, $lightBlue);
-        
+
         // Add footer
         $this->addFooter($image, $gray, $enrollment);
-        
+
         return $image;
     }
 
@@ -258,17 +260,17 @@ class CertificateGeneratorService
      */
     private function createHTMLCertificate(User $student, Program $program, Enrollment $enrollment)
     {
-        $fullName = trim($student->first_name . ' ' . $student->last_name);
+        $fullName = trim($student->first_name.' '.$student->last_name);
         $completionDate = $enrollment->completed_at ? $enrollment->completed_at->format('F j, Y') : Carbon::now()->format('F j, Y');
-        
+
         // Get total lessons count with fallback
-        $totalLessons = method_exists($program, 'getTotalLessonsCount') 
-            ? $program->getTotalLessonsCount() 
+        $totalLessons = method_exists($program, 'getTotalLessonsCount')
+            ? $program->getTotalLessonsCount()
             : $program->lessons()->count();
-            
+
         $completedLevels = $enrollment->highest_unlocked_level ?? 0;
         $totalPoints = $enrollment->quiz_points ?? 0;
-        $certificateId = 'CERT-' . strtoupper(substr(md5($enrollment->id . $enrollment->user_id . $enrollment->program_id), 0, 8));
+        $certificateId = 'CERT-'.strtoupper(substr(md5($enrollment->id.$enrollment->user_id.$enrollment->program_id), 0, 8));
 
         $html = '<!DOCTYPE html>
 <html>
@@ -386,31 +388,31 @@ class CertificateGeneratorService
             <div class="subtitle">This certifies that</div>
         </div>
         
-        <div class="student-name">' . htmlspecialchars($fullName) . '</div>
+        <div class="student-name">'.htmlspecialchars($fullName).'</div>
         
         <div style="font-size: 18px; color: #718096; margin: 20px 0;">
             has successfully completed the
         </div>
         
-        <div class="program-name">' . htmlspecialchars($program->name) . '</div>
+        <div class="program-name">'.htmlspecialchars($program->name).'</div>
         
         <div class="stats">
             <div class="stat">
-                <div class="stat-value">' . $completedLevels . '</div>
+                <div class="stat-value">'.$completedLevels.'</div>
                 <div class="stat-label">Levels Completed</div>
             </div>
             <div class="stat">
-                <div class="stat-value">' . $totalPoints . '</div>
+                <div class="stat-value">'.$totalPoints.'</div>
                 <div class="stat-label">Total Points</div>
             </div>
             <div class="stat">
-                <div class="stat-value">' . $totalLessons . '</div>
+                <div class="stat-value">'.$totalLessons.'</div>
                 <div class="stat-label">Lessons Completed</div>
             </div>
         </div>
         
         <div class="details">
-            <strong>Date of Completion:</strong> ' . $completionDate . '<br>
+            <strong>Date of Completion:</strong> '.$completionDate.'<br>
             <strong>Platform:</strong> Abacoding - Kids Education Platform
         </div>
         
@@ -418,7 +420,7 @@ class CertificateGeneratorService
         
         <div class="footer">
             <div><strong>Congratulations on your achievement!</strong></div>
-            <div class="cert-id">Certificate ID: ' . $certificateId . '</div>
+            <div class="cert-id">Certificate ID: '.$certificateId.'</div>
         </div>
     </div>
 </body>
@@ -432,23 +434,23 @@ class CertificateGeneratorService
      */
     private function createPrintableHTMLCertificate(User $student, Program $program, Enrollment $enrollment, string $language = 'en')
     {
-        $fullName = trim($student->first_name . ' ' . $student->last_name);
+        $fullName = trim($student->first_name.' '.$student->last_name);
         $completionDate = $enrollment->completed_at ? $enrollment->completed_at->format('F j, Y') : Carbon::now()->format('F j, Y');
-        
+
         // Get total lessons count with fallback
-        $totalLessons = method_exists($program, 'getTotalLessonsCount') 
-            ? $program->getTotalLessonsCount() 
+        $totalLessons = method_exists($program, 'getTotalLessonsCount')
+            ? $program->getTotalLessonsCount()
             : $program->lessons()->count();
-            
+
         $completedLevels = $enrollment->highest_unlocked_level ?? 0;
         $totalPoints = $enrollment->quiz_points ?? 0;
-        $certificateId = 'CERT-' . strtoupper(substr(md5($enrollment->id . $enrollment->user_id . $enrollment->program_id), 0, 8));
+        $certificateId = 'CERT-'.strtoupper(substr(md5($enrollment->id.$enrollment->user_id.$enrollment->program_id), 0, 8));
 
         $html = '<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>' . htmlspecialchars($this->trans('title', $language)) . ' - ' . htmlspecialchars($fullName) . '</title>
+    <title>'.htmlspecialchars($this->trans('title', $language)).' - '.htmlspecialchars($fullName).'</title>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap");
         
@@ -755,9 +757,9 @@ class CertificateGeneratorService
 </head>
 <body>
     <div class="print-instruction no-print">
-        <strong>📄 ' . htmlspecialchars($this->trans('print_instruction_title', $language)) . '</strong><br>
-        ' . htmlspecialchars($this->trans('print_instruction_text', $language)) . '
-        <br><small>' . htmlspecialchars($this->trans('print_instruction_shortcut', $language)) . '</small>
+        <strong>📄 '.htmlspecialchars($this->trans('print_instruction_title', $language)).'</strong><br>
+        '.htmlspecialchars($this->trans('print_instruction_text', $language)).'
+        <br><small>'.htmlspecialchars($this->trans('print_instruction_shortcut', $language)).'</small>
     </div>
     
     <div class="certificate">
@@ -772,72 +774,72 @@ class CertificateGeneratorService
             <div class="logo-section">
                 <div class="logo">A</div>
                 <div class="institution-name">Abacoding</div>
-                <div class="institution-subtitle">' . htmlspecialchars($this->trans('platform_name', $language)) . '</div>
+                <div class="institution-subtitle">'.htmlspecialchars($this->trans('platform_name', $language)).'</div>
             </div>
         </div>
         
         <!-- Main Content -->
         <div class="content">
-            <div class="certificate-type">' . htmlspecialchars($this->trans('title', $language)) . '</div>
+            <div class="certificate-type">'.htmlspecialchars($this->trans('title', $language)).'</div>
             
             <div class="subtitle-section">
-                <div class="subtitle">' . htmlspecialchars($this->trans('subtitle', $language)) . '</div>
-                <div class="student-name">' . htmlspecialchars($fullName) . '</div>
+                <div class="subtitle">'.htmlspecialchars($this->trans('subtitle', $language)).'</div>
+                <div class="student-name">'.htmlspecialchars($fullName).'</div>
             </div>
             
             <div class="achievement-section">
-                <div class="achievement-text">' . htmlspecialchars($this->trans('achievement_text', $language)) . '</div>
-                <div class="program-name">' . htmlspecialchars($program->name) . '</div>
+                <div class="achievement-text">'.htmlspecialchars($this->trans('achievement_text', $language)).'</div>
+                <div class="program-name">'.htmlspecialchars($program->name).'</div>
             </div>
             
             <div class="achievement-details">
                 <div class="detail-item">
-                    <div class="detail-label">' . htmlspecialchars($this->trans('levels_completed', $language)) . '</div>
-                    <div class="detail-value">' . $completedLevels . '</div>
+                    <div class="detail-label">'.htmlspecialchars($this->trans('levels_completed', $language)).'</div>
+                    <div class="detail-value">'.$completedLevels.'</div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">' . htmlspecialchars($this->trans('total_points', $language)) . '</div>
-                    <div class="detail-value">' . $totalPoints . '</div>
+                    <div class="detail-label">'.htmlspecialchars($this->trans('total_points', $language)).'</div>
+                    <div class="detail-value">'.$totalPoints.'</div>
                 </div>
                 <div class="detail-item">
-                    <div class="detail-label">' . htmlspecialchars($this->trans('lessons_completed', $language)) . '</div>
-                    <div class="detail-value">' . $totalLessons . '</div>
+                    <div class="detail-label">'.htmlspecialchars($this->trans('lessons_completed', $language)).'</div>
+                    <div class="detail-value">'.$totalLessons.'</div>
                 </div>
             </div>
             
             <div class="completion-details">
-                <p><strong>' . htmlspecialchars($this->trans('date_of_completion', $language)) . ':</strong> ' . $completionDate . '</p>
-                <p><strong>' . htmlspecialchars($this->trans('congratulations', $language)) . '</strong></p>
+                <p><strong>'.htmlspecialchars($this->trans('date_of_completion', $language)).':</strong> '.$completionDate.'</p>
+                <p><strong>'.htmlspecialchars($this->trans('congratulations', $language)).'</strong></p>
             </div>
         </div>
         
         <!-- Certificate ID -->
-        <div class="cert-id">' . htmlspecialchars($this->trans('certificate_id', $language)) . ': ' . $certificateId . '</div>
+        <div class="cert-id">'.htmlspecialchars($this->trans('certificate_id', $language)).': '.$certificateId.'</div>
     </div>
 </body>
 </html>';
 
         return $html;
     }
-    
+
     /**
      * Add decorative border to certificate
      */
     private function addBorder($image, $gold, $lightBlue): void
     {
         $thickness = 8;
-        
+
         // Outer gold border
         for ($i = 0; $i < $thickness; $i++) {
             imagerectangle($image, $i, $i, self::CERTIFICATE_WIDTH - 1 - $i, self::CERTIFICATE_HEIGHT - 1 - $i, $gold);
         }
-        
+
         // Inner blue border
         for ($i = $thickness + 5; $i < $thickness + 8; $i++) {
             imagerectangle($image, $i, $i, self::CERTIFICATE_WIDTH - 1 - $i, self::CERTIFICATE_HEIGHT - 1 - $i, $lightBlue);
         }
     }
-    
+
     /**
      * Add certificate header
      */
@@ -845,24 +847,24 @@ class CertificateGeneratorService
     {
         // Certificate title
         $this->addText($image, 'CERTIFICATE OF COMPLETION', 600, 80, 32, $darkBlue, true);
-        
+
         // Subtitle
         $this->addText($image, 'This certifies that', 600, 130, 18, $gold, true);
     }
-    
+
     /**
      * Add student information
      */
     private function addStudentInfo($image, User $student, $darkBlue, $gray): void
     {
         // Student name (large, prominent)
-        $fullName = trim($student->first_name . ' ' . $student->last_name);
+        $fullName = trim($student->first_name.' '.$student->last_name);
         $this->addText($image, $fullName, 600, 200, 36, $darkBlue, true, true);
-        
+
         // Achievement text
         $this->addText($image, 'has successfully completed the', 600, 260, 18, $gray, true);
     }
-    
+
     /**
      * Add program information
      */
@@ -871,58 +873,58 @@ class CertificateGeneratorService
         // Program name
         $programName = $program->name;
         $this->addText($image, $programName, 600, 320, 28, $lightBlue, true, true);
-        
+
         // Program details
-        $totalLessons = method_exists($program, 'getTotalLessonsCount') 
-            ? $program->getTotalLessonsCount() 
+        $totalLessons = method_exists($program, 'getTotalLessonsCount')
+            ? $program->getTotalLessonsCount()
             : $program->lessons()->count();
         $completedLevels = $enrollment->highest_unlocked_level ?? 0;
         $totalPoints = $enrollment->quiz_points ?? 0;
-        
+
         $detailsY = 380;
-        
+
         // Levels completed
         if ($completedLevels > 0) {
             $this->addText($image, "Levels Completed: {$completedLevels}", 600, $detailsY, 16, $darkBlue, true);
             $detailsY += 35;
         }
-        
+
         // Total points earned
         if ($totalPoints > 0) {
             $this->addText($image, "Total Points Earned: {$totalPoints}", 600, $detailsY, 16, $darkBlue, true);
             $detailsY += 35;
         }
-        
+
         // Total lessons
         if ($totalLessons > 0) {
             $this->addText($image, "Lessons Completed: {$totalLessons}", 600, $detailsY, 16, $darkBlue, true);
         }
     }
-    
+
     /**
      * Add certificate footer
      */
     private function addFooter($image, $gray, Enrollment $enrollment): void
     {
         $completionDate = $enrollment->completed_at ? $enrollment->completed_at->format('F j, Y') : Carbon::now()->format('F j, Y');
-        
+
         // Date
         $this->addText($image, "Date of Completion: {$completionDate}", 600, 550, 14, $gray, true);
-        
+
         // Platform name
         $this->addText($image, 'Abacoding - Kids Education Platform', 600, 580, 14, $gray, true);
-        
+
         // Certificate ID (for verification)
-        $certificateId = 'CERT-' . strtoupper(substr(md5($enrollment->id . $enrollment->user_id . $enrollment->program_id), 0, 8));
+        $certificateId = 'CERT-'.strtoupper(substr(md5($enrollment->id.$enrollment->user_id.$enrollment->program_id), 0, 8));
         $this->addText($image, "Certificate ID: {$certificateId}", 600, 610, 12, $gray, true);
-        
+
         // Congratulations message
         $this->addText($image, '🎉 Congratulations on your achievement! 🎉', 600, 700, 16, $gray, true);
-        
+
         // Add decorative elements
         $this->addDecorations($image, $gray);
     }
-    
+
     /**
      * Add decorative elements to the certificate
      */
@@ -930,16 +932,16 @@ class CertificateGeneratorService
     {
         // Add some decorative stars
         $stars = ['⭐', '🌟', '✨', '🎓'];
-        
+
         // Top decorations
         $this->addText($image, $stars[0], 150, 150, 24, $color);
         $this->addText($image, $stars[1], 1050, 150, 24, $color);
-        
+
         // Bottom decorations
         $this->addText($image, $stars[2], 150, 650, 24, $color);
         $this->addText($image, $stars[3], 1050, 650, 24, $color);
     }
-    
+
     /**
      * Add text to image with UTF-8 support
      */
@@ -947,24 +949,24 @@ class CertificateGeneratorService
     {
         // For now, use imagestring since we may not have TTF fonts available
         // In production, you'd want to use imagettftext with proper fonts
-        
+
         $fontSize = max(1, min(5, intval($size / 6))); // Convert size to GD font size (1-5)
-        
+
         if ($center) {
             $textWidth = imagefontwidth($fontSize) * strlen($text);
             $x = $x - ($textWidth / 2);
         }
-        
+
         // For bold effect, write text multiple times with slight offset
         if ($bold) {
             imagestring($image, $fontSize, $x + 1, $y, $text, $color);
             imagestring($image, $fontSize, $x, $y + 1, $text, $color);
             imagestring($image, $fontSize, $x + 1, $y + 1, $text, $color);
         }
-        
+
         imagestring($image, $fontSize, $x, $y, $text, $color);
     }
-    
+
     /**
      * Save certificate to storage
      */
@@ -972,11 +974,11 @@ class CertificateGeneratorService
     {
         try {
             // Detect content type more reliably
-            $isGdResource = (is_resource($content) && get_resource_type($content) === 'gd') || 
+            $isGdResource = (is_resource($content) && get_resource_type($content) === 'gd') ||
                            ($content instanceof \GdImage);
             $isPdfContent = is_string($content) && (strpos($content, '%PDF-') === 0);
             $isHtmlContent = is_string($content) && (strpos($content, '<!DOCTYPE') === 0);
-            
+
             Log::info('Certificate save starting', [
                 'content_type' => gettype($content),
                 'content_class' => is_object($content) ? get_class($content) : 'N/A',
@@ -985,141 +987,141 @@ class CertificateGeneratorService
                 'is_gdimage' => $content instanceof \GdImage,
                 'is_pdf_content' => $isPdfContent,
                 'is_html_content' => $isHtmlContent,
-                'content_preview' => is_string($content) ? substr($content, 0, 50) . '...' : 'N/A'
+                'content_preview' => is_string($content) ? substr($content, 0, 50).'...' : 'N/A',
             ]);
-            
+
             if ($isGdResource) {
                 // Handle GD image resource
-                $filename = 'certificates/' . $student->id . '_' . $program->id . '_' . $language . '_' . time() . '.png';
-                
+                $filename = 'certificates/'.$student->id.'_'.$program->id.'_'.$language.'_'.time().'.png';
+
                 // Create temporary file
                 $tempPath = storage_path('app/temp_cert.png');
                 imagepng($content, $tempPath);
-                
+
                 // Store in Laravel storage
                 $fileContents = file_get_contents($tempPath);
-                
+
                 try {
                     Storage::disk('private')->put($filename, $fileContents);
                 } catch (\Exception $storageException) {
                     Log::warning('Laravel Storage failed for image, using direct file operations', [
-                        'storage_error' => $storageException->getMessage()
+                        'storage_error' => $storageException->getMessage(),
                     ]);
-                    
+
                     // Fallback: use direct file operations
-                    $fullPath = storage_path('app/private/' . $filename);
+                    $fullPath = storage_path('app/private/'.$filename);
                     $directory = dirname($fullPath);
-                    
+
                     // Ensure directory exists
-                    if (!is_dir($directory)) {
+                    if (! is_dir($directory)) {
                         mkdir($directory, 0755, true);
                     }
-                    
+
                     // Copy file directly
-                    if (!copy($tempPath, $fullPath)) {
+                    if (! copy($tempPath, $fullPath)) {
                         throw new \Exception('Failed to copy certificate file using direct file operations');
                     }
-                    
+
                     Log::info('Certificate image saved using direct file operations', ['path' => $fullPath]);
                 }
-                
+
                 // Clean up temp file
                 unlink($tempPath);
             } elseif ($isPdfContent) {
                 // Handle PDF content
-                $filename = 'certificates/' . $student->id . '_' . $program->id . '_' . $language . '_' . time() . '.pdf';
-                
+                $filename = 'certificates/'.$student->id.'_'.$program->id.'_'.$language.'_'.time().'.pdf';
+
                 Log::info('Attempting to save PDF certificate', [
                     'filename' => $filename,
                     'content_length' => strlen($content),
-                    'disk' => 'private'
+                    'disk' => 'private',
                 ]);
-                
+
                 // Try Laravel Storage first, with fallback to direct file operations
                 try {
                     Storage::disk('private')->put($filename, $content);
                 } catch (\Exception $storageException) {
                     Log::warning('Laravel Storage failed, using direct file operations', [
-                        'storage_error' => $storageException->getMessage()
+                        'storage_error' => $storageException->getMessage(),
                     ]);
-                    
+
                     // Fallback: use direct file operations
-                    $fullPath = storage_path('app/private/' . $filename);
+                    $fullPath = storage_path('app/private/'.$filename);
                     $directory = dirname($fullPath);
-                    
+
                     // Ensure directory exists
-                    if (!is_dir($directory)) {
+                    if (! is_dir($directory)) {
                         mkdir($directory, 0755, true);
                     }
-                    
+
                     // Write file directly
                     if (file_put_contents($fullPath, $content) === false) {
                         throw new \Exception('Failed to write PDF certificate file using direct file operations');
                     }
-                    
+
                     Log::info('PDF certificate saved using direct file operations', ['path' => $fullPath]);
                 }
             } else {
                 // Handle HTML content (string)
-                $filename = 'certificates/' . $student->id . '_' . $program->id . '_' . $language . '_' . time() . '.html';
-                
-                if (!is_string($content)) {
-                    throw new \Exception('Expected string content for HTML certificate, got: ' . gettype($content));
+                $filename = 'certificates/'.$student->id.'_'.$program->id.'_'.$language.'_'.time().'.html';
+
+                if (! is_string($content)) {
+                    throw new \Exception('Expected string content for HTML certificate, got: '.gettype($content));
                 }
-                
+
                 Log::info('Attempting to save HTML certificate', [
                     'filename' => $filename,
                     'content_length' => strlen($content),
-                    'disk' => 'private'
+                    'disk' => 'private',
                 ]);
-                
+
                 // Try Laravel Storage first, with fallback to direct file operations
                 try {
                     Storage::disk('private')->put($filename, $content);
                 } catch (\Exception $storageException) {
                     Log::warning('Laravel Storage failed, using direct file operations', [
-                        'storage_error' => $storageException->getMessage()
+                        'storage_error' => $storageException->getMessage(),
                     ]);
-                    
+
                     // Fallback: use direct file operations
-                    $fullPath = storage_path('app/private/' . $filename);
+                    $fullPath = storage_path('app/private/'.$filename);
                     $directory = dirname($fullPath);
-                    
+
                     // Ensure directory exists
-                    if (!is_dir($directory)) {
+                    if (! is_dir($directory)) {
                         mkdir($directory, 0755, true);
                     }
-                    
+
                     // Write file directly
                     if (file_put_contents($fullPath, $content) === false) {
                         throw new \Exception('Failed to write certificate file using direct file operations');
                     }
-                    
+
                     Log::info('Certificate saved using direct file operations', ['path' => $fullPath]);
                 }
             }
-            
+
             Log::info('Certificate generated successfully', [
                 'student_id' => $student->id,
                 'program_id' => $program->id,
                 'filename' => $filename,
-                'type' => $isGdResource ? 'image' : 'html'
+                'type' => $isGdResource ? 'image' : 'html',
             ]);
-            
+
             return $filename;
-            
+
         } catch (\Exception $e) {
             Log::error('Certificate save failed', [
                 'student_id' => $student->id,
                 'program_id' => $program->id,
                 'error' => $e->getMessage(),
                 'content_type' => gettype($content),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
         }
     }
-    
+
     /**
      * Get certificate download URL
      */
@@ -1127,23 +1129,23 @@ class CertificateGeneratorService
     {
         return route('certificates.download', ['filename' => basename($filename)]);
     }
-    
+
     /**
      * Check if certificate exists for student and program
      */
     public function certificateExists(User $student, Program $program): ?string
     {
-        $basePath = 'certificates/' . $student->id . '_' . $program->id . '_*';
+        $basePath = 'certificates/'.$student->id.'_'.$program->id.'_*';
         $patterns = [
-            $basePath . '.pdf',   // PDF has priority
-            $basePath . '.png',
-            $basePath . '.html'
+            $basePath.'.pdf',   // PDF has priority
+            $basePath.'.png',
+            $basePath.'.html',
         ];
-        
+
         try {
             // Try Laravel Storage first
             $files = Storage::disk('private')->files('certificates');
-            
+
             foreach ($patterns as $pattern) {
                 foreach ($files as $file) {
                     if (fnmatch($pattern, $file)) {
@@ -1157,9 +1159,11 @@ class CertificateGeneratorService
             if (is_dir($certificatesDir)) {
                 $files = scandir($certificatesDir);
                 foreach ($files as $file) {
-                    if ($file === '.' || $file === '..') continue;
-                    
-                    $filePath = 'certificates/' . $file;
+                    if ($file === '.' || $file === '..') {
+                        continue;
+                    }
+
+                    $filePath = 'certificates/'.$file;
                     foreach ($patterns as $pattern) {
                         if (fnmatch($pattern, $filePath)) {
                             return $filePath;
@@ -1168,10 +1172,10 @@ class CertificateGeneratorService
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * Generate or get existing certificate
      */
@@ -1179,23 +1183,23 @@ class CertificateGeneratorService
     {
         // Clean up old certificates first to ensure we get the latest format
         $this->cleanupOldCertificates($student, $program);
-        
+
         // Always generate a new certificate to ensure latest format
         return $this->generateCertificate($student, $program, $language);
     }
-    
+
     /**
      * Clean up old certificates for a student/program
      */
     private function cleanupOldCertificates(User $student, Program $program): void
     {
-        $basePath = 'certificates/' . $student->id . '_' . $program->id . '_*';
+        $basePath = 'certificates/'.$student->id.'_'.$program->id.'_*';
         $patterns = [
-            $basePath . '.pdf',
-            $basePath . '.png',
-            $basePath . '.html'
+            $basePath.'.pdf',
+            $basePath.'.png',
+            $basePath.'.html',
         ];
-        
+
         try {
             $files = Storage::disk('private')->files('certificates');
             foreach ($files as $file) {

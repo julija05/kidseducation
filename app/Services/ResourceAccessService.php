@@ -16,14 +16,14 @@ class ResourceAccessService
 
     public function validateAccess(LessonResource $resource, User $user): void
     {
-        if (!$this->resourceService->canUserAccessResource($resource, $user)) {
+        if (! $this->resourceService->canUserAccessResource($resource, $user)) {
             abort(403, 'You do not have access to this resource.');
         }
     }
 
     public function serveFile(LessonResource $resource, string $disposition = 'inline'): Response
     {
-        if (!$resource->file_path || !Storage::exists($resource->file_path)) {
+        if (! $resource->file_path || ! Storage::exists($resource->file_path)) {
             abort(404, 'File not found.');
         }
 
@@ -39,11 +39,11 @@ class ResourceAccessService
 
     public function streamFile(LessonResource $resource): StreamedResponse
     {
-        if (!$this->isStreamable($resource)) {
+        if (! $this->isStreamable($resource)) {
             abort(400, 'Resource is not streamable.');
         }
 
-        if (!$resource->file_path || !Storage::exists($resource->file_path)) {
+        if (! $resource->file_path || ! Storage::exists($resource->file_path)) {
             abort(404, 'File not found.');
         }
 
@@ -69,7 +69,7 @@ class ResourceAccessService
         $headers = [
             'Content-Type' => $mimeType,
             'Content-Length' => $contentLength,
-            'Content-Disposition' => $disposition . '; filename="' . $fileName . '"',
+            'Content-Disposition' => $disposition.'; filename="'.$fileName.'"',
             'Cache-Control' => 'private, max-age=3600',
         ];
 

@@ -10,6 +10,7 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
         description: formData.description || "",
         duration: formData.duration || "",
         price: formData.price || "",
+        requires_monthly_payment: formData.requires_monthly_payment || false,
         icon: formData.icon || "BookOpen",
         color: formData.color || "bg-blue-600",
         light_color: formData.light_color || "bg-blue-100",
@@ -26,6 +27,7 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
                 description: formData.description || "",
                 duration: formData.duration || "",
                 price: formData.price || "",
+                requires_monthly_payment: formData.requires_monthly_payment || false,
                 icon: formData.icon || "BookOpen",
                 color: formData.color || "bg-blue-600",
                 light_color: formData.light_color || "bg-blue-100",
@@ -40,7 +42,16 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
 
     const handleFieldChange = (e) => {
         const name = e.target.name;
-        const value = e.target.type === 'file' ? e.target.files[0] : e.target.value;
+        let value;
+        
+        if (e.target.type === 'file') {
+            value = e.target.files[0];
+        } else if (e.target.type === 'checkbox') {
+            value = e.target.checked;
+        } else {
+            value = e.target.value;
+        }
+        
         setData(name, value);
     };
 
@@ -87,6 +98,12 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
             step: "0.01",
             required: true,
         },
+        {
+            name: "requires_monthly_payment",
+            label: "Requires Monthly Payment",
+            type: "checkbox",
+            description: "If checked, admin can block user access for non-payment",
+        },
     ];
 
     return (
@@ -96,6 +113,7 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
                     key={field.name}
                     {...field}
                     value={data[field.name]}
+                    checked={field.type === 'checkbox' ? data[field.name] : undefined}
                     onChange={handleFieldChange}
                     error={errors[field.name]}
                 />

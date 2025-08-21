@@ -66,10 +66,12 @@ class QuizQuestion extends Model
     public function getFormattedTimeLimitAttribute(): ?string
     {
         $timeLimit = $this->time_limit ?? $this->quiz->question_time_limit;
-        
-        if (!$timeLimit) return null;
 
-        return $timeLimit . ' second' . ($timeLimit !== 1 ? 's' : '');
+        if (! $timeLimit) {
+            return null;
+        }
+
+        return $timeLimit.' second'.($timeLimit !== 1 ? 's' : '');
     }
 
     // Question validation methods
@@ -105,11 +107,13 @@ class QuizQuestion extends Model
                         return strtolower($key) === $correctAnswer || strtolower($value) === $correctAnswer;
                     }
                 }
+
                 return false;
 
             case 'true_false':
                 $userBool = in_array($userAnswer, ['true', '1', 'yes', 'correct']);
                 $correctBool = in_array($correctAnswer, ['true', '1', 'yes', 'correct']);
+
                 return $userBool === $correctBool;
 
             default:
@@ -126,6 +130,7 @@ class QuizQuestion extends Model
                 // Give partial credit based on percentage correct
                 return ($answerData['percentage'] ?? 0) / 100;
             }
+
             // Return 0.0 for invalid JSON or incorrect format
             return 0.0;
         }
@@ -138,12 +143,14 @@ class QuizQuestion extends Model
         if ($this->type === 'mental_arithmetic') {
             $userNum = (float) $userAnswer;
             $correctNum = (float) $this->correct_answer;
-            
-            if ($userNum == $correctNum) return 1.0;
-            
+
+            if ($userNum == $correctNum) {
+                return 1.0;
+            }
+
             $difference = abs($userNum - $correctNum);
             $tolerance = abs($correctNum * 0.1); // 10% tolerance
-            
+
             if ($difference <= $tolerance) {
                 return 0.5; // Half credit for close answers
             }
@@ -156,7 +163,7 @@ class QuizQuestion extends Model
     public function getMentalArithmeticDisplay(): array
     {
         $questionData = $this->question_data ?? [];
-        
+
         return [
             'numbers' => $questionData['numbers'] ?? [],
             'sequence' => $questionData['display_sequence'] ?? '',
@@ -168,7 +175,7 @@ class QuizQuestion extends Model
     public function getShuffledOptions(): array
     {
         $options = $this->answer_options ?? [];
-        
+
         if ($this->quiz->shuffle_answers) {
             $keys = array_keys($options);
             shuffle($keys);
@@ -176,9 +183,10 @@ class QuizQuestion extends Model
             foreach ($keys as $key) {
                 $shuffled[$key] = $options[$key];
             }
+
             return $shuffled;
         }
-        
+
         return $options;
     }
 
@@ -209,7 +217,7 @@ class QuizQuestion extends Model
             case 'true_false':
                 $baseData['answer_options'] = [
                     'true' => 'True',
-                    'false' => 'False'
+                    'false' => 'False',
                 ];
                 break;
 

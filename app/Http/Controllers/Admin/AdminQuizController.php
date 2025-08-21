@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Quiz;
-use App\Models\QuizQuestion;
 use App\Models\Lesson;
 use App\Models\Program;
+use App\Models\Quiz;
+use App\Models\QuizQuestion;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +22,7 @@ class AdminQuizController extends Controller
 
         return Inertia::render('Admin/Quizzes/Index', [
             'quizzes' => [
-                'data' => collect($quizzes->items())->map(fn($quiz) => [
+                'data' => collect($quizzes->items())->map(fn ($quiz) => [
                     'id' => $quiz->id,
                     'title' => $quiz->title,
                     'type' => $quiz->type,
@@ -33,7 +33,7 @@ class AdminQuizController extends Controller
                         'program' => $quiz->lesson->program ? [
                             'id' => $quiz->lesson->program->id,
                             'title' => $quiz->lesson->program->title,
-                        ] : null
+                        ] : null,
                     ] : null,
                     'questions_count' => $quiz->questions->count(),
                     'total_points' => $quiz->total_points,
@@ -47,7 +47,7 @@ class AdminQuizController extends Controller
                 'last_page' => $quizzes->lastPage(),
                 'per_page' => $quizzes->perPage(),
                 'total' => $quizzes->total(),
-            ]
+            ],
         ]);
     }
 
@@ -56,7 +56,7 @@ class AdminQuizController extends Controller
         $programs = Program::active()
             ->orderBy('name')
             ->get()
-            ->map(fn($program) => [
+            ->map(fn ($program) => [
                 'id' => $program->id,
                 'name' => $program->name,
                 'title' => $program->name,
@@ -66,14 +66,14 @@ class AdminQuizController extends Controller
             ->orderBy('level')
             ->orderBy('order_in_level')
             ->get()
-            ->map(fn($lesson) => [
+            ->map(fn ($lesson) => [
                 'id' => $lesson->id,
                 'title' => $lesson->title,
                 'level' => $lesson->level,
                 'program_id' => $lesson->program_id,
                 'program_title' => $lesson->program->name ?? 'Unknown Program',
                 'display_name' => "Level {$lesson->level} - {$lesson->title}",
-                'full_display_name' => $lesson->program->name . ' - Level ' . $lesson->level . ' - ' . $lesson->title,
+                'full_display_name' => $lesson->program->name.' - Level '.$lesson->level.' - '.$lesson->title,
             ]);
 
         return Inertia::render('Admin/Quizzes/Create', [
@@ -85,7 +85,7 @@ class AdminQuizController extends Controller
                 'text_answer' => 'Text Answer',
                 'true_false' => 'True/False',
                 'mixed' => 'Mixed Questions',
-            ]
+            ],
         ]);
     }
 
@@ -126,7 +126,7 @@ class AdminQuizController extends Controller
 
     public function show(Quiz $quiz)
     {
-        $quiz->load(['lesson.program', 'questions' => fn($query) => $query->orderBy('order')]);
+        $quiz->load(['lesson.program', 'questions' => fn ($query) => $query->orderBy('order')]);
 
         return Inertia::render('Admin/Quizzes/Show', [
             'quiz' => [
@@ -154,9 +154,9 @@ class AdminQuizController extends Controller
                     'program' => $quiz->lesson->program ? [
                         'id' => $quiz->lesson->program->id,
                         'title' => $quiz->lesson->program->title,
-                    ] : null
+                    ] : null,
                 ] : null,
-                'questions' => $quiz->questions->map(fn($question) => $question->formatForAdmin()),
+                'questions' => $quiz->questions->map(fn ($question) => $question->formatForAdmin()),
                 'created_at' => $quiz->created_at->format('M d, Y H:i'),
                 'updated_at' => $quiz->updated_at->format('M d, Y H:i'),
             ],
@@ -166,7 +166,7 @@ class AdminQuizController extends Controller
                 'text_answer' => 'Text Answer',
                 'true_false' => 'True/False',
                 'mixed' => 'Mixed Questions',
-            ]
+            ],
         ]);
     }
 
@@ -177,7 +177,7 @@ class AdminQuizController extends Controller
         $programs = Program::active()
             ->orderBy('name')
             ->get()
-            ->map(fn($program) => [
+            ->map(fn ($program) => [
                 'id' => $program->id,
                 'name' => $program->name,
                 'title' => $program->name,
@@ -187,14 +187,14 @@ class AdminQuizController extends Controller
             ->orderBy('level')
             ->orderBy('order_in_level')
             ->get()
-            ->map(fn($lesson) => [
+            ->map(fn ($lesson) => [
                 'id' => $lesson->id,
                 'title' => $lesson->title,
                 'level' => $lesson->level,
                 'program_id' => $lesson->program_id,
                 'program_title' => $lesson->program->name ?? 'Unknown Program',
                 'display_name' => "Level {$lesson->level} - {$lesson->title}",
-                'full_display_name' => $lesson->program->name . ' - Level ' . $lesson->level . ' - ' . $lesson->title,
+                'full_display_name' => $lesson->program->name.' - Level '.$lesson->level.' - '.$lesson->title,
             ]);
 
         return Inertia::render('Admin/Quizzes/Edit', [
@@ -224,7 +224,7 @@ class AdminQuizController extends Controller
                 'text_answer' => 'Text Answer',
                 'true_false' => 'True/False',
                 'mixed' => 'Mixed Questions',
-            ]
+            ],
         ]);
     }
 
@@ -304,7 +304,7 @@ class AdminQuizController extends Controller
             if (empty($validated['question_data'])) {
                 $validated['question_data'] = [
                     'type' => 'flash_card_sessions',
-                    'use_quiz_settings' => true
+                    'use_quiz_settings' => true,
                 ];
             }
         }
@@ -320,7 +320,7 @@ class AdminQuizController extends Controller
         return response()->json([
             'success' => true,
             'question' => $question->formatForAdmin(),
-            'message' => 'Question added successfully!'
+            'message' => 'Question added successfully!',
         ]);
     }
 
@@ -364,7 +364,7 @@ class AdminQuizController extends Controller
         return response()->json([
             'success' => true,
             'question' => $question->formatForAdmin(),
-            'message' => 'Question updated successfully!'
+            'message' => 'Question updated successfully!',
         ]);
     }
 
@@ -379,7 +379,7 @@ class AdminQuizController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Question deleted successfully!'
+            'message' => 'Question deleted successfully!',
         ]);
     }
 
@@ -401,7 +401,7 @@ class AdminQuizController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Questions reordered successfully!'
+            'message' => 'Questions reordered successfully!',
         ]);
     }
 
@@ -419,14 +419,26 @@ class AdminQuizController extends Controller
 
         // Update quiz settings if provided
         $settings = $quiz->settings ?? [];
-        if (isset($validated['operations'])) $settings['operations'] = $validated['operations'];
-        if (isset($validated['number_range'])) $settings['number_range'] = $validated['number_range'];
-        if (isset($validated['sequence_length'])) $settings['sequence_length'] = $validated['sequence_length'];
-        if (isset($validated['session_count'])) $settings['session_count'] = $validated['session_count'];
-        if (isset($validated['numbers_per_session'])) $settings['numbers_per_session'] = $validated['numbers_per_session'];
-        if (isset($validated['display_time'])) $settings['display_time'] = $validated['display_time'];
-        
-        if (!empty($settings)) {
+        if (isset($validated['operations'])) {
+            $settings['operations'] = $validated['operations'];
+        }
+        if (isset($validated['number_range'])) {
+            $settings['number_range'] = $validated['number_range'];
+        }
+        if (isset($validated['sequence_length'])) {
+            $settings['sequence_length'] = $validated['sequence_length'];
+        }
+        if (isset($validated['session_count'])) {
+            $settings['session_count'] = $validated['session_count'];
+        }
+        if (isset($validated['numbers_per_session'])) {
+            $settings['numbers_per_session'] = $validated['numbers_per_session'];
+        }
+        if (isset($validated['display_time'])) {
+            $settings['display_time'] = $validated['display_time'];
+        }
+
+        if (! empty($settings)) {
             $quiz->update(['settings' => $settings]);
         }
 
@@ -437,14 +449,14 @@ class AdminQuizController extends Controller
         // Auto-create a flash card question for this quiz
         $nextOrder = $quiz->questions()->max('order') + 1;
         $pointsPerSession = $settings['points_per_session'] ?? 10;
-        
+
         $question = $quiz->questions()->create([
             'type' => 'mental_arithmetic',
             'question_text' => "Complete {$sessionCount} flash card sessions by adding the numbers shown",
             'question_data' => [
                 'sessions' => $sessions,
                 'session_count' => $sessionCount,
-                'display_type' => 'flash_cards'
+                'display_type' => 'flash_cards',
             ],
             'correct_answer' => 'flash_card_sessions', // Special marker for flash card questions
             'points' => $sessionCount * $pointsPerSession, // Configurable points per session
@@ -458,9 +470,9 @@ class AdminQuizController extends Controller
             'question_data' => [
                 'sessions' => $sessions,
                 'session_count' => $sessionCount,
-                'display_type' => 'flash_cards'
+                'display_type' => 'flash_cards',
             ],
-            'message' => 'Flash card question created successfully!'
+            'message' => 'Flash card question created successfully!',
         ]);
     }
 
@@ -512,17 +524,17 @@ class AdminQuizController extends Controller
                     'program' => [
                         'id' => $quiz->lesson->program->id,
                         'title' => $quiz->lesson->program->title,
-                    ]
-                ]
+                    ],
+                ],
             ],
-            'attempts' => $attempts->through(fn($attempt) => $attempt->formatForAdmin()),
+            'attempts' => $attempts->through(fn ($attempt) => $attempt->formatForAdmin()),
             'stats' => $stats,
             'pagination' => [
                 'current_page' => $attempts->currentPage(),
                 'last_page' => $attempts->lastPage(),
                 'per_page' => $attempts->perPage(),
                 'total' => $attempts->total(),
-            ]
+            ],
         ]);
     }
 
@@ -534,28 +546,28 @@ class AdminQuizController extends Controller
         $userResults = User::whereHas('quizAttempts', function ($query) use ($quiz) {
             $query->where('quiz_id', $quiz->id);
         })
-        ->with(['quizAttempts' => function ($query) use ($quiz) {
-            $query->where('quiz_id', $quiz->id)->latest();
-        }])
-        ->get()
-        ->map(function ($user) use ($quiz) {
-            $attempts = $user->quizAttempts;
-            $bestAttempt = $attempts->where('status', 'completed')->sortByDesc('score')->first();
-            
-            return [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-                'total_attempts' => $attempts->count(),
-                'completed_attempts' => $attempts->where('status', 'completed')->count(),
-                'best_score' => $bestAttempt?->score,
-                'passed' => $bestAttempt && $bestAttempt->score >= $quiz->passing_score,
-                'last_attempt' => $attempts->first()?->formatForAdmin(),
-            ];
-        })
-        ->sortByDesc('best_score');
+            ->with(['quizAttempts' => function ($query) use ($quiz) {
+                $query->where('quiz_id', $quiz->id)->latest();
+            }])
+            ->get()
+            ->map(function ($user) use ($quiz) {
+                $attempts = $user->quizAttempts;
+                $bestAttempt = $attempts->where('status', 'completed')->sortByDesc('score')->first();
+
+                return [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'total_attempts' => $attempts->count(),
+                    'completed_attempts' => $attempts->where('status', 'completed')->count(),
+                    'best_score' => $bestAttempt?->score,
+                    'passed' => $bestAttempt && $bestAttempt->score >= $quiz->passing_score,
+                    'last_attempt' => $attempts->first()?->formatForAdmin(),
+                ];
+            })
+            ->sortByDesc('best_score');
 
         return Inertia::render('Admin/Quizzes/StudentResults', [
             'quiz' => [
@@ -568,8 +580,8 @@ class AdminQuizController extends Controller
                     'program' => [
                         'id' => $quiz->lesson->program->id,
                         'title' => $quiz->lesson->program->title,
-                    ]
-                ]
+                    ],
+                ],
             ],
             'user_results' => $userResults->values(),
         ]);

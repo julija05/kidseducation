@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\Enrollment;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -30,7 +29,7 @@ class AdminEnrollmentNotification extends Mailable
     {
         return new Envelope(
             to: 'abacoding@abacoding.com',
-            subject: 'New Enrollment Request - ' . $this->enrollment->program->name,
+            subject: 'New Enrollment Request - '.$this->enrollment->program->name,
         );
     }
 

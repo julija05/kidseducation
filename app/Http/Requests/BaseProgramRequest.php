@@ -24,12 +24,13 @@ abstract class BaseProgramRequest extends FormRequest
             'description' => 'string',
             'duration' => 'string|max:255',
             'price' => 'numeric|min:0',
+            'requires_monthly_payment' => 'boolean',
             'icon' => 'string|max:255',
             'color' => 'string|max:255',
             'light_color' => 'string|max:255',
             'border_color' => 'string|max:255',
             'text_color' => 'string|max:255',
-            '_method' => 'sometimes|string'
+            '_method' => 'sometimes|string',
         ];
     }
 
@@ -53,6 +54,8 @@ abstract class BaseProgramRequest extends FormRequest
             'price.required' => 'The program price is required.',
             'price.numeric' => 'The program price must be a valid number.',
             'price.min' => 'The program price must be at least 0.',
+
+            'requires_monthly_payment.boolean' => 'The monthly payment requirement must be true or false.',
 
             'icon.string' => 'The program icon must be text.',
             'icon.max' => 'The program icon cannot exceed 255 characters.',

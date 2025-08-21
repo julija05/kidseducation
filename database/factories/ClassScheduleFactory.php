@@ -3,9 +3,9 @@
 namespace Database\Factories;
 
 use App\Models\ClassSchedule;
-use App\Models\User;
-use App\Models\Program;
 use App\Models\Lesson;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ClassScheduleFactory extends Factory
@@ -15,7 +15,7 @@ class ClassScheduleFactory extends Factory
     public function definition(): array
     {
         $scheduledAt = $this->faker->dateTimeBetween('now', '+2 months');
-        
+
         return [
             'student_id' => User::factory(),
             'admin_id' => User::factory(),
@@ -97,7 +97,7 @@ class ClassScheduleFactory extends Factory
             // For completed classes, ensure scheduled_at is in the past
             $scheduledAt = $this->faker->dateTimeBetween('-2 months', '-1 day');
             $completedAt = $this->faker->dateTimeBetween($scheduledAt, 'now');
-            
+
             return [
                 'scheduled_at' => $scheduledAt,
                 'status' => 'completed',

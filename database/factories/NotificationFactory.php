@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Enrollment;
 use App\Models\Notification;
 use App\Models\User;
-use App\Models\Enrollment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class NotificationFactory extends Factory
@@ -30,7 +30,7 @@ class NotificationFactory extends Factory
         return $this->state(function (array $attributes) {
             $user = User::factory()->create();
             $enrollment = Enrollment::factory()->create(['user_id' => $user->id]);
-            
+
             return [
                 'title' => 'New Enrollment Request',
                 'message' => "{$user->name} has requested enrollment in a program.",

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProgramRequest;
 use App\Http\Requests\UpdateProgramRequest;
 use App\Models\Program;
-use App\Services\ProgramService;
 use App\Services\EnrollmentService;
+use App\Services\ProgramService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -35,6 +35,7 @@ class ProgramController extends Controller
                 'duration' => $program->duration,
                 'duration_weeks' => $program->duration_weeks,
                 'price' => $program->price,
+                'requires_monthly_payment' => $program->requires_monthly_payment,
                 'average_rating' => round($program->average_rating, 1),
                 'total_reviews_count' => $program->approved_reviews_count,
             ];
@@ -43,10 +44,10 @@ class ProgramController extends Controller
         // Get user demo access and enrollment info if logged in
         $userDemoAccess = null;
         $userEnrollments = [];
-        
+
         if (Auth::check()) {
             $user = Auth::user();
-            
+
             // Get demo access info - check regular demo access first
             if ($user->hasDemoAccess()) {
                 $userDemoAccess = [
@@ -62,7 +63,7 @@ class ProgramController extends Controller
                     'days_remaining' => 999, // Indicate unlimited access while pending
                 ];
             }
-            
+
             // Get enrollment info
             $userEnrollments = $user->enrollments()->with('program')->get()->map(function ($enrollment) {
                 return [
@@ -75,7 +76,7 @@ class ProgramController extends Controller
             // Debug: Log enrollment data for troubleshooting
             Log::info('User enrollments for programs index:', [
                 'user_id' => $user->id,
-                'enrollments' => $userEnrollments->toArray()
+                'enrollments' => $userEnrollments->toArray(),
             ]);
         }
 
@@ -119,7 +120,6 @@ class ProgramController extends Controller
             }
         }
 
-
         $userEnrollment = null;
         $canReview = false;
         $userReview = null;
@@ -148,10 +148,10 @@ class ProgramController extends Controller
                 'userEnrollment' => $userEnrollment ? [
                     'id' => $userEnrollment->id,
                     'approval_status' => $userEnrollment->approval_status,
-                    'status' => $userEnrollment->status
+                    'status' => $userEnrollment->status,
                 ] : null,
                 'hasAnyEnrollment' => $hasAnyEnrollment,
-                'hasAnyActiveEnrollment' => $hasAnyActiveEnrollment
+                'hasAnyActiveEnrollment' => $hasAnyActiveEnrollment,
             ]);
 
             // Check if user can review (enrolled and approved, no existing review)
@@ -160,8 +160,8 @@ class ProgramController extends Controller
                     ->where('reviewable_type', Program::class)
                     ->where('reviewable_id', $program->id)
                     ->first();
-                
-                $canReview = !$userReview;
+
+                $canReview = ! $userReview;
             }
         }
 
@@ -195,6 +195,7 @@ class ProgramController extends Controller
                 'duration' => $program->duration,
                 'duration_weeks' => $program->duration_weeks,
                 'price' => $program->price,
+                'requires_monthly_payment' => $program->requires_monthly_payment,
                 'average_rating' => round($program->average_rating, 1),
                 'total_reviews_count' => $program->total_reviews_count,
             ],
@@ -262,7 +263,7 @@ class ProgramController extends Controller
                 'user_id' => $user->id,
                 'program_id' => $program->id,
                 'approval_status' => $userEnrollment->approval_status,
-                'status' => $userEnrollment->status
+                'status' => $userEnrollment->status,
             ]);
 
             if ($userEnrollment->approval_status === 'approved' && $userEnrollment->status === 'active') {
@@ -279,7 +280,7 @@ class ProgramController extends Controller
                     'user_id' => $user->id,
                     'program_id' => $program->id,
                     'approval_status' => $userEnrollment->approval_status,
-                    'status' => $userEnrollment->status
+                    'status' => $userEnrollment->status,
                 ]);
                 // Default to pending if status is unclear
                 $enrollmentStatus = 'pending';

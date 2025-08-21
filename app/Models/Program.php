@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use App\Traits\HasTranslations;
 
 class Program extends Model
 {
@@ -20,6 +20,7 @@ class Program extends Model
         'description_translations',
         'duration',
         'price',
+        'requires_monthly_payment',
         'slug',
         'icon',
         'color',
@@ -33,6 +34,7 @@ class Program extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'requires_monthly_payment' => 'boolean',
         'is_active' => 'boolean',
         'level_requirements' => 'array',
         'name_translations' => 'array',
@@ -118,7 +120,7 @@ class Program extends Model
             'textColor' => $this->text_color,
         ];
     }
-    
+
     // Check if a level is unlocked for a user
     public function isLevelUnlockedForUser(User $user, int $level): bool
     {
@@ -126,14 +128,14 @@ class Program extends Model
             ->where('program_id', $this->id)
             ->where('approval_status', 'approved')
             ->first();
-            
-        if (!$enrollment) {
+
+        if (! $enrollment) {
             return false;
         }
-        
+
         return $enrollment->isLevelUnlocked($level);
     }
-    
+
     // Get default level requirements if not set
     public function getDefaultLevelRequirements(): array
     {
@@ -145,25 +147,25 @@ class Program extends Model
             '5' => 100,  // Level 5 - need 100 points
         ];
     }
-    
+
     // Get effective level requirements (use custom or default)
     public function getEffectiveLevelRequirements(): array
     {
         return $this->level_requirements ?? $this->getDefaultLevelRequirements();
     }
-    
+
     // Get total lessons count for this program
     public function getTotalLessonsCount(): int
     {
         return $this->lessons()->count();
     }
-    
+
     // Translation accessors
     public function getTranslatedNameAttribute(): string
     {
         return $this->getTranslatedAttribute('name');
     }
-    
+
     public function getTranslatedDescriptionAttribute(): string
     {
         return $this->getTranslatedAttribute('description');

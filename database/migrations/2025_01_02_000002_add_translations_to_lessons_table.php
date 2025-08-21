@@ -15,18 +15,18 @@ return new class extends Migration
         if (Schema::hasTable('lessons')) {
             Schema::table('lessons', function (Blueprint $table) {
                 // Only add columns if they don't already exist
-                if (!Schema::hasColumn('lessons', 'title_translations')) {
+                if (! Schema::hasColumn('lessons', 'title_translations')) {
                     $table->json('title_translations')->nullable()->after('title');
                 }
-                if (!Schema::hasColumn('lessons', 'description_translations')) {
+                if (! Schema::hasColumn('lessons', 'description_translations')) {
                     $table->json('description_translations')->nullable()->after('description');
                 }
-                if (!Schema::hasColumn('lessons', 'content_body_translations')) {
+                if (! Schema::hasColumn('lessons', 'content_body_translations')) {
                     $table->json('content_body_translations')->nullable()->after('content_body');
                 }
             });
         }
-        
+
         // Migrate existing data to translations (will be done after models are updated)
     }
 

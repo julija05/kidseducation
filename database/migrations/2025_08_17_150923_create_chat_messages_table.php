@@ -20,7 +20,7 @@ return new class extends Migration
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['conversation_id', 'created_at']);
             $table->index(['sender_id', 'sender_type']);
             $table->index('is_read');

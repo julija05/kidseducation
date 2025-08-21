@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Services\EnrollmentService;
 use App\Services\LessonService;
 use App\Services\ProgramService;
-use App\Services\EnrollmentService;
 use App\Services\ResourceService;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
 
         // ResourceService has no dependencies on other services
         $this->app->singleton(ResourceService::class, function ($app) {
-            return new ResourceService();
+            return new ResourceService;
         });
 
         // ProgramService depends on ImageService (which you already have)

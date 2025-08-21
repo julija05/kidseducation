@@ -2,12 +2,12 @@
 
 namespace Tests\Unit;
 
-use App\Models\Quiz;
-use App\Models\QuizQuestion;
 use App\Models\Lesson;
 use App\Models\Program;
-use Tests\TestCase;
+use App\Models\Quiz;
+use App\Models\QuizQuestion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class QuizQuestionTest extends TestCase
 {
@@ -18,7 +18,7 @@ class QuizQuestionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $program = Program::create([
             'name' => 'Math Program',
             'slug' => 'math-program',
@@ -49,7 +49,6 @@ class QuizQuestionTest extends TestCase
         ]);
     }
 
-
     public function it_validates_flash_card_session_answers_correctly()
     {
         $question = QuizQuestion::create([
@@ -64,25 +63,24 @@ class QuizQuestionTest extends TestCase
         // Test valid flash card session answer with high score
         $highScoreAnswer = json_encode([
             'type' => 'flash_card_sessions',
-            'percentage' => 75
+            'percentage' => 75,
         ]);
         $this->assertTrue($question->isAnswerCorrect($highScoreAnswer));
 
         // Test valid flash card session answer with low score
         $lowScoreAnswer = json_encode([
             'type' => 'flash_card_sessions',
-            'percentage' => 25
+            'percentage' => 25,
         ]);
         $this->assertFalse($question->isAnswerCorrect($lowScoreAnswer));
 
         // Test boundary case (exactly 50%)
         $boundaryAnswer = json_encode([
             'type' => 'flash_card_sessions',
-            'percentage' => 50
+            'percentage' => 50,
         ]);
         $this->assertTrue($question->isAnswerCorrect($boundaryAnswer));
     }
-
 
     public function it_calculates_partial_credit_for_flash_card_sessions()
     {
@@ -98,25 +96,24 @@ class QuizQuestionTest extends TestCase
         // Test full credit (100%)
         $fullCreditAnswer = json_encode([
             'type' => 'flash_card_sessions',
-            'percentage' => 100
+            'percentage' => 100,
         ]);
         $this->assertEquals(1.0, $question->getPartialCredit($fullCreditAnswer));
 
         // Test partial credit (67%)
         $partialCreditAnswer = json_encode([
             'type' => 'flash_card_sessions',
-            'percentage' => 67
+            'percentage' => 67,
         ]);
         $this->assertEquals(0.67, $question->getPartialCredit($partialCreditAnswer));
 
         // Test no credit (0%)
         $noCreditAnswer = json_encode([
             'type' => 'flash_card_sessions',
-            'percentage' => 0
+            'percentage' => 0,
         ]);
         $this->assertEquals(0.0, $question->getPartialCredit($noCreditAnswer));
     }
-
 
     public function it_validates_multiple_choice_answers()
     {
@@ -136,7 +133,6 @@ class QuizQuestionTest extends TestCase
         $this->assertFalse($question->isAnswerCorrect('c'));
     }
 
-
     public function it_validates_true_false_answers()
     {
         $question = QuizQuestion::create([
@@ -154,7 +150,6 @@ class QuizQuestionTest extends TestCase
         $this->assertFalse($question->isAnswerCorrect('false'));
         $this->assertFalse($question->isAnswerCorrect('0'));
     }
-
 
     public function it_provides_partial_credit_for_mental_arithmetic()
     {
@@ -178,7 +173,6 @@ class QuizQuestionTest extends TestCase
         $this->assertEquals(0.0, $question->getPartialCredit('20')); // Outside tolerance
     }
 
-
     public function it_formats_for_frontend_correctly()
     {
         $question = QuizQuestion::create([
@@ -187,8 +181,8 @@ class QuizQuestionTest extends TestCase
             'question_text' => 'Complete the mental arithmetic sessions',
             'question_data' => [
                 'sessions' => [
-                    ['session_id' => 1, 'numbers' => [1, 2, 3]]
-                ]
+                    ['session_id' => 1, 'numbers' => [1, 2, 3]],
+                ],
             ],
             'correct_answer' => 'flash_card_sessions',
             'points' => 10,
@@ -206,7 +200,6 @@ class QuizQuestionTest extends TestCase
         $this->assertEquals('Mental Arithmetic', $formatted['type_display']);
     }
 
-
     public function it_shuffles_answer_options_when_enabled()
     {
         $question = QuizQuestion::create([
@@ -220,14 +213,13 @@ class QuizQuestionTest extends TestCase
         ]);
 
         $shuffled = $question->getShuffledOptions();
-        
+
         // Should have same content but potentially different order
         $this->assertCount(3, $shuffled);
         $this->assertContains('3', $shuffled);
         $this->assertContains('4', $shuffled);
         $this->assertContains('5', $shuffled);
     }
-
 
     public function it_handles_invalid_json_gracefully()
     {
@@ -243,7 +235,6 @@ class QuizQuestionTest extends TestCase
         $this->assertFalse($question->isAnswerCorrect('invalid json'));
         $this->assertEquals(0.0, $question->getPartialCredit('invalid json'));
     }
-
 
     public function it_returns_correct_type_display()
     {
@@ -269,7 +260,6 @@ class QuizQuestionTest extends TestCase
 
         $this->assertEquals('Multiple Choice', $multipleChoiceQuestion->type_display);
     }
-
 
     public function it_formats_time_limit_correctly()
     {

@@ -23,7 +23,7 @@ abstract class BaseAdminController extends Controller
     protected function successRedirect(string $action): RedirectResponse
     {
         $resourceName = $this->getResourceName();
-        $message = ucfirst($resourceName) . " {$action} successfully.";
+        $message = ucfirst($resourceName)." {$action} successfully.";
 
         return redirect()
             ->route($this->getIndexRouteName())
@@ -33,7 +33,7 @@ abstract class BaseAdminController extends Controller
     /**
      * Create an error redirect response
      */
-    protected function errorRedirect(string $action, string $error = null): RedirectResponse
+    protected function errorRedirect(string $action, ?string $error = null): RedirectResponse
     {
         $resourceName = $this->getResourceName();
         $message = $error ?: "Failed to {$action} {$resourceName}.";

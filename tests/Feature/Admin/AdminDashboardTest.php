@@ -2,17 +2,18 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Models\User;
 use App\Models\Program;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class AdminDashboardTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $admin;
+
     private User $student;
 
     protected function setUp(): void
@@ -35,7 +36,7 @@ class AdminDashboardTest extends TestCase
         $response = $this->actingAs($this->admin)->get('/admin/dashboard');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn($page) => $page->component('Admin/AdminDashboard/AdminDashboard'));
+        $response->assertInertia(fn ($page) => $page->component('Admin/AdminDashboard/AdminDashboard'));
     }
 
     public function test_student_cannot_access_admin_dashboard(): void
@@ -60,8 +61,7 @@ class AdminDashboardTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertInertia(
-            fn($page) =>
-            $page->component('Admin/Programs/AdminPrograms')
+            fn ($page) => $page->component('Admin/Programs/AdminPrograms')
                 ->has('programs', 3)
         );
     }
@@ -71,7 +71,7 @@ class AdminDashboardTest extends TestCase
         $response = $this->actingAs($this->admin)->get('/admin/programs/create');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn($page) => $page->component('Admin/Programs/Create'));
+        $response->assertInertia(fn ($page) => $page->component('Admin/Programs/Create'));
     }
 
     public function test_admin_can_store_program(): void
@@ -144,15 +144,14 @@ class AdminDashboardTest extends TestCase
         $response = $this->actingAs($this->admin)->get('/admin/news/create');
 
         $response->assertStatus(200);
-        $response->assertInertia(fn($page) => $page->component('Admin/News/Create'));
+        $response->assertInertia(fn ($page) => $page->component('Admin/News/Create'));
     }
-
 
     public function test_admin_can_store_news(): void
     {
         $newsData = [
             'title' => 'Test News',
-            'content' => 'Test news content'
+            'content' => 'Test news content',
         ];
 
         $response = $this->actingAs($this->admin)
@@ -162,12 +161,11 @@ class AdminDashboardTest extends TestCase
         $this->assertDatabaseHas('news', $newsData);
     }
 
-
     public function test_student_cannot_access_admin_routes(): void
     {
         $routes = [
             '/admin/programs',
-            '/admin/news'
+            '/admin/news',
         ];
 
         foreach ($routes as $route) {

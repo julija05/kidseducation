@@ -345,6 +345,11 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                                                         </div>
                                                         <div className={`${color.accent} font-bold text-lg`}>
                                                             €{program.price}
+                                                            {program.requires_monthly_payment && (
+                                                                <span className="text-sm font-medium text-gray-600 ml-1">
+                                                                    {t('programs_page.per_month')}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     

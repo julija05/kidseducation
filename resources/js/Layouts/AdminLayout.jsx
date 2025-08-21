@@ -79,6 +79,22 @@ export default function AdminLayout({ children }) {
                     </li>
                     <li className="mb-4">
                         <Link
+                            href={route("admin.enrollments.index")}
+                            className="hover:text-gray-300 transition-colors"
+                        >
+                            Enrollments
+                        </Link>
+                    </li>
+                    <li className="mb-4">
+                        <Link
+                            href={route("admin.users.index")}
+                            className="hover:text-gray-300 transition-colors"
+                        >
+                            User Management
+                        </Link>
+                    </li>
+                    <li className="mb-4">
+                        <Link
                             href={route("admin.chat.index")}
                             className="hover:text-gray-300 transition-colors"
                         >

@@ -88,10 +88,12 @@ class Quiz extends Model
 
     public function getFormattedTimeLimitAttribute(): ?string
     {
-        if (!$this->time_limit) return null;
+        if (! $this->time_limit) {
+            return null;
+        }
 
         if ($this->time_limit < 60) {
-            return $this->time_limit . ' seconds';
+            return $this->time_limit.' seconds';
         }
 
         $minutes = floor($this->time_limit / 60);
@@ -101,26 +103,28 @@ class Quiz extends Model
         if ($minutes >= 60) {
             $hours = (int) floor($minutes / 60);
             $remainingMinutes = $minutes % 60;
-            
+
             if ($remainingMinutes === 0 && $seconds === 0) {
-                return $hours . ' hour' . ($hours !== 1 ? 's' : '');
+                return $hours.' hour'.($hours !== 1 ? 's' : '');
             } elseif ($seconds === 0) {
-                return $hours . 'h ' . $remainingMinutes . 'm';
+                return $hours.'h '.$remainingMinutes.'m';
             } else {
-                return $hours . 'h ' . $remainingMinutes . 'm ' . $seconds . 's';
+                return $hours.'h '.$remainingMinutes.'m '.$seconds.'s';
             }
         }
 
         return $seconds === 0
-            ? $minutes . ' minute' . ($minutes !== 1 ? 's' : '')
-            : $minutes . 'm ' . $seconds . 's';
+            ? $minutes.' minute'.($minutes !== 1 ? 's' : '')
+            : $minutes.'m '.$seconds.'s';
     }
 
     public function getFormattedQuestionTimeLimitAttribute(): ?string
     {
-        if (!$this->question_time_limit) return null;
+        if (! $this->question_time_limit) {
+            return null;
+        }
 
-        return $this->question_time_limit . ' second' . ($this->question_time_limit !== 1 ? 's' : '') . ' per question';
+        return $this->question_time_limit.' second'.($this->question_time_limit !== 1 ? 's' : '').' per question';
     }
 
     public function getTotalPointsAttribute(): float
@@ -129,17 +133,17 @@ class Quiz extends Model
         if ($this->type === 'mental_arithmetic' && $this->questions()->count() === 0) {
             $sessionCount = $this->settings['session_count'] ?? 3;
             $pointsPerSession = $this->settings['points_per_session'] ?? 10;
-            
+
             // Auto-update quiz settings if points_per_session is missing (for existing quizzes)
-            if (!isset($this->settings['points_per_session'])) {
+            if (! isset($this->settings['points_per_session'])) {
                 $this->updateQuietly([
-                    'settings' => array_merge($this->settings ?? [], ['points_per_session' => 10])
+                    'settings' => array_merge($this->settings ?? [], ['points_per_session' => 10]),
                 ]);
             }
-            
+
             return $sessionCount * $pointsPerSession;
         }
-        
+
         return $this->questions()->sum('points');
     }
 
@@ -149,7 +153,7 @@ class Quiz extends Model
         if ($this->type === 'mental_arithmetic' && $this->questions()->count() === 0) {
             return 1;
         }
-        
+
         return $this->questions()->count();
     }
 
@@ -180,6 +184,7 @@ class Quiz extends Model
                 $number = rand(2, 5);
                 $result *= $number;
                 $numbers[] = "×{$number}";
+
                 continue;
             } elseif ($operation === 'division' && in_array('division', $operations)) {
                 // For division, ensure clean division
@@ -188,6 +193,7 @@ class Quiz extends Model
                 if ($result % $divisor === 0) {
                     $result /= $divisor;
                     $numbers[] = "÷{$divisor}";
+
                     continue;
                 }
             }
@@ -211,32 +217,32 @@ class Quiz extends Model
         $displayTime = $settings['display_time'] ?? 5;
         $allowNegative = $settings['allow_negative'] ?? true;
         $operations = $settings['operations'] ?? ['addition', 'subtraction'];
-        
+
         $sessions = [];
-        
+
         for ($s = 0; $s < $sessionCount; $s++) {
             $numbers = [];
             $operationsUsed = [];
             $result = 0;
-            
+
             // Generate first number (always positive)
             $firstNumber = rand($numberRange['min'], $numberRange['max']);
             $numbers[] = $firstNumber;
             $operationsUsed[] = 'start';
             $result = $firstNumber;
-            
+
             // Generate remaining numbers with operations based on settings
             for ($i = 1; $i < $numbersPerSession; $i++) {
                 $number = rand($numberRange['min'], $numberRange['max']);
                 $operation = $operations[array_rand($operations)];
-                
+
                 switch ($operation) {
                     case 'addition':
                         $numbers[] = $number;
                         $operationsUsed[] = 'addition';
                         $result += $number;
                         break;
-                        
+
                     case 'subtraction':
                         if ($allowNegative || ($result - $number) >= 0) {
                             // Only subtract if negative results are allowed OR if result won't go negative
@@ -250,7 +256,7 @@ class Quiz extends Model
                             $result += $number;
                         }
                         break;
-                        
+
                     case 'multiplication':
                         // Use smaller multipliers for mental math
                         $multiplier = rand(2, 9);
@@ -258,7 +264,7 @@ class Quiz extends Model
                         $operationsUsed[] = 'multiplication';
                         $result *= $multiplier;
                         break;
-                        
+
                     case 'division':
                         // Find divisors that result in whole numbers
                         $possibleDivisors = [];
@@ -267,8 +273,8 @@ class Quiz extends Model
                                 $possibleDivisors[] = $d;
                             }
                         }
-                        
-                        if (!empty($possibleDivisors)) {
+
+                        if (! empty($possibleDivisors)) {
                             $divisor = $possibleDivisors[array_rand($possibleDivisors)];
                             $numbers[] = ['operation' => 'divide', 'value' => $divisor];
                             $operationsUsed[] = 'division';
@@ -280,7 +286,7 @@ class Quiz extends Model
                             $result += $number;
                         }
                         break;
-                        
+
                     default:
                         // Default to addition
                         $numbers[] = $number;
@@ -289,7 +295,7 @@ class Quiz extends Model
                         break;
                 }
             }
-            
+
             $sessions[] = [
                 'session_id' => $s + 1,
                 'numbers' => $numbers,
@@ -305,14 +311,14 @@ class Quiz extends Model
                 ],
             ];
         }
-        
+
         return $sessions;
     }
-    
+
     private function buildOperationsSequence(array $numbers): string
     {
         $sequence = [];
-        
+
         for ($i = 0; $i < count($numbers); $i++) {
             if ($i === 0) {
                 // First number is always just the number
@@ -336,7 +342,7 @@ class Quiz extends Model
                 }
             }
         }
-        
+
         return implode(' ', $sequence);
     }
 
@@ -360,18 +366,24 @@ class Quiz extends Model
 
     public function canUserTakeQuiz(User $user): bool
     {
-        if (!$this->is_active) return false;
+        if (! $this->is_active) {
+            return false;
+        }
 
         // If user has already passed the quiz, they cannot take it again
-        if ($this->hasUserPassed($user)) return false;
+        if ($this->hasUserPassed($user)) {
+            return false;
+        }
 
         $attemptsCount = $this->getUserAttemptsCount($user);
+
         return $attemptsCount < $this->max_attempts;
     }
 
     public function hasUserPassed(User $user): bool
     {
         $bestScore = $this->getUserBestScore($user);
+
         return $bestScore !== null && $bestScore >= $this->passing_score;
     }
 
@@ -386,7 +398,9 @@ class Quiz extends Model
     public function getCompletionRate(): float
     {
         $totalAttempts = $this->attempts()->count();
-        if ($totalAttempts === 0) return 0;
+        if ($totalAttempts === 0) {
+            return 0;
+        }
 
         $completedAttempts = $this->attempts()
             ->where('status', 'completed')
@@ -401,7 +415,9 @@ class Quiz extends Model
             ->where('status', 'completed')
             ->count();
 
-        if ($completedAttempts === 0) return 0;
+        if ($completedAttempts === 0) {
+            return 0;
+        }
 
         $passedAttempts = $this->attempts()
             ->where('status', 'completed')

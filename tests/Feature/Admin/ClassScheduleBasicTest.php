@@ -2,37 +2,35 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Models\User;
-use App\Models\Program;
-use App\Models\Enrollment;
 use App\Models\ClassSchedule;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class ClassScheduleBasicTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     public function test_admin_can_access_class_schedules_page(): void
     {
         $this->createRoles();
-        
+
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
         $response = $this->actingAs($admin)->get('/admin/class-schedules');
-        
+
         $response->assertStatus(200);
     }
 
     public function test_admin_can_create_basic_schedule(): void
     {
         $this->createRoles();
-        
+
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        
+
         $student = User::factory()->create();
         $student->assignRole('student');
 
@@ -50,7 +48,7 @@ class ClassScheduleBasicTest extends TestCase
             ->post('/admin/class-schedules', $scheduleData);
 
         $response->assertRedirect('/admin/class-schedules');
-        
+
         $this->assertDatabaseHas('class_schedules', [
             'student_id' => $student->id,
             'admin_id' => $admin->id,
@@ -62,10 +60,10 @@ class ClassScheduleBasicTest extends TestCase
     public function test_schedule_model_basic_methods(): void
     {
         $this->createRoles();
-        
+
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        
+
         $student = User::factory()->create();
         $student->assignRole('student');
 
@@ -82,7 +80,7 @@ class ClassScheduleBasicTest extends TestCase
         $this->assertTrue($schedule->isScheduled());
         $this->assertFalse($schedule->isCompleted());
         $this->assertTrue($schedule->canBeCancelled());
-        
+
         // Test relationships
         $this->assertEquals($student->id, $schedule->student->id);
         $this->assertEquals($admin->id, $schedule->admin->id);

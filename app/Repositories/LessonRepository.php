@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Models\Lesson;
-use App\Models\User;
 use App\Repositories\Interfaces\LessonRepositoryInterface;
 use Illuminate\Support\Collection;
 
@@ -14,10 +13,10 @@ class LessonRepository implements LessonRepositoryInterface
         return Lesson::find($id);
     }
 
-    public function findByIdWithResources(int $id, string $language = null): ?Lesson
+    public function findByIdWithResources(int $id, ?string $language = null): ?Lesson
     {
         $language = $language ?? app()->getLocale();
-        
+
         return Lesson::with(['resources' => function ($query) use ($language) {
             // Temporarily disable language filtering until migration is run
             try {

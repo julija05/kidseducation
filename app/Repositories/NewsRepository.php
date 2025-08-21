@@ -59,11 +59,12 @@ class NewsRepository implements NewsRepositoryInterface
      */
     public function handleImageUpload(Request $request, string $field = 'image'): ?string
     {
-        if (!$request->hasFile($field)) {
+        if (! $request->hasFile($field)) {
             return null;
         }
 
         $imagePath = $request->file($field)->store('news', 'public');
+
         return "/storage/{$imagePath}";
     }
 
@@ -72,7 +73,7 @@ class NewsRepository implements NewsRepositoryInterface
      */
     public function deleteImage(string $imagePath): bool
     {
-        if (!$imagePath) {
+        if (! $imagePath) {
             return false;
         }
 

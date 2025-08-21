@@ -3,41 +3,43 @@
 namespace Tests\Unit;
 
 use App\Models\ClassSchedule;
-use App\Models\User;
-use App\Models\Program;
-use App\Models\Lesson;
 use App\Models\Enrollment;
+use App\Models\Lesson;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class ClassScheduleTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     private User $admin;
+
     private User $student;
+
     private Program $program;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->createRoles();
-        
+
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
-        
+
         $this->student = User::factory()->create();
         $this->student->assignRole('student');
-        
+
         $this->program = Program::factory()->create();
     }
 
     public function test_class_schedule_has_correct_fillable_attributes(): void
     {
-        $schedule = new ClassSchedule();
-        
+        $schedule = new ClassSchedule;
+
         $expectedFillable = [
             'student_id',
             'admin_id',
@@ -68,8 +70,8 @@ class ClassScheduleTest extends TestCase
 
     public function test_class_schedule_has_correct_default_attributes(): void
     {
-        $schedule = new ClassSchedule();
-        
+        $schedule = new ClassSchedule;
+
         $this->assertEquals('scheduled', $schedule->status);
         $this->assertEquals('lesson', $schedule->type);
         $this->assertEquals(60, $schedule->duration_minutes);
@@ -121,7 +123,7 @@ class ClassScheduleTest extends TestCase
     public function test_lesson_relationship(): void
     {
         $lesson = Lesson::factory()->create(['program_id' => $this->program->id]);
-        
+
         $schedule = ClassSchedule::factory()->create([
             'lesson_id' => $lesson->id,
             'program_id' => $this->program->id,
@@ -162,9 +164,9 @@ class ClassScheduleTest extends TestCase
         ]);
 
         $upcomingSchedules = ClassSchedule::upcoming()->get();
-        
+
         $this->assertCount(3, $upcomingSchedules);
-        
+
         foreach ($upcomingSchedules as $schedule) {
             $this->assertTrue($schedule->scheduled_at->isFuture());
             $this->assertContains($schedule->status, ['scheduled', 'confirmed']);
@@ -184,7 +186,7 @@ class ClassScheduleTest extends TestCase
         ]);
 
         $todaySchedules = ClassSchedule::today()->get();
-        
+
         $this->assertCount(1, $todaySchedules);
         $this->assertTrue($todaySchedules->first()->scheduled_at->isToday());
     }
@@ -202,7 +204,7 @@ class ClassScheduleTest extends TestCase
         ]);
 
         $thisWeekSchedules = ClassSchedule::thisWeek()->get();
-        
+
         $this->assertCount(1, $thisWeekSchedules);
     }
 
@@ -212,9 +214,9 @@ class ClassScheduleTest extends TestCase
         ClassSchedule::factory()->create(); // Different student
 
         $studentSchedules = ClassSchedule::forStudent($this->student->id)->get();
-        
+
         $this->assertCount(2, $studentSchedules);
-        
+
         foreach ($studentSchedules as $schedule) {
             $this->assertEquals($this->student->id, $schedule->student_id);
         }
@@ -226,9 +228,9 @@ class ClassScheduleTest extends TestCase
         ClassSchedule::factory()->create(); // Different admin
 
         $adminSchedules = ClassSchedule::forAdmin($this->admin->id)->get();
-        
+
         $this->assertCount(3, $adminSchedules);
-        
+
         foreach ($adminSchedules as $schedule) {
             $this->assertEquals($this->admin->id, $schedule->admin_id);
         }
@@ -243,7 +245,7 @@ class ClassScheduleTest extends TestCase
         $scheduledCount = ClassSchedule::byStatus('scheduled')->count();
         $completedCount = ClassSchedule::byStatus('completed')->count();
         $cancelledCount = ClassSchedule::byStatus('cancelled')->count();
-        
+
         $this->assertEquals(2, $scheduledCount);
         $this->assertEquals(3, $completedCount);
         $this->assertEquals(1, $cancelledCount);
@@ -327,9 +329,9 @@ class ClassScheduleTest extends TestCase
     public function test_confirm_method(): void
     {
         $schedule = ClassSchedule::factory()->scheduled()->create();
-        
+
         $result = $schedule->confirm();
-        
+
         $this->assertTrue($result);
         $this->assertTrue($schedule->fresh()->isConfirmed());
     }
@@ -337,9 +339,9 @@ class ClassScheduleTest extends TestCase
     public function test_confirm_method_fails_for_non_scheduled(): void
     {
         $schedule = ClassSchedule::factory()->completed()->create();
-        
+
         $result = $schedule->confirm();
-        
+
         $this->assertFalse($result);
         $this->assertFalse($schedule->fresh()->isConfirmed());
     }
@@ -349,11 +351,11 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->scheduled()->create([
             'scheduled_at' => now()->addHour(),
         ]);
-        
+
         $result = $schedule->cancel('Test reason', $this->admin);
-        
+
         $this->assertTrue($result);
-        
+
         $schedule->refresh();
         $this->assertTrue($schedule->isCancelled());
         $this->assertEquals('Test reason', $schedule->cancellation_reason);
@@ -364,9 +366,9 @@ class ClassScheduleTest extends TestCase
     public function test_cancel_method_fails_when_cannot_be_cancelled(): void
     {
         $schedule = ClassSchedule::factory()->completed()->create();
-        
+
         $result = $schedule->cancel('Test reason', $this->admin);
-        
+
         $this->assertFalse($result);
         $this->assertFalse($schedule->fresh()->isCancelled());
     }
@@ -374,12 +376,12 @@ class ClassScheduleTest extends TestCase
     public function test_complete_method(): void
     {
         $schedule = ClassSchedule::factory()->confirmed()->create();
-        
+
         $sessionData = ['topics_covered' => ['Math', 'Science']];
         $result = $schedule->complete('Great session', $sessionData);
-        
+
         $this->assertTrue($result);
-        
+
         $schedule->refresh();
         $this->assertTrue($schedule->isCompleted());
         $this->assertEquals('Great session', $schedule->session_notes);
@@ -390,9 +392,9 @@ class ClassScheduleTest extends TestCase
     public function test_complete_method_fails_for_cancelled_schedule(): void
     {
         $schedule = ClassSchedule::factory()->cancelled()->create();
-        
+
         $result = $schedule->complete('Notes', []);
-        
+
         $this->assertFalse($result);
         $this->assertFalse($schedule->fresh()->isCompleted());
     }
@@ -402,12 +404,12 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->scheduled()->create([
             'scheduled_at' => now()->addDays(1),
         ]);
-        
+
         $newTime = now()->addDays(2);
         $result = $schedule->reschedule($newTime);
-        
+
         $this->assertTrue($result);
-        
+
         $schedule->refresh();
         $this->assertEquals($newTime->format('Y-m-d H:i:s'), $schedule->scheduled_at->format('Y-m-d H:i:s'));
         $this->assertTrue($schedule->isScheduled()); // Should reset to scheduled
@@ -418,9 +420,9 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->create([
             'student_notified_at' => null,
         ]);
-        
+
         $result = $schedule->markStudentNotified();
-        
+
         $this->assertTrue($result);
         $this->assertNotNull($schedule->fresh()->student_notified_at);
     }
@@ -430,9 +432,9 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->create([
             'reminder_sent_at' => null,
         ]);
-        
+
         $result = $schedule->markReminderSent();
-        
+
         $this->assertTrue($result);
         $this->assertNotNull($schedule->fresh()->reminder_sent_at);
     }
@@ -442,9 +444,9 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->create([
             'scheduled_at' => '2024-12-01 14:30:00',
         ]);
-        
+
         $formatted = $schedule->getFormattedScheduledTime();
-        
+
         $this->assertStringContainsString('Dec 01, 2024', $formatted);
         $this->assertStringContainsString('2:30 PM', $formatted);
     }
@@ -454,7 +456,7 @@ class ClassScheduleTest extends TestCase
         $schedule1 = ClassSchedule::factory()->create(['duration_minutes' => 60]);
         $schedule2 = ClassSchedule::factory()->create(['duration_minutes' => 90]);
         $schedule3 = ClassSchedule::factory()->create(['duration_minutes' => 30]);
-        
+
         $this->assertEquals('1h', $schedule1->getFormattedDuration());
         $this->assertEquals('1h 30m', $schedule2->getFormattedDuration());
         $this->assertEquals('30m', $schedule3->getFormattedDuration());
@@ -466,7 +468,7 @@ class ClassScheduleTest extends TestCase
         $confirmed = ClassSchedule::factory()->confirmed()->create();
         $cancelled = ClassSchedule::factory()->cancelled()->create();
         $completed = ClassSchedule::factory()->completed()->create();
-        
+
         $this->assertEquals('yellow', $scheduled->getStatusColor());
         $this->assertEquals('green', $confirmed->getStatusColor());
         $this->assertEquals('red', $cancelled->getStatusColor());
@@ -478,7 +480,7 @@ class ClassScheduleTest extends TestCase
         $lesson = ClassSchedule::factory()->lesson()->create();
         $assessment = ClassSchedule::factory()->assessment()->create();
         $consultation = ClassSchedule::factory()->consultation()->create();
-        
+
         $this->assertEquals('Lesson', $lesson->getTypeLabel());
         $this->assertEquals('Assessment', $assessment->getTypeLabel());
         $this->assertEquals('Consultation', $consultation->getTypeLabel());
@@ -526,7 +528,7 @@ class ClassScheduleTest extends TestCase
         ]);
 
         $result = $schedule->getEnrollment();
-        
+
         $this->assertInstanceOf(Enrollment::class, $result);
         $this->assertEquals($enrollment->id, $result->id);
     }
@@ -538,7 +540,7 @@ class ClassScheduleTest extends TestCase
         ]);
 
         $result = $schedule->getEnrollment();
-        
+
         $this->assertNull($result);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\LessonResource;
-use App\Services\ResourceService;
 use App\Services\ResourceAccessService;
+use App\Services\ResourceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -22,13 +22,13 @@ class LessonResourceController extends Controller
 
         $this->accessService->validateAccess($lessonResource, $user);
 
-        if (!$lessonResource->canDownload()) {
+        if (! $lessonResource->canDownload()) {
             abort(404, 'Resource is not available for download.');
         }
 
         // Handle file storage
         if ($lessonResource->file_path) {
-            if (!Storage::exists($lessonResource->file_path)) {
+            if (! Storage::exists($lessonResource->file_path)) {
                 abort(404, 'File not found.');
             }
 
@@ -79,7 +79,7 @@ class LessonResourceController extends Controller
     {
         $user = Auth::user();
 
-        if (!$this->resourceService->canUserAccessResource($lessonResource, $user)) {
+        if (! $this->resourceService->canUserAccessResource($lessonResource, $user)) {
             if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->json(['error' => 'Not enrolled in this program'], 403);
             }
@@ -107,7 +107,7 @@ class LessonResourceController extends Controller
             'image/gif',
             'image/webp',
             'text/plain',
-            'text/html'
+            'text/html',
         ];
 
         if (in_array($resource->mime_type, $inlineTypes)) {

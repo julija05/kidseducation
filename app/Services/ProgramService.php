@@ -7,7 +7,6 @@ use App\Models\Program;
 use App\Models\User;
 use App\Repositories\Interfaces\ProgramRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Str;
 
@@ -40,9 +39,9 @@ class ProgramService
     {
         // Remove _method field as it's not a database field
         unset($data['_method']);
-        
+
         // Generate slug from name
-        if (isset($data['name']) && !isset($data['slug'])) {
+        if (isset($data['name']) && ! isset($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
 
@@ -279,7 +278,7 @@ class ProgramService
     /**
      * Format program data for frontend
      */
-    public function formatProgramForFrontend(Program $program, User $user = null): array
+    public function formatProgramForFrontend(Program $program, ?User $user = null): array
     {
         $data = [
             'id' => $program->id,

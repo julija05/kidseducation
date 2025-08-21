@@ -42,18 +42,11 @@ export default function LessonResourcesIndex() {
 
     const handleDeleteResource = (lessonId, resourceId, resourceTitle) => {
         if (confirm(`Are you sure you want to delete "${resourceTitle}"? This action cannot be undone.`)) {
-            console.log('Attempting to delete resource:', resourceId, 'from lesson:', lessonId);
-            console.log('Route URL:', route("admin.lessons.resources.destroy", [lessonId, resourceId]));
-            
             router.delete(route("admin.lessons.resources.destroy", [lessonId, resourceId]), {
                 preserveScroll: true,
-                onStart: () => console.log('Delete request started'),
-                onSuccess: () => console.log('Delete successful'),
                 onError: (errors) => {
-                    console.error('Delete failed:', errors);
                     alert('Failed to delete resource. Please try again.');
                 },
-                onFinish: () => console.log('Delete request finished'),
             });
         }
     };

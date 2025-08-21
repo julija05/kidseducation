@@ -12,11 +12,11 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
-        'first_name', 
-        'last_name', 
-        'email', 
-        'phone', 
-        'date_of_birth'
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'date_of_birth',
     ];
 
     public function programs(): BelongsToMany

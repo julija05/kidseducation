@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Program;
 use App\Models\Lesson;
+use App\Models\Program;
+use Illuminate\Database\Seeder;
 
 class LessonSeeder extends Seeder
 {
@@ -26,15 +26,15 @@ class LessonSeeder extends Seeder
         // Level 1 Lessons (8 lessons as requested)
         $level1Lessons = [
             [
-                'title' => 'Welcome to ' . $program->name,
+                'title' => 'Welcome to '.$program->name,
                 'description' => 'Introduction to the program and what you will learn',
                 'title_translations' => [
-                    'en' => 'Welcome to ' . $program->name,
-                    'mk' => 'Добредојдовте во ' . ($program->name_translations['mk'] ?? $program->name)
+                    'en' => 'Welcome to '.$program->name,
+                    'mk' => 'Добредојдовте во '.($program->name_translations['mk'] ?? $program->name),
                 ],
                 'description_translations' => [
                     'en' => 'Introduction to the program and what you will learn',
-                    'mk' => 'Вовед во програмата и она што ќе научите'
+                    'mk' => 'Вовед во програмата и она што ќе научите',
                 ],
                 'content_type' => 'video',
                 'content_url' => 'https://example.com/video1.mp4',
@@ -46,17 +46,17 @@ class LessonSeeder extends Seeder
                 'description' => 'Fundamental concepts you need to know',
                 'title_translations' => [
                     'en' => 'Understanding the Basics',
-                    'mk' => 'Разбирање на основите'
+                    'mk' => 'Разбирање на основите',
                 ],
                 'description_translations' => [
                     'en' => 'Fundamental concepts you need to know',
-                    'mk' => 'Основни концепти што треба да ги знаете'
+                    'mk' => 'Основни концепти што треба да ги знаете',
                 ],
                 'content_type' => 'text',
                 'content_body' => 'This is the content for understanding the basics...',
                 'content_body_translations' => [
                     'en' => 'This is the content for understanding the basics...',
-                    'mk' => 'Ова е содржината за разбирање на основите...'
+                    'mk' => 'Ова е содржината за разбирање на основите...',
                 ],
                 'duration_minutes' => 30,
                 'order_in_level' => 2,
@@ -229,8 +229,8 @@ class LessonSeeder extends Seeder
                 'is_active' => true,
                 'metadata' => [
                     'difficulty' => $level === 1 ? 'beginner' : ($level === 2 ? 'intermediate' : 'advanced'),
-                    'prerequisites' => $level > 1 ? ['Complete Level ' . ($level - 1)] : [],
-                ]
+                    'prerequisites' => $level > 1 ? ['Complete Level '.($level - 1)] : [],
+                ],
             ]);
         }
     }

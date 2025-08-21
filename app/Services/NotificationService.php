@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
+use App\Jobs\SendLessonReminder;
+use App\Mail\LessonScheduled;
 use App\Models\Notification;
 use App\Models\User;
-use App\Mail\LessonScheduled;
-use App\Jobs\SendLessonReminder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
@@ -83,15 +82,15 @@ class NotificationService
         $messages = [
             'pending' => __('app.notifications.enrollment_pending_message', [
                 'user' => $user->name,
-                'program' => $program->name
+                'program' => $program->name,
             ]),
             'approved' => __('app.notifications.enrollment_approved_message', [
                 'user' => $user->name,
-                'program' => $program->name
+                'program' => $program->name,
             ]),
             'rejected' => __('app.notifications.enrollment_rejected_message', [
                 'user' => $user->name,
-                'program' => $program->name
+                'program' => $program->name,
             ]),
         ];
 
@@ -153,6 +152,7 @@ class NotificationService
     public function markAsRead(int $notificationId): bool
     {
         $notification = Notification::find($notificationId);
+
         return $notification ? $notification->markAsRead() : false;
     }
 
@@ -210,7 +210,7 @@ class NotificationService
         $translationData = [
             'title' => $schedule->title,
             'admin' => $admin->name,
-            'time' => $schedule->getFormattedScheduledTime()
+            'time' => $schedule->getFormattedScheduledTime(),
         ];
 
         // Send email notification for scheduled lessons
@@ -221,14 +221,14 @@ class NotificationService
                 \Log::warning('Failed to send lesson scheduled email', [
                     'student_email' => $student->email,
                     'schedule_id' => $schedule->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
                 // Continue execution even if email fails
             }
         }
-        
+
         // Schedule reminder email for 24 hours before the lesson (only once per schedule)
-        if ($action === 'scheduled' && !$schedule->reminder_sent_at) {
+        if ($action === 'scheduled' && ! $schedule->reminder_sent_at) {
             try {
                 $reminderTime = $schedule->scheduled_at->copy()->subHours(24);
                 if ($reminderTime->isFuture()) {
@@ -237,7 +237,7 @@ class NotificationService
             } catch (\Exception $e) {
                 \Log::warning('Failed to schedule lesson reminder', [
                     'schedule_id' => $schedule->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
                 // Continue execution even if reminder scheduling fails
             }
@@ -280,12 +280,12 @@ class NotificationService
     ): Notification {
         $message = __('app.notifications.next_lesson_message', [
             'lesson' => $nextLesson->title,
-            'program' => $program->name
+            'program' => $program->name,
         ]);
-        
+
         if ($nextClass && $nextClass->meeting_link) {
-            $message .= ' ' . __('app.notifications.next_lesson_with_class', [
-                'time' => $nextClass->getFormattedScheduledTime()
+            $message .= ' '.__('app.notifications.next_lesson_with_class', [
+                'time' => $nextClass->getFormattedScheduledTime(),
             ]);
         }
 

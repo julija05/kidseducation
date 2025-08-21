@@ -3,19 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Enrollment;
-use App\Models\User;
-use App\Models\Program;
 use App\Models\ClassSchedule;
+use App\Models\Enrollment;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Http\Request;
-
 
 class AdminDashboardController extends Controller
 {
     public function index(Request $request)
     {
         $admin = $request->user();
-        
+
         $pendingEnrollmentsCount = Enrollment::where('approval_status', 'pending')->count();
 
         $stats = [
@@ -37,22 +36,22 @@ class AdminDashboardController extends Controller
         $formattedNextLesson = null;
         if ($nextScheduledLesson) {
             $scheduledAt = $nextScheduledLesson->scheduled_at;
-            $dayName = $scheduledAt->isToday() ? 'today' : 
+            $dayName = $scheduledAt->isToday() ? 'today' :
                       ($scheduledAt->isTomorrow() ? 'tomorrow' : $scheduledAt->format('l'));
-            
+
             // Get student name(s) - handle both individual and group classes
             $studentName = 'No student assigned';
             if ($nextScheduledLesson->is_group_class) {
                 $students = $nextScheduledLesson->students;
                 if ($students->count() > 0) {
-                    $studentName = $students->count() === 1 
-                        ? $students->first()->name 
-                        : $students->count() . ' students';
+                    $studentName = $students->count() === 1
+                        ? $students->first()->name
+                        : $students->count().' students';
                 }
             } elseif ($nextScheduledLesson->student) {
                 $studentName = $nextScheduledLesson->student->name;
             }
-            
+
             $formattedNextLesson = [
                 'id' => $nextScheduledLesson->id,
                 'title' => $nextScheduledLesson->title,
@@ -75,7 +74,7 @@ class AdminDashboardController extends Controller
         return $this->createView('Admin/AdminDashboard/AdminDashboard', [
             'pendingEnrollmentsCount' => $pendingEnrollmentsCount,
             'stats' => $stats,
-            'nextScheduledLesson' => $formattedNextLesson
+            'nextScheduledLesson' => $formattedNextLesson,
         ]);
     }
 }

@@ -22,7 +22,7 @@ class AdminArticleController extends Controller
     public function index(Request $request)
     {
         $category = $request->get('category', 'how_to_use');
-        
+
         try {
             // Try to use category-based filtering if migration has been applied
             $articles = News::byCategory($category)
@@ -32,13 +32,13 @@ class AdminArticleController extends Controller
             // Fallback: if migration hasn't been applied, show all news
             $articles = News::latest('created_at')->paginate(10);
         }
-            
-        return $this->createView("Admin/Articles/Index", [
+
+        return $this->createView('Admin/Articles/Index', [
             'articles' => $articles,
             'currentCategory' => $category,
             'categories' => $this->getArticleCategories(),
             'migrationRequired' => $this->checkMigrationRequired(),
-            'supportedLanguages' => $this->getSupportedLanguages()
+            'supportedLanguages' => $this->getSupportedLanguages(),
         ]);
     }
 
@@ -48,12 +48,12 @@ class AdminArticleController extends Controller
     public function create(Request $request)
     {
         $category = $request->get('category', 'how_to_use');
-        
-        return $this->createView("Admin/Articles/Create", [
+
+        return $this->createView('Admin/Articles/Create', [
             'categories' => $this->getArticleCategories(),
             'selectedCategory' => $category,
             'migrationRequired' => $this->checkMigrationRequired(),
-            'supportedLanguages' => $this->getSupportedLanguages()
+            'supportedLanguages' => $this->getSupportedLanguages(),
         ]);
     }
 
@@ -64,21 +64,21 @@ class AdminArticleController extends Controller
     {
         try {
             $data = $request->validated();
-            
+
             // Set backward compatibility fields
             $data['title'] = $request->title_en;
             $data['content'] = $request->content_en;
-            
+
             // Handle image upload
             if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')->store('news', 'public');
-                $data['image'] = '/storage/' . $imagePath;
+                $data['image'] = '/storage/'.$imagePath;
             }
-            
+
             News::create($data);
-            
+
             $categoryName = News::CATEGORIES[$request->category] ?? 'Article';
-            
+
             return redirect()
                 ->route('admin.articles.index', ['category' => $request->category])
                 ->with('success', "{$categoryName} created successfully.");
@@ -96,7 +96,8 @@ class AdminArticleController extends Controller
     public function show($id)
     {
         $article = News::where('id', $id)->firstOrFail();
-        return $this->createView("Admin/Articles/Show", ['article' => $article]);
+
+        return $this->createView('Admin/Articles/Show', ['article' => $article]);
     }
 
     /**
@@ -105,11 +106,12 @@ class AdminArticleController extends Controller
     public function edit($id)
     {
         $article = News::where('id', $id)->firstOrFail();
-        return $this->createView("Admin/Articles/Edit", [
+
+        return $this->createView('Admin/Articles/Edit', [
             'article' => $article,
             'categories' => $this->getArticleCategories(),
             'migrationRequired' => $this->checkMigrationRequired(),
-            'supportedLanguages' => $this->getSupportedLanguages()
+            'supportedLanguages' => $this->getSupportedLanguages(),
         ]);
     }
 
@@ -121,9 +123,9 @@ class AdminArticleController extends Controller
         try {
             $article = News::where('id', $id)->firstOrFail();
             $this->newsService->updateNews($request, $article);
-            
+
             $categoryName = News::CATEGORIES[$request->category] ?? 'Article';
-            
+
             return redirect()
                 ->route('admin.articles.index', ['category' => $request->category])
                 ->with('success', "{$categoryName} updated successfully.");
@@ -144,7 +146,7 @@ class AdminArticleController extends Controller
             $article = News::where('id', $id)->firstOrFail();
             $category = $article->category;
             $this->newsService->deleteNews($article);
-            
+
             return redirect()
                 ->route('admin.articles.index', ['category' => $category])
                 ->with('success', 'Article deleted successfully.');
@@ -171,6 +173,7 @@ class AdminArticleController extends Controller
         try {
             // Try to access the category column
             News::select('category')->limit(1)->get();
+
             return false; // Migration not required
         } catch (\Exception $e) {
             return true; // Migration required
@@ -184,7 +187,7 @@ class AdminArticleController extends Controller
     {
         return [
             'en' => 'English',
-            'mk' => 'Macedonian (Македонски)'
+            'mk' => 'Macedonian (Македонски)',
         ];
     }
 
@@ -195,6 +198,7 @@ class AdminArticleController extends Controller
     {
         try {
             News::select('title_en')->limit(1)->get();
+
             return true;
         } catch (\Exception $e) {
             return false;

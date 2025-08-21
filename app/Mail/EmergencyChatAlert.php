@@ -15,6 +15,7 @@ class EmergencyChatAlert extends Mailable
     use Queueable, SerializesModels;
 
     public ChatConversation $conversation;
+
     public ChatMessage $firstMessage;
 
     /**

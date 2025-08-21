@@ -2,21 +2,21 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Program;
 use App\Models\Enrollment;
+use App\Models\Program;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
 class DemoAccessTest extends TestCase
 {
-    use RefreshDatabase, CreatesRoles;
+    use CreatesRoles, RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create roles safely
         $this->createRoles();
     }
@@ -56,10 +56,9 @@ class DemoAccessTest extends TestCase
 
         // Should be successful (not redirected)
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Demo/Dashboard')
-                ->has('program')
-                ->where('program.slug', 'test-program')
+        $response->assertInertia(fn ($page) => $page->component('Demo/Dashboard')
+            ->has('program')
+            ->where('program.slug', 'test-program')
         );
     }
 
@@ -107,14 +106,13 @@ class DemoAccessTest extends TestCase
 
         // Should be successful
         $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => 
-            $page->component('Demo/Dashboard')
-                ->has('program')
-                ->where('program.slug', 'test-program')
+        $response->assertInertia(fn ($page) => $page->component('Demo/Dashboard')
+            ->has('program')
+            ->where('program.slug', 'test-program')
         );
     }
 
-    public function test_getDemoProgram_works_for_user_with_pending_enrollment()
+    public function test_get_demo_program_works_for_user_with_pending_enrollment()
     {
         // Create a program
         $program = Program::factory()->create([
@@ -145,7 +143,7 @@ class DemoAccessTest extends TestCase
 
         // Test that getDemoProgram() returns the program
         $demoProgram = $user->getDemoProgram();
-        
+
         $this->assertNotNull($demoProgram);
         $this->assertEquals($program->id, $demoProgram->id);
         $this->assertEquals('test-program', $demoProgram->slug);

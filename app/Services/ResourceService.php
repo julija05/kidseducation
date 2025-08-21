@@ -50,7 +50,7 @@ class ResourceService
             ->where('approval_status', 'approved')
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return false;
         }
 
@@ -64,10 +64,10 @@ class ResourceService
     public function markResourceAsViewed(LessonResource $resource, User $user): array
     {
         // Check access first
-        if (!$this->canUserAccessResource($resource, $user)) {
+        if (! $this->canUserAccessResource($resource, $user)) {
             return [
                 'success' => false,
-                'message' => 'You do not have access to this resource'
+                'message' => 'You do not have access to this resource',
             ];
         }
 
@@ -87,7 +87,7 @@ class ResourceService
         $sessionData = $progress->session_data ?? [];
         $sessionData['viewed_resources'] = $sessionData['viewed_resources'] ?? [];
 
-        if (!in_array($resource->id, $sessionData['viewed_resources'])) {
+        if (! in_array($resource->id, $sessionData['viewed_resources'])) {
             $sessionData['viewed_resources'][] = $resource->id;
         }
 
@@ -112,7 +112,7 @@ class ResourceService
             'message' => 'Resource marked as viewed',
             'progress' => $progress->fresh(),
             'viewed_at' => now(),
-            'already_viewed' => in_array($resource->id, ($sessionData['viewed_resources'] ?? []))
+            'already_viewed' => in_array($resource->id, ($sessionData['viewed_resources'] ?? [])),
         ];
     }
 
@@ -221,7 +221,7 @@ class ResourceService
             $errors[] = 'Title is required';
         }
 
-        if (empty($data['type']) || !array_key_exists($data['type'], $this->getResourceTypes())) {
+        if (empty($data['type']) || ! array_key_exists($data['type'], $this->getResourceTypes())) {
             $errors[] = 'Valid resource type is required';
         }
 
@@ -231,8 +231,8 @@ class ResourceService
                 case 'video':
                 case 'link':
                     if (empty($data['resource_url'])) {
-                        $errors[] = 'URL is required for ' . $data['type'] . ' resources';
-                    } elseif (!filter_var($data['resource_url'], FILTER_VALIDATE_URL)) {
+                        $errors[] = 'URL is required for '.$data['type'].' resources';
+                    } elseif (! filter_var($data['resource_url'], FILTER_VALIDATE_URL)) {
                         $errors[] = 'Invalid URL format';
                     }
                     break;
@@ -240,7 +240,7 @@ class ResourceService
                 case 'document':
                 case 'download':
                     if (empty($data['resource_url']) && empty($data['file'])) {
-                        $errors[] = 'Either URL or file upload is required for ' . $data['type'] . ' resources';
+                        $errors[] = 'Either URL or file upload is required for '.$data['type'].' resources';
                     }
                     break;
             }

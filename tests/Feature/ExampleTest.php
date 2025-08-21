@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Program;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Program;
 
 class ExampleTest extends TestCase
 {
