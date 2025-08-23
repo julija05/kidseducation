@@ -10,7 +10,11 @@ export default function StudentNotifications({ notifications = [], unreadCount =
     // Helper function to get translated notification title
     const getTranslatedTitle = (notification) => {
         if (notification.data?.title_key) {
-            return t(notification.data.title_key);
+            // Check if the title_key starts with 'notifications.' and convert to dashboard.notifications.
+            const translationKey = notification.data.title_key.startsWith('notifications.') 
+                ? notification.data.title_key.replace('notifications.', 'dashboard.notifications.')
+                : notification.data.title_key;
+            return t(translationKey);
         }
         return notification.title;
     };
@@ -18,7 +22,11 @@ export default function StudentNotifications({ notifications = [], unreadCount =
     // Helper function to get translated notification message
     const getTranslatedMessage = (notification) => {
         if (notification.data?.message_key && notification.data?.translation_data) {
-            return t(notification.data.message_key, notification.data.translation_data);
+            // Check if the message_key starts with 'notifications.' and convert to dashboard.notifications.
+            const translationKey = notification.data.message_key.startsWith('notifications.') 
+                ? notification.data.message_key.replace('notifications.', 'dashboard.notifications.')
+                : notification.data.message_key;
+            return t(translationKey, notification.data.translation_data);
         }
         return notification.message;
     };
@@ -177,27 +185,34 @@ export default function StudentNotifications({ notifications = [], unreadCount =
 
                 {/* Notifications Dropdown */}
                 {showNotifications && (
-                    <div 
-                        style={{ 
-                            position: 'absolute',
-                            top: '100%',
-                            right: '0',
-                            zIndex: 1000,
-                            minHeight: '200px',
-                            width: '384px',
-                            backgroundColor: 'white',
-                            border: '1px solid rgba(0, 0, 0, 0.15)',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                            borderRadius: '12px',
-                            marginTop: '8px'
-                        }}
-                    >
+                    <>
+                        {/* Backdrop for closing dropdown */}
+                        <div 
+                            className="fixed inset-0" 
+                            style={{ zIndex: 9998 }}
+                            onClick={() => setShowNotifications(false)}
+                        />
+                        <div 
+                            style={{ 
+                                position: 'absolute',
+                                top: '100%',
+                                right: '0',
+                                zIndex: 9999,
+                                minHeight: '200px',
+                                width: '384px',
+                                backgroundColor: 'white',
+                                border: '1px solid rgba(0, 0, 0, 0.15)',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                                borderRadius: '12px',
+                                marginTop: '8px'
+                            }}
+                        >
                         <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.notifications')}</h3>
+                                <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.notifications.notifications')}</h3>
                                 <div className="flex items-center gap-2">
                                     {unreadCount > 0 && (
-                                        <span className="text-sm text-gray-500">{unreadCount} {t('dashboard.unread')}</span>
+                                        <span className="text-sm text-gray-500">{unreadCount} {t('dashboard.notifications.unread')}</span>
                                     )}
                                     <button
                                         onClick={() => setShowNotifications(false)}
@@ -302,22 +317,14 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                             ) : (
                                 <div className="p-8 text-center text-gray-500">
                                     <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                    <p>{t('dashboard.no_notifications')}</p>
+                                    <p>{t('dashboard.notifications.no_notifications')}</p>
                                 </div>
                             )}
                         </div>
                     </div>
+                    </>
                 )}
             </div>
-
-            {/* Close dropdown when clicking outside */}
-            {showNotifications && (
-                <div
-                    className="fixed inset-0"
-                    onClick={() => setShowNotifications(false)}
-                    style={{ zIndex: 999 }}
-                ></div>
-            )}
         </div>
     );
 }

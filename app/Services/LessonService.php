@@ -221,9 +221,10 @@ class LessonService
     public function verifyUserCanAccessLesson(Lesson $lesson, User $user): bool
     {
         // Check if user is enrolled and approved
+        // Allow access for both active and completed enrollments
         $enrollment = $user->enrollments()
             ->where('program_id', $lesson->program_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->first();
 

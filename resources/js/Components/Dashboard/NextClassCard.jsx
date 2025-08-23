@@ -141,15 +141,15 @@ export default function NextClassCard({ nextClass }) {
                 </div>
                 
                 {/* Class Details Grid */}
-                <div className="grid md:grid-cols-3 gap-6 mb-6">
+                <div className="flex flex-wrap gap-4 mb-4">
                     <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-emerald-200/50 shadow-sm"
-                        whileHover={{ scale: 1.05 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-emerald-200/50 shadow-sm flex-1 min-w-[200px]"
+                        whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <div className="flex items-center space-x-3">
-                            <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 p-2 rounded-lg">
-                                <Clock className="w-5 h-5 text-white" />
+                        <div className="flex items-center space-x-2">
+                            <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 p-1.5 rounded-lg">
+                                <Clock className="w-4 h-4 text-white" />
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 font-medium">{t('dashboard.when')}</p>
@@ -164,13 +164,13 @@ export default function NextClassCard({ nextClass }) {
                     </motion.div>
                     
                     <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50 shadow-sm"
-                        whileHover={{ scale: 1.05 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50 shadow-sm flex-1 min-w-[200px]"
+                        whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2, delay: 0.1 }}
                     >
-                        <div className="flex items-center space-x-3">
-                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-2 rounded-lg">
-                                <User className="w-5 h-5 text-white" />
+                        <div className="flex items-center space-x-2">
+                            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-1.5 rounded-lg">
+                                <User className="w-4 h-4 text-white" />
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 font-medium">{t('dashboard.teacher')}</p>
@@ -182,13 +182,13 @@ export default function NextClassCard({ nextClass }) {
                     </motion.div>
                     
                     <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-cyan-200/50 shadow-sm"
-                        whileHover={{ scale: 1.05 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-cyan-200/50 shadow-sm flex-1 min-w-[200px]"
+                        whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2, delay: 0.2 }}
                     >
-                        <div className="flex items-center space-x-3">
-                            <div className="bg-gradient-to-r from-cyan-500 to-teal-500 p-2 rounded-lg">
-                                <Sparkles className="w-5 h-5 text-white" />
+                        <div className="flex items-center space-x-2">
+                            <div className="bg-gradient-to-r from-cyan-500 to-teal-500 p-1.5 rounded-lg">
+                                <Sparkles className="w-4 h-4 text-white" />
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 font-medium">{t('dashboard.duration')}</p>

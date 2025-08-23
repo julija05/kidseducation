@@ -26,6 +26,7 @@ use App\Http\Controllers\HelpController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonResourceController;
 use App\Http\Controllers\NewsController;
@@ -289,6 +290,9 @@ Route::get('/articles/{article:slug}', [ArticleController::class, 'show'])->name
 // Legal pages
 Route::get('/privacy-policy', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/terms-of-service', [LegalController::class, 'terms'])->name('legal.terms');
+
+// Newsletter routes
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
 
 // Help & Support pages
 Route::get('/help', [HelpController::class, 'index'])->name('help.index');

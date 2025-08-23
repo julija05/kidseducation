@@ -3,7 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen } from "lucide-react";
+import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket } from "lucide-react";
 import ReviewSection from "@/Components/ReviewSection";
 import ReviewPromptModal from "@/Components/ReviewPromptModal";
 import StudentNavBar from "@/Components/StudentNavBar";
@@ -11,7 +11,6 @@ import CertificateModal from "@/Components/Certificate/CertificateModal";
 
 // Import Dashboard components
 import {
-    EnrollmentConfirmationModal,
     ProgramList,
     PendingEnrollment,
     ProgramContent,
@@ -46,8 +45,6 @@ export default function Dashboard() {
     } = props;
 
     const student = props.auth.user;
-    const [showEnrollModal, setShowEnrollModal] = useState(false);
-    const [selectedProgram, setSelectedProgram] = useState(null);
     const [showLanguageModal, setShowLanguageModal] = useState(showLanguageSelector || false);
     const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
     const [showReviewPrompt, setShowReviewPrompt] = useState(shouldPromptReview || false);
@@ -108,20 +105,6 @@ export default function Dashboard() {
         // You could add success notifications here
     };
 
-    const handleEnrollConfirm = () => {
-        router.post(
-            route("programs.enroll", selectedProgram.slug),
-            {},
-            {
-                onSuccess: () => {
-                    setShowEnrollModal(false);
-                    setSelectedProgram(null);
-                    // Redirect to the program page to show the waiting list banner
-                    router.visit(route("programs.show", selectedProgram.slug));
-                },
-            }
-        );
-    };
 
     // If user is suspended, show suspended dashboard
     if (userStatus === 'suspended' && suspensionMessage) {
@@ -300,6 +283,33 @@ export default function Dashboard() {
                             <NextClassCard nextClass={nextClass} />
                         </div>
 
+                        {/* Program Completion Celebration - Show when program is completed */}
+                        {enrolledProgram?.status === 'completed' && (
+                            <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 backdrop-blur-lg rounded-3xl shadow-xl border border-green-200/50 p-8">
+                                <div className="text-center">
+                                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full mb-6 shadow-lg">
+                                        <Trophy className="text-white" size={36} />
+                                    </div>
+                                    <h2 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-4">
+                                        🎉 {t('dashboard.congratulations')} 🎉
+                                    </h2>
+                                    <p className="text-xl text-gray-700 mb-2">
+                                        {t('dashboard.program_completed_message')}
+                                    </p>
+                                    <p className="text-lg font-semibold text-emerald-600 mb-8">
+                                        {enrolledProgram.translatedName || enrolledProgram.name}
+                                    </p>
+                                    
+                                    {/* Achievement Badge */}
+                                    <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full px-6 py-3 border border-yellow-200 mb-8">
+                                        <Star className="text-yellow-500" size={20} />
+                                        <span className="font-semibold text-yellow-700">{t('dashboard.program_master')}</span>
+                                        <Star className="text-yellow-500" size={20} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Modern Progress Overview */}
                         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
                             <ProgressOverview
@@ -307,6 +317,7 @@ export default function Dashboard() {
                                 nextClass={nextClass}
                             />
                         </div>
+
 
                         {/* Modern Program Content */}
                         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
@@ -316,6 +327,17 @@ export default function Dashboard() {
                                 onReviewLesson={handleReviewLesson}
                             />
                         </div>
+
+                        {/* Modern Program List for browsing other programs */}
+                        {availablePrograms && availablePrograms.length > 0 && (
+                            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                                <ProgramList
+                                    programs={availablePrograms || []}
+                                    userEnrollments={pendingEnrollments || []}
+                                    userDemoAccess={props.userDemoAccess || null}
+                                />
+                            </div>
+                        )}
 
                         {/* Modern Review Section */}
                         {program && (
@@ -461,17 +483,6 @@ export default function Dashboard() {
                         />
                     </div>
 
-                {/* Enrollment Confirmation Modal */}
-                {showEnrollModal && selectedProgram && (
-                    <EnrollmentConfirmationModal
-                        program={selectedProgram}
-                        onConfirm={handleEnrollConfirm}
-                        onCancel={() => {
-                            setShowEnrollModal(false);
-                            setSelectedProgram(null);
-                        }}
-                    />
-                )}
                 </div>
             </div>
         </AuthenticatedLayout>

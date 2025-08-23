@@ -130,15 +130,40 @@ class LanguageController extends Controller
             // Also store in session for immediate effect
             Session::put('locale', $request->language);
             Session::save(); // Force session save
+            
+            // Set application locale immediately for this response
+            app()->setLocale($request->language);
 
             \Log::info('Language preference updated successfully', [
                 'user_id' => $user->id,
                 'new_preference' => $user->fresh()->language_preference,
                 'session_locale' => Session::get('locale'),
+                'app_locale' => app()->getLocale(),
             ]);
 
-            // Return Inertia response to preserve scroll position
-            return back()->with('success', 'Language preference updated successfully');
+            // Clean the referer URL by removing locale parameter to avoid conflicts
+            $refererUrl = $request->header('referer', route('profile.edit'));
+            $parsedUrl = parse_url($refererUrl);
+            
+            if (isset($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $queryParams);
+                // Remove locale parameter to avoid conflicts with user preference
+                unset($queryParams['locale']);
+                
+                $cleanUrl = ($parsedUrl['scheme'] ?? 'http').'://'.
+                           ($parsedUrl['host'] ?? $request->getHost()).
+                           ($parsedUrl['path'] ?? '/');
+                
+                if (!empty($queryParams)) {
+                    $cleanUrl .= '?'.http_build_query($queryParams);
+                }
+            } else {
+                $cleanUrl = $refererUrl;
+            }
+            
+            // Redirect to clean URL to ensure user preference takes priority
+            return redirect($cleanUrl)
+                ->with('success', 'Language preference updated successfully');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Validation failed', [

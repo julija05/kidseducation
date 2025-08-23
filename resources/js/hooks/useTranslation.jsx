@@ -23,9 +23,14 @@ export const useTranslation = () => {
             }
         }
         
-        // If value is not a string, return the key
-        if (typeof value !== 'string') {
+        // If value is not a string or array, return the key
+        if (typeof value !== 'string' && !Array.isArray(value)) {
             return key;
+        }
+        
+        // If value is an array, return it as-is (no placeholder replacement needed for arrays)
+        if (Array.isArray(value)) {
+            return value;
         }
         
         // Replace placeholders with values

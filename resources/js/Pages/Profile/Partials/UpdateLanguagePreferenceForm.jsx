@@ -7,6 +7,7 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
     const { t } = useTranslation();
     const user = usePage().props.auth.user;
     
+    
     const [selectedLanguage, setSelectedLanguage] = useState(user.language_preference || 'en');
     
     const { data, setData, post, processing, recentlySuccessful, errors } = useForm({
@@ -39,21 +40,14 @@ export default function UpdateLanguagePreferenceForm({ className = '' }) {
     const submit = (e) => {
         e.preventDefault();
 
-        console.log('Submitting language preference:', data);
-        console.log('Using route URL:', route('language.set-preference'));
-
-        // Now that route order is fixed, use the simple approach
         post(route('language.set-preference'), {
-            preserveScroll: true,
-            onSuccess: (response) => {
-                console.log('Language preference updated successfully:', response);
-                // Force a page reload to apply language changes immediately
-                setTimeout(() => window.location.reload(), 500);
+            onSuccess: (page) => {
+                console.log('Language change successful, new page data:', page);
+                console.log('New locale:', page.props?.locale);
             },
             onError: (errors) => {
-                console.error('Error updating language preference:', errors);
-                console.error('Error details:', JSON.stringify(errors, null, 2));
-            }
+                console.log('Language change failed:', errors);
+            },
         });
     };
 

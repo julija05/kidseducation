@@ -83,15 +83,16 @@ class EnsureDemoAccess
             return redirect()->route('dashboard');
         }
 
-        // If user has expired demo access and no pending enrollment, show expired page
+        // If user has expired demo access and no pending enrollment, redirect away from demo routes
         if ($user->isDemoExpired() && $request->routeIs('demo.*') && ! $hasPendingEnrollmentDemoAccess) {
-            return redirect()->route('demo.expired');
+            return redirect()->route('dashboard')
+                ->with('info', 'Your demo access has expired. You can browse programs and enroll for full access.');
         }
 
         // If user doesn't have demo access and trying to access demo routes
         if (! $user->hasDemoAccess() && ! $user->isDemoExpired() && ! $hasPendingEnrollmentDemoAccess && $request->routeIs('demo.*')) {
-            // Allow access to demo access route (to start demo)
-            if ($request->routeIs('demo.access')) {
+            // Allow access to demo access route and demo creation route (to start demo)
+            if ($request->routeIs(['demo.access', 'demo.create'])) {
                 return $next($request);
             }
 

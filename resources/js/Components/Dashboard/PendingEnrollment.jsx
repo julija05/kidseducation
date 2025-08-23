@@ -73,17 +73,30 @@ export default function PendingEnrollment({ enrollment, userDemoAccess }) {
                     {/* Return to Demo Button */}
                     {userDemoAccess && (
                         <div className="mb-6">
-                            <Link
-                                href={`/demo/${userDemoAccess.program_slug}/dashboard`}
-                                className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 font-medium transition-all transform hover:scale-105 shadow-lg"
-                            >
-                                <Play size={20} />
-                                <span>Return to Demo</span>
-                            </Link>
+                            {userDemoAccess.is_expired ? (
+                                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-gray-400 to-gray-500 text-white px-6 py-3 rounded-lg font-medium opacity-75 cursor-not-allowed">
+                                    <Play size={20} className="opacity-50" />
+                                    <span>⏰ {t('demo.expired')}</span>
+                                </div>
+                            ) : (
+                                <Link
+                                    href={`/demo/${userDemoAccess.program_slug}/dashboard`}
+                                    className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-green-600 hover:to-blue-600 font-medium transition-all transform hover:scale-105 shadow-lg"
+                                >
+                                    <Play size={20} />
+                                    <span>{t('dashboard.return_to_demo')}</span>
+                                </Link>
+                            )}
                             <p className="text-sm text-yellow-600 mt-2">
-                                Continue exploring while waiting for approval
-                                {userDemoAccess.days_remaining > 0 && (
-                                    <> • {userDemoAccess.days_remaining} days remaining</>
+                                {userDemoAccess.is_expired ? (
+                                    t('dashboard.demo_expired_message')
+                                ) : (
+                                    <>
+                                        {t('dashboard.continue_exploring_approval')}
+                                        {userDemoAccess.days_remaining > 0 && (
+                                            <> • {userDemoAccess.days_remaining} {t('time.days_remaining')}</>
+                                        )}
+                                    </>
                                 )}
                             </p>
                         </div>

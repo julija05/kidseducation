@@ -45,7 +45,36 @@ const NavBar = React.memo(() => {
 
     const isActive = (href) => {
         if (!currentUrl || !href) return false;
-        return currentUrl === href || currentUrl.startsWith(href.replace(/\/$/, ''));
+        
+        try {
+            // Parse URLs to handle query parameters properly
+            const currentUrlObj = new URL(currentUrl, window.location.origin);
+            const hrefObj = new URL(href, window.location.origin);
+            
+            // Normalize pathnames by removing trailing slashes
+            const currentPathname = currentUrlObj.pathname.replace(/\/$/, '') || '/';
+            const hrefPathname = hrefObj.pathname.replace(/\/$/, '') || '/';
+            
+            // For root/home path, only match exactly
+            if (hrefPathname === '/' || hrefPathname === '') {
+                return currentPathname === '/' || currentPathname === '';
+            }
+            
+            // For other paths, use exact match or startsWith for nested routes
+            return currentPathname === hrefPathname || 
+                   currentPathname.startsWith(hrefPathname + '/');
+        } catch (error) {
+            // Fallback to simple string comparison if URL parsing fails
+            const normalizedCurrentUrl = currentUrl.replace(/\/$/, '') || '/';
+            const normalizedHref = href.replace(/\/$/, '') || '/';
+            
+            if (normalizedHref === '/' || normalizedHref === '') {
+                return normalizedCurrentUrl === '/' || normalizedCurrentUrl === '';
+            }
+            
+            return normalizedCurrentUrl === normalizedHref || 
+                   normalizedCurrentUrl.startsWith(normalizedHref + '/');
+        }
     };
 
     return (

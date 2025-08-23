@@ -48,6 +48,8 @@ export default function ProgramContent({
         new Set([program.currentLevel])
     );
     const [expandedLessons, setExpandedLessons] = useState(new Set());
+    const [processingButtons, setProcessingButtons] = useState(new Set());
+    const [processingResources, setProcessingResources] = useState(new Set());
 
     const toggleLevel = (level) => {
         const newExpanded = new Set(expandedLevels);
@@ -109,6 +111,15 @@ export default function ProgramContent({
     };
 
     const handleResourceClick = (resource) => {
+        if (processingResources.has(resource.id)) {
+            return; // Prevent multiple clicks
+        }
+
+        console.log('Resource clicked:', resource);
+        
+        // Mark resource as processing
+        setProcessingResources(prev => new Set(prev).add(resource.id));
+        
         // Mark resource as viewed
         router.post(
             route("lesson-resources.mark-viewed", resource.id),
@@ -116,19 +127,48 @@ export default function ProgramContent({
             {
                 preserveState: true,
                 preserveScroll: true,
+                onError: (errors) => {
+                    console.error('Error marking resource as viewed:', errors);
+                    // Remove from processing state on error
+                    setProcessingResources(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(resource.id);
+                        return newSet;
+                    });
+                },
+                onSuccess: () => {
+                    console.log('Resource marked as viewed successfully');
+                    // Remove from processing state after a delay
+                    setTimeout(() => {
+                        setProcessingResources(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(resource.id);
+                            return newSet;
+                        });
+                    }, 2000);
+                }
             }
         );
 
         // Handle different resource types
         if (resource.resource_url) {
+            console.log('Opening external URL:', resource.resource_url);
             // External URL - open in new tab
             window.open(resource.resource_url, "_blank");
         } else if (resource.download_url) {
+            console.log('Opening download URL:', resource.download_url);
             // Downloadable file
             window.open(resource.download_url, "_blank");
         } else if (resource.stream_url) {
+            console.log('Opening stream URL:', resource.stream_url);
             // Streamable content
             window.open(resource.stream_url, "_blank");
+        } else {
+            console.log('No URL found for resource:', resource);
+            // Try preview route
+            const previewUrl = route('lesson-resources.preview', resource.id);
+            console.log('Trying preview URL:', previewUrl);
+            window.open(previewUrl, '_blank');
         }
     };
 
@@ -154,6 +194,8 @@ export default function ProgramContent({
     };
 
     const getLessonButtonConfig = (lesson) => {
+        const getButtonId = (action) => `${lesson.id}-${action}`;
+        
         // Check if lesson level is unlocked based on points
         const isLevelUnlocked = lesson.level <= (program.highestUnlockedLevel || 1);
         
@@ -178,25 +220,31 @@ export default function ProgramContent({
 
         switch (lesson.status) {
             case "completed":
+                const reviewButtonId = getButtonId("review");
+                const isReviewProcessing = processingButtons.has(reviewButtonId);
                 return {
-                    text: t('dashboard.review'),
-                    className: "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                    text: isReviewProcessing ? t('dashboard.loading') : t('dashboard.review'),
+                    className: `bg-gray-100 text-gray-600 ${isReviewProcessing ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-200'}`,
                     onClick: () => handleLessonClick(lesson, "review"),
-                    disabled: false,
+                    disabled: isReviewProcessing,
                 };
             case "in_progress":
+                const continueButtonId = getButtonId("continue");
+                const isContinueProcessing = processingButtons.has(continueButtonId);
                 return {
-                    text: t('dashboard.continue'),
-                    className: `${program.theme.color} text-white hover:opacity-90`,
+                    text: isContinueProcessing ? t('dashboard.loading') : t('dashboard.continue'),
+                    className: `${program.theme.color} text-white ${isContinueProcessing ? 'cursor-not-allowed opacity-50' : 'hover:opacity-90'}`,
                     onClick: () => handleLessonClick(lesson, "continue"),
-                    disabled: false,
+                    disabled: isContinueProcessing,
                 };
             default:
+                const startButtonId = getButtonId("start");
+                const isStartProcessing = processingButtons.has(startButtonId);
                 return {
-                    text: t('dashboard.start'),
-                    className: `${program.theme.color} text-white hover:opacity-90`,
+                    text: isStartProcessing ? t('dashboard.loading') : t('dashboard.start'),
+                    className: `${program.theme.color} text-white ${isStartProcessing ? 'cursor-not-allowed opacity-50' : 'hover:opacity-90'}`,
                     onClick: () => handleLessonClick(lesson, "start"),
-                    disabled: false,
+                    disabled: isStartProcessing,
                 };
         }
     };
@@ -232,9 +280,27 @@ export default function ProgramContent({
     };
 
     const handleLessonClick = (lesson, action) => {
+        const buttonId = `${lesson.id}-${action}`;
+        
+        if (processingButtons.has(buttonId)) {
+            return; // Prevent multiple clicks
+        }
+
+        // Mark button as processing
+        setProcessingButtons(prev => new Set(prev).add(buttonId));
+
         if (lesson.id) {
             // Navigate to the lesson page
-            router.visit(route("lessons.show", lesson.id));
+            router.visit(route("lessons.show", lesson.id), {
+                onError: () => {
+                    // Remove from processing state on error
+                    setProcessingButtons(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(buttonId);
+                        return newSet;
+                    });
+                }
+            });
         } else {
             // Fallback to the callback functions
             if (action === "review") {
@@ -242,6 +308,15 @@ export default function ProgramContent({
             } else {
                 onStartLesson(lesson.id);
             }
+            
+            // Remove from processing state after a delay for callbacks
+            setTimeout(() => {
+                setProcessingButtons(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(buttonId);
+                    return newSet;
+                });
+            }, 2000);
         }
     };
 
@@ -315,10 +390,10 @@ export default function ProgramContent({
                     </motion.div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-wrap gap-4">
                     <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50 shadow-sm"
-                        whileHover={{ scale: 1.05 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50 shadow-sm flex-1 min-w-[280px]"
+                        whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                     >
                         <div className="flex items-center space-x-3">
@@ -333,8 +408,8 @@ export default function ProgramContent({
                     </motion.div>
                     
                     <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-200/50 shadow-sm"
-                        whileHover={{ scale: 1.05 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-purple-200/50 shadow-sm flex-1 min-w-[280px]"
+                        whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2, delay: 0.1 }}
                     >
                         <div className="flex items-center space-x-3">
@@ -351,8 +426,8 @@ export default function ProgramContent({
                     </motion.div>
                     
                     <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-yellow-200/50 shadow-sm"
-                        whileHover={{ scale: 1.05 }}
+                        className="bg-white/70 backdrop-blur-sm rounded-xl p-3 border border-yellow-200/50 shadow-sm flex-1 min-w-[280px]"
+                        whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2, delay: 0.2 }}
                     >
                         <div className="flex items-center space-x-3">
@@ -378,35 +453,35 @@ export default function ProgramContent({
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    whileHover={{ scale: 1.02, y: -5 }}
+                    whileHover={{ scale: 1.01, y: -2 }}
                 >
-                    <div className="flex items-center justify-between mb-6">
-                        <h4 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                            {t('dashboard.your_points')}
-                        </h4>
-                        <motion.div 
-                            className="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-xl shadow-lg"
-                            animate={{ scale: [1, 1.1, 1] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                        >
-                            <Star className="w-6 h-6 text-white" />
-                        </motion.div>
-                    </div>
-                    <div className="text-center">
-                        <motion.div 
-                            className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent mb-3"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
-                        >
-                            {program.quizPoints || 0}
-                        </motion.div>
-                        <p className="text-lg font-semibold text-gray-700 mb-2">
-                            {t('dashboard.total_points_earned')}
-                        </p>
-                        <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-yellow-200/50">
-                            <p className="text-sm text-gray-600 font-medium">
-                                {t('dashboard.from_completing_quizzes')}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <motion.div 
+                                className="bg-gradient-to-r from-yellow-500 to-orange-500 p-2 rounded-xl shadow-lg"
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                                <Star className="w-5 h-5 text-white" />
+                            </motion.div>
+                            <div>
+                                <h4 className="text-xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                                    {t('dashboard.your_points')}
+                                </h4>
+                                <p className="text-sm text-gray-600">{t('dashboard.from_completing_quizzes')}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <motion.div 
+                                className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
+                            >
+                                {program.quizPoints || 0}
+                            </motion.div>
+                            <p className="text-sm font-semibold text-gray-700">
+                                {t('dashboard.total_points_earned')}
                             </p>
                         </div>
                     </div>
@@ -419,24 +494,24 @@ export default function ProgramContent({
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
-                        whileHover={{ scale: 1.02, y: -5 }}
+                        whileHover={{ scale: 1.01, y: -2 }}
                     >
-                        <div className="flex items-center justify-between mb-6">
-                            <h4 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
                                 {t('dashboard.next_level', { level: program.highestUnlockedLevel + 1 })}
                             </h4>
                             <motion.div 
-                                className="bg-gradient-to-r from-emerald-500 to-cyan-500 p-3 rounded-xl shadow-lg"
+                                className="bg-gradient-to-r from-emerald-500 to-cyan-500 p-2 rounded-xl shadow-lg"
                                 animate={{ rotate: [0, 10, -10, 0] }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                             >
-                                <Target className="w-6 h-6 text-white" />
+                                <Target className="w-5 h-5 text-white" />
                             </motion.div>
                         </div>
-                        <div className="space-y-6">
+                        <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-lg font-semibold text-gray-700">{t('dashboard.progress_label')}:</span>
-                                <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+                                <span className="text-sm font-semibold text-gray-700">{t('dashboard.progress_label')}:</span>
+                                <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
                                     {program.quizPoints || 0} / {program.pointsForNextLevel || 0}
                                 </span>
                             </div>
@@ -467,11 +542,11 @@ export default function ProgramContent({
                     // Show congratulations only if student actually has points and unlocked levels
                     program.quizPoints > 0 && program.highestUnlockedLevel >= program.totalLevels ? (
                         <motion.div 
-                            className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                            className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-4 border border-white/50 shadow-lg"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
-                            whileHover={{ scale: 1.02, y: -5 }}
+                            whileHover={{ scale: 1.01, y: -2 }}
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <h4 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
@@ -507,11 +582,11 @@ export default function ProgramContent({
                     ) : (
                         // Show getting started message for students with 0 points
                         <motion.div 
-                            className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-8 border border-white/50 shadow-lg"
+                            className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-4 border border-white/50 shadow-lg"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
-                            whileHover={{ scale: 1.02, y: -5 }}
+                            whileHover={{ scale: 1.01, y: -2 }}
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <h4 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -592,12 +667,15 @@ export default function ProgramContent({
                         </div>
                         <motion.button
                             onClick={() => handleLessonClick(program.nextLesson, "start")}
-                            className="ml-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
+                            disabled={processingButtons.has(`${program.nextLesson.id}-start`)}
+                            className={`ml-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 ${
+                                processingButtons.has(`${program.nextLesson.id}-start`) ? 'cursor-not-allowed opacity-50' : ''
+                            }`}
+                            whileHover={{ scale: processingButtons.has(`${program.nextLesson.id}-start`) ? 1 : 1.05, y: processingButtons.has(`${program.nextLesson.id}-start`) ? 0 : -2 }}
+                            whileTap={{ scale: processingButtons.has(`${program.nextLesson.id}-start`) ? 1 : 0.95 }}
                         >
                             <div className="flex items-center space-x-2">
-                                <span>{t('dashboard.continue')}</span>
+                                <span>{processingButtons.has(`${program.nextLesson.id}-start`) ? t('dashboard.loading') : t('dashboard.continue')}</span>
                                 <ChevronRight size={20} />
                             </div>
                         </motion.button>
@@ -862,7 +940,7 @@ export default function ProgramContent({
                                                                     <h6 className="text-sm font-semibold text-gray-700 mb-3">
                                                                         {t('dashboard.learning_resources')}:
                                                                     </h6>
-                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                                         {lesson.resources.map(
                                                                             (
                                                                                 resource
@@ -871,9 +949,13 @@ export default function ProgramContent({
                                                                                     key={
                                                                                         resource.id
                                                                                     }
-                                                                                    className={`border rounded-lg p-3 cursor-pointer hover:shadow-sm transition-all ${getResourceTypeColor(
+                                                                                    className={`border rounded-lg p-3 transition-all ${getResourceTypeColor(
                                                                                         resource.type
-                                                                                    )}`}
+                                                                                    )} ${
+                                                                                        processingResources.has(resource.id) 
+                                                                                            ? 'cursor-not-allowed opacity-50' 
+                                                                                            : 'cursor-pointer hover:shadow-sm'
+                                                                                    }`}
                                                                                     onClick={() =>
                                                                                         handleResourceClick(
                                                                                             resource

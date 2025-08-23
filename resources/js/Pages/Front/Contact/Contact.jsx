@@ -23,7 +23,6 @@ import {
     Facebook,
     Instagram,
     Linkedin,
-    Twitter,
     ChevronRight,
     Sparkles
 } from "lucide-react";
@@ -403,10 +402,9 @@ export default function ContactUs({ auth }) {
                                         
                                         <div className="flex justify-center space-x-6">
                                             {[
-                                                { icon: Facebook, color: "hover:bg-blue-700", url: "https://facebook.com/abacoding" },
+                                                { icon: Facebook, color: "hover:bg-blue-700", url: "https://www.facebook.com/people/Abacoding/100089891705337/" },
                                                 { icon: Instagram, color: "hover:bg-pink-700", url: "https://instagram.com/abacoding" },
-                                                { icon: Linkedin, color: "hover:bg-blue-800", url: "https://linkedin.com/company/abacoding" },
-                                                { icon: Twitter, color: "hover:bg-cyan-600", url: "https://twitter.com/abacoding" }
+                                                { icon: Linkedin, color: "hover:bg-blue-800", url: "https://linkedin.com/company/abacoding" }
                                             ].map((social, index) => (
                                                 <motion.button
                                                     key={index}

@@ -44,9 +44,10 @@ class ResourceService
         }
 
         // Check if user is enrolled and approved for this lesson's program
+        // Allow access for both active and completed enrollments
         $enrollment = $user->enrollments()
             ->where('program_id', $resource->lesson->program_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->first();
 
@@ -155,7 +156,7 @@ class ResourceService
     public function getResourceStatsForUser(User $user, $programId = null): array
     {
         $query = $user->enrollments()
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved');
 
         if ($programId) {

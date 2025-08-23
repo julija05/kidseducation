@@ -11,7 +11,6 @@ use App\Services\NotificationService;
 use App\Services\ProgramService;
 use App\Services\ResourceService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
@@ -43,21 +42,16 @@ class DashboardController extends Controller
         ]);
 
         // Check if this is a demo account - redirect to demo dashboard
-        // IMPORTANT: Only redirect to demo if user has NO enrollments at all (pending or approved)
+        // IMPORTANT: Only redirect to demo if user has NO enrollments at all (pending or approved) AND demo is active
         // Users with pending enrollments should see dashboard with option to return to demo
-        if ($user->isDemoAccount() && ! $user->enrollments()->exists()) {
-            \Log::info('Redirecting demo account to demo dashboard - no enrollments', [
+        // Expired demo users should see the regular dashboard with programs panel and expired demo buttons
+        if ($user->isDemoAccount() && ! $user->enrollments()->exists() && $user->hasDemoAccess()) {
+            \Log::info('Redirecting demo account to demo dashboard - no enrollments and active demo', [
                 'user_id' => $user->id,
                 'demo_program_slug' => $user->demo_program_slug,
                 'has_demo_access' => $user->hasDemoAccess(),
                 'enrollments_count' => $user->enrollments()->count(),
             ]);
-
-            if ($user->isDemoExpired()) {
-                Auth::logout();
-
-                return redirect()->route('demo.expired');
-            }
 
             return redirect()->route('demo.dashboard', $user->demo_program_slug);
         }
@@ -73,7 +67,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Get approved enrollment if exists (active only - completed programs go to main dashboard)
+        // Get approved enrollment if exists (active or completed - students should always see their program dashboard)
         // Exclude blocked access enrollments
         $currentLocale = app()->getLocale();
         $approvedEnrollment = $user->enrollments()
@@ -92,9 +86,10 @@ class DashboardController extends Controller
                         ->orderBy('order_in_level', 'asc');
                 }]);
             }])
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->where('access_blocked', false)
+            ->orderByRaw("FIELD(status, 'active', 'completed')")
             ->first();
 
         // Check if user has approved enrollment but access is blocked
@@ -256,11 +251,25 @@ class DashboardController extends Controller
             $shouldPromptReview = true;
         }
 
+        // Always show available programs for navigation purposes
+        $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
+
         return $this->createView('Dashboard', [
             'enrolledProgram' => $enrolledProgramData,
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
             'pendingEnrollments' => [],
-            'availablePrograms' => [],
+            'availablePrograms' => $availablePrograms,
+            'currentEnrollment' => [
+                'id' => $enrollment->id,
+                'approval_status' => $enrollment->approval_status,
+                'status' => $enrollment->status,
+                'program' => [
+                    'id' => $program->id,
+                    'name' => $program->name,
+                    'translated_name' => $program->translated_name,
+                    'slug' => $program->slug,
+                ],
+            ],
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
@@ -357,11 +366,7 @@ class DashboardController extends Controller
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
-            'userDemoAccess' => $user->hasDemoAccess() ? [
-                'program_slug' => $user->demo_program_slug,
-                'expires_at' => $user->demo_expires_at,
-                'days_remaining' => $user->getDemoRemainingDays(),
-            ] : null,
+            'userDemoAccess' => $this->getUserDemoAccessForDashboard($user),
         ]);
     }
 
@@ -406,11 +411,7 @@ class DashboardController extends Controller
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
-            'userDemoAccess' => $user->hasDemoAccess() ? [
-                'program_slug' => $user->demo_program_slug,
-                'expires_at' => $user->demo_expires_at,
-                'days_remaining' => $user->getDemoRemainingDays(),
-            ] : null,
+            'userDemoAccess' => $this->getUserDemoAccessForDashboard($user),
         ]);
     }
 
@@ -428,13 +429,18 @@ class DashboardController extends Controller
         // Check if user is enrolled and approved and not blocked
         $enrollment = $user->enrollments()
             ->where('program_id', $lesson->program_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->where('access_blocked', false)
             ->first();
 
         if (! $enrollment) {
             return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
+        }
+
+        // Don't allow starting new lessons on completed programs
+        if ($enrollment->status === 'completed') {
+            return response()->json(['error' => 'Cannot start new lessons on completed program'], 403);
         }
 
         // Check if lesson is unlocked
@@ -462,13 +468,18 @@ class DashboardController extends Controller
         // Check enrollment and approval and not blocked
         $enrollment = $user->enrollments()
             ->where('program_id', $lesson->program_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->where('access_blocked', false)
             ->first();
 
         if (! $enrollment) {
             return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
+        }
+
+        // Don't allow completing lessons on completed programs
+        if ($enrollment->status === 'completed') {
+            return response()->json(['error' => 'Cannot complete lessons on completed program'], 403);
         }
 
         // Complete the lesson
@@ -578,6 +589,70 @@ class DashboardController extends Controller
         return null;
     }
 
+    /**
+     * Get demo access info for dashboard display - includes expired demos
+     */
+    private function getUserDemoAccessForDashboard($user)
+    {
+        // Check if user has regular demo access first
+        if ($user->hasDemoAccess()) {
+            Log::info('User has active demo access', [
+                'user_id' => $user->id,
+                'program_slug' => $user->demo_program_slug,
+                'days_remaining' => $user->getDemoRemainingDays(),
+            ]);
+
+            return [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => $user->demo_expires_at,
+                'days_remaining' => $user->getDemoRemainingDays(),
+                'is_expired' => false,
+            ];
+        }
+
+        // If user has pending enrollments and a demo program slug, allow demo access
+        if ($user->enrollments()->where('approval_status', 'pending')->exists() && $user->demo_program_slug) {
+            Log::info('User has pending enrollment with demo access', [
+                'user_id' => $user->id,
+                'program_slug' => $user->demo_program_slug,
+                'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
+            ]);
+
+            return [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => null, // No expiration while enrollment is pending
+                'days_remaining' => 999, // Indicate unlimited access while pending
+                'is_expired' => false,
+            ];
+        }
+
+        // If user has expired demo access, show expired state
+        if ($user->isDemoExpired() && $user->demo_program_slug) {
+            Log::info('User has expired demo access', [
+                'user_id' => $user->id,
+                'program_slug' => $user->demo_program_slug,
+                'expired_at' => $user->demo_expires_at,
+            ]);
+
+            return [
+                'program_slug' => $user->demo_program_slug,
+                'expires_at' => $user->demo_expires_at,
+                'days_remaining' => 0,
+                'is_expired' => true,
+            ];
+        }
+
+        Log::info('User has no demo access', [
+            'user_id' => $user->id,
+            'has_regular_demo' => $user->hasDemoAccess(),
+            'demo_program_slug' => $user->demo_program_slug,
+            'is_expired' => $user->isDemoExpired(),
+            'pending_enrollments_count' => $user->enrollments()->where('approval_status', 'pending')->count(),
+        ]);
+
+        return null;
+    }
+
     public function mySchedule(Request $request)
     {
         $user = $request->user();
@@ -667,11 +742,7 @@ class DashboardController extends Controller
             'notifications' => $studentData['notifications'] ?? [],
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
-            'userDemoAccess' => $user->hasDemoAccess() ? [
-                'program_slug' => $user->demo_program_slug,
-                'expires_at' => $user->demo_expires_at,
-                'days_remaining' => $user->getDemoRemainingDays(),
-            ] : null,
+            'userDemoAccess' => $this->getUserDemoAccessForDashboard($user),
         ]);
     }
 

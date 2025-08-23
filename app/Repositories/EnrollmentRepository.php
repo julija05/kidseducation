@@ -10,18 +10,20 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
 {
     public function findActiveApprovedEnrollment(User $user, int $programId): ?Enrollment
     {
+        // Allow access for both active and completed enrollments
         return $user->enrollments()
             ->where('program_id', $programId)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->first();
     }
 
     public function userHasActiveApprovedEnrollment(User $user, int $programId): bool
     {
+        // Allow access for both active and completed enrollments
         return $user->enrollments()
             ->where('program_id', $programId)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->exists();
     }

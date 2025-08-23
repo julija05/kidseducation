@@ -15,54 +15,69 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
         return acc;
     }, {});
 
-    // Check if user has any pending or active enrollments (only one enrollment at a time)
-    const hasAnyActiveEnrollment = userEnrollments.some(enrollment => 
-        (enrollment.approval_status === 'pending' || 
-         (enrollment.approval_status === 'approved' && enrollment.status !== 'completed'))
-    );
-    
-    // Check if user has any pending enrollments specifically
+    // Check if user has any pending enrollments (blocks new enrollments)
     const hasPendingEnrollments = userEnrollments.some(enrollment => 
         enrollment.approval_status === 'pending'
     );
+    
+    // Check if user has any active enrollments (approved but not completed - blocks new enrollments)
+    const hasActiveEnrollments = userEnrollments.some(enrollment => 
+        enrollment.approval_status === 'approved' && enrollment.status !== 'completed'
+    );
+    
+    // Check if user has any enrollment that should block new enrollments
+    const hasBlockingEnrollment = hasPendingEnrollments || hasActiveEnrollments;
+
+    // Check if user has completed any programs
+    const hasCompletedPrograms = userEnrollments.some(enrollment => 
+        enrollment.approval_status === 'approved' && enrollment.status === 'completed'
+    );
+
+    // Check if user has ever tried a demo (has demo access or had demo access)
+    const hasTriedDemo = userDemoAccess && userDemoAccess.program_slug;
 
     const getButtonContent = (program) => {
         const enrollment = enrollmentMap[program.id];
 
         if (!enrollment) {
             // Not enrolled - check if user has pending enrollments or demo access
-            const hasActiveDemo = userDemoAccess && userDemoAccess.program_slug;
-            const isCurrentDemoProgram = hasActiveDemo && userDemoAccess.program_slug === program.slug;
+            const hasActiveDemo = userDemoAccess && userDemoAccess.program_slug && !userDemoAccess.is_expired;
+            const hasExpiredDemo = userDemoAccess && userDemoAccess.program_slug && userDemoAccess.is_expired;
+            const isCurrentDemoProgram = userDemoAccess && userDemoAccess.program_slug === program.slug;
             
             // If user has pending enrollments, only show demo access for their current demo program
             if (hasPendingEnrollments) {
                 if (isCurrentDemoProgram) {
-                    // User has pending enrollment AND this is their demo program - show "Back to Demo"
-                    return (
-                        <div className="space-y-3">
-                            {/* Modern Back to Demo Button */}
-                            <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
-                                <Link
-                                    href={`/demo/${program.slug}/dashboard`}
-                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl backdrop-blur-sm border border-white/20 text-white no-underline"
-                                >
-                                    <Play size={20} className="mr-2" />
-                                    {t('demo.back_to_demo')}
-                                </Link>
-                            </motion.div>
-                            
-                            {/* Modern View Details Button */}
-                            <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
-                                <Link
-                                    href={route("programs.show", program.slug)}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl backdrop-blur-sm border border-white/20 text-white no-underline"
-                                >
-                                    🔍 {t('dashboard.explore_adventure')}
-                                    <ArrowRight size={18} className="ml-2" />
-                                </Link>
-                            </motion.div>
-                        </div>
-                    );
+                    // User has pending enrollment AND this is their demo program
+                    if (hasExpiredDemo) {
+                        // Demo has expired - show expired state
+                        return (
+                            <div className="space-y-3">
+                                {/* Expired Demo Button */}
+                                <div className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center shadow-lg opacity-75 cursor-not-allowed">
+                                    <Play size={20} className="mr-2 opacity-50" />
+                                    ⏰ {t('demo.expired')}
+                                </div>
+                            </div>
+                        );
+                    } else {
+                        // Active demo - show "Back to Demo"
+                        return (
+                            <div className="space-y-3">
+                                {/* Modern Back to Demo Button */}
+                                <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}>
+                                    <Link
+                                        href={`/demo/${program.slug}/dashboard`}
+                                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl backdrop-blur-sm border border-white/20 text-white no-underline"
+                                    >
+                                        <Play size={20} className="mr-2" />
+                                        {t('demo.back_to_demo')}
+                                    </Link>
+                                </motion.div>
+                                
+                            </div>
+                        );
+                    }
                 } else {
                     // User has pending enrollment but this is NOT their demo program - only show view details
                     return (
@@ -73,31 +88,43 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                                 {t('dashboard.enrollment_pending_other')}
                             </div>
                             
-                            {/* View Details Button */}
-                            <Link
-                                href={route("programs.show", program.slug)}
-                                className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
-                                style={{
-                                    background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
-                                }}
-                            >
-                                🔍 {t('dashboard.explore_adventure')}
-                                <ArrowRight size={18} className="ml-2" />
-                            </Link>
                         </div>
                     );
                 }
             }
             
-            // User has no pending enrollments - show normal demo/enroll logic
-            if (hasActiveDemo && !isCurrentDemoProgram) {
-                // User has demo for different program - show disabled state
+            // User has no pending/active enrollments - check enrollment restrictions
+            if (hasBlockingEnrollment) {
+                // User has blocking enrollment - show blocked state
+                return (
+                    <div className="space-y-3">
+                        {/* Blocked Enrollment Message */}
+                        <div className="w-full bg-gray-400 text-gray-100 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed opacity-75">
+                            <Clock size={20} className="mr-2 opacity-60" />
+                            {hasPendingEnrollments ? t('dashboard.enrollment_pending_other') : t('dashboard.complete_current_program')}
+                        </div>
+                        
+                        {/* View Details Button */}
+                        <Link
+                            href={route("programs.show", program.slug)}
+                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                            style={{
+                                background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                            }}
+                        >
+                            🔍 {t('dashboard.explore_adventure')}
+                            <ArrowRight size={18} className="ml-2" />
+                        </Link>
+                    </div>
+                );
+            } else if (hasTriedDemo && !isCurrentDemoProgram) {
+                // User has tried demo for different program - show disabled state
                 return (
                     <div className="space-y-3">
                         {/* Disabled Demo Button */}
-                        <div className="w-full bg-gray-300 text-gray-500 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed">
-                            <Play size={20} className="mr-2" />
-                            {t('demo.one_demo_only')}
+                        <div className="w-full bg-gray-400 text-gray-100 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed opacity-75">
+                            <Play size={20} className="mr-2 opacity-60" />
+                            {t('demo.demo_used_already')}
                         </div>
                         
                         {/* View Details Button */}
@@ -114,49 +141,72 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                     </div>
                 );
             } else if (isCurrentDemoProgram) {
-                // User has active demo for this program - show "Continue Demo"
-                return (
-                    <div className="space-y-3">
-                        {/* Continue Demo Button */}
-                        <Link
-                            href={`/demo/${program.slug}/dashboard`}
-                            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
-                        >
-                            <Play size={20} className="mr-2" />
-                            🎮 {t('demo.continue_demo')}
-                        </Link>
-                        
-                        {/* View Details Button */}
-                        <Link
-                            href={route("programs.show", program.slug)}
-                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
-                            style={{
-                                background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
-                            }}
-                        >
-                            🔍 {t('dashboard.explore_adventure')}
-                            <ArrowRight size={18} className="ml-2" />
-                        </Link>
-                    </div>
-                );
+                // User has demo for this program
+                if (hasExpiredDemo) {
+                    // Demo has expired - show expired state
+                    return (
+                        <div className="space-y-3">
+                            {/* Expired Demo Button */}
+                            <div className="w-full bg-gradient-to-r from-gray-400 to-gray-500 text-white py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md opacity-75 cursor-not-allowed">
+                                <Play size={20} className="mr-2 opacity-50" />
+                                ⏰ {t('demo.expired')}
+                            </div>
+                            
+                            {/* View Details Button */}
+                            <Link
+                                href={route("programs.show", program.slug)}
+                                className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                                style={{
+                                    background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                                }}
+                            >
+                                🔍 {t('dashboard.explore_adventure')}
+                                <ArrowRight size={18} className="ml-2" />
+                            </Link>
+                        </div>
+                    );
+                } else {
+                    // Active demo - show "Continue Demo"
+                    return (
+                        <div className="space-y-3">
+                            {/* Continue Demo Button */}
+                            <Link
+                                href={`/demo/${program.slug}/dashboard`}
+                                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
+                            >
+                                <Play size={20} className="mr-2" />
+                                🎮 {t('demo.continue_demo')}
+                            </Link>
+                            
+                            {/* View Details Button */}
+                            <Link
+                                href={route("programs.show", program.slug)}
+                                className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                                style={{
+                                    background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
+                                }}
+                            >
+                                🔍 {t('dashboard.explore_adventure')}
+                                <ArrowRight size={18} className="ml-2" />
+                            </Link>
+                        </div>
+                    );
+                }
             } else {
                 // No demo access - show normal demo button
                 return (
                     <div className="space-y-3">
-                        {/* Demo Button */}
-                        {hasAnyActiveEnrollment ? (
-                            <div className="w-full bg-gray-300 text-gray-600 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed">
-                                <Clock size={20} className="mr-2" />
-                                {t('dashboard.enrollment_pending_other')}
+                        {/* Enrollment Status Message */}
+                        {hasBlockingEnrollment ? (
+                            <div className="w-full bg-gray-400 text-gray-100 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed opacity-75">
+                                <Clock size={20} className="mr-2 opacity-60" />
+                                {hasPendingEnrollments ? t('dashboard.enrollment_pending_other') : t('dashboard.complete_current_program')}
                             </div>
                         ) : (
-                            <Link
-                                href={`/demo/${program.slug}`}
-                                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-105 text-white no-underline"
-                            >
-                                <Play size={20} className="mr-2" />
-                                🎮 {t('demo.try')} {t('demo.start_free_demo')}
-                            </Link>
+                            <div className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md">
+                                <BookOpen size={20} className="mr-2" />
+                                {t('dashboard.ready_to_enroll')}
+                            </div>
                         )}
                         
                         {/* View Details Button */}
@@ -211,18 +261,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                     </button>
                 );
             default:
-                return (
-                    <Link
-                        href={route("programs.show", program.slug)}
-                        className="w-full text-white py-4 rounded-xl font-bold text-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
-                        style={{
-                            background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
-                        }}
-                    >
-                        🔍 {t('dashboard.explore_adventure')}
-                        <ArrowRight size={20} className="ml-2" />
-                    </Link>
-                );
+                return null;
         }
     };
 
@@ -272,7 +311,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                 </motion.p>
             </motion.div>
 
-            {/* Modern Demo Limitations Notice */}
+            {/* Modern Enrollment Info Notice */}
             {!userEnrollments.length && (
                 <motion.div 
                     className="max-w-4xl mx-auto mb-8"
@@ -281,71 +320,36 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                     transition={{ duration: 0.6, delay: 0.4 }}
                 >
                     <motion.div 
-                        className="bg-gradient-to-br from-blue-50 via-orange-50 to-yellow-50 border border-white/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
+                        className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border border-white/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
                         whileHover={{ scale: 1.02, y: -5 }}
                         transition={{ duration: 0.3 }}
                     >
                         <div className="text-center">
                             <motion.div 
-                                className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full mb-6 shadow-lg"
+                                className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-6 shadow-lg"
                                 animate={{ scale: [1, 1.1, 1] }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                             >
-                                <Play className="text-white" size={28} />
+                                <BookOpen className="text-white" size={28} />
                             </motion.div>
-                            <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent mb-4">
-                                {t('demo.demo_info_title')}
+                            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                                {t('dashboard.start_learning_journey')}
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <motion.div 
-                                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-orange-200/50 shadow-sm"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.5 }}
-                                    whileHover={{ scale: 1.05 }}
-                                >
-                                    <p className="text-sm font-semibold text-orange-700 flex items-center justify-center">
-                                        <span className="mr-2">✨</span>
-                                        {t('demo.one_program_only')}
-                                    </p>
-                                </motion.div>
-                                <motion.div 
-                                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50 shadow-sm"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.6 }}
-                                    whileHover={{ scale: 1.05 }}
-                                >
-                                    <p className="text-sm font-semibold text-blue-700 flex items-center justify-center">
-                                        <span className="mr-2">⏰</span>
-                                        {t('demo.expires_seven_days')}
-                                    </p>
-                                </motion.div>
-                                <motion.div 
-                                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-purple-200/50 shadow-sm"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.7 }}
-                                    whileHover={{ scale: 1.05 }}
-                                >
-                                    <p className="text-sm font-semibold text-purple-700 flex items-center justify-center">
-                                        <span className="mr-2">📚</span>
-                                        {t('demo.first_lesson_only')}
-                                    </p>
-                                </motion.div>
-                                <motion.div 
-                                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-yellow-200/50 shadow-sm"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.8 }}
-                                    whileHover={{ scale: 1.05 }}
-                                >
-                                    <p className="text-sm font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent flex items-center justify-center">
-                                        <span className="mr-2">🎯</span>
-                                        {t('demo.choose_wisely')}
-                                    </p>
-                                </motion.div>
-                            </div>
+                            <p className="text-lg text-gray-600 mb-6">
+                                {t('dashboard.explore_programs_below')}
+                            </p>
+                            <motion.div 
+                                className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-blue-200/50 shadow-sm"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.5 }}
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <p className="text-lg font-semibold text-blue-700 flex items-center justify-center">
+                                    <span className="mr-2">🎯</span>
+                                    {t('dashboard.click_explore_to_enroll')}
+                                </p>
+                            </motion.div>
                         </div>
                     </motion.div>
                 </motion.div>
@@ -367,13 +371,21 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                     return (
                         <motion.div
                             key={program.id}
-                            className={`bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl hover:shadow-2xl border border-white/50 overflow-hidden relative flex flex-col h-full ${
+                            className={`bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl hover:shadow-2xl border border-white/50 overflow-hidden relative flex flex-col h-full cursor-pointer transition-all duration-300 ${
                                 isPending ? "ring-4 ring-yellow-400/60" : ""
                             } ${isApproved ? "ring-4 ring-green-400/60" : ""}`}
+                            title={`View ${program.name} details`}
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
                             whileHover={{ scale: 1.05, y: -10 }}
+                            onClick={(e) => {
+                                // Prevent navigation if clicked on interactive elements
+                                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button, a')) {
+                                    return;
+                                }
+                                router.visit(route("programs.show", program.slug));
+                            }}
                         >
                             {/* Modern Status badge overlay */}
                             {enrollment && (

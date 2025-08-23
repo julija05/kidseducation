@@ -333,23 +333,23 @@ export default function Register({ auth }) {
                                 className="text-center text-sm text-gray-600"
                             >
                                 <p>
-                                    By creating an account, you agree to our{" "}
+                                    {t('auth.register.terms_agreement_part1')}{" "}
                                     <Link
                                         href={route("legal.terms")}
                                         className="text-purple-500 font-medium hover:text-purple-600 hover:underline transition-colors duration-200"
                                         target="_blank"
                                     >
-                                        Terms of Service
+                                        {t('auth.register.terms_of_service')}
                                     </Link>
-                                    {" "}and{" "}
+                                    {" "}{t('auth.register.terms_agreement_and')}{" "}
                                     <Link
                                         href={route("legal.privacy")}
                                         className="text-blue-500 font-medium hover:text-blue-600 hover:underline transition-colors duration-200"
                                         target="_blank"
                                     >
-                                        Privacy Policy
+                                        {t('auth.register.privacy_policy')}
                                     </Link>
-                                    .
+                                    {t('auth.register.terms_agreement_part2')}
                                 </p>
                             </motion.div>
 

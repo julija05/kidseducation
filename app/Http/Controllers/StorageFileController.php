@@ -16,9 +16,10 @@ class StorageFileController extends Controller
         $user = Auth::user();
 
         // Check if user can access this resource
+        // Allow access for both active and completed enrollments
         $enrollment = $user->enrollments()
             ->where('program_id', $resource->lesson->program_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->first();
 
@@ -64,9 +65,10 @@ class StorageFileController extends Controller
         $user = Auth::user();
 
         // Check if user can access this resource
+        // Allow access for both active and completed enrollments
         $enrollment = $user->enrollments()
             ->where('program_id', $resource->lesson->program_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->first();
 

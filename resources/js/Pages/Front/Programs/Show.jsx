@@ -1,21 +1,25 @@
 // resources/js/Pages/Front/Programs/Show.jsx
 import React, { useState, useEffect } from "react";
-import { usePage, Link } from "@inertiajs/react";
+import { usePage, Link, router } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import ProgramDetailsSection from "@/Components/ProgramDetailsSection";
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import StarRating from "@/Components/StarRating";
 import ReviewCard from "@/Components/ReviewCard";
+import EnrollmentSwitchWarningModal from "@/Components/Dashboard/EnrollmentSwitchWarningModal";
 import { MessageSquare, Plus, Sparkles, CheckCircle, Clock, XCircle, AlertTriangle, Users, Play } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramDetail({ auth }) {
-    const { program, userEnrollment, hasAnyEnrollment, hasAnyActiveEnrollment, canReview, userReview, topReviews, flash, waiting_list_program } = usePage().props;
+    const { program, userEnrollment, hasAnyEnrollment, hasAnyActiveEnrollment, canReview, userReview, topReviews, flash, waiting_list_program, currentEnrollment } = usePage().props;
     const { t } = useTranslation();
     
     // Get flash messages from Inertia props
     const flashMessages = flash || {};
+    
+    // Modal state
+    const [showSwitchWarningModal, setShowSwitchWarningModal] = useState(false);
     
     // Dynamic viewer count for guest users
     const [currentViewers, setCurrentViewers] = useState(0);
@@ -43,8 +47,32 @@ export default function ProgramDetail({ auth }) {
     }, [auth.user]);
 
     const handleEnrollClick = () => {
-        // Save program ID to session storage before redirecting
-        sessionStorage.setItem("pending_enrollment_program_id", program.id);
+        // If user has active enrollment, show warning modal instead of direct enrollment
+        if (hasAnyActiveEnrollment && currentEnrollment) {
+            setShowSwitchWarningModal(true);
+        } else {
+            // Direct enrollment
+            performEnrollment();
+        }
+    };
+
+    const performEnrollment = (isSwitch = false) => {
+        const data = isSwitch ? { switch_program: true } : {};
+        
+        router.post(
+            route("programs.enroll", program.slug),
+            data,
+            {
+                onSuccess: () => {
+                    // Handle success (page will reload with success message)
+                },
+            }
+        );
+    };
+
+    const handleSwitchConfirm = () => {
+        setShowSwitchWarningModal(false);
+        performEnrollment(true); // Pass true to indicate this is a switch
     };
 
     const getEnrollmentSection = () => {
@@ -66,11 +94,10 @@ export default function ProgramDetail({ auth }) {
                             <Users className="w-10 h-10 text-white" />
                         </motion.div>
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
-                            Join Our Waiting List!
+                            {t('waiting_list.join_waiting_list')}
                         </h2>
                         <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                            Create an account to join our waiting list and be among the first
-                            to know when this program launches!
+                            {t('waiting_list.create_account_description')}
                         </p>
 
                         <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center mb-8">
@@ -82,7 +109,7 @@ export default function ProgramDetail({ auth }) {
                                     onClick={handleEnrollClick}
                                     className="block sm:inline-block bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl hover:shadow-lg font-medium transition-all duration-300"
                                 >
-                                    Create Account & Join Waiting List
+                                    {t('waiting_list.create_account_join')}
                                 </Link>
                             </motion.div>
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -91,14 +118,14 @@ export default function ProgramDetail({ auth }) {
                                     onClick={handleEnrollClick}
                                     className="block sm:inline-block bg-white/80 backdrop-blur-sm text-gray-700 px-8 py-4 rounded-xl hover:bg-white/90 border border-gray-200 font-medium transition-all duration-300"
                                 >
-                                    I Have an Account
+                                    {t('waiting_list.i_have_account')}
                                 </Link>
                             </motion.div>
                         </div>
 
                         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 border border-green-200/50 backdrop-blur-sm">
                             <p className="text-gray-700 mb-4 font-medium">
-                                Not sure yet? Try it first!
+                                {t('waiting_list.not_sure_try_first')}
                             </p>
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                                 <Link
@@ -106,14 +133,13 @@ export default function ProgramDetail({ auth }) {
                                     className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-xl hover:from-green-600 hover:to-blue-600 font-medium transition-all duration-300 shadow-lg"
                                 >
                                     <Play className="w-5 h-5" />
-                                    Try Free Demo
+                                    {t('waiting_list.try_free_demo')}
                                 </Link>
                             </motion.div>
                         </div>
 
                         <p className="text-sm text-gray-600 mt-8 bg-gray-50/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50">
-                            After creating your account, you'll be added to our waiting list
-                            and we'll contact you with launch details
+                            {t('waiting_list.after_creating_account')}
                         </p>
                     </div>
                 </motion.div>
@@ -179,13 +205,13 @@ export default function ProgramDetail({ auth }) {
                                     </svg>
                                 </div>
                                 <h3 className="text-xl font-bold text-green-800 mb-4">
-                                    You're Enrolled! 🎉
+                                    {t('waiting_list.youre_enrolled')}
                                 </h3>
                                 <Link
                                     href={route("dashboard")}
                                     className="inline-block bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 font-medium transition-colors"
                                 >
-                                    Go to Dashboard
+                                    {t('waiting_list.go_to_dashboard')}
                                 </Link>
                             </div>
                         </div>
@@ -211,11 +237,10 @@ export default function ProgramDetail({ auth }) {
                                     </svg>
                                 </div>
                                 <h3 className="text-xl font-bold text-red-800 mb-2">
-                                    Enrollment Not Approved
+                                    {t('waiting_list.enrollment_not_approved')}
                                 </h3>
                                 <p className="text-red-700">
-                                    {userEnrollment.rejection_reason ||
-                                        "Please contact us at support@abacoding.com for more information."}
+                                    {userEnrollment.rejection_reason || t('waiting_list.contact_support_info')}
                                 </p>
                             </div>
                         </div>
@@ -224,28 +249,43 @@ export default function ProgramDetail({ auth }) {
         }
 
         // Logged in but not enrolled in this program
-        if (hasAnyActiveEnrollment) {
-            // User has an active enrollment in another program - show restriction message
+        if (hasAnyActiveEnrollment && currentEnrollment) {
+            // User has an active enrollment in another program - show enrollment with warning
             return (
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl shadow-lg p-8 mt-8">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg p-8 mt-8">
                     <div className="text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mb-6 shadow-lg">
+                            <AlertTriangle className="text-white" size={28} />
+                        </div>
                         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                            Enrollment Restricted
+                            {t('waiting_list.switch_to_program')}
                         </h2>
                         <p className="text-lg text-gray-600 mb-6">
-                            You currently have a pending enrollment or are enrolled in another program. You can view the details of{" "}
-                            <strong>{program.name}</strong> below, but enrollment is limited to one program at a time.
+                            {t('waiting_list.switch_program_description', { 
+                                current: currentEnrollment.program?.translated_name || currentEnrollment.program?.name,
+                                new: program.name 
+                            })}
                         </p>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-                            <p className="text-sm text-blue-700">
-                                💡 Complete your current program or wait for approval to unlock enrollment in additional programs.
-                            </p>
+                        
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                            <h4 className="font-semibold text-yellow-800 mb-2">⚠️ {t('waiting_list.switch_important')}</h4>
+                            <ul className="text-sm text-yellow-700 text-left max-w-md mx-auto space-y-1">
+                                <li>• {t('waiting_list.switch_warning_dashboard')}</li>
+                                <li>• {t('waiting_list.switch_warning_marked')}</li>
+                                <li>• {t('waiting_list.switch_warning_new')}</li>
+                            </ul>
                         </div>
-                        <div className="mt-6 p-4 border-t border-gray-200">
-                            <p className="text-sm text-gray-600 mb-3 text-center">
-                                Demo access is also restricted while you have an active enrollment.
-                            </p>
-                        </div>
+                        
+                        <button
+                            onClick={handleEnrollClick}
+                            className="inline-block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                        >
+                            {t('waiting_list.switch_programs_join')}
+                        </button>
+                        
+                        <p className="text-sm text-gray-500 mt-4">
+                            {t('waiting_list.requires_approval')}
+                        </p>
                     </div>
                 </div>
             );
@@ -256,22 +296,19 @@ export default function ProgramDetail({ auth }) {
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg p-8 mt-8">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                        Join Our Waiting List!
+                        {t('waiting_list.join_waiting_list')}
                     </h2>
                     <p className="text-lg text-gray-600 mb-6">
-                        Be among the first to experience{" "}
-                        <strong>{program.name}</strong>. Join our waiting list and we'll notify you
-                        with launch details and exclusive early access!
+                        {t('waiting_list.be_among_first', { program: program.name })}
                     </p>
-                    <Link
-                        href={route("programs.enroll", program.slug)}
-                        method="post"
+                    <button
+                        onClick={handleEnrollClick}
                         className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
                     >
-                        Join Waiting List
-                    </Link>
+                        {t('waiting_list.join_waiting_list_button')}
+                    </button>
                     <p className="text-sm text-gray-500 mt-4">
-                        You'll be added to our waiting list and contacted with program details
+                        {t('waiting_list.added_contacted')}
                     </p>
                 </div>
             </div>
@@ -350,8 +387,9 @@ export default function ProgramDetail({ auth }) {
         // Success message (waiting list or general success)
         if (flashMessages.success) {
             const isWaitingListSuccess = flashMessages.success === 'waiting_list_success';
+            const isProgramSwitchSuccess = flashMessages.success === 'program_switch_success';
             
-            if (isWaitingListSuccess) {
+            if (isWaitingListSuccess || isProgramSwitchSuccess) {
                 return (
                     <div className="bg-gradient-to-r from-green-500 to-blue-600 text-white py-6 px-4 mb-8 rounded-2xl shadow-xl">
                         <div className="max-w-4xl mx-auto text-center">
@@ -363,16 +401,22 @@ export default function ProgramDetail({ auth }) {
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-bold mb-2">
-                                        You're on the Waiting List! 🎉
+                                        {isProgramSwitchSuccess 
+                                            ? t('dashboard.program_switched_title', 'Program Switched Successfully!') 
+                                            : t('waiting_list.youre_on_waiting_list')
+                                        }
                                     </h2>
                                 </div>
                             </div>
                             <p className="text-lg mb-4 text-white/90">
-                                You've successfully joined the waiting list for <strong>{waiting_list_program || program.name}</strong>!
+                                {isProgramSwitchSuccess 
+                                    ? t('dashboard.program_switch_success', { program: waiting_list_program || program.name })
+                                    : t('waiting_list.successfully_joined', { program: waiting_list_program || program.name })
+                                }
                             </p>
                             <div className="bg-white bg-opacity-10 rounded-lg p-4 max-w-2xl mx-auto">
                                 <p className="text-white/95">
-                                    📧 We'll contact you at <strong>{auth.user?.email}</strong> with program details and launch information soon!
+                                    📧 {t('waiting_list.contact_at_email', { email: auth.user?.email })}
                                 </p>
                             </div>
                         </div>
@@ -441,7 +485,7 @@ export default function ProgramDetail({ auth }) {
                                 <div className="w-2 h-2 bg-white rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
                             </div>
                             <p className="text-sm font-medium">
-                                🔥 <span className="font-bold">{currentViewers}</span> {currentViewers === 1 ? 'person is' : 'people are'} currently viewing this program
+                                🔥 <span className="font-bold">{currentViewers}</span> {currentViewers === 1 ? t('programs.person_viewing') : t('programs.people_viewing')}
                             </p>
                         </div>
                     </div>
@@ -497,6 +541,16 @@ export default function ProgramDetail({ auth }) {
                     {getEnrollmentSection()}
                     {getReviewsSection()}
                 </div>
+                
+                {/* Enrollment Switch Warning Modal */}
+                {showSwitchWarningModal && currentEnrollment && (
+                    <EnrollmentSwitchWarningModal
+                        currentProgram={currentEnrollment.program}
+                        newProgram={program}
+                        onConfirm={handleSwitchConfirm}
+                        onCancel={() => setShowSwitchWarningModal(false)}
+                    />
+                )}
             </div>
         </LayoutComponent>
     );

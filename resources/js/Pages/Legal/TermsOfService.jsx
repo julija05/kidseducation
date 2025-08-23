@@ -11,96 +11,43 @@ export default function TermsOfService({ auth }) {
     const sections = [
         {
             icon: <Users className="w-6 h-6" />,
-            title: "Acceptance and Eligibility",
-            content: [
-                "By accessing or using Abacoding, you agree to be bound by these Terms of Service and all applicable laws.",
-                "If you are under 18, your parent or guardian must accept these terms on your behalf.",
-                "You must provide accurate, current, and complete information when creating an account.",
-                "You are responsible for maintaining the security and confidentiality of your account credentials.",
-                "Each user may only maintain one active account unless explicitly authorized by us.",
-            ]
+            title: t('legal.terms_of_service.acceptance_eligibility'),
+            content: t('legal.terms_of_service.acceptance_eligibility_content')
         },
         {
             icon: <BookOpen className="w-6 h-6" />,
-            title: "Educational Services",
-            content: [
-                "Abacoding provides online educational content including mathematics, coding, and other subjects for children.",
-                "We strive to provide high-quality educational content but cannot guarantee specific learning outcomes.",
-                "Content is designed for educational purposes and should supplement, not replace, formal education.",
-                "Access to certain features may require enrollment in specific programs or payment of applicable fees.",
-                "We reserve the right to modify, update, or discontinue educational content with reasonable notice.",
-            ]
+            title: t('legal.terms_of_service.educational_services'),
+            content: t('legal.terms_of_service.educational_services_content')
         },
         {
             icon: <FileText className="w-6 h-6" />,
-            title: "User Responsibilities",
-            content: [
-                "Use the platform solely for educational purposes in accordance with these terms.",
-                "Respect other users and maintain appropriate online behavior at all times.",
-                "Do not share account credentials or allow unauthorized access to your account.",
-                "Report any technical issues, inappropriate content, or violations of these terms promptly.",
-                "Ensure that any content you submit (reviews, comments) is appropriate and lawful.",
-                "Parents/guardians are responsible for supervising their child's use of the platform.",
-            ]
+            title: t('legal.terms_of_service.user_responsibilities'),
+            content: t('legal.terms_of_service.user_responsibilities_content')
         },
         {
             icon: <AlertTriangle className="w-6 h-6" />,
-            title: "Prohibited Activities",
-            content: [
-                "Attempting to hack, interfere with, or gain unauthorized access to our systems.",
-                "Using the platform for any commercial purpose without explicit written permission.",
-                "Sharing inappropriate, harmful, or illegal content through our platform.",
-                "Harassing, bullying, or engaging in any form of inappropriate behavior toward other users.",
-                "Attempting to circumvent payment systems or access paid content without authorization.",
-                "Using automated tools or bots to access or interact with our platform.",
-                "Violating any applicable laws or regulations while using our services.",
-            ]
+            title: t('legal.terms_of_service.prohibited_activities'),
+            content: t('legal.terms_of_service.prohibited_activities_content')
         },
         {
             icon: <CreditCard className="w-6 h-6" />,
-            title: "Payment and Billing",
-            content: [
-                "Some educational programs require payment of fees as displayed during enrollment.",
-                "All fees are charged in advance and are non-refundable except as required by law.",
-                "We reserve the right to change pricing with 30 days advance notice to existing users.",
-                "Payment information is processed securely through third-party payment processors.",
-                "Failure to pay applicable fees may result in suspension or termination of access.",
-                "Refund requests must be submitted within 14 days of purchase and will be reviewed case by case.",
-            ]
+            title: t('legal.terms_of_service.payment_billing'),
+            content: t('legal.terms_of_service.payment_billing_content')
         },
         {
             icon: <Scale className="w-6 h-6" />,
-            title: "Intellectual Property",
-            content: [
-                "All content, including text, graphics, videos, software, and educational materials, is owned by Abacoding or our licensors.",
-                "Users are granted a limited, non-exclusive license to access and use content for personal educational purposes only.",
-                "You may not copy, distribute, modify, or create derivative works from our content without permission.",
-                "User-generated content (reviews, progress data) remains yours, but you grant us permission to use it to improve our services.",
-                "We respect intellectual property rights and will respond to valid DMCA takedown notices.",
-            ]
+            title: t('legal.terms_of_service.intellectual_property'),
+            content: t('legal.terms_of_service.intellectual_property_content')
         },
         {
             icon: <Shield className="w-6 h-6" />,
-            title: "Privacy and Data Protection",
-            content: [
-                "Our collection and use of personal information is governed by our Privacy Policy, which is incorporated into these terms.",
-                "We implement appropriate security measures to protect user data and educational records.",
-                "Educational progress and performance data may be shared with parents/guardians as applicable.",
-                "We comply with COPPA and other applicable privacy laws regarding children's information.",
-                "Users may request access to, correction of, or deletion of their personal information subject to legal requirements.",
-            ]
+            title: t('legal.terms_of_service.privacy_data_protection'),
+            content: t('legal.terms_of_service.privacy_data_protection_content')
         },
         {
             icon: <Gavel className="w-6 h-6" />,
-            title: "Limitation of Liability",
-            content: [
-                "Abacoding is provided \"as is\" without warranties of any kind, express or implied.",
-                "We do not guarantee uninterrupted access or that the platform will be error-free.",
-                "Our liability is limited to the amount paid by you in the 12 months preceding any claim.",
-                "We are not liable for indirect, incidental, or consequential damages arising from your use.",
-                "Some jurisdictions do not allow limitation of liability, so these limitations may not apply to you.",
-                "You agree to indemnify and hold us harmless from claims arising from your violation of these terms.",
-            ]
+            title: t('legal.terms_of_service.limitation_liability'),
+            content: t('legal.terms_of_service.limitation_liability_content')
         },
     ];
 
@@ -125,7 +72,7 @@ export default function TermsOfService({ auth }) {
 
     return (
         <>
-            <Head title="Terms of Service - Abacoding" />
+            <Head title={`${t('legal.terms_of_service.title')} - Abacoding`} />
             <NavBar auth={auth} />
 
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50">
@@ -147,13 +94,13 @@ export default function TermsOfService({ auth }) {
                             </div>
                         </div>
                         <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-6">
-                            Terms of Service
+                            {t('legal.terms_of_service.title')}
                         </h1>
                         <p className="text-xl text-gray-600 mb-4">
-                            Clear guidelines for using our educational platform
+                            {t('legal.terms_of_service.subtitle')}
                         </p>
                         <p className="text-gray-500">
-                            Last Updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {t('legal.terms_of_service.last_updated')}: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                     </motion.div>
                 </section>
@@ -168,7 +115,7 @@ export default function TermsOfService({ auth }) {
                     <div className="max-w-4xl mx-auto">
                         <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20">
                             <p className="text-lg text-gray-700 leading-relaxed">
-                                Welcome to <span className="font-semibold text-purple-600">Abacoding</span>! These Terms of Service ("Terms") govern your access to and use of our educational platform. By using Abacoding, you agree to these terms, so please read them carefully. We've written these terms to be as clear and straightforward as possible while ensuring both your rights and ours are protected.
+                                {t('legal.terms_of_service.intro')}
                             </p>
                         </div>
                     </div>
@@ -197,11 +144,15 @@ export default function TermsOfService({ auth }) {
                                     </h2>
                                 </div>
                                 <ul className="space-y-3">
-                                    {section.content.map((item, itemIndex) => (
+                                    {Array.isArray(section.content) ? section.content.map((item, itemIndex) => (
                                         <li key={itemIndex} className="text-gray-700 leading-relaxed pl-6 border-l-2 border-purple-200">
                                             {item}
                                         </li>
-                                    ))}
+                                    )) : (
+                                        <li className="text-gray-700 leading-relaxed pl-6 border-l-2 border-purple-200">
+                                            {section.content}
+                                        </li>
+                                    )}
                                 </ul>
                             </motion.div>
                         ))}
@@ -222,18 +173,18 @@ export default function TermsOfService({ auth }) {
                                     <AlertTriangle className="w-6 h-6" />
                                 </div>
                                 <h2 className="text-3xl font-bold text-gray-800">
-                                    Important Information
+                                    {t('legal.terms_of_service.important_info')}
                                 </h2>
                             </div>
                             <div className="space-y-4 text-gray-700">
                                 <p className="leading-relaxed">
-                                    <strong>Termination:</strong> We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. Upon termination, your right to use the service will cease immediately.
+                                    <strong>{t('legal.terms_of_service.termination')}:</strong> {t('legal.terms_of_service.termination_desc')}
                                 </p>
                                 <p className="leading-relaxed">
-                                    <strong>Changes to Terms:</strong> We reserve the right to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect.
+                                    <strong>{t('legal.terms_of_service.changes_terms')}:</strong> {t('legal.terms_of_service.changes_terms_desc')}
                                 </p>
                                 <p className="leading-relaxed">
-                                    <strong>Governing Law:</strong> These Terms shall be interpreted and governed by the laws of the State of [Your State], without regard to conflict of law provisions. Any disputes will be resolved in the courts of [Your Jurisdiction].
+                                    <strong>{t('legal.terms_of_service.governing_law')}:</strong> {t('legal.terms_of_service.governing_law_desc')}
                                 </p>
                             </div>
                         </div>
@@ -250,31 +201,30 @@ export default function TermsOfService({ auth }) {
                     <div className="max-w-4xl mx-auto text-center">
                         <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20">
                             <h2 className="text-3xl font-bold text-gray-800 mb-6">
-                                Questions About These Terms?
+                                {t('legal.terms_of_service.questions_terms')}
                             </h2>
                             <p className="text-lg text-gray-600 mb-8">
-                                If you have any questions about these Terms of Service, please contact us. We're here to help clarify anything that might be unclear.
+                                {t('legal.terms_of_service.questions_terms_desc')}
                             </p>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="flex items-center justify-center gap-3 p-4 bg-purple-50 rounded-xl">
                                     <FileText className="w-6 h-6 text-purple-600" />
                                     <div className="text-left">
-                                        <p className="font-semibold text-gray-800">Email Support</p>
+                                        <p className="font-semibold text-gray-800">{t('legal.terms_of_service.email_support')}</p>
                                         <p className="text-purple-600">legal@abacoding.com</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-center gap-3 p-4 bg-pink-50 rounded-xl">
                                     <Scale className="w-6 h-6 text-pink-600" />
                                     <div className="text-left">
-                                        <p className="font-semibold text-gray-800">Legal Department</p>
+                                        <p className="font-semibold text-gray-800">{t('legal.terms_of_service.legal_department')}</p>
                                         <p className="text-pink-600">1-800-ABACODING</p>
                                     </div>
                                 </div>
                             </div>
                             <div className="mt-8 p-4 bg-gray-50 rounded-xl">
                                 <p className="text-sm text-gray-600">
-                                    By continuing to use Abacoding after any changes to these Terms, you agree to the revised Terms. 
-                                    We encourage you to review these Terms periodically.
+                                    {t('legal.terms_of_service.terms_agreement')}
                                 </p>
                             </div>
                         </div>

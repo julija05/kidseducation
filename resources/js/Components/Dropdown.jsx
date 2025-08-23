@@ -29,7 +29,7 @@ const Trigger = ({ children }) => {
                 <div
                     className="fixed inset-0"
                     onClick={() => setOpen(false)}
-                    style={{ zIndex: 999 }}
+                    style={{ zIndex: 9998 }}
                 ></div>
             )}
         </>
@@ -77,7 +77,7 @@ const Content = ({
                         right: '0',
                         minWidth: '260px',
                         maxWidth: '320px',
-                        zIndex: 1000,
+                        zIndex: 9999,
                         backgroundColor: 'rgba(255, 255, 255, 0.99)',
                         backdropFilter: 'blur(20px)',
                         border: '1px solid rgba(229, 231, 235, 0.8)',
