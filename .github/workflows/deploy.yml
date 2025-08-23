@@ -1,0 +1,179 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  NODE_VERSION: '18'
+  PHP_VERSION: '8.2'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    name: Deploy to ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        extensions: mbstring, dom, fileinfo, mysql, bcmath, gd, zip
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader --no-dev
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Build frontend assets
+      run: npm run build
+
+    - name: Create production environment file
+      run: |
+        echo "APP_NAME=Abacoding" > .env
+        echo "APP_ENV=production" >> .env
+        echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+        echo "APP_DEBUG=false" >> .env
+        echo "APP_URL=${{ secrets.APP_URL }}" >> .env
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+        echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+        echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+        echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+        echo "CACHE_DRIVER=redis" >> .env
+        echo "QUEUE_CONNECTION=redis" >> .env
+        echo "SESSION_DRIVER=redis" >> .env
+        echo "SESSION_LIFETIME=120" >> .env
+        echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+        echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+        echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+        echo "MAIL_MAILER=${{ secrets.MAIL_MAILER }}" >> .env
+        echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+        echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
+        echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+        echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+        echo "MAIL_ENCRYPTION=${{ secrets.MAIL_ENCRYPTION }}" >> .env
+        echo "MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}" >> .env
+        echo "MAIL_FROM_NAME=Abacoding" >> .env
+
+    - name: Optimize Laravel for production
+      run: |
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+
+    - name: Create deployment package
+      run: |
+        tar -czf deployment.tar.gz \
+          --exclude='.git' \
+          --exclude='node_modules' \
+          --exclude='tests' \
+          --exclude='.github' \
+          --exclude='*.md' \
+          --exclude='.env.example' \
+          .
+
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-package
+        path: deployment.tar.gz
+        retention-days: 30
+
+    # Example deployment to server via SSH
+    # Uncomment and configure based on your deployment method
+    
+    # - name: Deploy to server
+    #   uses: appleboy/ssh-action@v0.1.7
+    #   with:
+    #     host: ${{ secrets.HOST }}
+    #     username: ${{ secrets.USERNAME }}
+    #     key: ${{ secrets.SSH_KEY }}
+    #     port: ${{ secrets.PORT }}
+    #     script: |
+    #       cd /var/www/kids-education-website
+    #       git pull origin main
+    #       composer install --no-dev --optimize-autoloader
+    #       npm ci && npm run build
+    #       php artisan migrate --force
+    #       php artisan config:cache
+    #       php artisan route:cache
+    #       php artisan view:cache
+    #       php artisan queue:restart
+    #       sudo systemctl reload nginx
+
+    # Example deployment to AWS/DigitalOcean/etc.
+    # - name: Deploy to AWS S3
+    #   uses: aws-actions/configure-aws-credentials@v4
+    #   with:
+    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     aws-region: us-east-1
+    
+    # - name: Upload to S3
+    #   run: |
+    #     aws s3 sync public/ s3://${{ secrets.S3_BUCKET }}/public/ --delete
+    #     aws s3 cp deployment.tar.gz s3://${{ secrets.S3_BUCKET }}/releases/
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Deployment to ${{ github.event.inputs.environment || 'production' }} successful!"
+        else
+          echo "❌ Deployment to ${{ github.event.inputs.environment || 'production' }} failed!"
+        fi
+
+  database-backup:
+    runs-on: ubuntu-latest
+    name: Backup Database
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Create database backup
+      run: |
+        echo "Creating database backup before deployment..."
+        # Add your database backup logic here
+        # Example for MySQL:
+        # mysqldump -h ${{ secrets.DB_HOST }} -u ${{ secrets.DB_USERNAME }} -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_DATABASE }} > backup-$(date +%Y%m%d_%H%M%S).sql
+        # aws s3 cp backup-*.sql s3://${{ secrets.BACKUP_BUCKET }}/
+
+  rollback:
+    runs-on: ubuntu-latest
+    name: Rollback Deployment
+    if: failure() && github.ref == 'refs/heads/main'
+    needs: deploy
+    
+    steps:
+    - name: Rollback to previous version
+      run: |
+        echo "Rolling back deployment..."
+        # Add rollback logic here
+        # This could involve:
+        # - Reverting to previous git commit
+        # - Restoring database backup
+        # - Clearing caches
+        # - Restarting services

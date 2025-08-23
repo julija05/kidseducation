@@ -37,6 +37,7 @@ class StudentController extends Controller
         $student->load('programs');
 
         Mail::to('abacoding@abacoding.com')->send(new CompanyNotificationMail($student));
+
         return $this->createView('Front/Programs/Success', [
             'student' => $student,
             'program' => $student->programs->first(), // assuming only one program

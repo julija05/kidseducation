@@ -86,6 +86,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | This array contains all the supported locales for the application.
+    | These locales will be available for language switching.
+    |
+    */
+
+    'supported_locales' => ['en', 'mk'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Error Pages
+    |--------------------------------------------------------------------------
+    |
+    | This value determines whether to show custom error pages for HTTP errors
+    | like 404, 500, etc. When enabled, beautiful custom error pages will be
+    | displayed instead of the default Laravel error pages.
+    |
+    */
+
+    'custom_error_pages' => env('CUSTOM_ERROR_PAGES', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

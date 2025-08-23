@@ -1,11 +1,37 @@
 import "../css/app.css";
 import "./bootstrap";
+import "./routeOverride"; // Global route override for locale preservation
 
 import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
+import { router } from "@inertiajs/react";
 
 const appName = import.meta.env.VITE_APP_NAME || "Abacoding";
+
+// Initialize theme from localStorage immediately
+function initializeTheme() {
+    try {
+        const savedTheme = localStorage.getItem('user_theme_preference') || 'default';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    } catch (error) {
+        console.warn('Could not initialize theme:', error);
+        document.documentElement.setAttribute('data-theme', 'default');
+    }
+}
+
+// Initialize theme before React renders
+initializeTheme();
+
+// Language switching logic removed to prevent auto-switching issues
+// Clear any existing localStorage flags from previous versions
+try {
+    localStorage.removeItem('pending_language_switch');
+    localStorage.removeItem('force_language_reload');
+} catch (error) {
+    // Ignore localStorage access errors
+}
+
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -23,3 +49,29 @@ createInertiaApp({
         color: "#4B5563",
     },
 });
+
+// Handle authentication errors (session expiration)
+router.on('error', (event) => {
+    const { detail } = event
+    
+    // Handle 401 (authentication) errors - session expired
+    if (detail.response && detail.response.status === 401) {
+        
+        // If the response includes a redirect URL, use it
+        if (detail.response.data && detail.response.data.redirect) {
+            window.location.href = detail.response.data.redirect
+        } else {
+            // Fallback to login route
+            window.location.href = '/login'
+        }
+        
+        return false // Prevent default error handling
+    }
+    
+    // Handle 419 (CSRF token mismatch) errors
+    if (detail.response && detail.response.status === 419) {
+        window.location.reload()
+        return false
+    }
+});
+

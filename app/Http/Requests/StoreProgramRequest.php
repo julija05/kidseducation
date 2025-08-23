@@ -2,18 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class StoreProgramRequest extends FormRequest
+class StoreProgramRequest extends BaseProgramRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -21,8 +11,37 @@ class StoreProgramRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
-        ];
+        $rules = $this->getSharedRules();
+
+        // Make fields required for creation
+        $rules['name'] = 'required|'.$rules['name'];
+        $rules['description'] = 'required|'.$rules['description'];
+        $rules['duration'] = 'required|'.$rules['duration'];
+        $rules['price'] = 'required|'.$rules['price'];
+
+        return $rules;
+    }
+
+    /**
+     * Get custom error messages for validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return $this->getSharedMessages();
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Handle checkbox fields - if not present, set to false
+        $data = $this->all();
+        if (! array_key_exists('requires_monthly_payment', $data)) {
+            $data['requires_monthly_payment'] = false;
+        }
+        $this->replace($data);
     }
 }

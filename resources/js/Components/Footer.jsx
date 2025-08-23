@@ -1,15 +1,8 @@
 import React from "react";
+import ModernFooter from "./ModernFooter";
 
 const Footer = () => {
-    return (
-        <>
-            <div>
-                <footer className="bg-gray-800 text-white py-4 text-center">
-                    <p>&copy; 2025 Abacoding. All rights reserved.</p>
-                </footer>
-            </div>
-        </>
-    );
+    return <ModernFooter />;
 };
 
 export { Footer };

@@ -1,0 +1,47 @@
+import { usePage } from '@inertiajs/react';
+
+export const useTranslation = () => {
+    const { locale } = usePage().props || {};
+    
+    const t = (key, replacements = {}) => {
+        // If locale or translations are not available, return the key
+        if (!locale || !locale.translations) {
+            return key;
+        }
+        
+        // Split the key by dots to navigate nested objects
+        const keys = key.split('.');
+        let value = locale.translations;
+        
+        // Navigate through the nested object
+        for (const k of keys) {
+            if (value && typeof value === 'object' && k in value) {
+                value = value[k];
+            } else {
+                // Return the key if translation not found
+                return key;
+            }
+        }
+        
+        // If value is not a string or array, return the key
+        if (typeof value !== 'string' && !Array.isArray(value)) {
+            return key;
+        }
+        
+        // If value is an array, return it as-is (no placeholder replacement needed for arrays)
+        if (Array.isArray(value)) {
+            return value;
+        }
+        
+        // Replace placeholders with values
+        let translatedValue = value;
+        Object.keys(replacements).forEach(placeholder => {
+            const regex = new RegExp(`:${placeholder}`, 'g');
+            translatedValue = translatedValue.replace(regex, replacements[placeholder]);
+        });
+        
+        return translatedValue;
+    };
+    
+    return { t, locale: locale?.current || 'en' };
+};

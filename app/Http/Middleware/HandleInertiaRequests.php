@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -32,11 +33,43 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'email_verified_at' => $request->user()->email_verified_at,
+                    'roles' => $request->user()->roles->pluck('name'),
+                    'language_preference' => $request->user()->language_preference,
+                    'language_selected' => $request->user()->language_selected,
+                    'created_at' => $request->user()->created_at,
+                    'first_name' => $request->user()->first_name,
+                    'last_name' => $request->user()->last_name,
+                    'avatar_path' => $request->user()->avatar_path,
+                ] : null,
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
             ],
+            'locale' => [
+                'current' => App::getLocale(),
+                'supported' => config('app.supported_locales'),
+                'translations' => $this->getTranslations(),
+            ],
         ];
+    }
+
+    /**
+     * Get translations for the current locale
+     */
+    private function getTranslations(): array
+    {
+        $locale = App::getLocale();
+        $translationPath = lang_path("{$locale}/app.php");
+
+        if (file_exists($translationPath)) {
+            return include $translationPath;
+        }
+
+        return [];
     }
 }

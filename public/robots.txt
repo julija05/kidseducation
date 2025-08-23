@@ -1,0 +1,40 @@
+User-agent: *
+Allow: /
+
+# Allow all search engines to crawl public pages
+Allow: /about
+Allow: /contact
+Allow: /programs
+Allow: /articles
+Allow: /help
+
+# Disallow admin and private pages
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /student/
+Disallow: /profile/
+Disallow: /login
+Disallow: /register
+Disallow: /password/
+Disallow: /verify-email
+
+# Disallow API routes
+Disallow: /api/
+
+# Allow static assets
+Allow: /build/
+Allow: /assets/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+
+# Sitemap location
+Sitemap: https://abacoding.com/sitemap.xml
+
+# Crawl delay (be polite to servers)
+Crawl-delay: 1
