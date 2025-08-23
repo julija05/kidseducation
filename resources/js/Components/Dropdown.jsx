@@ -27,9 +27,9 @@ const Trigger = ({ children }) => {
 
             {open && (
                 <div
-                    className="fixed inset-0"
+                    className="fixed inset-0 bg-transparent"
                     onClick={() => setOpen(false)}
-                    style={{ zIndex: 999 }}
+                    style={{ zIndex: 99998 }}
                 ></div>
             )}
         </>
@@ -39,7 +39,7 @@ const Trigger = ({ children }) => {
 const Content = ({
     align = 'right',
     width = '48',
-    contentClasses = 'py-3 bg-white/98 backdrop-blur-xl border border-gray-200 shadow-2xl',
+    contentClasses = 'py-2 bg-white backdrop-blur-xl border border-gray-300 shadow-2xl',
     children,
 }) => {
     const { open, setOpen } = useContext(DropDownContext);
@@ -71,26 +71,18 @@ const Content = ({
             >
                 <div
                     onClick={() => setOpen(false)}
-                    style={{ 
-                        position: 'absolute',
-                        top: '100%',
-                        right: '0',
-                        minWidth: '260px',
-                        maxWidth: '320px',
-                        zIndex: 1000,
-                        backgroundColor: 'rgba(255, 255, 255, 0.99)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(229, 231, 235, 0.8)',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                        borderRadius: '16px',
-                        marginTop: '8px'
-                    }}
+                    className="fixed sm:absolute top-16 sm:top-full right-2 sm:right-0 left-2 sm:left-auto sm:mt-2 
+                               min-w-0 sm:min-w-[320px] max-w-none sm:max-w-[380px] w-auto sm:w-[340px]
+                               z-[99999] bg-white backdrop-blur-xl border-2 border-gray-300 
+                               shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6),_0_0_0_1px_rgba(0,0,0,0.1)] 
+                               rounded-xl sm:rounded-2xl overflow-visible"
                 >
                     <div
                         className={
-                            `rounded-xl ring-1 ring-white/30 ring-opacity-30 ` +
+                            `rounded-xl ring-1 ring-gray-200 ring-opacity-50 ` +
                             contentClasses
                         }
+                        onClick={(e) => e.stopPropagation()}
                     >
                         {children}
                     </div>
@@ -105,7 +97,7 @@ const DropdownLink = ({ className = '', children, ...props }) => {
         <Link
             {...props}
             className={
-                'block w-full px-4 py-3 text-start text-sm leading-5 text-gray-800 font-medium transition duration-150 ease-in-out hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 focus:bg-blue-50 focus:outline-none hover:text-blue-700 hover:shadow-sm border-l-4 border-transparent hover:border-blue-400 ' +
+                'block w-full px-4 py-4 text-start text-base leading-6 text-gray-800 font-medium transition duration-150 ease-in-out hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 focus:bg-blue-50 focus:outline-none hover:text-blue-700 hover:shadow-sm border-l-4 border-transparent hover:border-blue-400 touch-manipulation active:bg-blue-100 ' +
                 className
             }
         >

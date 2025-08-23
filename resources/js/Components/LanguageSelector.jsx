@@ -2,7 +2,7 @@ import { usePage, router, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { ChevronDownIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 
-const LanguageSelector = ({ className = '' }) => {
+const LanguageSelector = ({ className = '', isMobile = false }) => {
     const page = usePage();
     const locale = page.props.locale || { current: 'en', supported: ['en', 'mk'] };
     const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +19,7 @@ const LanguageSelector = ({ className = '' }) => {
         if (newLocale === locale.current) {
             return;
         }
+        
         
         // Remove localStorage language switching logic to prevent auto-switching issues
         // localStorage.setItem('pending_language_switch', newLocale);
@@ -76,29 +77,73 @@ const LanguageSelector = ({ className = '' }) => {
         }, 500);
     };
 
+    // Mobile version with side-by-side buttons
+    if (isMobile) {
+        return (
+            <div className={`${className}`}>
+                <div className="flex items-center justify-center space-x-2 p-2">
+                    <span className="text-sm font-medium text-gray-700 flex items-center mr-3">
+                        <GlobeAltIcon className="h-4 w-4 mr-2" />
+                        Language:
+                    </span>
+                    {locale.supported.map((lang) => (
+                        <button
+                            key={lang}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                switchLanguage(lang);
+                            }}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-2 ${
+                                lang === locale.current
+                                    ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-300'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <span>{languages[lang]?.flag}</span>
+                            <span>{languages[lang]?.name}</span>
+                            {lang === locale.current && (
+                                <span className="text-purple-600">✓</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // Desktop version with dropdown
     return (
-        <div className={`relative ${className}`}>
+        <div 
+            className={`relative ${className}`}
+            onClick={(e) => e.stopPropagation()}
+        >
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(!isOpen);
+                }}
                 className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md"
             >
                 <GlobeAltIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">
+                <span>
                     {languages[locale.current]?.flag} {languages[locale.current]?.name}
-                </span>
-                <span className="sm:hidden">
-                    {languages[locale.current]?.flag}
                 </span>
                 <ChevronDownIcon className="h-4 w-4" />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                <div 
+                    className="absolute right-0 z-[60] mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <div className="py-1">
                         {locale.supported.map((lang) => (
                             <button
                                 key={lang}
-                                onClick={() => switchLanguage(lang)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    switchLanguage(lang);
+                                }}
                                 className={`${
                                     lang === locale.current
                                         ? 'bg-gray-100 text-gray-900'
@@ -121,8 +166,11 @@ const LanguageSelector = ({ className = '' }) => {
             {/* Backdrop to close dropdown */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 z-[55]"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsOpen(false);
+                    }}
                 />
             )}
         </div>

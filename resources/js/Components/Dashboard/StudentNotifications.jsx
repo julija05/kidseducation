@@ -10,7 +10,11 @@ export default function StudentNotifications({ notifications = [], unreadCount =
     // Helper function to get translated notification title
     const getTranslatedTitle = (notification) => {
         if (notification.data?.title_key) {
-            return t(notification.data.title_key);
+            // Check if the title_key starts with 'notifications.' and convert to dashboard.notifications.
+            const translationKey = notification.data.title_key.startsWith('notifications.') 
+                ? notification.data.title_key.replace('notifications.', 'dashboard.notifications.')
+                : notification.data.title_key;
+            return t(translationKey);
         }
         return notification.title;
     };
@@ -18,7 +22,11 @@ export default function StudentNotifications({ notifications = [], unreadCount =
     // Helper function to get translated notification message
     const getTranslatedMessage = (notification) => {
         if (notification.data?.message_key && notification.data?.translation_data) {
-            return t(notification.data.message_key, notification.data.translation_data);
+            // Check if the message_key starts with 'notifications.' and convert to dashboard.notifications.
+            const translationKey = notification.data.message_key.startsWith('notifications.') 
+                ? notification.data.message_key.replace('notifications.', 'dashboard.notifications.')
+                : notification.data.message_key;
+            return t(translationKey, notification.data.translation_data);
         }
         return notification.message;
     };
@@ -91,7 +99,6 @@ export default function StudentNotifications({ notifications = [], unreadCount =
             router.visit(route('lessons.show', notification.data.lesson_id));
         } else if (notification.type === 'schedule' && notification.data?.schedule_id) {
             // For schedule notifications, could navigate to a schedule view or show details
-            console.log('Schedule notification clicked:', notification);
         }
     };
 
@@ -161,15 +168,15 @@ export default function StudentNotifications({ notifications = [], unreadCount =
             <div className="relative">
                 <button
                     onClick={() => setShowNotifications(!showNotifications)}
-                    className={`relative p-2 rounded-full transition-colors ${
+                    className={`relative p-2 sm:p-3 rounded-full transition-colors touch-manipulation ${
                         headerMode 
-                            ? 'text-white hover:text-gray-200 hover:bg-white hover:bg-opacity-20' 
+                            ? 'text-white hover:text-gray-200 hover:bg-white hover:bg-opacity-20 border border-white/30 shadow-lg backdrop-blur-sm bg-white/10' 
                             : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                     }`}
                 >
-                    <Bell className="w-6 h-6" />
+                    <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
                     {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center shadow-lg border border-white/50">
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}
@@ -177,31 +184,30 @@ export default function StudentNotifications({ notifications = [], unreadCount =
 
                 {/* Notifications Dropdown */}
                 {showNotifications && (
-                    <div 
-                        style={{ 
-                            position: 'absolute',
-                            top: '100%',
-                            right: '0',
-                            zIndex: 1000,
-                            minHeight: '200px',
-                            width: '384px',
-                            backgroundColor: 'white',
-                            border: '1px solid rgba(0, 0, 0, 0.15)',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                            borderRadius: '12px',
-                            marginTop: '8px'
-                        }}
-                    >
-                        <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.notifications')}</h3>
-                                <div className="flex items-center gap-2">
+                    <>
+                        {/* Backdrop for closing dropdown */}
+                        <div 
+                            className="fixed inset-0 bg-transparent" 
+                            style={{ zIndex: 99998 }}
+                            onClick={() => setShowNotifications(false)}
+                        />
+                        <div 
+                            className="fixed sm:absolute top-16 sm:top-full right-2 sm:right-0 left-2 sm:left-auto sm:mt-2 
+                                       min-w-0 sm:min-w-[320px] max-w-none sm:max-w-[400px] w-auto sm:w-[384px]
+                                       z-[99999] bg-white backdrop-blur-xl border-2 border-gray-300 
+                                       shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6),_0_0_0_1px_rgba(0,0,0,0.1)] 
+                                       rounded-xl sm:rounded-2xl overflow-hidden min-h-[200px]"
+                        >
+                        <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-xl">
+                            <div className="flex items-center justify-between gap-2">
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{t('dashboard.notifications.notifications')}</h3>
+                                <div className="flex items-center gap-2 shrink-0">
                                     {unreadCount > 0 && (
-                                        <span className="text-sm text-gray-500">{unreadCount} {t('dashboard.unread')}</span>
+                                        <span className="text-xs sm:text-sm text-gray-500 bg-blue-100 px-2 py-1 rounded-full">{unreadCount} {t('dashboard.notifications.unread')}</span>
                                     )}
                                     <button
                                         onClick={() => setShowNotifications(false)}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-200 rounded-full transition-colors touch-manipulation"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
@@ -209,14 +215,14 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                             </div>
                         </div>
                         
-                        <div className="max-h-96 overflow-y-auto">
+                        <div className="max-h-80 sm:max-h-96 overflow-y-auto">
                             {notifications.length > 0 ? (
                                 <div className="divide-y divide-gray-100">
                                     {notifications.map((notification) => (
                                         <div
                                             key={notification.id}
                                             onClick={() => handleNotificationClick(notification)}
-                                            className={`p-4 hover:bg-gray-50 transition-colors border-l-4 cursor-pointer ${getNotificationColor(notification.type, notification.data?.action)} ${
+                                            className={`p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-l-4 cursor-pointer touch-manipulation ${getNotificationColor(notification.type, notification.data?.action)} ${
                                                 !notification.is_read ? 'bg-blue-50' : ''
                                             }`}
                                         >
@@ -227,7 +233,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                 
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                                        <p className="text-sm sm:text-base font-medium text-gray-900">
                                                             {getTranslatedTitle(notification)}
                                                             {!notification.is_read && (
                                                                 <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full inline-block"></span>
@@ -235,11 +241,11 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                         </p>
                                                     </div>
                                                     
-                                                    <p className="text-sm text-gray-600 mb-2">
+                                                    <p className="text-sm text-gray-600 mb-2 leading-relaxed">
                                                         {getTranslatedMessage(notification)}
                                                     </p>
                                                     
-                                                    <div className="flex items-center text-xs text-gray-500">
+                                                    <div className="flex items-center text-xs sm:text-sm text-gray-500">
                                                         <Clock className="w-3 h-3 mr-1" />
                                                         {formatDate(notification.created_at)}
                                                     </div>
@@ -256,7 +262,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                                         href={notification.data.next_class.meeting_link}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                                                                        className="inline-flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 touch-manipulation"
                                                                         onClick={(e) => e.stopPropagation()}
                                                                     >
                                                                         <ExternalLink className="w-3 h-3" />
@@ -284,7 +290,7 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                                                         href={notification.data.meeting_link}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                                                                        className="inline-flex items-center gap-1 px-3 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 touch-manipulation"
                                                                         onClick={(e) => e.stopPropagation()}
                                                                     >
                                                                         <ExternalLink className="w-3 h-3" />
@@ -300,24 +306,16 @@ export default function StudentNotifications({ notifications = [], unreadCount =
                                     ))}
                                 </div>
                             ) : (
-                                <div className="p-8 text-center text-gray-500">
-                                    <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                    <p>{t('dashboard.no_notifications')}</p>
+                                <div className="p-6 sm:p-8 text-center text-gray-500">
+                                    <Bell className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 text-gray-300" />
+                                    <p className="text-sm sm:text-base">{t('dashboard.notifications.no_notifications')}</p>
                                 </div>
                             )}
                         </div>
                     </div>
+                    </>
                 )}
             </div>
-
-            {/* Close dropdown when clicking outside */}
-            {showNotifications && (
-                <div
-                    className="fixed inset-0"
-                    onClick={() => setShowNotifications(false)}
-                    style={{ zIndex: 999 }}
-                ></div>
-            )}
         </div>
     );
 }

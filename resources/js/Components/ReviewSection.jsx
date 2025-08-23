@@ -73,6 +73,7 @@ export default function ReviewSection({ enrolledProgram, program, userReview, ca
                         <Link
                             href={route('reviews.destroy', userReview.id)}
                             method="delete"
+                            as="button"
                             className="inline-flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
                             data-confirm="Are you sure you want to delete your review?"
                         >

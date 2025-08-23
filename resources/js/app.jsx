@@ -14,8 +14,6 @@ function initializeTheme() {
     try {
         const savedTheme = localStorage.getItem('user_theme_preference') || 'default';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        console.log('Theme initialized:', savedTheme);
-        console.log('Data-theme attribute set to:', document.documentElement.getAttribute('data-theme'));
     } catch (error) {
         console.warn('Could not initialize theme:', error);
         document.documentElement.setAttribute('data-theme', 'default');
@@ -58,7 +56,6 @@ router.on('error', (event) => {
     
     // Handle 401 (authentication) errors - session expired
     if (detail.response && detail.response.status === 401) {
-        console.log('Session expired, redirecting to login...')
         
         // If the response includes a redirect URL, use it
         if (detail.response.data && detail.response.data.redirect) {
@@ -73,7 +70,6 @@ router.on('error', (event) => {
     
     // Handle 419 (CSRF token mismatch) errors
     if (detail.response && detail.response.status === 419) {
-        console.log('CSRF token expired, refreshing page...')
         window.location.reload()
         return false
     }

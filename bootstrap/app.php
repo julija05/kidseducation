@@ -165,6 +165,39 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Throwable $e, Request $request) use ($getUserLocale, $getTranslations) {
+            // Don't interfere with validation errors - let Laravel handle them properly
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return null;
+            }
+
+            // Don't interfere with authentication errors - already handled above
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                return null;
+            }
+
+            // Handle 412 Precondition Failed errors (often CSRF-related)
+            if (method_exists($e, 'getStatusCode') && $e->getStatusCode() === 412) {
+                Log::warning('412 Precondition Failed error', [
+                    'url' => $request->url(),
+                    'method' => $request->method(),
+                    'csrf_token_present' => $request->hasHeader('X-CSRF-TOKEN') || $request->has('_token'),
+                    'user_agent' => $request->header('User-Agent'),
+                    'ip' => $request->ip(),
+                    'session_id' => $request->hasSession() ? $request->session()->getId() : null,
+                ]);
+
+                if ($request->expectsJson() || $request->header('X-Inertia')) {
+                    return response()->json([
+                        'message' => 'Session expired. Please refresh the page and try again.',
+                        'reload_required' => true,
+                    ], 412);
+                }
+
+                return redirect()->back()
+                    ->with('error', 'Session expired. Please try again.')
+                    ->withInput($request->except(['password', 'password_confirmation', '_token']));
+            }
+
             // Handle 500 and other server errors
             if ($request->wantsJson()) {
                 return null; // Let Laravel handle JSON responses

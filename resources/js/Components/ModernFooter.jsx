@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
     Mail, Phone, MapPin, Clock, Heart, Shield, Award, 
-    Facebook, Twitter, Instagram, Youtube, Linkedin, 
+    Facebook, Instagram, Youtube, Linkedin, 
     ExternalLink, ArrowRight, CheckCircle, AlertCircle
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
@@ -20,12 +20,27 @@ export default function ModernFooter() {
         setIsSubscribing(true);
         
         try {
-            // Simulate API call - replace with actual newsletter subscription logic
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setSubscriptionStatus('success');
-            setEmail('');
+            const response = await fetch('/newsletter/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                },
+                body: JSON.stringify({ email })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                setSubscriptionStatus('success');
+                setEmail('');
+            } else {
+                setSubscriptionStatus('error');
+            }
+            
             setTimeout(() => setSubscriptionStatus(null), 5000);
         } catch (error) {
+            console.error('Newsletter subscription error:', error);
             setSubscriptionStatus('error');
             setTimeout(() => setSubscriptionStatus(null), 5000);
         } finally {
@@ -34,11 +49,10 @@ export default function ModernFooter() {
     };
 
     const socialLinks = [
-        { icon: Facebook, href: '#', label: t('footer.facebook') },
-        { icon: Twitter, href: '#', label: t('footer.twitter') },
-        { icon: Instagram, href: '#', label: t('footer.instagram') },
-        { icon: Youtube, href: '#', label: t('footer.youtube') },
-        { icon: Linkedin, href: '#', label: t('footer.linkedin') },
+        { icon: Facebook, href: 'https://www.facebook.com/people/Abacoding/100089891705337/', label: t('footer.facebook'), disabled: false },
+        { icon: Instagram, href: 'https://instagram.com/abacoding', label: t('footer.instagram'), disabled: false },
+        { icon: Youtube, href: null, label: t('footer.youtube'), disabled: true },
+        { icon: Linkedin, href: 'https://linkedin.com/company/abacoding', label: t('footer.linkedin'), disabled: false },
     ];
 
     const containerVariants = {
@@ -127,7 +141,7 @@ export default function ModernFooter() {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="/programs/coding-for-kidsscratch" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+                                    <a href="/programs/coding-for-kids-scratch" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
                                         <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                                         {t('footer.coding_adventures')}
                                     </a>
@@ -146,19 +160,19 @@ export default function ModernFooter() {
                             </h3>
                             <ul className="space-y-3">
                                 <li>
-                                    <a href="/articles#tutorials-guides" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+                                    <a href="/articles" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
                                         <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                                         {t('footer.help_center')}
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="/contact#get-in-touch" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+                                    <a href="/contact" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
                                         <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                                         {t('footer.contact_us')}
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="/about#faq" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
+                                    <a href="/about" className="group flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
                                         <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                                         {t('footer.faq')}
                                     </a>
@@ -310,16 +324,29 @@ export default function ModernFooter() {
                         
                         <div className="flex items-center gap-4">
                             {socialLinks.map((social, index) => (
-                                <motion.a
-                                    key={index}
-                                    href={social.href}
-                                    aria-label={social.label}
-                                    className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all duration-300 group"
-                                    whileHover={{ scale: 1.1, rotate: 5 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <social.icon className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" />
-                                </motion.a>
+                                social.disabled ? (
+                                    <motion.div
+                                        key={index}
+                                        aria-label={`${social.label} (Coming Soon)`}
+                                        className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center cursor-not-allowed opacity-50"
+                                        title={`${social.label} - Coming Soon`}
+                                    >
+                                        <social.icon className="w-5 h-5 text-gray-500" />
+                                    </motion.div>
+                                ) : (
+                                    <motion.a
+                                        key={index}
+                                        href={social.href}
+                                        aria-label={social.label}
+                                        className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all duration-300 group"
+                                        whileHover={{ scale: 1.1, rotate: 5 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <social.icon className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" />
+                                    </motion.a>
+                                )
                             ))}
                         </div>
                     </div>
@@ -340,10 +367,10 @@ export default function ModernFooter() {
                         </div>
                         
                         <div className="flex items-center gap-6 text-sm text-gray-400">
-                            <a href="#" className="hover:text-white transition-colors">
+                            <a href="/privacy-policy" className="hover:text-white transition-colors">
                                 {t('footer.privacy_policy')}
                             </a>
-                            <a href="#" className="hover:text-white transition-colors">
+                            <a href="/terms-of-service" className="hover:text-white transition-colors">
                                 {t('footer.terms_of_service')}
                             </a>
                             <span>Version 2.1.0</span>

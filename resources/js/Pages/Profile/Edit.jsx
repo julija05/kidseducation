@@ -1,12 +1,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
-import { User, Settings, Shield, Globe, Trash2, Award, BookOpen, Star, Trophy, Clock, Target, Zap, Heart, Rocket, Sparkles, Gift, Crown, Medal, Camera, Edit3, Mail, Lock, Languages, UserX, Gamepad2, Palette, Coffee } from 'lucide-react';
+import { User, Settings, Shield, Globe, Trash2, Award, BookOpen, Star, Trophy, Clock, Target, Zap, Heart, Rocket, Gift, Crown, Medal, Camera, Edit3, Mail, Lock, Languages, UserX, Gamepad2, Palette, Coffee } from 'lucide-react';
 import DeleteUserForm from './Partials/DeleteUserForm';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import UpdateLanguagePreferenceForm from './Partials/UpdateLanguagePreferenceForm';
 import AvatarSelector from '@/Components/AvatarSelector';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAvatar } from '@/hooks/useAvatar';
 import StudentNavBar from '@/Components/StudentNavBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
@@ -15,6 +16,7 @@ export default function Edit({ mustVerifyEmail, status }) {
     const { t } = useTranslation();
     const { auth } = usePage().props;
     const user = auth.user;
+    const { avatarData, renderAvatar } = useAvatar();
     const [activeSection, setActiveSection] = useState('overview');
     
     // Generate full name from first/last name or fallback to existing name
@@ -29,20 +31,6 @@ export default function Edit({ mustVerifyEmail, status }) {
     };
     
     const fullName = getFullName();
-    
-    // Kid-friendly avatar options
-    const avatarOptions = [
-        { emoji: '🦸', name: t('profile.avatars.superhero'), color: 'from-blue-400 to-purple-600' },
-        { emoji: '🚀', name: t('profile.avatars.space_explorer'), color: 'from-purple-400 to-pink-600' },
-        { emoji: '🎨', name: t('profile.avatars.artist'), color: 'from-pink-400 to-red-500' },
-        { emoji: '🔬', name: t('profile.avatars.scientist'), color: 'from-green-400 to-blue-500' },
-        { emoji: '🎭', name: t('profile.avatars.actor'), color: 'from-yellow-400 to-orange-500' },
-        { emoji: '⚡', name: t('profile.avatars.lightning_kid'), color: 'from-yellow-300 to-yellow-500' },
-        { emoji: '🌟', name: t('profile.avatars.star_student'), color: 'from-indigo-400 to-purple-600' },
-        { emoji: '🎯', name: t('profile.avatars.goal_crusher'), color: 'from-emerald-400 to-green-600' }
-    ];
-    
-    const [selectedAvatar, setSelectedAvatar] = useState(avatarOptions[0]);
     
     // Stats for the profile
     const profileStats = [
@@ -159,15 +147,17 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 >
                                     <motion.div 
                                         whileHover={{ scale: 1.05, rotate: 5 }}
-                                        className={`relative h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-gradient-to-br ${selectedAvatar.color} shadow-2xl lg:h-40 lg:w-40`}
+                                        className="relative h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-purple-400 to-pink-600 shadow-2xl lg:h-40 lg:w-40"
                                     >
                                         <div className="flex h-full w-full items-center justify-center text-6xl lg:text-7xl">
-                                            {selectedAvatar.emoji}
+                                            {avatarData?.value || '👤'}
                                         </div>
                                         <motion.button
                                             whileHover={{ scale: 1.1 }}
                                             whileTap={{ scale: 0.9 }}
+                                            onClick={() => setActiveSection('settings')}
                                             className="absolute -bottom-2 -right-2 rounded-full bg-white p-2 shadow-lg"
+                                            title={t('profile.change_avatar')}
                                         >
                                             <Camera className="h-4 w-4 text-gray-600" />
                                         </motion.button>
@@ -195,7 +185,7 @@ export default function Edit({ mustVerifyEmail, status }) {
                                             {t('profile.hey_greeting', { name: fullName })}
                                         </h1>
                                         <p className="text-xl text-purple-100 lg:text-2xl">
-                                            {selectedAvatar.name} • {t('profile.level_text', { level: 5, title: t('profile.learning_hero') })}
+                                            {t('profile.level_text', { level: 5, title: t('profile.learning_hero') })}
                                         </p>
                                     </motion.div>
                                     
@@ -309,47 +299,6 @@ export default function Edit({ mustVerifyEmail, status }) {
                                         })}
                                     </div>
 
-                                    {/* Avatar Selection */}
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.6, duration: 0.5 }}
-                                        className="rounded-2xl bg-white p-8 shadow-lg border-2 border-purple-100"
-                                    >
-                                        <h3 className="mb-6 text-2xl font-bold text-gray-900 flex items-center gap-2">
-                                            <Sparkles className="h-6 w-6 text-purple-500" />
-                                            {t('profile.choose_avatar')}
-                                        </h3>
-                                        <div className="grid grid-cols-4 gap-4 lg:grid-cols-8">
-                                            {avatarOptions.map((avatar, index) => (
-                                                <motion.button
-                                                    key={avatar.name}
-                                                    initial={{ opacity: 0, scale: 0 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    transition={{ delay: 0.7 + index * 0.05, duration: 0.3 }}
-                                                    whileHover={{ scale: 1.1, rotate: 5 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    onClick={() => setSelectedAvatar(avatar)}
-                                                    className={`relative rounded-2xl p-4 transition-all ${
-                                                        selectedAvatar.name === avatar.name
-                                                            ? `bg-gradient-to-br ${avatar.color} shadow-lg ring-4 ring-purple-300`
-                                                            : 'bg-gray-100 hover:bg-gray-200'
-                                                    }`}
-                                                >
-                                                    <div className="text-3xl">{avatar.emoji}</div>
-                                                    {selectedAvatar.name === avatar.name && (
-                                                        <motion.div 
-                                                            initial={{ scale: 0 }}
-                                                            animate={{ scale: 1 }}
-                                                            className="absolute -top-2 -right-2 rounded-full bg-green-400 p-1"
-                                                        >
-                                                            <Star className="h-3 w-3 text-white" />
-                                                        </motion.div>
-                                                    )}
-                                                </motion.button>
-                                            ))}
-                                        </div>
-                                    </motion.div>
                                 </motion.div>
                             )}
 

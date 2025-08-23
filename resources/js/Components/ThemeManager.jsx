@@ -26,7 +26,6 @@ export default function ThemeManager() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         if (currentTheme !== theme) {
             document.documentElement.setAttribute('data-theme', theme);
-            console.log('ThemeManager: Applied theme to document:', theme);
         }
         
         // Also save to localStorage if it's different

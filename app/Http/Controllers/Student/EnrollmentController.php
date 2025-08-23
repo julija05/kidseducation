@@ -46,6 +46,9 @@ class EnrollmentController extends Controller
                 ->with('error', 'Your account is suspended. Please contact admin@abacoding.com to resolve this issue.');
         }
 
+        // Check if this is a program switch request
+        $isSwitchRequest = $request->has('switch_program') && $request->boolean('switch_program');
+
         Log::info('Enrollment attempt started', [
             'user_id' => $user->id,
             'user_email' => $user->email,
@@ -72,28 +75,88 @@ class EnrollmentController extends Controller
                 ->with('error', 'You already have an enrollment request for this program.');
         }
 
-        // Check if user has any pending or active enrollment (only one enrollment at a time)
-        $existingAnyEnrollment = $user->enrollments()
+        // Check for existing active/pending enrollments
+        $existingActiveEnrollment = $user->enrollments()
             ->whereIn('approval_status', ['pending', 'approved'])
             ->where('status', '!=', 'completed')
             ->first();
 
-        if ($existingAnyEnrollment) {
-            $message = $existingAnyEnrollment->approval_status === 'pending'
-                ? 'You already have a pending enrollment request. Please wait for approval or cancel your current request before enrolling in another program.'
-                : 'You can only be enrolled in one program at a time. Please complete your current program first.';
+        if ($existingActiveEnrollment) {
+            if ($isSwitchRequest) {
+                // Handle program switching - cancel old enrollment and create new one
+                Log::info('Processing program switch request', [
+                    'user_id' => $user->id,
+                    'old_enrollment_id' => $existingActiveEnrollment->id,
+                    'old_program_id' => $existingActiveEnrollment->program_id,
+                    'old_program_name' => $existingActiveEnrollment->program->name,
+                    'new_program_id' => $program->id,
+                    'new_program_name' => $program->name,
+                    'old_approval_status' => $existingActiveEnrollment->approval_status,
+                    'old_status' => $existingActiveEnrollment->status,
+                ]);
 
-            Log::info('Enrollment blocked - user has existing enrollment', [
+                // Only allow switching FROM pending enrollments or FROM approved but not completed
+                if ($existingActiveEnrollment->approval_status === 'pending' ||
+                    ($existingActiveEnrollment->approval_status === 'approved' && $existingActiveEnrollment->status !== 'completed')) {
+
+                    // Delete the old enrollment
+                    $oldProgramName = $existingActiveEnrollment->program->name;
+                    $existingActiveEnrollment->delete();
+
+                    Log::info('Old enrollment deleted for program switch', [
+                        'user_id' => $user->id,
+                        'deleted_enrollment_id' => $existingActiveEnrollment->id,
+                        'old_program_name' => $oldProgramName,
+                    ]);
+                } else {
+                    Log::warning('Invalid program switch attempt - enrollment not eligible for switch', [
+                        'user_id' => $user->id,
+                        'existing_enrollment_id' => $existingActiveEnrollment->id,
+                        'existing_approval_status' => $existingActiveEnrollment->approval_status,
+                        'existing_status' => $existingActiveEnrollment->status,
+                    ]);
+
+                    return redirect()->route('programs.show', $program->slug)
+                        ->with('error', 'Cannot switch programs at this time. Please contact support.');
+                }
+            } else {
+                // Normal enrollment attempt blocked by existing enrollment
+                $message = $existingActiveEnrollment->approval_status === 'pending'
+                    ? 'You already have a pending enrollment request. Please wait for approval or complete your current program before enrolling in another program.'
+                    : 'You can only enroll in a new program after completing your current program. Please finish your current program first.';
+
+                Log::info('Enrollment blocked - user has existing active enrollment', [
+                    'user_id' => $user->id,
+                    'existing_enrollment_id' => $existingActiveEnrollment->id,
+                    'existing_program_id' => $existingActiveEnrollment->program_id,
+                    'existing_approval_status' => $existingActiveEnrollment->approval_status,
+                    'existing_status' => $existingActiveEnrollment->status,
+                    'requested_program_id' => $program->id,
+                ]);
+
+                return redirect()->route('programs.show', $program->slug)
+                    ->with('error', $message);
+            }
+        }
+
+        // Check if user has completed enrollments - they can enroll but will lose access to previous dashboard
+        $completedEnrollments = $user->enrollments()
+            ->whereIn('approval_status', ['approved'])
+            ->where('status', 'completed')
+            ->get();
+
+        if ($completedEnrollments->isNotEmpty()) {
+            Log::info('User with completed program enrolling in new program', [
                 'user_id' => $user->id,
-                'existing_enrollment_id' => $existingAnyEnrollment->id,
-                'existing_program_id' => $existingAnyEnrollment->program_id,
-                'existing_approval_status' => $existingAnyEnrollment->approval_status,
-                'existing_status' => $existingAnyEnrollment->status,
-                'requested_program_id' => $program->id,
+                'completed_enrollments_count' => $completedEnrollments->count(),
+                'completed_program_names' => $completedEnrollments->pluck('program.name'),
+                'new_program_id' => $program->id,
+                'new_program_name' => $program->name,
             ]);
 
-            return redirect()->route('programs.show', $program->slug)
-                ->with('error', $message);
+            // Store a flash message about losing access to previous dashboard
+            session()->flash('enrollment_warning',
+                'Note: By enrolling in this program, you will lose access to your previous program dashboard. You can still download certificates for completed programs from your profile.');
         }
 
         // Create new enrollment with pending approval status
@@ -158,8 +221,10 @@ class EnrollmentController extends Controller
         }
 
         // Redirect to the program page (authenticated view) with success message
+        $successMessage = $isSwitchRequest ? 'program_switch_success' : 'waiting_list_success';
+
         return redirect()->route('programs.show', $program->slug)
-            ->with('success', 'waiting_list_success')
+            ->with('success', $successMessage)
             ->with('waiting_list_program', $program->name);
     }
 

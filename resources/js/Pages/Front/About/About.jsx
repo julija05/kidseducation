@@ -52,7 +52,7 @@ export default function About({ auth }) {
             <GuestFrontLayout auth={auth}>
             <div className="bg-white text-gray-800 overflow-hidden">
                 {/* Modern Hero Section */}
-                <section className="relative min-h-screen flex items-center justify-center px-6 py-24 overflow-hidden">
+                <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 py-16 sm:py-24 overflow-hidden">
                     {/* Animated Background */}
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
                         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
@@ -63,36 +63,35 @@ export default function About({ auth }) {
                     <div className="relative z-10 max-w-6xl mx-auto text-center">
                         {/* Badge */}
                         <motion.div
-                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border border-purple-200 mb-8"
+                            className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border border-purple-200 mb-6 sm:mb-8 max-w-xs sm:max-w-md mx-auto"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.6 }}
                         >
-                            <Heart className="text-purple-600 mr-2" size={20} />
-                            <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                            <Heart className="text-purple-600 mr-2 flex-shrink-0" size={16} />
+                            <span className="text-xs sm:text-sm font-semibold text-purple-600 sm:bg-gradient-to-r sm:from-purple-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent text-center leading-tight">
                                 {t('about.hero_badge')}
                             </span>
                         </motion.div>
 
                         {/* Main Headlines */}
                         <motion.h1
-                            className="text-6xl md:text-8xl font-black mb-8 leading-tight"
+                            className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black mb-6 sm:mb-8 leading-tight px-4"
                             initial={{ opacity: 0, y: 50 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2, duration: 0.8 }}
                         >
-                            <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                            <span className="block text-gray-900 sm:bg-gradient-to-r sm:from-gray-900 sm:to-gray-700 sm:bg-clip-text sm:text-transparent">
                                 {t('about.hero_title_1')}
                             </span>
-                            <br />
-                            <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                            <span className="block text-gray-900 sm:bg-gradient-to-r sm:from-purple-600 sm:via-pink-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent">
                                 {t('about.hero_title_2')}
                             </span>
                         </motion.h1>
 
                         {/* Subtitle */}
                         <motion.p
-                            className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed"
+                            className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-12 max-w-4xl mx-auto leading-relaxed px-4"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.6, duration: 0.8 }}
@@ -103,7 +102,7 @@ export default function About({ auth }) {
 
                         {/* Modern Stats Grid */}
                         <motion.div
-                            className="grid md:grid-cols-4 gap-8 mb-16"
+                            className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16 px-4"
                             initial={{ opacity: 0, y: 40 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8, duration: 0.8 }}
@@ -116,38 +115,38 @@ export default function About({ auth }) {
                             ].map((stat, index) => (
                                 <motion.div
                                     key={index}
-                                    className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300"
+                                    className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300"
                                     whileHover={{ scale: 1.05, y: -5 }}
                                 >
-                                    <stat.icon className={`${stat.color} mx-auto mb-3`} size={32} />
-                                    <div className={`text-3xl font-bold ${stat.color} mb-1`}>{stat.number}</div>
-                                    <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
+                                    <stat.icon className={`${stat.color} mx-auto mb-2 sm:mb-3`} size={28} />
+                                    <div className={`text-2xl sm:text-3xl font-bold ${stat.color} mb-1`}>{stat.number}</div>
+                                    <div className="text-xs sm:text-sm text-gray-600 font-medium text-center leading-tight">{stat.label}</div>
                                 </motion.div>
                             ))}
                         </motion.div>
 
                         {/* CTA Buttons */}
                         <motion.div
-                            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                            className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 1, duration: 0.8 }}
                         >
                             <motion.button
-                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-full text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 inline-flex items-center space-x-2"
+                                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 inline-flex items-center justify-center space-x-2"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => window.location.href = route('programs.index')}
                             >
                                 <span>{t('about.start_journey')}</span>
-                                <ChevronRight size={20} />
+                                <ChevronRight size={18} />
                             </motion.button>
                             <motion.button
-                                className="border-2 border-gray-300 hover:border-purple-600 text-gray-700 hover:text-purple-600 font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 inline-flex items-center space-x-2"
+                                className="w-full sm:w-auto border-2 border-gray-300 hover:border-purple-600 text-gray-700 hover:text-purple-600 font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full text-base sm:text-lg transition-all duration-300 inline-flex items-center justify-center space-x-2"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                             >
-                                <PlayCircle size={20} />
+                                <PlayCircle size={18} />
                                 <span>{t('about.watch_story')}</span>
                             </motion.button>
                         </motion.div>
@@ -155,19 +154,19 @@ export default function About({ auth }) {
                 </section>
 
                 {/* Modern Mission & Values Section */}
-                <section className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+                <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 bg-gradient-to-br from-gray-50 to-white">
                     <div className="max-w-7xl mx-auto">
                         {/* Section Header */}
                         <motion.div
-                            className="text-center mb-20"
+                            className="text-center mb-12 sm:mb-16 lg:mb-20"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-8">
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 sm:bg-gradient-to-r sm:from-purple-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent mb-6 sm:mb-8 px-4">
                                 {t('about.our_dna')}
                             </h2>
-                            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
                                 {t('about.dna_subtitle')}
                             </p>
                         </motion.div>
@@ -291,10 +290,10 @@ export default function About({ auth }) {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-5xl md:text-6xl font-extrabold mb-8">
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 sm:mb-8 px-4">
                                 {t('about.creating_impact')}
                             </h2>
-                            <p className="text-xl mb-16 max-w-3xl mx-auto leading-relaxed opacity-90">
+                            <p className="text-base sm:text-lg lg:text-xl mb-12 sm:mb-16 max-w-3xl mx-auto leading-relaxed opacity-90 px-4">
                                 {t('about.impact_subtitle')}
                             </p>
                         </motion.div>
@@ -339,18 +338,18 @@ export default function About({ auth }) {
                 </section>
 
                 {/* Modern Interactive FAQ Section */}
-                <section id="faq" className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+                <section id="faq" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 bg-gradient-to-br from-gray-50 to-white">
                     <div className="max-w-4xl mx-auto">
                         <motion.div
-                            className="text-center mb-16"
+                            className="text-center mb-12 sm:mb-16"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-8">
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 sm:bg-gradient-to-r sm:from-purple-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent mb-6 sm:mb-8 px-4">
                                 {t('about.faq_title')}
                             </h2>
-                            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-4">
                                 {t('about.faq_subtitle')}
                             </p>
                         </motion.div>
@@ -463,10 +462,10 @@ export default function About({ auth }) {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-5xl md:text-6xl font-extrabold mb-8">
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 sm:mb-8 px-4">
                                 {t('about.ready_journey')}
                             </h2>
-                            <p className="text-xl mb-12 max-w-2xl mx-auto leading-relaxed opacity-90">
+                            <p className="text-base sm:text-lg lg:text-xl mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed opacity-90 px-4">
                                 {t('about.cta_subtitle')}
                             </p>
                         </motion.div>

@@ -1,9 +1,35 @@
 import { useState, useEffect } from 'react';
 import { Bell, Check, X, Clock, Users, AlertCircle, Calendar } from 'lucide-react';
 import { router } from '@inertiajs/react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Notifications({ notifications = [], unreadCount = 0, onMarkAsRead, onMarkAllAsRead }) {
     const [isOpen, setIsOpen] = useState(false);
+    const { t } = useTranslation();
+    
+    // Helper function to get translated notification title
+    const getTranslatedTitle = (notification) => {
+        if (notification.data?.title_key) {
+            // Check if the title_key starts with 'notifications.' and convert to dashboard.notifications.
+            const translationKey = notification.data.title_key.startsWith('notifications.') 
+                ? notification.data.title_key.replace('notifications.', 'dashboard.notifications.')
+                : notification.data.title_key;
+            return t(translationKey);
+        }
+        return notification.title;
+    };
+    
+    // Helper function to get translated notification message
+    const getTranslatedMessage = (notification) => {
+        if (notification.data?.message_key && notification.data?.translation_data) {
+            // Check if the message_key starts with 'notifications.' and convert to dashboard.notifications.
+            const translationKey = notification.data.message_key.startsWith('notifications.') 
+                ? notification.data.message_key.replace('notifications.', 'dashboard.notifications.')
+                : notification.data.message_key;
+            return t(translationKey, notification.data.translation_data);
+        }
+        return notification.message;
+    };
 
     // Auto-mark all as read when dropdown opens
     useEffect(() => {
@@ -104,7 +130,7 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
                     {/* Header */}
                     <div className="p-4 border-b bg-gray-50 rounded-t-lg">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.notifications.notifications')}</h3>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsOpen(false)}
@@ -121,7 +147,7 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
                         {notifications.length === 0 ? (
                             <div className="p-6 text-center text-gray-500">
                                 <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                                <p>No notifications yet</p>
+                                <p>{t('dashboard.notifications.no_notifications')}</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-100">
@@ -141,7 +167,7 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-1">
                                                     <p className="text-sm font-medium text-gray-900 truncate">
-                                                        {notification.title}
+                                                        {getTranslatedTitle(notification)}
                                                         {!notification.is_read && (
                                                             <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full inline-block"></span>
                                                         )}
@@ -149,7 +175,7 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
                                                 </div>
                                                 
                                                 <p className="text-sm text-gray-600 mb-2">
-                                                    {notification.message}
+                                                    {getTranslatedMessage(notification)}
                                                 </p>
                                                 
                                                 <div className="flex items-center text-xs text-gray-500">
@@ -160,7 +186,7 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
                                                 {/* Additional data for enrollment notifications */}
                                                 {notification.type === 'enrollment' && notification.data && (
                                                     <div className="mt-2 text-xs text-gray-500">
-                                                        Program: {notification.data.program_name}
+                                                        {t('dashboard.program')}: {notification.data.program_name}
                                                     </div>
                                                 )}
 
@@ -172,11 +198,11 @@ export default function Notifications({ notifications = [], unreadCount = 0, onM
                                                         </div>
                                                         {notification.data.program_name && (
                                                             <div className="text-xs text-gray-500">
-                                                                Program: {notification.data.program_name}
+                                                                {t('dashboard.program')}: {notification.data.program_name}
                                                             </div>
                                                         )}
                                                         <div className="text-xs text-gray-500">
-                                                            Duration: {notification.data.duration_minutes} minutes
+                                                            {t('dashboard.duration')}: {notification.data.duration_minutes} minutes
                                                         </div>
                                                     </div>
                                                 )}

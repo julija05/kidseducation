@@ -11,69 +11,33 @@ export default function PrivacyPolicy({ auth }) {
     const sections = [
         {
             icon: <FileCheck className="w-6 h-6" />,
-            title: "Information We Collect",
-            content: [
-                "Personal Information: Name, email address, age, and parent/guardian contact information when creating an account.",
-                "Educational Data: Progress tracking, lesson completion status, quiz scores, and learning preferences.",
-                "Usage Information: How you interact with our platform, time spent on lessons, and feature usage patterns.",
-                "Device Information: IP address, browser type, operating system, and device specifications for security and optimization.",
-            ]
+            title: t('legal.privacy_policy.information_collect'),
+            content: t('legal.privacy_policy.information_collect_content')
         },
         {
             icon: <Eye className="w-6 h-6" />,
-            title: "How We Use Your Information",
-            content: [
-                "Provide and improve our educational services and platform functionality.",
-                "Track learning progress and customize educational content to individual needs.",
-                "Communicate with students and parents about account status, updates, and educational opportunities.",
-                "Ensure platform security, prevent fraud, and protect user safety.",
-                "Analyze usage patterns to enhance user experience and develop new features.",
-                "Comply with legal obligations and protect our rights and interests.",
-            ]
+            title: t('legal.privacy_policy.how_we_use'),
+            content: t('legal.privacy_policy.how_we_use_content')
         },
         {
             icon: <Users className="w-6 h-6" />,
-            title: "Information Sharing",
-            content: [
-                "We do NOT sell, rent, or trade personal information to third parties for marketing purposes.",
-                "Parent/Guardian Access: Parents and guardians have full access to their child's educational data and progress.",
-                "Service Providers: We may share data with trusted third-party service providers who help us operate our platform (hosting, analytics, customer support).",
-                "Legal Requirements: We may disclose information when required by law, court order, or to protect rights and safety.",
-                "Business Transfers: In the event of a merger or acquisition, user data may be transferred with appropriate notice.",
-            ]
+            title: t('legal.privacy_policy.information_sharing'),
+            content: t('legal.privacy_policy.information_sharing_content')
         },
         {
             icon: <Lock className="w-6 h-6" />,
-            title: "Data Security",
-            content: [
-                "We implement industry-standard security measures including encryption, secure servers, and access controls.",
-                "All sensitive data is encrypted in transit and at rest using advanced cryptographic protocols.",
-                "Regular security audits and monitoring to protect against unauthorized access or data breaches.",
-                "Employee training on data protection and strict access controls based on job responsibilities.",
-                "Secure backup systems to prevent data loss while maintaining privacy protections.",
-            ]
+            title: t('legal.privacy_policy.data_security'),
+            content: t('legal.privacy_policy.data_security_content')
         },
         {
             icon: <Database className="w-6 h-6" />,
-            title: "Data Retention",
-            content: [
-                "Educational progress data is retained for the duration of active enrollment plus 3 years for educational records.",
-                "Account information is retained as long as the account remains active.",
-                "Inactive accounts may be deleted after 2 years of inactivity with prior notice.",
-                "Users can request data deletion at any time, subject to legal retention requirements.",
-                "Backup data is securely deleted according to our data retention schedule.",
-            ]
+            title: t('legal.privacy_policy.data_retention'),
+            content: t('legal.privacy_policy.data_retention_content')
         },
         {
             icon: <Shield className="w-6 h-6" />,
-            title: "Children's Privacy (COPPA Compliance)",
-            content: [
-                "We are committed to protecting children's privacy and comply with COPPA regulations.",
-                "Parental consent is required before collecting personal information from children under 13.",
-                "Parents have the right to review, modify, or delete their child's personal information.",
-                "We do not require children to disclose more information than necessary to participate in activities.",
-                "Parents can contact us to review what information we have collected from their child.",
-            ]
+            title: t('legal.privacy_policy.children_privacy'),
+            content: t('legal.privacy_policy.children_privacy_content')
         },
     ];
 
@@ -98,7 +62,7 @@ export default function PrivacyPolicy({ auth }) {
 
     return (
         <>
-            <Head title="Privacy Policy - Abacoding" />
+            <Head title={`${t('legal.privacy_policy.title')} - Abacoding`} />
             <NavBar auth={auth} />
 
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -120,13 +84,13 @@ export default function PrivacyPolicy({ auth }) {
                             </div>
                         </div>
                         <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
-                            Privacy Policy
+                            {t('legal.privacy_policy.title')}
                         </h1>
                         <p className="text-xl text-gray-600 mb-4">
-                            Your privacy and security are our top priorities
+                            {t('legal.privacy_policy.subtitle')}
                         </p>
                         <p className="text-gray-500">
-                            Last Updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {t('legal.privacy_policy.last_updated')}: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                     </motion.div>
                 </section>
@@ -141,7 +105,7 @@ export default function PrivacyPolicy({ auth }) {
                     <div className="max-w-4xl mx-auto">
                         <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20">
                             <p className="text-lg text-gray-700 leading-relaxed">
-                                At <span className="font-semibold text-blue-600">Abacoding</span>, we are committed to protecting the privacy and security of our users, especially children and their families. This Privacy Policy explains how we collect, use, protect, and share information when you use our educational platform. We believe in transparency and want you to understand exactly how your data is handled.
+                                {t('legal.privacy_policy.intro')}
                             </p>
                         </div>
                     </div>
@@ -170,11 +134,15 @@ export default function PrivacyPolicy({ auth }) {
                                     </h2>
                                 </div>
                                 <ul className="space-y-3">
-                                    {section.content.map((item, itemIndex) => (
+                                    {Array.isArray(section.content) ? section.content.map((item, itemIndex) => (
                                         <li key={itemIndex} className="text-gray-700 leading-relaxed pl-6 border-l-2 border-blue-200">
                                             {item}
                                         </li>
-                                    ))}
+                                    )) : (
+                                        <li className="text-gray-700 leading-relaxed pl-6 border-l-2 border-blue-200">
+                                            {section.content}
+                                        </li>
+                                    )}
                                 </ul>
                             </motion.div>
                         ))}
@@ -191,7 +159,7 @@ export default function PrivacyPolicy({ auth }) {
                     <div className="max-w-4xl mx-auto">
                         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 border border-blue-200">
                             <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-                                Your Rights & Choices
+                                {t('legal.privacy_policy.your_rights')}
                             </h2>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
@@ -200,8 +168,8 @@ export default function PrivacyPolicy({ auth }) {
                                             <Eye className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800">Access Your Data</h3>
-                                            <p className="text-gray-600">Request a copy of all personal information we have about you.</p>
+                                            <h3 className="font-semibold text-gray-800">{t('legal.privacy_policy.access_data')}</h3>
+                                            <p className="text-gray-600">{t('legal.privacy_policy.access_data_desc')}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -209,8 +177,8 @@ export default function PrivacyPolicy({ auth }) {
                                             <FileCheck className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800">Correct Information</h3>
-                                            <p className="text-gray-600">Update or correct any inaccurate personal information.</p>
+                                            <h3 className="font-semibold text-gray-800">{t('legal.privacy_policy.correct_info')}</h3>
+                                            <p className="text-gray-600">{t('legal.privacy_policy.correct_info_desc')}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -220,8 +188,8 @@ export default function PrivacyPolicy({ auth }) {
                                             <Database className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800">Delete Your Data</h3>
-                                            <p className="text-gray-600">Request deletion of your personal information (subject to legal requirements).</p>
+                                            <h3 className="font-semibold text-gray-800">{t('legal.privacy_policy.delete_data')}</h3>
+                                            <p className="text-gray-600">{t('legal.privacy_policy.delete_data_desc')}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -229,8 +197,8 @@ export default function PrivacyPolicy({ auth }) {
                                             <Lock className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800">Data Portability</h3>
-                                            <p className="text-gray-600">Export your data in a commonly used, machine-readable format.</p>
+                                            <h3 className="font-semibold text-gray-800">{t('legal.privacy_policy.data_portability')}</h3>
+                                            <p className="text-gray-600">{t('legal.privacy_policy.data_portability_desc')}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -249,29 +217,29 @@ export default function PrivacyPolicy({ auth }) {
                     <div className="max-w-4xl mx-auto text-center">
                         <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-8 shadow-xl border border-white/20">
                             <h2 className="text-3xl font-bold text-gray-800 mb-6">
-                                Questions About Your Privacy?
+                                {t('legal.privacy_policy.questions_privacy')}
                             </h2>
                             <p className="text-lg text-gray-600 mb-8">
-                                If you have any questions about this Privacy Policy or how we handle your data, please don't hesitate to contact us.
+                                {t('legal.privacy_policy.contact_desc')}
                             </p>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 rounded-xl">
                                     <Mail className="w-6 h-6 text-blue-600" />
                                     <div className="text-left">
-                                        <p className="font-semibold text-gray-800">Email Us</p>
+                                        <p className="font-semibold text-gray-800">{t('legal.privacy_policy.email_us')}</p>
                                         <p className="text-blue-600">privacy@abacoding.com</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-center gap-3 p-4 bg-purple-50 rounded-xl">
                                     <Phone className="w-6 h-6 text-purple-600" />
                                     <div className="text-left">
-                                        <p className="font-semibold text-gray-800">Call Us</p>
+                                        <p className="font-semibold text-gray-800">{t('legal.privacy_policy.call_us')}</p>
                                         <p className="text-purple-600">1-800-ABACODING</p>
                                     </div>
                                 </div>
                             </div>
                             <p className="text-sm text-gray-500 mt-6">
-                                We typically respond to privacy inquiries within 48 hours.
+                                {t('legal.privacy_policy.response_time')}
                             </p>
                         </div>
                     </div>

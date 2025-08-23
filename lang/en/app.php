@@ -20,6 +20,12 @@ return [
         'profile_panel' => 'profile panel',
     ],
 
+    // Navigation actions
+    'navigation' => [
+        'back_to_programs' => 'Back to Programs',
+        'view_other_programs' => 'View Other Programs',
+    ],
+
     // Profile
     'profile' => [
         'email_status' => 'Email Status',
@@ -228,6 +234,45 @@ return [
         'satisfaction_rate' => 'Satisfaction rate',
     ],
 
+    // Certificate translations
+    'certificate' => [
+        'congratulations' => 'Congratulations!',
+        'program_completed' => 'Program Completed',
+        'you_completed' => 'You completed :program!',
+        'amazing_work' => 'Amazing work! You\'ve successfully finished all lessons and earned your certificate.',
+        'levels' => 'Levels',
+        'points' => 'Points',
+        'complete' => 'Complete',
+        'your_certificate' => 'Your Certificate',
+        'generate_description' => 'Generate your official completion certificate to celebrate this achievement!',
+        'includes_details' => 'Includes your name, completion date, levels completed, and total points earned',
+        'generating' => 'Generating...',
+        'generate_certificate' => 'Generate Certificate',
+        'certificate_ready' => 'Certificate Ready!',
+        'download_available' => 'Download Available',
+        'certificate_generated' => 'Certificate Generated!',
+        'ready_for_download' => 'Your official completion certificate is ready for download.',
+        'certificate_details' => 'Certificate Details',
+        'program' => 'Program',
+        'completion_date' => 'Completion Date',
+        'levels_completed' => 'Levels Completed',
+        'total_points' => 'Total Points',
+        'download_certificate' => 'Download Certificate',
+        'share_achievement' => 'Share your achievement with family and friends!',
+        'generation_failed' => 'Failed to generate certificate',
+        'generation_error' => 'Failed to generate certificate. Please try again.',
+        'review_program_content' => 'Review program content',
+        'completed_programs_title' => 'Completed Programs',
+        'amazing_achievement' => 'Amazing Achievement!',
+        'continue_learning_journey' => 'Ready for your next challenge? Browse available programs below to continue your learning journey.',
+        'certificate_of_completion' => 'Certificate of Completion',
+    ],
+
+    // Common translations
+    'common' => [
+        'close' => 'Close',
+    ],
+
     // Contact page
     'contact' => [
         'title' => 'Contact Us',
@@ -308,6 +353,9 @@ return [
         'description' => 'Explore our educational programs designed for children',
         'enroll' => 'Enroll Now',
         'view_details' => 'View Details',
+        'about_program' => 'About This Program',
+        'person_viewing' => 'person is currently viewing this program',
+        'people_viewing' => 'people are currently viewing this program',
     ],
 
     // Programs page
@@ -357,6 +405,45 @@ return [
         'continue_demo' => 'Continue Demo',
         'try' => 'Try',
         'start_free_demo' => 'Start Free Demo',
+        'demo_used_already' => 'Demo Already Used',
+        'demo_not_available_completed' => 'Demo not available - Program completed',
+
+        // Demo Access Form
+        'description' => 'Get a taste of our program with a free 7-day demo. Experience real lessons, interactive content, and see if it\'s the perfect fit for your child.',
+        'what_included' => 'What\'s Included in Your Free Demo',
+        'first_lesson_access' => 'Full Access to First Lesson',
+        'first_lesson_description' => 'Experience our complete teaching methodology with the first lesson of the program.',
+        'no_commitment' => 'No Commitment Required',
+        'no_commitment_description' => 'Try before you decide - no credit card or payment required.',
+        'seven_days' => '7 Days Full Access',
+        'seven_days_description' => 'Take your time to explore and see the difference our program makes.',
+        'easy_enrollment' => 'Easy Program Enrollment',
+        'easy_enrollment_description' => 'If you love it, enrolling in the full program is just one click away.',
+        'limitations' => 'Demo Limitations',
+        'only_first_lesson' => 'Access to first lesson only',
+        'no_progress_saved' => 'Progress won\'t be saved after demo expires',
+        'no_teacher_interaction' => 'No direct teacher interaction during demo',
+        'start_demo' => 'Start Your Free Demo',
+        'no_credit_card' => 'No credit card required • Cancel anytime',
+        'expired' => 'Demo Expired',
+
+        // Demo Dashboard
+        'title' => 'Demo Mode',
+        'welcome_to' => 'Welcome to',
+        'currently_in_demo_mode' => 'You are currently in demo mode',
+        'expires_on' => 'Demo expires on',
+        'available_lesson' => 'Available Demo Lesson',
+        'start_learning_now' => 'Start learning with this available lesson',
+        'locked_content' => 'Locked Content',
+        'enroll_to_unlock' => 'Enroll in the full program to unlock all lessons and features',
+        'and_more_lessons' => '+ :count more lessons',
+        'unlock_all_lessons' => 'Unlock all lessons, get teacher support, and track your progress!',
+        'full_program_includes' => 'Full Program Includes',
+        'teacher_support' => 'teacher support & progress tracking',
+        'demo_actions' => 'Demo Actions',
+        'exit_demo' => 'Exit Demo Mode',
+        'back_to_demo' => 'Back to Demo',
+        'ready_to_enroll' => 'Ready to Enroll?',
     ],
 
     // Waiting list translations
@@ -366,6 +453,33 @@ return [
         'contact_info' => 'We will contact you at :email.',
         'added_on' => 'Added on',
         'left_successfully' => 'You have successfully left the waiting list.',
+
+        // Programs show page
+        'join_waiting_list' => 'Join Our Waiting List!',
+        'create_account_description' => 'Create an account to join our waiting list and be among the first to know when this program launches!',
+        'create_account_join' => 'Create Account & Join Waiting List',
+        'i_have_account' => 'I Have an Account',
+        'not_sure_try_first' => 'Not sure yet? Try it first!',
+        'try_free_demo' => 'Try Free Demo',
+        'after_creating_account' => 'After creating your account, you\'ll be added to our waiting list and we\'ll contact you with launch details',
+        'switch_to_program' => 'Switch to This Program?',
+        'switch_program_description' => 'You\'re currently enrolled in :current. You can switch to :new, but this will mark your current program as completed.',
+        'switch_important' => 'Important:',
+        'switch_warning_dashboard' => 'Your current dashboard will disappear',
+        'switch_warning_marked' => 'Current program will be marked as finished',
+        'switch_warning_new' => 'You\'ll get a new dashboard after approval',
+        'switch_programs_join' => 'Switch Programs & Join Waiting List',
+        'requires_approval' => 'This will require approval from our team',
+        'be_among_first' => 'Be among the first to experience :program. Join our waiting list and we\'ll notify you with launch details and exclusive early access!',
+        'join_waiting_list_button' => 'Join Waiting List',
+        'added_contacted' => 'You\'ll be added to our waiting list and contacted with program details',
+        'youre_enrolled' => 'You\'re Enrolled! 🎉',
+        'go_to_dashboard' => 'Go to Dashboard',
+        'enrollment_not_approved' => 'Enrollment Not Approved',
+        'contact_support_info' => 'Please contact us at support@abacoding.com for more information.',
+        'youre_on_waiting_list' => 'You\'re on the Waiting List! 🎉',
+        'successfully_joined' => 'You\'ve successfully joined the waiting list for :program!',
+        'contact_at_email' => 'We\'ll contact you at :email with program details and launch information soon!',
     ],
 
     // Reviews translations
@@ -417,6 +531,41 @@ return [
             'password_strength_fair' => 'Fair',
             'password_strength_good' => 'Good',
             'password_strength_strong' => 'Strong',
+            'terms_agreement_part1' => 'By creating an account, you agree to our',
+            'terms_agreement_and' => 'and',
+            'terms_agreement_part2' => '.',
+            'terms_of_service' => 'Terms of Service',
+            'privacy_policy' => 'Privacy Policy',
+        ],
+
+        // Verify Email
+        'verify_email' => [
+            'title' => 'Verify Your Email',
+            'subtitle' => 'We need to verify your email address before you can continue.',
+            'email_sent_title' => 'Verification Email Sent!',
+            'email_sent_text' => 'A new verification link has been sent to your email address.',
+            'check_email_title' => 'Check Your Email',
+            'check_email_text_1' => 'We\'ve sent a verification link to your email address. Please click the link in the email to verify your account.',
+            'check_email_text_2' => 'Don\'t forget to check your spam folder if you don\'t see the email in your inbox.',
+            'sending_email' => 'Sending Email...',
+            'resend_verification_email' => 'Resend Verification Email',
+            'log_out' => 'Log Out',
+            'security_info_title' => 'Why do we verify emails?',
+            'security_info_text' => 'Email verification helps keep your account secure and ensures you receive important notifications about your learning progress.',
+        ],
+
+        // Forgot Password
+        'forgot_password' => [
+            'title' => 'Forgot Password?',
+            'subtitle' => 'No worries! Enter your email and we\'ll send you a reset link.',
+            'email_address' => 'Email Address',
+            'email_placeholder' => 'Enter your email address',
+            'email_sent_title' => 'Reset Email Sent!',
+            'sending_email' => 'Sending Email...',
+            'send_reset_link' => 'Send Password Reset Link',
+            'back_to_login' => 'Back to Login',
+            'security_info_title' => 'Account Security',
+            'security_info_text' => 'For your security, password reset links expire after 60 minutes. If you don\'t receive an email, check your spam folder.',
         ],
     ],
 
@@ -446,6 +595,21 @@ return [
         'subject' => 'Subject',
         'address' => 'Address',
         'address_placeholder' => 'Enter your address',
+        'creating' => 'Creating...',
+    ],
+
+    // Form actions
+    'form' => [
+        'first_name' => 'First Name',
+        'last_name' => 'Last Name',
+        'email' => 'Email',
+        'password' => 'Password',
+        'confirm_password' => 'Confirm Password',
+        'enter_first_name' => 'Enter your first name',
+        'enter_last_name' => 'Enter your last name',
+        'enter_email' => 'Enter your email address',
+        'enter_password' => 'Enter your password',
+        'creating' => 'Creating...',
     ],
 
     // Common messages
@@ -481,6 +645,15 @@ return [
         'no_achievements_yet' => 'No achievements yet',
         'keep_learning' => 'Keep learning to unlock them!',
 
+        // Program Completion
+        'congratulations' => 'Congratulations!',
+        'program_completed_message' => 'You have successfully completed the program:',
+        'program_master' => 'Program Master',
+        'explore_other_programs' => 'Explore Other Programs',
+        'ready_for_next_adventure' => 'Ready to start your next learning adventure?',
+        'start_learning' => 'Start Learning',
+        'reviews' => 'reviews',
+
         // Next Class Card
         'next_class' => 'Next Class',
         'stay_connected' => 'Stay connected with your learning journey',
@@ -503,10 +676,41 @@ return [
         'click_to_join' => 'Click the button below to join your class',
         'join_meeting' => 'Join Meeting',
 
-        // Notifications
-        'notifications' => 'Notifications',
-        'unread' => 'unread',
-        'no_notifications' => 'No notifications yet',
+        // Notifications section
+        'notifications' => [
+            'notifications' => 'Notifications',
+            'unread' => 'unread',
+            'no_notifications' => 'No notifications yet',
+
+            // Enrollment notifications
+            'new_enrollment_request' => 'New Enrollment Request',
+            'enrollment_approved' => 'Enrollment Approved',
+            'enrollment_rejected' => 'Enrollment Rejected',
+            'enrollment_update' => 'Enrollment Update',
+            'enrollment_updated' => 'Your enrollment has been updated',
+            'enrollment_pending_message' => 'Your enrollment request for :program is being reviewed',
+            'enrollment_approved_message' => 'Congratulations! Your enrollment for :program has been approved',
+            'enrollment_rejected_message' => 'Your enrollment request for :program has been rejected',
+
+            // Class scheduling notifications
+            'class_scheduled' => 'Class Scheduled',
+            'class_scheduled_message' => 'A new class has been scheduled for :program on :date at :time',
+            'class_rescheduled' => 'Class Rescheduled',
+            'class_rescheduled_message' => 'Your class for :program has been rescheduled to :date at :time',
+            'class_cancelled' => 'Class Cancelled',
+            'class_cancelled_message' => 'Your class for :program on :date has been cancelled',
+            'class_completed' => 'Class Completed',
+            'class_completed_message' => 'Your class for :program has been completed',
+            'class_reminder' => 'Class Reminder',
+            'class_reminder_message' => 'Your class for :program starts in :time',
+            'class_update' => 'Class Update',
+            'class_schedule_updated' => 'Your class schedule has been updated',
+
+            // Lesson notifications
+            'next_lesson_available' => 'Next Lesson Available',
+            'next_lesson_message' => 'Your next lesson for :program is now available',
+            'next_lesson_with_class' => 'You have a scheduled class on :date at :time',
+        ],
         'welcome_back' => 'Welcome back',
 
         // General dashboard
@@ -541,6 +745,7 @@ return [
         'locked_generic' => 'Locked',
         'review' => 'Review',
         'start' => 'Start',
+        'loading' => 'Loading...',
         'completed' => 'Completed',
         'in_progress' => 'In Progress',
         'available' => 'Available',
@@ -561,6 +766,42 @@ return [
         'rejected' => 'Application Rejected',
         'approved' => 'Approved',
         'enrollment_pending_other' => 'Another enrollment pending',
+        'complete_current_program' => 'Complete current program first',
+        'ready_to_enroll' => 'Ready to Enroll?',
+        'start_learning_journey' => 'Start Your Learning Journey',
+        'explore_programs_below' => 'Explore the programs below and choose the perfect adventure for you!',
+        'click_explore_to_enroll' => 'Click "Explore Adventure" to view details and enroll',
+
+        // Program switching modal
+        'enrollment_switch_warning_title' => 'Switch Programs?',
+        'enrollment_switch_warning_subtitle' => 'This will affect your current dashboard',
+        'current_program' => 'Current Program',
+        'will_be_marked_completed' => 'Will be marked as completed',
+        'new_program' => 'New Program',
+        'new_dashboard' => 'New dashboard',
+        'important_notice' => 'Important Notice:',
+        'current_dashboard_disappear' => 'Your current program dashboard will disappear after enrollment',
+        'program_marked_finished' => 'Your current program will be marked as finished',
+        'new_dashboard_after_approval' => 'You will get a new dashboard after the enrollment is approved',
+        'yes_switch_programs' => 'Yes, Switch Programs',
+        'program_switched_title' => 'Program Switched Successfully!',
+        'program_switch_success' => 'Program switched successfully! You\'re now on the waiting list for :program.',
+
+        // Pending enrollment / waiting list
+        'enrollment_request_pending' => 'You\'re on the Waiting List!',
+        'enrollment_request_sent' => 'Your enrollment request for :program has been submitted.',
+        'enrollment_review_message' => 'We\'ll review your application and get back to you soon.',
+        'return_to_demo' => 'Return to Demo',
+        'continue_exploring_approval' => 'Continue exploring while waiting for approval',
+        'demo_expired_message' => 'Your demo access has expired. You can still browse programs and enroll for full access.',
+        'cancel_enrollment_request' => 'Cancel enrollment request',
+        'cancel_enrollment_title' => 'Cancel Enrollment Request?',
+        'cancel_enrollment_confirm' => 'Are you sure you want to cancel your enrollment request for :program?',
+        'keep_request' => 'Keep Request',
+        'yes_cancel' => 'Yes, Cancel',
+        'canceling' => 'Canceling...',
+        'error_occurred' => 'An error occurred',
+        'requested_on' => 'Requested on',
 
         // Abacus Simulator
         'abacus' => 'Abacus',
@@ -621,6 +862,9 @@ return [
         'resource_preview_not_available' => 'Resource preview not available',
         'required' => 'Required',
         'download' => 'Download',
+        'title' => 'lessons',
+        'content' => 'Lesson Content',
+        'start_lesson' => 'Start Lesson',
     ],
 
     // Schedule page
@@ -656,6 +900,9 @@ return [
         'today' => 'Today',
         'tomorrow' => 'Tomorrow',
         'yesterday' => 'Yesterday',
+        'days_remaining' => 'days remaining',
+        'minutes' => 'minutes',
+        'min' => 'min',
     ],
 
     // Profile page
@@ -928,5 +1175,185 @@ return [
         'data_protected' => 'Data Protected',
         'safe_environment' => 'Safe Environment',
         'trusted_by_families' => 'Trusted by 50+ families',
+    ],
+
+    // Legal pages
+    'legal' => [
+        // Privacy Policy
+        'privacy_policy' => [
+            'title' => 'Privacy Policy',
+            'subtitle' => 'Your privacy and security are our top priorities',
+            'last_updated' => 'Last Updated',
+            'intro' => 'At Abacoding, we are committed to protecting the privacy and security of our users, especially children and their families. This Privacy Policy explains how we collect, use, protect, and share information when you use our educational platform. We believe in transparency and want you to understand exactly how your data is handled.',
+
+            'information_collect' => 'Information We Collect',
+            'information_collect_content' => [
+                'Personal Information: Name, email address, age, and parent/guardian contact information when creating an account.',
+                'Educational Data: Progress tracking, lesson completion status, quiz scores, and learning preferences.',
+                'Usage Information: How you interact with our platform, time spent on lessons, and feature usage patterns.',
+                'Device Information: IP address, browser type, operating system, and device specifications for security and optimization.',
+            ],
+
+            'how_we_use' => 'How We Use Your Information',
+            'how_we_use_content' => [
+                'Provide and improve our educational services and platform functionality.',
+                'Track learning progress and customize educational content to individual needs.',
+                'Communicate with students and parents about account status, updates, and educational opportunities.',
+                'Ensure platform security, prevent fraud, and protect user safety.',
+                'Analyze usage patterns to enhance user experience and develop new features.',
+                'Comply with legal obligations and protect our rights and interests.',
+            ],
+
+            'information_sharing' => 'Information Sharing',
+            'information_sharing_content' => [
+                'We do NOT sell, rent, or trade personal information to third parties for marketing purposes.',
+                'Parent/Guardian Access: Parents and guardians have full access to their child\'s educational data and progress.',
+                'Service Providers: We may share data with trusted third-party service providers who help us operate our platform (hosting, analytics, customer support).',
+                'Legal Requirements: We may disclose information when required by law, court order, or to protect rights and safety.',
+                'Business Transfers: In the event of a merger or acquisition, user data may be transferred with appropriate notice.',
+            ],
+
+            'data_security' => 'Data Security',
+            'data_security_content' => [
+                'We implement industry-standard security measures including encryption, secure servers, and access controls.',
+                'All sensitive data is encrypted in transit and at rest using advanced cryptographic protocols.',
+                'Regular security audits and monitoring to protect against unauthorized access or data breaches.',
+                'Employee training on data protection and strict access controls based on job responsibilities.',
+                'Secure backup systems to prevent data loss while maintaining privacy protections.',
+            ],
+
+            'data_retention' => 'Data Retention',
+            'data_retention_content' => [
+                'Educational progress data is retained for the duration of active enrollment plus 3 years for educational records.',
+                'Account information is retained as long as the account remains active.',
+                'Inactive accounts may be deleted after 2 years of inactivity with prior notice.',
+                'Users can request data deletion at any time, subject to legal retention requirements.',
+                'Backup data is securely deleted according to our data retention schedule.',
+            ],
+
+            'children_privacy' => 'Children\'s Privacy (COPPA Compliance)',
+            'children_privacy_content' => [
+                'We are committed to protecting children\'s privacy and comply with COPPA regulations.',
+                'Parental consent is required before collecting personal information from children under 13.',
+                'Parents have the right to review, modify, or delete their child\'s personal information.',
+                'We do not require children to disclose more information than necessary to participate in activities.',
+                'Parents can contact us to review what information we have collected from their child.',
+            ],
+
+            'your_rights' => 'Your Rights & Choices',
+            'access_data' => 'Access Your Data',
+            'access_data_desc' => 'Request a copy of all personal information we have about you.',
+            'correct_info' => 'Correct Information',
+            'correct_info_desc' => 'Update or correct any inaccurate personal information.',
+            'delete_data' => 'Delete Your Data',
+            'delete_data_desc' => 'Request deletion of your personal information (subject to legal requirements).',
+            'data_portability' => 'Data Portability',
+            'data_portability_desc' => 'Export your data in a commonly used, machine-readable format.',
+
+            'questions_privacy' => 'Questions About Your Privacy?',
+            'contact_desc' => 'If you have any questions about this Privacy Policy or how we handle your data, please don\'t hesitate to contact us.',
+            'email_us' => 'Email Us',
+            'call_us' => 'Call Us',
+            'response_time' => 'We typically respond to privacy inquiries within 48 hours.',
+        ],
+
+        // Terms of Service
+        'terms_of_service' => [
+            'title' => 'Terms of Service',
+            'subtitle' => 'Clear guidelines for using our educational platform',
+            'last_updated' => 'Last Updated',
+            'intro' => 'Welcome to Abacoding! These Terms of Service ("Terms") govern your access to and use of our educational platform. By using Abacoding, you agree to these terms, so please read them carefully. We\'ve written these terms to be as clear and straightforward as possible while ensuring both your rights and ours are protected.',
+
+            'acceptance_eligibility' => 'Acceptance and Eligibility',
+            'acceptance_eligibility_content' => [
+                'By accessing or using Abacoding, you agree to be bound by these Terms of Service and all applicable laws.',
+                'If you are under 18, your parent or guardian must accept these terms on your behalf.',
+                'You must provide accurate, current, and complete information when creating an account.',
+                'You are responsible for maintaining the security and confidentiality of your account credentials.',
+                'Each user may only maintain one active account unless explicitly authorized by us.',
+            ],
+
+            'educational_services' => 'Educational Services',
+            'educational_services_content' => [
+                'Abacoding provides online educational content including mathematics, coding, and other subjects for children.',
+                'We strive to provide high-quality educational content but cannot guarantee specific learning outcomes.',
+                'Content is designed for educational purposes and should supplement, not replace, formal education.',
+                'Access to certain features may require enrollment in specific programs or payment of applicable fees.',
+                'We reserve the right to modify, update, or discontinue educational content with reasonable notice.',
+            ],
+
+            'user_responsibilities' => 'User Responsibilities',
+            'user_responsibilities_content' => [
+                'Use the platform solely for educational purposes in accordance with these terms.',
+                'Respect other users and maintain appropriate online behavior at all times.',
+                'Do not share account credentials or allow unauthorized access to your account.',
+                'Report any technical issues, inappropriate content, or violations of these terms promptly.',
+                'Ensure that any content you submit (reviews, comments) is appropriate and lawful.',
+                'Parents/guardians are responsible for supervising their child\'s use of the platform.',
+            ],
+
+            'prohibited_activities' => 'Prohibited Activities',
+            'prohibited_activities_content' => [
+                'Attempting to hack, interfere with, or gain unauthorized access to our systems.',
+                'Using the platform for any commercial purpose without explicit written permission.',
+                'Sharing inappropriate, harmful, or illegal content through our platform.',
+                'Harassing, bullying, or engaging in any form of inappropriate behavior toward other users.',
+                'Attempting to circumvent payment systems or access paid content without authorization.',
+                'Using automated tools or bots to access or interact with our platform.',
+                'Violating any applicable laws or regulations while using our services.',
+            ],
+
+            'payment_billing' => 'Payment and Billing',
+            'payment_billing_content' => [
+                'Some educational programs require payment of fees as displayed during enrollment.',
+                'All fees are charged in advance and are non-refundable except as required by law.',
+                'We reserve the right to change pricing with 30 days advance notice to existing users.',
+                'Payment information is processed securely through third-party payment processors.',
+                'Failure to pay applicable fees may result in suspension or termination of access.',
+                'Refund requests must be submitted within 14 days of purchase and will be reviewed case by case.',
+            ],
+
+            'intellectual_property' => 'Intellectual Property',
+            'intellectual_property_content' => [
+                'All content, including text, graphics, videos, software, and educational materials, is owned by Abacoding or our licensors.',
+                'Users are granted a limited, non-exclusive license to access and use content for personal educational purposes only.',
+                'You may not copy, distribute, modify, or create derivative works from our content without permission.',
+                'User-generated content (reviews, progress data) remains yours, but you grant us permission to use it to improve our services.',
+                'We respect intellectual property rights and will respond to valid DMCA takedown notices.',
+            ],
+
+            'privacy_data_protection' => 'Privacy and Data Protection',
+            'privacy_data_protection_content' => [
+                'Our collection and use of personal information is governed by our Privacy Policy, which is incorporated into these terms.',
+                'We implement appropriate security measures to protect user data and educational records.',
+                'Educational progress and performance data may be shared with parents/guardians as applicable.',
+                'We comply with COPPA and other applicable privacy laws regarding children\'s information.',
+                'Users may request access to, correction of, or deletion of their personal information subject to legal requirements.',
+            ],
+
+            'limitation_liability' => 'Limitation of Liability',
+            'limitation_liability_content' => [
+                'Abacoding is provided "as is" without warranties of any kind, express or implied.',
+                'We do not guarantee uninterrupted access or that the platform will be error-free.',
+                'Our liability is limited to the amount paid by you in the 12 months preceding any claim.',
+                'We are not liable for indirect, incidental, or consequential damages arising from your use.',
+                'Some jurisdictions do not allow limitation of liability, so these limitations may not apply to you.',
+                'You agree to indemnify and hold us harmless from claims arising from your violation of these terms.',
+            ],
+
+            'important_info' => 'Important Information',
+            'termination' => 'Termination',
+            'termination_desc' => 'We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. Upon termination, your right to use the service will cease immediately.',
+            'changes_terms' => 'Changes to Terms',
+            'changes_terms_desc' => 'We reserve the right to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect.',
+            'governing_law' => 'Governing Law',
+            'governing_law_desc' => 'These Terms shall be interpreted and governed by the laws of the State of [Your State], without regard to conflict of law provisions. Any disputes will be resolved in the courts of [Your Jurisdiction].',
+
+            'questions_terms' => 'Questions About These Terms?',
+            'questions_terms_desc' => 'If you have any questions about these Terms of Service, please contact us. We\'re here to help clarify anything that might be unclear.',
+            'email_support' => 'Email Support',
+            'legal_department' => 'Legal Department',
+            'terms_agreement' => 'By continuing to use Abacoding after any changes to these Terms, you agree to the revised Terms. We encourage you to review these Terms periodically.',
+        ],
     ],
 ];

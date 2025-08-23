@@ -23,7 +23,6 @@ import {
     Facebook,
     Instagram,
     Linkedin,
-    Twitter,
     ChevronRight,
     Sparkles
 } from "lucide-react";
@@ -106,7 +105,7 @@ export default function ContactUs({ auth }) {
             <GuestFrontLayout auth={auth}>
                 <div className="bg-white text-gray-800 overflow-hidden">
                     {/* Modern Hero Section */}
-                    <section className="relative min-h-screen flex items-center justify-center px-6 py-24 overflow-hidden">
+                    <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 py-16 sm:py-24 overflow-hidden">
                         {/* Animated Background */}
                         <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
                             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
@@ -117,36 +116,35 @@ export default function ContactUs({ auth }) {
                         <div className="relative z-10 max-w-6xl mx-auto text-center">
                             {/* Badge */}
                             <motion.div
-                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border border-purple-200 mb-8"
+                                className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border border-purple-200 mb-6 sm:mb-8 max-w-xs sm:max-w-md mx-auto"
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.6 }}
                             >
-                                <MessageCircle className="text-purple-600 mr-2" size={20} />
-                                <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                <MessageCircle className="text-purple-600 mr-2 flex-shrink-0" size={16} />
+                                <span className="text-xs sm:text-sm font-semibold text-purple-600 sm:bg-gradient-to-r sm:from-purple-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent text-center leading-tight">
                                     {t('contact.hero_badge')}
                                 </span>
                             </motion.div>
 
                             {/* Main Headlines */}
                             <motion.h1
-                                className="text-6xl md:text-8xl font-black mb-8 leading-tight"
+                                className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black mb-6 sm:mb-8 leading-tight px-4"
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, duration: 0.8 }}
                             >
-                                <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                                <span className="block text-gray-900 sm:bg-gradient-to-r sm:from-gray-900 sm:to-gray-700 sm:bg-clip-text sm:text-transparent">
                                     {t('contact.hero_title_1')}
                                 </span>
-                                <br />
-                                <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                                <span className="block text-gray-900 sm:bg-gradient-to-r sm:from-purple-600 sm:via-pink-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent">
                                     {t('contact.hero_title_2')}
                                 </span>
                             </motion.h1>
 
                             {/* Subtitle */}
                             <motion.p
-                                className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed"
+                                className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-12 max-w-4xl mx-auto leading-relaxed px-4"
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.6, duration: 0.8 }}
@@ -157,7 +155,7 @@ export default function ContactUs({ auth }) {
 
                             {/* Quick Contact Options */}
                             <motion.div
-                                className="grid md:grid-cols-3 gap-6 mb-16"
+                                className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-12 sm:mb-16 px-4"
                                 initial={{ opacity: 0, y: 40 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.8, duration: 0.8 }}
@@ -169,16 +167,16 @@ export default function ContactUs({ auth }) {
                                 ].map((option, index) => (
                                     <motion.div
                                         key={index}
-                                        className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                                        className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 cursor-pointer group"
                                         whileHover={{ scale: 1.05, y: -5 }}
                                         onClick={option.onClick}
                                     >
-                                        <option.icon className="text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" size={32} />
-                                        <h3 className="text-xl font-bold text-gray-800 mb-2">{option.title}</h3>
-                                        <p className="text-gray-600 text-sm mb-4">{option.desc}</p>
-                                        <div className="text-purple-600 font-semibold text-sm group-hover:text-purple-700 flex items-center justify-center">
+                                        <option.icon className="text-purple-600 mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300" size={24} />
+                                        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 text-center">{option.title}</h3>
+                                        <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 text-center leading-relaxed">{option.desc}</p>
+                                        <div className="text-purple-600 font-semibold text-xs sm:text-sm group-hover:text-purple-700 flex items-center justify-center">
                                             <span>{option.action}</span>
-                                            <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform duration-300" />
+                                            <ChevronRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform duration-300 flex-shrink-0" />
                                         </div>
                                     </motion.div>
                                 ))}
@@ -187,21 +185,21 @@ export default function ContactUs({ auth }) {
                     </section>
 
                     {/* Modern Contact Form Section */}
-                    <section id="contact-form" className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+                    <section id="contact-form" className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-br from-gray-50 to-white">
                         <div className="max-w-7xl mx-auto">
-                            <div className="grid lg:grid-cols-2 gap-16 items-start">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start">
                                 {/* Contact Form */}
                                 <motion.div
                                     initial={{ opacity: 0, x: -50 }}
                                     whileInView={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.8 }}
-                                    className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100"
+                                    className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-gray-100"
                                 >
-                                    <div className="text-center mb-8">
-                                        <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+                                    <div className="text-center mb-6 sm:mb-8">
+                                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 sm:bg-gradient-to-r sm:from-purple-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent mb-3 sm:mb-4">
                                             {t('contact.send_message_title')}
                                         </h2>
-                                        <p className="text-gray-600 leading-relaxed">
+                                        <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
                                             {t('contact.form_subtitle')}
                                         </p>
                                     </div>
@@ -314,11 +312,11 @@ export default function ContactUs({ auth }) {
                                         {/* Submit Button */}
                                         <motion.button
                                             type="submit"
-                                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2"
+                                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2"
                                             whileHover={{ scale: 1.02, y: -2 }}
                                             whileTap={{ scale: 0.98 }}
                                         >
-                                            <Send size={20} />
+                                            <Send size={18} />
                                             <span>{t('contact.send_message')}</span>
                                         </motion.button>
                                     </form>
@@ -333,16 +331,16 @@ export default function ContactUs({ auth }) {
                                     className="space-y-8"
                                 >
                                     <div className="text-center lg:text-left">
-                                        <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-6">
+                                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 sm:bg-gradient-to-r sm:from-purple-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent mb-4 sm:mb-6">
                                             {t('contact.get_in_touch')}
                                         </h2>
-                                        <p className="text-xl text-gray-600 leading-relaxed mb-12">
+                                        <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8 sm:mb-12">
                                             {t('contact.contact_subtitle')}
                                         </p>
                                     </div>
 
                                     {/* Contact Info Cards */}
-                                    <div className="space-y-6">
+                                    <div className="space-y-4 sm:space-y-6">
                                         {[
                                             {
                                                 icon: Mail,
@@ -374,17 +372,17 @@ export default function ContactUs({ auth }) {
                                         ].map((contact, index) => (
                                             <motion.div
                                                 key={index}
-                                                className={`${contact.bg} ${contact.border} border-2 rounded-2xl p-6 hover:shadow-lg transition-all duration-300`}
+                                                className={`${contact.bg} ${contact.border} border-2 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300`}
                                                 whileHover={{ scale: 1.02, y: -2 }}
                                             >
-                                                <div className="flex items-start space-x-4">
-                                                    <div className={`${contact.color} p-3 rounded-xl bg-white shadow-sm`}>
-                                                        <contact.icon size={24} />
+                                                <div className="flex items-start space-x-3 sm:space-x-4">
+                                                    <div className={`${contact.color} p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white shadow-sm flex-shrink-0`}>
+                                                        <contact.icon size={20} />
                                                     </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-bold text-gray-800 mb-1">{contact.title}</h3>
-                                                        <p className={`${contact.color} font-semibold text-lg mb-1`}>{contact.info}</p>
-                                                        <p className="text-gray-600 text-sm">{contact.desc}</p>
+                                                    <div className="min-w-0 flex-1">
+                                                        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-1">{contact.title}</h3>
+                                                        <p className={`${contact.color} font-semibold text-base sm:text-lg mb-1 break-words`}>{contact.info}</p>
+                                                        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{contact.desc}</p>
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -393,29 +391,28 @@ export default function ContactUs({ auth }) {
 
                                     {/* Social Media */}
                                     <motion.div
-                                        className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-white text-center"
+                                        className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white text-center"
                                         initial={{ opacity: 0, y: 20 }}
                                         whileInView={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.4, duration: 0.6 }}
                                     >
-                                        <h3 className="text-2xl font-bold mb-4">{t('contact.follow_journey')}</h3>
-                                        <p className="mb-6 opacity-90">{t('contact.social_subtitle')}</p>
+                                        <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">{t('contact.follow_journey')}</h3>
+                                        <p className="mb-4 sm:mb-6 opacity-90 text-sm sm:text-base leading-relaxed">{t('contact.social_subtitle')}</p>
                                         
-                                        <div className="flex justify-center space-x-6">
+                                        <div className="flex justify-center space-x-4 sm:space-x-6">
                                             {[
-                                                { icon: Facebook, color: "hover:bg-blue-700", url: "https://facebook.com/abacoding" },
+                                                { icon: Facebook, color: "hover:bg-blue-700", url: "https://www.facebook.com/people/Abacoding/100089891705337/" },
                                                 { icon: Instagram, color: "hover:bg-pink-700", url: "https://instagram.com/abacoding" },
-                                                { icon: Linkedin, color: "hover:bg-blue-800", url: "https://linkedin.com/company/abacoding" },
-                                                { icon: Twitter, color: "hover:bg-cyan-600", url: "https://twitter.com/abacoding" }
+                                                { icon: Linkedin, color: "hover:bg-blue-800", url: "https://linkedin.com/company/abacoding" }
                                             ].map((social, index) => (
                                                 <motion.button
                                                     key={index}
-                                                    className={`p-3 rounded-xl bg-white/20 ${social.color} transition-all duration-300`}
+                                                    className={`p-2 sm:p-3 rounded-lg sm:rounded-xl bg-white/20 ${social.color} transition-all duration-300`}
                                                     whileHover={{ scale: 1.1 }}
                                                     whileTap={{ scale: 0.9 }}
                                                     onClick={() => window.open(social.url, '_blank', 'noopener,noreferrer')}
                                                 >
-                                                    <social.icon size={24} />
+                                                    <social.icon size={20} />
                                                 </motion.button>
                                             ))}
                                         </div>
@@ -426,22 +423,22 @@ export default function ContactUs({ auth }) {
                     </section>
 
                     {/* Why Choose Us to Contact Section */}
-                    <section className="py-24 px-6 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 text-white">
+                    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 text-white">
                         <div className="max-w-6xl mx-auto text-center">
                             <motion.div
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8 }}
                             >
-                                <h2 className="text-5xl font-extrabold mb-8">
+                                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-6 sm:mb-8 px-4">
                                     {t('contact.why_choose_title')}
                                 </h2>
-                                <p className="text-xl mb-16 max-w-3xl mx-auto leading-relaxed opacity-90">
+                                <p className="text-base sm:text-lg md:text-xl mb-12 sm:mb-16 max-w-3xl mx-auto leading-relaxed opacity-90 px-4">
                                     {t('contact.why_choose_subtitle')}
                                 </p>
                             </motion.div>
 
-                            <div className="grid md:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 px-4">
                                 {[
                                     { icon: Heart, title: t('contact.personal_care'), desc: t('contact.personal_care_desc') },
                                     { icon: Star, title: t('contact.proven_results'), desc: t('contact.proven_results_desc') },
@@ -450,35 +447,35 @@ export default function ContactUs({ auth }) {
                                 ].map((reason, index) => (
                                     <motion.div
                                         key={index}
-                                        className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+                                        className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/20"
                                         initial={{ opacity: 0, y: 30 }}
                                         whileInView={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.2, duration: 0.8 }}
                                         whileHover={{ scale: 1.05 }}
                                     >
-                                        <reason.icon className="mx-auto mb-4 text-yellow-300" size={40} />
-                                        <h3 className="text-xl font-bold mb-3">{reason.title}</h3>
-                                        <p className="opacity-90 leading-relaxed text-sm">{reason.desc}</p>
+                                        <reason.icon className="mx-auto mb-3 sm:mb-4 text-yellow-300" size={32} />
+                                        <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-center">{reason.title}</h3>
+                                        <p className="opacity-90 leading-relaxed text-xs sm:text-sm text-center">{reason.desc}</p>
                                     </motion.div>
                                 ))}
                             </div>
 
                             <motion.div
-                                className="mt-16"
+                                className="mt-12 sm:mt-16 px-4"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.6, duration: 0.8 }}
                             >
-                                <p className="text-2xl font-semibold mb-8">
+                                <p className="text-lg sm:text-xl md:text-2xl font-semibold mb-6 sm:mb-8 leading-relaxed">
                                     {t('contact.ready_question')}
                                 </p>
                                 <motion.button
-                                    className="bg-white text-purple-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 inline-flex items-center space-x-2"
+                                    className="bg-white text-purple-600 hover:bg-gray-100 font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 inline-flex items-center space-x-2"
                                     whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => window.dispatchEvent(new CustomEvent('openChat'))}
                                 >
-                                    <Sparkles size={20} />
+                                    <Sparkles size={18} />
                                     <span>{t('contact.start_conversation')}</span>
                                 </motion.button>
                             </motion.div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DemoRegistrationRequest;
 use App\Models\Enrollment;
 use App\Models\Program;
 use App\Models\User;
@@ -69,39 +70,65 @@ class DemoController extends Controller
     /**
      * Create regular account and start demo access
      */
-    public function createDemoAccount(Request $request, $programSlug)
+    public function createDemoAccount(DemoRegistrationRequest $request, $programSlug)
     {
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+        // Log the request for debugging
+        \Log::info('Demo account creation attempt', [
+            'program_slug' => $programSlug,
+            'user_agent' => $request->header('User-Agent'),
+            'ip' => $request->ip(),
+            'has_csrf' => $request->hasHeader('X-CSRF-TOKEN') || $request->has('_token'),
+            'content_type' => $request->header('Content-Type'),
         ]);
+
+        // Get validated data from the form request
+        $validated = $request->validated();
 
         $program = Program::where('slug', $programSlug)->firstOrFail();
 
-        // Create new user account with demo access
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'name' => $request->first_name.' '.$request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'language_preference' => app()->getLocale(),
-            'language_selected' => true,
-            'email_verified_at' => now(), // Auto-verify demo accounts
-        ]);
+        try {
+            // Create new user account with demo access
+            $user = User::create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'name' => $validated['first_name'].' '.$validated['last_name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'language_preference' => app()->getLocale(),
+                'language_selected' => true,
+                'email_verified_at' => now(), // Auto-verify demo accounts
+            ]);
 
-        // Assign student role
-        $user->assignRole('student');
+            // Assign student role
+            $user->assignRole('student');
 
-        // Start demo access
-        $user->startDemo($programSlug);
+            // Start demo access
+            $user->startDemo($programSlug);
 
-        // Login the user
-        Auth::login($user);
+            // Login the user
+            Auth::login($user);
 
-        return redirect()->route('demo.dashboard', $programSlug);
+            \Log::info('Demo account created successfully', [
+                'user_id' => $user->id,
+                'program_slug' => $programSlug,
+                'email' => $user->email,
+            ]);
+
+            return redirect()->route('demo.dashboard', $programSlug)
+                ->with('success', 'Welcome! Your demo account has been created.');
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to create demo user', [
+                'program_slug' => $programSlug,
+                'email' => $validated['email'] ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()
+                ->withErrors(['email' => 'Failed to create demo account. Please try again or contact support.'])
+                ->withInput($request->except(['password', 'password_confirmation']));
+        }
     }
 
     /**
@@ -183,8 +210,8 @@ class DemoController extends Controller
 
             $formattedLesson = [
                 'id' => $firstLesson->id,
-                'title' => $firstLesson->title,
-                'description' => $firstLesson->description,
+                'title' => $firstLesson->translated_title,
+                'description' => $firstLesson->translated_description,
                 'level' => $firstLesson->level,
                 'order_in_level' => $firstLesson->order_in_level,
                 'content_type' => $firstLesson->content_type,
@@ -212,8 +239,8 @@ class DemoController extends Controller
             ->map(function ($lesson) {
                 return [
                     'id' => $lesson->id,
-                    'title' => $lesson->title,
-                    'description' => $lesson->description,
+                    'title' => $lesson->translated_title,
+                    'description' => $lesson->translated_description,
                     'level' => $lesson->level,
                     'order_in_level' => $lesson->order_in_level,
                     'duration_minutes' => $lesson->duration_minutes,

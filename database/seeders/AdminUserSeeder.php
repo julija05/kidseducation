@@ -17,12 +17,16 @@ class AdminUserSeeder extends Seeder
         // Create admin role if it doesn't exist
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
 
+        // Create student role if it doesn't exist
+        Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
+
         // Create admin user if it doesn't exist
         $admin = User::firstOrCreate(
-            ['email' => 'admin@test.com'],
+            ['email' => env('ADMIN_EMAIL', 'admin@abacoding.com')],
             [
-                'name' => 'Admin User',
-                'password' => Hash::make('password'),
+                'name' => env('ADMIN_NAME', 'Abacoding Admin'),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'defaultpassword123')),
+                'email_verified_at' => now(),
             ]
         );
 

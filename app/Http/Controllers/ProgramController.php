@@ -125,6 +125,7 @@ class ProgramController extends Controller
         $userReview = null;
         $hasAnyEnrollment = false;
         $hasAnyActiveEnrollment = false;
+        $currentEnrollment = null;
 
         if (Auth::user() && Auth::user()->hasRole('student')) {
             $user = Auth::user();
@@ -140,6 +141,15 @@ class ProgramController extends Controller
                 ->whereIn('approval_status', ['pending', 'approved'])
                 ->where('status', '!=', 'completed')
                 ->exists();
+
+            // Get the current active enrollment for warning modal
+            if ($hasAnyActiveEnrollment) {
+                $currentEnrollment = $user->enrollments()
+                    ->with('program')
+                    ->whereIn('approval_status', ['pending', 'approved'])
+                    ->where('status', '!=', 'completed')
+                    ->first();
+            }
 
             // Debug: Log enrollment data for individual program show
             Log::info('User enrollment for program show:', [
@@ -209,6 +219,17 @@ class ProgramController extends Controller
             ] : null,
             'hasAnyEnrollment' => $hasAnyEnrollment,
             'hasAnyActiveEnrollment' => $hasAnyActiveEnrollment,
+            'currentEnrollment' => $currentEnrollment ? [
+                'id' => $currentEnrollment->id,
+                'approval_status' => $currentEnrollment->approval_status,
+                'status' => $currentEnrollment->status,
+                'program' => [
+                    'id' => $currentEnrollment->program->id,
+                    'name' => $currentEnrollment->program->name,
+                    'translated_name' => $currentEnrollment->program->translated_name,
+                    'slug' => $currentEnrollment->program->slug,
+                ],
+            ] : null,
             'canReview' => $canReview,
             'userReview' => $userReview ? [
                 'id' => $userReview->id,
