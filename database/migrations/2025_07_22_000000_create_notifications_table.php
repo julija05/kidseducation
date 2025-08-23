@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
+        if (!Schema::hasTable('notifications')) {
+            Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->text('message');
-            $table->string('type'); // 'enrollment', 'general', etc.
+            $table->string('type', 50); // 'enrollment', 'general', etc.
             $table->json('data')->nullable(); // Additional data
             $table->boolean('is_read')->default(false);
-            $table->string('related_model_type')->nullable();
+            $table->string('related_model_type', 191)->nullable();
             $table->unsignedBigInteger('related_model_id')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -27,7 +28,8 @@ return new class extends Migration
             $table->index(['is_read', 'created_at']);
             $table->index(['type', 'created_at']);
             $table->index(['related_model_type', 'related_model_id']);
-        });
+            });
+        }
     }
 
     /**

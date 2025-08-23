@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lessons', function (Blueprint $table) {
+        if (!Schema::hasTable('lessons')) {
+            Schema::create('lessons', function (Blueprint $table) {
             $table->id();
             $table->foreignId('program_id')->constrained()->onDelete('cascade');
             $table->integer('level')->default(1);
@@ -29,7 +30,8 @@ return new class extends Migration
             // Indexes
             $table->index(['program_id', 'level', 'order_in_level']);
             $table->index(['program_id', 'is_active']);
-        });
+            });
+        }
     }
 
     /**
