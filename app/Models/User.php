@@ -176,7 +176,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         // Get demo duration from config, default to 7 days
         $durationMinutes = config('demo.duration_minutes', 7 * 24 * 60);
-        
+
         $this->update([
             'is_demo_account' => false, // Keep as false since this is regular user with demo access
             'demo_created_at' => now(),

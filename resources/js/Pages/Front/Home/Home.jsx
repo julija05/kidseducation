@@ -91,7 +91,7 @@ const Home = ({ auth }) => {
             <GuestFrontLayout auth={auth}>
                 <div className="relative overflow-hidden">
                 {/* Modern Hero Section */}
-                <section className="min-h-screen flex flex-col items-center justify-center px-6 py-24 relative z-10 max-w-7xl mx-auto text-center">
+                <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 py-16 sm:py-24 relative z-10 max-w-7xl mx-auto text-center">
                     
                     {/* Floating Background Elements */}
                     <div className="absolute inset-0 overflow-hidden -z-10">
@@ -187,20 +187,20 @@ const Home = ({ auth }) => {
                     >
                         {/* Dynamic Badge */}
                         <motion.div
-                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full border border-blue-200 mb-8 max-w-md mx-auto"
+                            className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full border border-blue-200 mb-6 sm:mb-8 max-w-xs sm:max-w-md mx-auto"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2, duration: 0.6 }}
                         >
-                            <Sparkles className="text-purple-600 mr-2 flex-shrink-0" size={20} />
-                            <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center leading-tight">
+                            <Sparkles className="text-purple-600 mr-2 flex-shrink-0" size={16} />
+                            <span className="text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center leading-tight">
                                 {t('home.trusted_by_families', { count: 50 })}
                             </span>
                         </motion.div>
 
                         {/* Main Headline */}
                         <motion.h1 
-                            className="text-6xl md:text-8xl font-black mb-6 leading-tight"
+                            className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black mb-6 leading-tight px-4"
                             initial={{ opacity: 0, y: 50 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4, duration: 0.8 }}
@@ -230,7 +230,7 @@ const Home = ({ auth }) => {
                         >
                             <motion.p
                                 key={currentSlogan}
-                                className="text-2xl md:text-3xl font-bold text-gray-700"
+                                className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-700 px-4"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
@@ -242,7 +242,7 @@ const Home = ({ auth }) => {
 
                         {/* Subtitle */}
                         <motion.p
-                            className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed"
+                            className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed px-4"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8, duration: 0.8 }}
@@ -255,23 +255,23 @@ const Home = ({ auth }) => {
 
                         {/* CTA Buttons */}
                         <motion.div
-                            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
+                            className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 1, duration: 0.8 }}
                         >
                             <Link
                                 href={route("programs.index")}
-                                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-full text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-2"
+                                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full text-base sm:text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center space-x-2"
                             >
                                 <span>{t('home.start_learning_now')}</span>
-                                <ChevronRight size={20} />
+                                <ChevronRight size={18} />
                             </Link>
                             <Link
                                 href="#programs"
-                                className="border-2 border-gray-300 hover:border-purple-600 text-gray-700 hover:text-purple-600 font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-2"
+                                className="w-full sm:w-auto border-2 border-gray-300 hover:border-purple-600 text-gray-700 hover:text-purple-600 font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full text-base sm:text-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center space-x-2"
                             >
-                                <PlayCircle size={20} />
+                                <PlayCircle size={18} />
                                 <span>{t('home.watch_demo')}</span>
                             </Link>
                         </motion.div>
@@ -279,7 +279,7 @@ const Home = ({ auth }) => {
                         {/* Modern Animated Stats */}
                         <motion.div 
                             ref={statsRef}
-                            className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 w-full"
+                            className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 w-full max-w-4xl mx-auto px-4"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8, duration: 0.8 }}
@@ -342,23 +342,23 @@ const Home = ({ auth }) => {
                 </div>
 
                 {/* Modern Programs Showcase */}
-                <section id="programs" className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
+                <section id="programs" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
                     <div className="max-w-7xl mx-auto">
                         <motion.div
-                            className="text-center mb-20"
+                            className="text-center mb-12 sm:mb-16 lg:mb-20"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-8">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-gray-900 sm:bg-gradient-to-r sm:from-purple-600 sm:to-pink-600 sm:bg-clip-text sm:text-transparent mb-6 sm:mb-8 px-2 leading-tight">
                                 {t('home.transform_learning')}
                             </h2>
-                            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
                                 {t('home.revolutionary_programs')}
                             </p>
                         </motion.div>
 
-                        <div className="grid md:grid-cols-2 gap-16 items-center">
+                        <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-stretch">
                             {/* Math Mastery Program */}
                             <motion.div
                                 className="group"
@@ -367,18 +367,18 @@ const Home = ({ auth }) => {
                                 transition={{ duration: 0.8 }}
                                 whileHover={{ scale: 1.02 }}
                             >
-                                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 border border-blue-100 shadow-xl group-hover:shadow-2xl transition-all duration-500">
-                                    <div className="flex items-center mb-6">
-                                        <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-4 mr-4">
-                                            <Calculator className="text-white" size={32} />
+                                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-blue-100 shadow-xl group-hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
+                                    <div className="flex flex-col sm:flex-row sm:items-center mb-6">
+                                        <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-3 sm:p-4 mb-4 sm:mb-0 sm:mr-4 self-center sm:self-auto">
+                                            <Calculator className="text-white" size={28} />
                                         </div>
-                                        <div>
-                                            <h3 className="text-3xl font-bold text-gray-800">{t('home.math_mastery')}</h3>
-                                            <p className="text-gray-600">{t('home.abacus_subtitle')}</p>
+                                        <div className="text-center sm:text-left">
+                                            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800">{t('home.math_mastery')}</h3>
+                                            <p className="text-gray-600 text-sm sm:text-base">{t('home.abacus_subtitle')}</p>
                                         </div>
                                     </div>
                                     
-                                    <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                                    <p className="text-base sm:text-lg text-gray-700 mb-6 leading-relaxed flex-grow">
                                         {t('home.math_description')}
                                     </p>
 
@@ -402,15 +402,15 @@ const Home = ({ auth }) => {
                                         ))}
                                     </div>
 
-                                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-6 text-white">
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <p className="text-blue-100 text-sm">{t('home.perfect_for_ages')}</p>
-                                                <p className="text-2xl font-bold">{t('home.math_age_range')}</p>
+                                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl p-4 sm:p-6 text-white mt-auto">
+                                        <div className="flex flex-col sm:flex-row justify-between sm:items-center space-y-4 sm:space-y-0">
+                                            <div className="text-center sm:text-left">
+                                                <p className="text-blue-100 text-xs sm:text-sm">{t('home.perfect_for_ages')}</p>
+                                                <p className="text-xl sm:text-2xl font-bold">{t('home.math_age_range')}</p>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-blue-100 text-sm">{t('home.duration')}</p>
-                                                <p className="text-2xl font-bold">{t('home.math_levels')}</p>
+                                            <div className="text-center sm:text-right">
+                                                <p className="text-blue-100 text-xs sm:text-sm">{t('home.duration')}</p>
+                                                <p className="text-xl sm:text-2xl font-bold">{t('home.math_levels')}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -425,18 +425,18 @@ const Home = ({ auth }) => {
                                 transition={{ duration: 0.8 }}
                                 whileHover={{ scale: 1.02 }}
                             >
-                                <div className="bg-gradient-to-br from-pink-50 to-orange-50 rounded-3xl p-8 border border-pink-100 shadow-xl group-hover:shadow-2xl transition-all duration-500">
-                                    <div className="flex items-center mb-6">
-                                        <div className="bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl p-4 mr-4">
-                                            <Code className="text-white" size={32} />
+                                <div className="bg-gradient-to-br from-pink-50 to-orange-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-pink-100 shadow-xl group-hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
+                                    <div className="flex flex-col sm:flex-row sm:items-center mb-6">
+                                        <div className="bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl p-3 sm:p-4 mb-4 sm:mb-0 sm:mr-4 self-center sm:self-auto">
+                                            <Code className="text-white" size={28} />
                                         </div>
-                                        <div>
-                                            <h3 className="text-3xl font-bold text-gray-800">{t('home.coding_adventures')}</h3>
-                                            <p className="text-gray-600">{t('home.scratch_subtitle')}</p>
+                                        <div className="text-center sm:text-left">
+                                            <h3 className="text-2xl sm:text-3xl font-bold text-gray-800">{t('home.coding_adventures')}</h3>
+                                            <p className="text-gray-600 text-sm sm:text-base">{t('home.scratch_subtitle')}</p>
                                         </div>
                                     </div>
                                     
-                                    <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                                    <p className="text-base sm:text-lg text-gray-700 mb-6 leading-relaxed flex-grow">
                                         {t('home.coding_description')}
                                     </p>
 
@@ -460,15 +460,15 @@ const Home = ({ auth }) => {
                                         ))}
                                     </div>
 
-                                    <div className="bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl p-6 text-white">
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <p className="text-pink-100 text-sm">{t('home.perfect_for_ages')}</p>
-                                                <p className="text-2xl font-bold">{t('home.coding_age_range')}</p>
+                                    <div className="bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl p-4 sm:p-6 text-white mt-auto">
+                                        <div className="flex flex-col sm:flex-row justify-between sm:items-center space-y-4 sm:space-y-0">
+                                            <div className="text-center sm:text-left">
+                                                <p className="text-pink-100 text-xs sm:text-sm">{t('home.perfect_for_ages')}</p>
+                                                <p className="text-xl sm:text-2xl font-bold">{t('home.coding_age_range')}</p>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-pink-100 text-sm">{t('home.projects')}</p>
-                                                <p className="text-2xl font-bold">{t('home.coding_games')}</p>
+                                            <div className="text-center sm:text-right">
+                                                <p className="text-pink-100 text-xs sm:text-sm">{t('home.projects')}</p>
+                                                <p className="text-xl sm:text-2xl font-bold">{t('home.coding_games')}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -478,27 +478,27 @@ const Home = ({ auth }) => {
 
                         {/* Results Preview */}
                         <motion.div
-                            className="mt-20 text-center"
+                            className="mt-12 sm:mt-16 lg:mt-20 text-center"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4, duration: 0.8 }}
                         >
-                            <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-3xl p-12 border border-emerald-100">
-                                <h3 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-6">
+                            <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-emerald-100">
+                                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-6 sm:mb-8">
                                     {t('home.amazing_results')}
                                 </h3>
-                                <div className="grid md:grid-cols-3 gap-8 text-center">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
                                     <div>
-                                        <div className="text-5xl font-bold text-emerald-600 mb-2">3x</div>
-                                        <p className="text-gray-700">{t('home.faster_calculation')}</p>
+                                        <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-emerald-600 mb-2">3x</div>
+                                        <p className="text-sm sm:text-base text-gray-700">{t('home.faster_calculation')}</p>
                                     </div>
                                     <div>
-                                        <div className="text-5xl font-bold text-blue-600 mb-2">95%</div>
-                                        <p className="text-gray-700">{t('home.improvement_confidence')}</p>
+                                        <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-600 mb-2">95%</div>
+                                        <p className="text-sm sm:text-base text-gray-700">{t('home.improvement_confidence')}</p>
                                     </div>
                                     <div>
-                                        <div className="text-5xl font-bold text-purple-600 mb-2">100+</div>
-                                        <p className="text-gray-700">{t('home.creative_projects')}</p>
+                                        <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-purple-600 mb-2">100+</div>
+                                        <p className="text-sm sm:text-base text-gray-700">{t('home.creative_projects')}</p>
                                     </div>
                                 </div>
                             </div>

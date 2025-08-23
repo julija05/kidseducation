@@ -115,7 +115,6 @@ export default function ProgramContent({
             return; // Prevent multiple clicks
         }
 
-        console.log('Resource clicked:', resource);
         
         // Mark resource as processing
         setProcessingResources(prev => new Set(prev).add(resource.id));
@@ -137,7 +136,6 @@ export default function ProgramContent({
                     });
                 },
                 onSuccess: () => {
-                    console.log('Resource marked as viewed successfully');
                     // Remove from processing state after a delay
                     setTimeout(() => {
                         setProcessingResources(prev => {
@@ -152,22 +150,17 @@ export default function ProgramContent({
 
         // Handle different resource types
         if (resource.resource_url) {
-            console.log('Opening external URL:', resource.resource_url);
             // External URL - open in new tab
             window.open(resource.resource_url, "_blank");
         } else if (resource.download_url) {
-            console.log('Opening download URL:', resource.download_url);
             // Downloadable file
             window.open(resource.download_url, "_blank");
         } else if (resource.stream_url) {
-            console.log('Opening stream URL:', resource.stream_url);
             // Streamable content
             window.open(resource.stream_url, "_blank");
         } else {
-            console.log('No URL found for resource:', resource);
             // Try preview route
             const previewUrl = route('lesson-resources.preview', resource.id);
-            console.log('Trying preview URL:', previewUrl);
             window.open(previewUrl, '_blank');
         }
     };

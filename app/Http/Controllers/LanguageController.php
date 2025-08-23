@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Inertia\Inertia;
 
 class LanguageController extends Controller
 {
@@ -130,7 +129,7 @@ class LanguageController extends Controller
             // Also store in session for immediate effect
             Session::put('locale', $request->language);
             Session::save(); // Force session save
-            
+
             // Set application locale immediately for this response
             app()->setLocale($request->language);
 
@@ -144,23 +143,23 @@ class LanguageController extends Controller
             // Clean the referer URL by removing locale parameter to avoid conflicts
             $refererUrl = $request->header('referer', route('profile.edit'));
             $parsedUrl = parse_url($refererUrl);
-            
+
             if (isset($parsedUrl['query'])) {
                 parse_str($parsedUrl['query'], $queryParams);
                 // Remove locale parameter to avoid conflicts with user preference
                 unset($queryParams['locale']);
-                
+
                 $cleanUrl = ($parsedUrl['scheme'] ?? 'http').'://'.
                            ($parsedUrl['host'] ?? $request->getHost()).
                            ($parsedUrl['path'] ?? '/');
-                
-                if (!empty($queryParams)) {
+
+                if (! empty($queryParams)) {
                     $cleanUrl .= '?'.http_build_query($queryParams);
                 }
             } else {
                 $cleanUrl = $refererUrl;
             }
-            
+
             // Redirect to clean URL to ensure user preference takes priority
             return redirect($cleanUrl)
                 ->with('success', 'Language preference updated successfully');

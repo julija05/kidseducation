@@ -110,7 +110,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                     />
                 </div>
 
-                <div className="container mx-auto px-4 py-16 relative z-10">
+                <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 relative z-10">
                     {/* Check if there are any categories with articles */}
                     {Object.keys(availableCategories).length === 0 ? (
                         // No content message when no categories have articles
@@ -131,19 +131,19 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                 >
                                     <Library className="w-16 h-16 text-indigo-600" />
                                 </motion.div>
-                                <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 sm:bg-gradient-to-r sm:from-indigo-600 sm:via-purple-600 sm:to-pink-600 sm:bg-clip-text sm:text-transparent mb-6 px-4">
                                     {t('articles.no_content_title')}
                                 </h1>
-                                <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+                                <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-10 leading-relaxed px-4">
                                     {t('articles.no_content_message')}
                                 </p>
                                 <motion.div 
-                                    className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-medium shadow-xl hover:shadow-2xl transition-all duration-300"
+                                    className="inline-flex items-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl font-medium shadow-xl hover:shadow-2xl transition-all duration-300 mx-4"
                                     whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <Sparkles className="w-5 h-5 mr-3" />
-                                    {t('articles.coming_soon')}
+                                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
+                                    <span className="text-sm sm:text-base">{t('articles.coming_soon')}</span>
                                 </motion.div>
                             </div>
                         </motion.div>
@@ -151,7 +151,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                         <>
                             {/* Hero Header */}
                             <motion.div 
-                                className="text-center mb-16"
+                                className="text-center mb-12 sm:mb-16"
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8 }}
@@ -170,20 +170,20 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                         {getCategoryIcon(currentCategory)}
                                     </motion.div>
                                     <div>
-                                        <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 sm:bg-gradient-to-r sm:from-indigo-600 sm:via-purple-600 sm:to-pink-600 sm:bg-clip-text sm:text-transparent px-4">
                                             {t(`articles.${getCategoryTranslationKey(currentCategory)}`) || categoryName}
                                         </h1>
                                         <div className="flex items-center justify-center gap-2 mt-2">
-                                            <Star className="w-4 h-4 text-yellow-500" />
-                                            <Star className="w-4 h-4 text-yellow-500" />
-                                            <Star className="w-4 h-4 text-yellow-500" />
-                                            <span className="text-gray-500 text-sm ml-1">Knowledge Hub</span>
+                                            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+                                            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+                                            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+                                            <span className="text-gray-500 text-xs sm:text-sm ml-1">Knowledge Hub</span>
                                         </div>
                                     </div>
                                 </motion.div>
                                 
                                 <motion.p 
-                                    className="text-xl text-gray-600 max-w-3xl mx-auto mb-8"
+                                    className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-6 sm:mb-8 px-4 leading-relaxed"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ duration: 0.6, delay: 0.4 }}
@@ -193,14 +193,14 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                 
                                 {/* Language Switcher */}
                                 <motion.div 
-                                    className="flex justify-center gap-3"
+                                    className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 px-4"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.6, delay: 0.6 }}
                                 >
                                     <motion.a 
                                         href="/language/en"
-                                        className="px-4 py-2 bg-white/80 backdrop-blur-sm text-indigo-700 rounded-full text-sm font-medium shadow-lg hover:shadow-xl border border-indigo-200 transition-all duration-300"
+                                        className="px-3 sm:px-4 py-2 bg-white/80 backdrop-blur-sm text-indigo-700 rounded-full text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl border border-indigo-200 transition-all duration-300 text-center"
                                         whileHover={{ scale: 1.05, y: -2 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
@@ -208,7 +208,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                     </motion.a>
                                     <motion.a 
                                         href="/language/mk" 
-                                        className="px-4 py-2 bg-white/80 backdrop-blur-sm text-purple-700 rounded-full text-sm font-medium shadow-lg hover:shadow-xl border border-purple-200 transition-all duration-300"
+                                        className="px-3 sm:px-4 py-2 bg-white/80 backdrop-blur-sm text-purple-700 rounded-full text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl border border-purple-200 transition-all duration-300 text-center"
                                         whileHover={{ scale: 1.05, y: -2 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
@@ -221,7 +221,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                             {Object.keys(availableCategories).length > 1 && (
                                 <motion.div 
                                     id="tutorials-guides"
-                                    className="flex flex-wrap justify-center gap-4 mb-16"
+                                    className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 px-4"
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8, delay: 0.3 }}
@@ -237,14 +237,14 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                         >
                                             <Link
                                                 href={route("articles.index", { category: key })}
-                                                className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl ${
+                                                className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-medium sm:font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl ${
                                                     currentCategory === key
                                                         ? `bg-gradient-to-r ${getCategoryColor(key)} text-white shadow-xl scale-105 border-2 border-white/20`
                                                         : `bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white/90 border border-gray-200/50 hover:border-gray-300/50`
                                                 }`}
                                             >
-                                                {getCategoryIcon(key)}
-                                                <span>{label}</span>
+                                                <span className="flex-shrink-0">{getCategoryIcon(key)}</span>
+                                                <span className="truncate">{label}</span>
                                             </Link>
                                         </motion.div>
                                     ))}
@@ -254,29 +254,29 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                             {/* Articles Grid */}
                             {articles.data.length === 0 ? (
                                 <motion.div 
-                                    className="text-center py-20"
+                                    className="text-center py-16 sm:py-20 px-4"
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.6 }}
                                 >
                                     <motion.div 
-                                        className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mb-6"
+                                        className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mb-6"
                                         animate={{ rotate: [0, 10, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity }}
                                     >
-                                        <Search className="w-12 h-12 text-gray-400" />
+                                        <Search className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
                                     </motion.div>
-                                    <h3 className="text-3xl font-bold text-gray-700 mb-4">
+                                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-700 mb-4">
                                         {t('articles.no_articles_yet')}
                                     </h3>
-                                    <p className="text-gray-500 max-w-md mx-auto text-lg">
+                                    <p className="text-gray-500 max-w-md mx-auto text-base sm:text-lg leading-relaxed">
                                         {t('articles.articles_coming_soon')}
                                     </p>
                                 </motion.div>
                             ) : (
                                 <>
                                     <motion.div 
-                                        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+                                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         transition={{ duration: 0.8, delay: 0.4 }}
@@ -328,12 +328,12 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                                     </div>
                                                     
                                                     {/* Article Content */}
-                                                    <div className="p-6 flex flex-col flex-grow">
-                                                        <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                                    <div className="p-4 sm:p-6 flex flex-col flex-grow">
+                                                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition-colors line-clamp-2">
                                                             {article.translated_title || article.title}
                                                         </h2>
                                                         
-                                                        <p className="text-gray-600 mb-6 line-clamp-3 flex-grow leading-relaxed">
+                                                        <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 line-clamp-3 flex-grow leading-relaxed">
                                                             {((article.translated_content || article.content).length > 120) 
                                                                 ? `${(article.translated_content || article.content).substring(0, 120)}...` 
                                                                 : (article.translated_content || article.content)
@@ -341,21 +341,19 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                                         </p>
                                                         
                                                         {/* Article Footer */}
-                                                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                                                                <div className="flex items-center gap-1">
-                                                                    <Calendar className="w-3 h-3" />
-                                                                    <span>{new Date(article.published_at || article.created_at).toLocaleDateString()}</span>
-                                                                </div>
+                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-3 sm:pt-4 border-t border-gray-100 gap-2 sm:gap-4">
+                                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                                <Calendar className="w-3 h-3 flex-shrink-0" />
+                                                                <span className="truncate">{new Date(article.published_at || article.created_at).toLocaleDateString()}</span>
                                                             </div>
                                                             
                                                             <motion.div whileHover={{ x: 5 }}>
                                                                 <Link
                                                                     href={route("articles.show", article.slug)}
-                                                                    className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-semibold text-sm group-hover:underline transition-colors"
+                                                                    className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-semibold text-xs sm:text-sm group-hover:underline transition-colors"
                                                                 >
                                                                     <span>{t('articles.read_more')}</span>
-                                                                    <ArrowRight className="w-4 h-4" />
+                                                                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                                                                 </Link>
                                                             </motion.div>
                                                         </div>
@@ -370,7 +368,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                             {/* Pagination */}
                             {articles.links && articles.links.length > 3 && (
                                 <motion.div 
-                                    className="flex justify-center gap-3 flex-wrap"
+                                    className="flex justify-center gap-2 sm:gap-3 flex-wrap px-4"
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.6, delay: 0.6 }}
@@ -384,7 +382,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                             >
                                                 <Link
                                                     href={link.url}
-                                                    className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
+                                                    className={`px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base transition-all duration-300 ${
                                                         link.active
                                                             ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-105"
                                                             : "bg-white/80 backdrop-blur-sm text-indigo-600 border border-indigo-200/50 hover:bg-white/90 hover:border-indigo-300 shadow-md hover:shadow-lg"
@@ -395,7 +393,7 @@ export default function ArticleIndex({ articles, currentCategory, categories, ca
                                         ) : (
                                             <span
                                                 key={index}
-                                                className="px-4 py-2 rounded-xl font-medium text-gray-400 bg-gray-50/80 backdrop-blur-sm border border-gray-200"
+                                                className="px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base text-gray-400 bg-gray-50/80 backdrop-blur-sm border border-gray-200"
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />
                                         )

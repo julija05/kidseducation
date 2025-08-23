@@ -96,9 +96,9 @@ class EnrollmentController extends Controller
                 ]);
 
                 // Only allow switching FROM pending enrollments or FROM approved but not completed
-                if ($existingActiveEnrollment->approval_status === 'pending' || 
+                if ($existingActiveEnrollment->approval_status === 'pending' ||
                     ($existingActiveEnrollment->approval_status === 'approved' && $existingActiveEnrollment->status !== 'completed')) {
-                    
+
                     // Delete the old enrollment
                     $oldProgramName = $existingActiveEnrollment->program->name;
                     $existingActiveEnrollment->delete();
@@ -222,7 +222,7 @@ class EnrollmentController extends Controller
 
         // Redirect to the program page (authenticated view) with success message
         $successMessage = $isSwitchRequest ? 'program_switch_success' : 'waiting_list_success';
-        
+
         return redirect()->route('programs.show', $program->slug)
             ->with('success', $successMessage)
             ->with('waiting_list_program', $program->name);

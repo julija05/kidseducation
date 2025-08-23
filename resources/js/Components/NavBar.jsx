@@ -297,8 +297,9 @@ const NavBar = React.memo(() => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.4 }}
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    <LanguageSelector />
+                                    <LanguageSelector isMobile={true} />
                                 </motion.div>
                             </div>
                         </motion.div>

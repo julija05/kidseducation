@@ -13,13 +13,13 @@ class NewsletterController extends Controller
     public function subscribe(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|max:255'
+            'email' => 'required|email|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid email address'
+                'message' => 'Invalid email address',
             ], 422);
         }
 
@@ -34,7 +34,7 @@ class NewsletterController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Successfully subscribed to newsletter!'
+            'message' => 'Successfully subscribed to newsletter!',
         ]);
     }
 }

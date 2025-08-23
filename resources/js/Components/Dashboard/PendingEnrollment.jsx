@@ -9,8 +9,6 @@ export default function PendingEnrollment({ enrollment, userDemoAccess }) {
     const { t } = useTranslation();
     const [isCanceling, setIsCanceling] = useState(false);
 
-    // Debug logging
-    console.log('PendingEnrollment rendered with userDemoAccess:', userDemoAccess);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const program = enrollment?.program || {};
 

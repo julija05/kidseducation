@@ -112,7 +112,7 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                                 >
                                     <Sparkles className="text-white" size={32} />
                                 </motion.div>
-                                <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
+                                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 sm:bg-gradient-to-r sm:from-green-600 sm:to-blue-600 sm:bg-clip-text sm:text-transparent mb-4">
                                     {t('programs_page.welcome_title')}
                                 </h2>
                                 <p className="text-lg text-gray-600 mb-6">
@@ -150,14 +150,13 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                                 <BookOpen className="w-16 h-16 text-white" />
                             </motion.div>
                         </div>
-                        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                            {t('programs_page.discover_title')} 
-                            <br className="hidden sm:block" />
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight px-4">
+                            <span className="block">{t('programs_page.discover_title')}</span> 
+                            <span className="block text-gray-900 sm:bg-gradient-to-r sm:from-blue-600 sm:via-purple-600 sm:to-pink-600 sm:text-transparent sm:bg-clip-text">
                                 {t('programs_page.learning_programs')}
                             </span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto mb-8">
+                        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto mb-8 px-4 leading-relaxed">
                             {t('programs_page.subtitle')}
                         </p>
                         <div className="w-32 h-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full mx-auto"></div>
@@ -188,7 +187,7 @@ const ProgramsIndex = ({ auth, programs, userDemoAccess = null, userEnrollments 
                                 >
                                     <Play className="text-white" size={32} />
                                 </motion.div>
-                                <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-4">
+                                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 sm:bg-gradient-to-r sm:from-orange-600 sm:to-red-600 sm:bg-clip-text sm:text-transparent mb-4">
                                     {t('demo.demo_info_title')}
                                 </h3>
                                 <div className="grid md:grid-cols-2 gap-4 text-gray-700">

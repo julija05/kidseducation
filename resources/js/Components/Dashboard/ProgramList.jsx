@@ -107,13 +107,13 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         {/* View Details Button */}
                         <Link
                             href={route("programs.show", program.slug)}
-                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                            className="w-full text-white py-3 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300 touch-manipulation"
                             style={{
                                 background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
                             }}
                         >
                             🔍 {t('dashboard.explore_adventure')}
-                            <ArrowRight size={18} className="ml-2" />
+                            <ArrowRight size={16} className="ml-2" />
                         </Link>
                     </div>
                 );
@@ -130,13 +130,13 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         {/* View Details Button */}
                         <Link
                             href={route("programs.show", program.slug)}
-                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                            className="w-full text-white py-3 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300 touch-manipulation"
                             style={{
                                 background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
                             }}
                         >
                             🔍 {t('dashboard.explore_adventure')}
-                            <ArrowRight size={18} className="ml-2" />
+                            <ArrowRight size={16} className="ml-2" />
                         </Link>
                     </div>
                 );
@@ -198,13 +198,13 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                     <div className="space-y-3">
                         {/* Enrollment Status Message */}
                         {hasBlockingEnrollment ? (
-                            <div className="w-full bg-gray-400 text-gray-100 py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md cursor-not-allowed opacity-75">
-                                <Clock size={20} className="mr-2 opacity-60" />
+                            <div className="w-full bg-gray-400 text-gray-100 py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg flex items-center justify-center shadow-md cursor-not-allowed opacity-75">
+                                <Clock size={18} className="mr-2 opacity-60" />
                                 {hasPendingEnrollments ? t('dashboard.enrollment_pending_other') : t('dashboard.complete_current_program')}
                             </div>
                         ) : (
-                            <div className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-xl font-bold text-lg flex items-center justify-center shadow-md">
-                                <BookOpen size={20} className="mr-2" />
+                            <div className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg flex items-center justify-center shadow-md">
+                                <BookOpen size={18} className="mr-2" />
                                 {t('dashboard.ready_to_enroll')}
                             </div>
                         )}
@@ -212,13 +212,13 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         {/* View Details Button */}
                         <Link
                             href={route("programs.show", program.slug)}
-                            className="w-full text-white py-3 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300"
+                            className="w-full text-white py-3 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg border border-gray-300 touch-manipulation"
                             style={{
                                 background: 'var(--primary-gradient, linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229)))'
                             }}
                         >
                             🔍 {t('dashboard.explore_adventure')}
-                            <ArrowRight size={18} className="ml-2" />
+                            <ArrowRight size={16} className="ml-2" />
                         </Link>
                     </div>
                 );
@@ -231,9 +231,9 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                 return (
                     <button
                         disabled
-                        className="w-full bg-gradient-to-r from-blue-400 to-blue-500 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-90"
+                        className="w-full bg-gradient-to-r from-blue-400 to-blue-500 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-90"
                     >
-                        <Clock size={20} className="mr-2" />
+                        <Clock size={18} className="mr-2" />
                         📋 {t('dashboard.pending_approval')}
                     </button>
                 );
@@ -245,17 +245,17 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                                 route("dashboard")
                             )
                         }
-                        className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                        className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 touch-manipulation"
                     >
                         🚀 {t('dashboard.continue_learning')}
-                        <ArrowRight size={20} className="ml-2" />
+                        <ArrowRight size={18} className="ml-2" />
                     </button>
                 );
             case "rejected":
                 return (
                     <button
                         disabled
-                        className="w-full bg-gradient-to-r from-red-300 to-pink-400 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-75"
+                        className="w-full bg-gradient-to-r from-red-300 to-pink-400 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base lg:text-lg cursor-not-allowed flex items-center justify-center shadow-lg opacity-75"
                     >
                         😞 {t('dashboard.rejected')}
                     </button>
@@ -274,13 +274,13 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
         >
             {/* Modern Header Section */}
             <motion.div 
-                className="text-center mb-8"
+                className="text-center mb-6 sm:mb-8 px-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
             >
                 <motion.h2 
-                    className="text-4xl font-bold mb-4 flex items-center justify-center"
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 flex items-center justify-center"
                     initial={{ scale: 0.9 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
@@ -289,7 +289,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         animate={{ rotate: [0, 15, -15, 0] }}
                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     >
-                        <Sparkles className="mr-3 text-yellow-500" size={36} />
+                        <Sparkles className="mr-2 sm:mr-3 text-yellow-500" size={24} />
                     </motion.div>
                     <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         {t('dashboard.available_programs')}
@@ -298,11 +298,11 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                         animate={{ rotate: [0, -15, 15, 0] }}
                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                     >
-                        <Sparkles className="ml-3 text-yellow-500" size={36} />
+                        <Sparkles className="ml-2 sm:ml-3 text-yellow-500" size={24} />
                     </motion.div>
                 </motion.h2>
                 <motion.p 
-                    className="text-xl text-gray-600 font-medium"
+                    className="text-lg sm:text-xl text-gray-600 font-medium"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
@@ -314,38 +314,38 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
             {/* Modern Enrollment Info Notice */}
             {!userEnrollments.length && (
                 <motion.div 
-                    className="max-w-4xl mx-auto mb-8"
+                    className="max-w-4xl mx-auto mb-6 sm:mb-8 px-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.4 }}
                 >
                     <motion.div 
-                        className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border border-white/50 rounded-2xl p-8 shadow-lg backdrop-blur-sm"
+                        className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border border-white/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg backdrop-blur-sm"
                         whileHover={{ scale: 1.02, y: -5 }}
                         transition={{ duration: 0.3 }}
                     >
                         <div className="text-center">
                             <motion.div 
-                                className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-6 shadow-lg"
+                                className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4 sm:mb-6 shadow-lg"
                                 animate={{ scale: [1, 1.1, 1] }}
                                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                             >
-                                <BookOpen className="text-white" size={28} />
+                                <BookOpen className="text-white" size={24} />
                             </motion.div>
-                            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4">
                                 {t('dashboard.start_learning_journey')}
                             </h3>
-                            <p className="text-lg text-gray-600 mb-6">
+                            <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
                                 {t('dashboard.explore_programs_below')}
                             </p>
                             <motion.div 
-                                className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-blue-200/50 shadow-sm"
+                                className="bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-blue-200/50 shadow-sm"
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.5 }}
                                 whileHover={{ scale: 1.05 }}
                             >
-                                <p className="text-lg font-semibold text-blue-700 flex items-center justify-center">
+                                <p className="text-base sm:text-lg font-semibold text-blue-700 flex items-center justify-center">
                                     <span className="mr-2">🎯</span>
                                     {t('dashboard.click_explore_to_enroll')}
                                 </p>
@@ -356,7 +356,7 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
             )}
 
             <motion.div 
-                className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-stretch px-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
@@ -371,14 +371,14 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                     return (
                         <motion.div
                             key={program.id}
-                            className={`bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl hover:shadow-2xl border border-white/50 overflow-hidden relative flex flex-col h-full cursor-pointer transition-all duration-300 ${
-                                isPending ? "ring-4 ring-yellow-400/60" : ""
-                            } ${isApproved ? "ring-4 ring-green-400/60" : ""}`}
+                            className={`bg-white/80 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-xl hover:shadow-2xl border border-white/50 overflow-hidden relative flex flex-col h-full cursor-pointer transition-all duration-300 ${
+                                isPending ? "ring-2 sm:ring-4 ring-yellow-400/60" : ""
+                            } ${isApproved ? "ring-2 sm:ring-4 ring-green-400/60" : ""}`}
                             title={`View ${program.name} details`}
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                            whileHover={{ scale: 1.05, y: -10 }}
+                            whileHover={{ scale: 1.02, y: -5 }}
                             onClick={(e) => {
                                 // Prevent navigation if clicked on interactive elements
                                 if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button, a')) {
@@ -390,70 +390,73 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                             {/* Modern Status badge overlay */}
                             {enrollment && (
                                 <motion.div 
-                                    className="absolute top-4 right-4 z-10"
+                                    className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10"
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
                                 >
                                     {isPending && (
                                         <motion.span 
-                                            className="bg-gradient-to-r from-blue-500 to-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center backdrop-blur-sm border border-white/30"
+                                            className="bg-gradient-to-r from-blue-500 to-yellow-500 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg flex items-center backdrop-blur-sm border border-white/30"
                                             animate={{ scale: [1, 1.05, 1] }}
                                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                         >
-                                            <Clock size={16} className="mr-1" />
-                                            {t('dashboard.pending')} 📋
+                                            <Clock size={14} className="mr-1" />
+                                            <span className="hidden sm:inline">{t('dashboard.pending')} 📋</span>
+                                            <span className="sm:hidden">📋</span>
                                         </motion.span>
                                     )}
                                     {isApproved && (
                                         <motion.span 
-                                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center backdrop-blur-sm border border-white/30"
+                                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg flex items-center backdrop-blur-sm border border-white/30"
                                             animate={{ scale: [1, 1.1, 1] }}
                                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                         >
-                                            <Star size={16} className="mr-1" />
-                                            {t('dashboard.approved')}! ✨
+                                            <Star size={14} className="mr-1" />
+                                            <span className="hidden sm:inline">{t('dashboard.approved')}! ✨</span>
+                                            <span className="sm:hidden">✨</span>
                                         </motion.span>
                                     )}
                                 </motion.div>
                             )}
 
                             {/* Modern Program Header */}
-                            <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8 relative overflow-hidden flex-grow">
+                            <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 sm:p-6 lg:p-8 relative overflow-hidden flex-grow">
                                 {/* Background decorative elements */}
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full blur-2xl" />
-                                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-pink-200/30 to-yellow-200/30 rounded-full blur-2xl" />
+                                <div className="absolute top-0 right-0 w-20 h-20 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-200/30 to-purple-200/30 rounded-full blur-2xl" />
+                                <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-gradient-to-br from-pink-200/30 to-yellow-200/30 rounded-full blur-2xl" />
                                 
                                 <div className="relative z-10">
-                                    <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center justify-between mb-4 sm:mb-6">
                                         <motion.div 
-                                            className="bg-white/80 backdrop-blur-sm rounded-full p-4 shadow-lg border border-white/50"
+                                            className="bg-white/80 backdrop-blur-sm rounded-full p-2 sm:p-3 lg:p-4 shadow-lg border border-white/50 shrink-0"
                                             whileHover={{ scale: 1.1, rotate: 5 }}
                                             transition={{ duration: 0.3 }}
                                         >
                                             <Icon 
-                                                size={48} 
+                                                size={32}
+                                                className="sm:w-10 sm:h-10 lg:w-12 lg:h-12" 
                                                 style={{ color: 'rgb(var(--primary-600, 37 99 235))' }}
                                             />
                                         </motion.div>
-                                        <div className="text-right">
+                                        <div className="text-right ml-3">
                                             <motion.span 
-                                                className="text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg inline-block bg-gradient-to-r from-blue-600 to-purple-600 border border-white/30"
+                                                className="text-white px-3 sm:px-4 lg:px-6 py-2 sm:py-2 lg:py-3 rounded-full text-base sm:text-lg lg:text-xl font-bold shadow-lg inline-block bg-gradient-to-r from-blue-600 to-purple-600 border border-white/30"
                                                 whileHover={{ scale: 1.05 }}
                                                 transition={{ duration: 0.2 }}
                                             >
                                                 ${program.price}
                                             </motion.span>
-                                            <div className="text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-2">
+                                            <div className="text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-1 sm:mt-2">
                                                 {t('dashboard.super_value')} 💎
                                             </div>
                                         </div>
                                     </div>
-                                    <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 leading-tight">
+                                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
                                         {program.name}
                                     </h3>
-                                    <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/50">
-                                        <p className="text-gray-700 text-lg leading-relaxed">
+                                    <div className="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/50">
+                                        <p className="text-gray-700 text-sm sm:text-base lg:text-lg leading-relaxed">
                                             {program.description}
                                         </p>
                                     </div>
@@ -461,38 +464,38 @@ export default function ProgramList({ programs, userEnrollments = [], userDemoAc
                             </div>
 
                             {/* Modern Program Info & Actions */}
-                            <div className="p-8 bg-white/90 backdrop-blur-sm mt-auto">
+                            <div className="p-4 sm:p-6 lg:p-8 bg-white/90 backdrop-blur-sm mt-auto">
                                 <motion.div 
-                                    className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
+                                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.4, delay: 1 + index * 0.1 }}
                                 >
                                     <motion.div 
-                                        className="flex items-center bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200/50 shadow-sm"
+                                        className="flex items-center bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-200/50 shadow-sm"
                                         whileHover={{ scale: 1.05 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg mr-3">
-                                            <Clock size={20} className="text-white" />
+                                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg mr-3 shrink-0">
+                                            <Clock size={16} className="text-white sm:w-5 sm:h-5" />
                                         </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 font-medium">Duration</p>
-                                            <span className="font-bold text-gray-800">{program.duration}</span>
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm text-gray-500 font-medium">Duration</p>
+                                            <span className="font-bold text-gray-800 text-sm sm:text-base">{program.duration}</span>
                                         </div>
                                     </motion.div>
                                     {program.lessonsCount && (
                                         <motion.div 
-                                            className="flex items-center bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border border-emerald-200/50 shadow-sm"
+                                            className="flex items-center bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-emerald-200/50 shadow-sm"
                                             whileHover={{ scale: 1.05 }}
                                             transition={{ duration: 0.2 }}
                                         >
-                                            <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-2 rounded-lg mr-3">
-                                                <BookOpen size={20} className="text-white" />
+                                            <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-2 rounded-lg mr-3 shrink-0">
+                                                <BookOpen size={16} className="text-white sm:w-5 sm:h-5" />
                                             </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500 font-medium">Lessons</p>
-                                                <span className="font-bold text-gray-800">{program.lessonsCount} {t('lessons.title')}</span>
+                                            <div className="min-w-0">
+                                                <p className="text-xs sm:text-sm text-gray-500 font-medium">Lessons</p>
+                                                <span className="font-bold text-gray-800 text-sm sm:text-base">{program.lessonsCount} {t('lessons.title')}</span>
                                             </div>
                                         </motion.div>
                                     )}

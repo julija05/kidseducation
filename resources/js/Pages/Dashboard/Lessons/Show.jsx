@@ -61,35 +61,17 @@ export default function LessonShow({
     const [showReviewPrompt, setShowReviewPrompt] = useState(false);
 
     const handleCompleteLesson = async (score = null) => {
-        console.log('=== LESSON COMPLETION STARTED ===');
-        console.log('Lesson ID:', lesson.id);
-        console.log('Program:', program);
-        console.log('Score:', score);
-        
         const result = await completeLesson(score);
 
-        console.log('=== LESSON COMPLETION RESULT ===');
-        console.log('Full result object:', JSON.stringify(result, null, 2));
-
         if (result) {
-            console.log('Result exists - checking shouldPromptReview flag...');
-            console.log('shouldPromptReview value:', result.shouldPromptReview);
-            console.log('shouldPromptReview type:', typeof result.shouldPromptReview);
-            console.log('shouldPromptReview === true:', result.shouldPromptReview === true);
-            
             // Check if we should show the review prompt
             if (result.shouldPromptReview === true) {
-                console.log('✅ SHOWING REVIEW PROMPT MODAL');
                 setShowReviewPrompt(true);
             } else {
-                console.log('❌ NOT SHOWING REVIEW PROMPT - showing normal completion modal');
-                console.log('Reason: shouldPromptReview is', result.shouldPromptReview);
                 // Show the normal completion modal
                 setCompletionData({ nextLesson, program });
                 setShowCompletionModal(true);
             }
-        } else {
-            console.log('❌ No result from completeLesson function');
         }
     };
 

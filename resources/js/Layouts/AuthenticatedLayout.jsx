@@ -111,10 +111,6 @@ function AuthenticatedLayoutContentSimple({
         color: 'white !important'
     };
     
-    // Debug: Log the header style being applied
-    console.log('Current theme state:', currentTheme);
-    console.log('Active theme used:', activeTheme);
-    console.log('Header Style Applied:', headerStyle);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -126,7 +122,7 @@ function AuthenticatedLayoutContentSimple({
                     background: `${themeGradients[activeTheme]}, rgba(255, 255, 255, 0.1)`,
                     backdropFilter: 'blur(16px)',
                     color: 'white',
-                    minHeight: '80px',
+                    minHeight: '70px',
                     width: '100%',
                     position: 'relative',
                     zIndex: 100
@@ -140,8 +136,8 @@ function AuthenticatedLayoutContentSimple({
                     <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
                     <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-2xl transform -translate-x-1/3 translate-y-1/3" />
                 </div>
-                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
+                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
                         <motion.div 
                             className="flex items-center"
                             initial={{ opacity: 0, x: -20 }}
@@ -159,7 +155,7 @@ function AuthenticatedLayoutContentSimple({
                         </motion.div>
 
                         <motion.div 
-                            className="flex items-center gap-4"
+                            className="flex items-center gap-2 sm:gap-4"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
@@ -196,11 +192,11 @@ function AuthenticatedLayoutContentSimple({
                                     <span className="inline-flex rounded-md">
                                         <motion.button
                                             type="button"
-                                            className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-white/20 rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-lg backdrop-blur-sm bg-white/10"
+                                            className="flex items-center space-x-2 sm:space-x-3 px-2 sm:px-4 py-2 sm:py-3 text-white hover:bg-white/20 rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-lg backdrop-blur-sm bg-white/10"
                                             whileHover={{ scale: 1.05, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
                                         >
-                                            <div className="text-right">
+                                            <div className="text-right hidden sm:block">
                                                 <p className="text-xs opacity-90">
                                                     {t('dashboard.welcome_back')},
                                                 </p>
@@ -209,14 +205,14 @@ function AuthenticatedLayoutContentSimple({
                                                 </p>
                                             </div>
                                             <motion.div 
-                                                className="w-10 h-10 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 shadow-lg"
+                                                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 shadow-lg"
                                                 whileHover={{ rotate: 5 }}
                                                 transition={{ duration: 0.2 }}
                                             >
                                                 {avatarData && avatarData.type === 'emoji' ? (
-                                                    <span className="text-xl">{avatarData.value}</span>
+                                                    <span className="text-lg sm:text-xl">{avatarData.value}</span>
                                                 ) : (
-                                                    <span className="text-xl font-bold text-white">
+                                                    <span className="text-lg sm:text-xl font-bold text-white">
                                                         {user.name ? user.name.charAt(0).toUpperCase() : '👤'}
                                                     </span>
                                                 )}
@@ -226,8 +222,8 @@ function AuthenticatedLayoutContentSimple({
                                                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                             >
                                                 <ChevronDown
-                                                    size={16}
-                                                    className="opacity-90 text-white"
+                                                    size={14}
+                                                    className="opacity-90 text-white hidden sm:block"
                                                 />
                                             </motion.div>
                                         </motion.button>
@@ -239,7 +235,7 @@ function AuthenticatedLayoutContentSimple({
                                     <div className="px-4 py-4 border-b border-gray-200">
                                         <div className="flex items-center gap-3">
                                             <motion.div 
-                                                className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center border-2 border-blue-200 shadow-sm"
+                                                className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center border-2 border-blue-200 shadow-sm shrink-0"
                                                 whileHover={{ scale: 1.05 }}
                                                 transition={{ duration: 0.2 }}
                                             >
@@ -251,16 +247,16 @@ function AuthenticatedLayoutContentSimple({
                                                     </span>
                                                 )}
                                             </motion.div>
-                                            <div className="flex-1">
-                                                <p className="font-semibold text-gray-900 text-sm">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-semibold text-gray-900 text-base truncate">
                                                     {user.name}
                                                 </p>
-                                                <p className="text-xs text-gray-500 truncate">
+                                                <p className="text-sm text-gray-500 truncate">
                                                     {user.email}
                                                 </p>
                                                 <Link
                                                     href={routeWithLocale("profile.edit")}
-                                                    className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-1 inline-flex items-center gap-1"
+                                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-1 inline-flex items-center gap-1 touch-manipulation"
                                                 >
                                                     🎭 {t('profile.change_avatar')}
                                                 </Link>
@@ -269,35 +265,35 @@ function AuthenticatedLayoutContentSimple({
                                     </div>
 
                                     {/* Navigation Links */}
-                                    <div className="px-2 pt-2">
+                                    <div className="py-2">
                                         <Dropdown.Link
                                             href={routeWithLocale("dashboard")}
-                                            className="rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700"
+                                            className="rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 mx-2"
                                         >
                                             🏠 {t('nav.dashboard')}
                                         </Dropdown.Link>
                                         {isStudent && (
                                             <Dropdown.Link
                                                 href={routeWithLocale("my-schedule")}
-                                                className="rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700"
+                                                className="rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 mx-2"
                                             >
                                                 📅 {t('nav.my_schedule')}
                                             </Dropdown.Link>
                                         )}
                                         <Dropdown.Link
                                             href={routeWithLocale("profile.edit")}
-                                            className="rounded-lg hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700"
+                                            className="rounded-lg hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 mx-2"
                                         >
                                             ⚙️ {t('nav.profile_settings')}
                                         </Dropdown.Link>
                                     </div>
                                     
                                     {/* Email Verification Status */}
-                                    <div className="px-3 py-2 mx-2 my-1">
+                                    <div className="px-4 py-2 mx-2 my-1">
                                         {user.email_verified_at ? (
-                                            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg border border-green-200">
-                                                <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
-                                                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                            <div className="flex items-center gap-2 px-3 py-3 bg-green-50 rounded-lg border border-green-200">
+                                                <span className="inline-flex items-center gap-1 text-green-700 text-sm font-medium">
+                                                    <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                     </svg>
                                                     {t('verification.verified')}
@@ -306,10 +302,10 @@ function AuthenticatedLayoutContentSimple({
                                         ) : (
                                             <Link
                                                 href={routeWithLocale("verification.notice")}
-                                                className="flex items-center gap-2 px-3 py-2 bg-yellow-50 hover:bg-yellow-100 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-all duration-200"
+                                                className="flex items-center gap-2 px-3 py-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-all duration-200 touch-manipulation"
                                             >
-                                                <span className="inline-flex items-center gap-1 text-yellow-700 text-xs font-medium">
-                                                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                                <span className="inline-flex items-center gap-1 text-yellow-700 text-sm font-medium">
+                                                    <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                                     </svg>
                                                     {t('verification.verify')}
@@ -322,7 +318,7 @@ function AuthenticatedLayoutContentSimple({
                                         href={routeWithLocale("logout")}
                                         method="post"
                                         as="button"
-                                        className="text-white font-semibold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:bg-red-600 hover:text-white shadow-lg border-l-4 border-red-400 hover:border-red-500 rounded-lg mx-2 mb-2"
+                                        className="text-white font-semibold bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:bg-red-600 hover:text-white shadow-lg border-l-4 border-red-400 hover:border-red-500 rounded-lg mx-4 mb-2 text-center"
                                     >
                                         🚪 {t('nav.log_out')}
                                     </Dropdown.Link>

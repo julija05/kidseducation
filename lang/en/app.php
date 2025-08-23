@@ -405,6 +405,7 @@ return [
         'continue_demo' => 'Continue Demo',
         'try' => 'Try',
         'start_free_demo' => 'Start Free Demo',
+        'demo_used_already' => 'Demo Already Used',
         'demo_not_available_completed' => 'Demo not available - Program completed',
 
         // Demo Access Form
@@ -680,7 +681,7 @@ return [
             'notifications' => 'Notifications',
             'unread' => 'unread',
             'no_notifications' => 'No notifications yet',
-            
+
             // Enrollment notifications
             'new_enrollment_request' => 'New Enrollment Request',
             'enrollment_approved' => 'Enrollment Approved',
@@ -690,7 +691,7 @@ return [
             'enrollment_pending_message' => 'Your enrollment request for :program is being reviewed',
             'enrollment_approved_message' => 'Congratulations! Your enrollment for :program has been approved',
             'enrollment_rejected_message' => 'Your enrollment request for :program has been rejected',
-            
+
             // Class scheduling notifications
             'class_scheduled' => 'Class Scheduled',
             'class_scheduled_message' => 'A new class has been scheduled for :program on :date at :time',
@@ -704,7 +705,7 @@ return [
             'class_reminder_message' => 'Your class for :program starts in :time',
             'class_update' => 'Class Update',
             'class_schedule_updated' => 'Your class schedule has been updated',
-            
+
             // Lesson notifications
             'next_lesson_available' => 'Next Lesson Available',
             'next_lesson_message' => 'Your next lesson for :program is now available',

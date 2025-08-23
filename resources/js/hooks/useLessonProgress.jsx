@@ -52,11 +52,6 @@ export default function useLessonProgress(lesson, initialProgress) {
         setIsLoading(true);
 
         try {
-            console.log('=== API CALL: lessons.complete ===');
-            console.log('Lesson ID:', lesson.id);
-            console.log('Route URL:', route("lessons.complete", lesson.id));
-            console.log('Request body:', JSON.stringify({ score }));
-            
             const response = await fetch(route("lessons.complete", lesson.id), {
                 method: "POST",
                 headers: {
@@ -67,17 +62,10 @@ export default function useLessonProgress(lesson, initialProgress) {
                 body: JSON.stringify({ score }),
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-            
             const data = await response.json();
-            
-            console.log('=== API RESPONSE ===');
-            console.log('Raw response data:', JSON.stringify(data, null, 2));
 
             if (data.success) {
                 setCurrentProgress(100);
-                console.log('✅ Lesson completion successful, returning data:', data);
                 return data;
             } else {
                 console.error("Error completing lesson:", data);
