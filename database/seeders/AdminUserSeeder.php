@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class AdminUserSeeder extends Seeder
 {
@@ -14,12 +13,6 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin role if it doesn't exist
-        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-
-        // Create student role if it doesn't exist
-        Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
-
         // Create admin user if it doesn't exist
         $admin = User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@abacoding.com')],
