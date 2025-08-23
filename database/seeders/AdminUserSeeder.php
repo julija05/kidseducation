@@ -22,10 +22,10 @@ class AdminUserSeeder extends Seeder
 
         // Create admin user if it doesn't exist
         $admin = User::firstOrCreate(
-            ['email' => 'admin@abacoding.com'],
+            ['email' => env('ADMIN_EMAIL', 'admin@abacoding.com')],
             [
-                'name' => 'Abacoding Admin',
-                'password' => Hash::make('Abacoding2024!@#'),
+                'name' => env('ADMIN_NAME', 'Abacoding Admin'),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'defaultpassword123')),
                 'email_verified_at' => now(),
             ]
         );
