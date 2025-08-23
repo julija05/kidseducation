@@ -28,6 +28,14 @@ $data = json_decode($payload, true);
 
 chdir($repoDir);
 
+exec('git stash 2>&1', $output, $result);
+if ($result !== 0) {
+    error_log("Git pull failed:\n" . implode("\n", $output));
+    http_response_code(500);
+    die("Git pull failed:\n" . implode("\n", $output));
+}
+
+
 // Git pull
 exec('git pull 2>&1', $output, $result);
 if ($result !== 0) {
