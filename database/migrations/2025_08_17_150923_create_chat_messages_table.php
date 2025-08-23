@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chat_messages', function (Blueprint $table) {
+        if (!Schema::hasTable('chat_messages')) {
+            Schema::create('chat_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('conversation_id')->constrained('chat_conversations')->onDelete('cascade');
             $table->foreignId('sender_id')->nullable()->constrained('users')->onDelete('set null'); // Null if guest message
@@ -24,7 +25,8 @@ return new class extends Migration
             $table->index(['conversation_id', 'created_at']);
             $table->index(['sender_id', 'sender_type']);
             $table->index('is_read');
-        });
+            });
+        }
     }
 
     /**

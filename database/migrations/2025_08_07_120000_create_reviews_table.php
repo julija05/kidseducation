@@ -19,7 +19,9 @@ return new class extends Migration
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->morphs('reviewable'); // reviewable_type and reviewable_id for polymorphic relationship
+            $table->string('reviewable_type', 191);
+            $table->unsignedBigInteger('reviewable_id');
+            $table->index(['reviewable_type', 'reviewable_id']);
             $table->tinyInteger('rating')->unsigned()->comment('Rating from 1 to 5');
             $table->text('comment')->nullable();
             $table->boolean('is_approved')->default(true); // Auto-approve for now, can be moderated later

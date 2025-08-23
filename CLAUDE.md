@@ -267,4 +267,130 @@ QUEUE_CONNECTION=database
 - Follow accessibility guidelines
 - Use Tailwind utilities consistently
 
+## MySQL Key Length Issues & Migration Fixes
+
+### Problem
+MySQL with utf8mb4 collation has a key length limit of 1000 bytes. String columns default to 255 characters which can exceed this limit in composite indexes.
+
+### Fixed Migrations
+All migrations have been updated with:
+1. **`Schema::hasTable()` checks** to prevent "table already exists" errors
+2. **Reduced string column lengths** for indexed columns
+
+### Key Length Fixes Applied:
+- **Permissions** (`2025_05_04_091757_create_permission_tables.php`):
+  - `model_type` → 191 chars (was 255)
+  - `name` → 225 chars (was 255) 
+  - `guard_name` → 25 chars (was 255)
+  
+- **Notifications** (`2025_07_22_000000_create_notifications_table.php`):
+  - `type` → 50 chars (was 255)
+  - `related_model_type` → 191 chars (was 255)
+  
+- **Reviews** (`2025_08_07_120000_create_reviews_table.php`):
+  - Replaced `morphs('reviewable')` with manual columns
+  - `reviewable_type` → 191 chars (was 255)
+
+### Migration Pattern
+All table creation migrations now use this pattern:
+```php
+if (!Schema::hasTable('table_name')) {
+    Schema::create('table_name', function (Blueprint $table) {
+        // table definition
+    });
+}
+```
+
+### String Column Guidelines
+- Use 191 chars max for morphable type columns (polymorphic relationships)
+- Use 50 chars max for enum-like string columns (status, type, etc.)
+- Use 225 chars max for name columns when indexed
+- Use 25 chars max for guard_name type columns
+
+This prevents MySQL key length errors and ensures migrations work on production servers.
+
+### Creating New Migrations
+
+When making changes to existing table structures, ALWAYS create new migration files instead of modifying existing ones. This ensures database consistency across different environments.
+
+#### Commands for Common Migration Types:
+
+```bash
+# Add new columns to existing table
+php artisan make:migration add_column_name_to_table_name_table --table=table_name
+
+# Remove columns from existing table
+php artisan make:migration remove_column_name_from_table_name_table --table=table_name
+
+# Create new table
+php artisan make:migration create_table_name_table
+
+# Add index to existing table
+php artisan make:migration add_index_to_table_name_table --table=table_name
+
+# Add foreign key constraint
+php artisan make:migration add_foreign_key_to_table_name_table --table=table_name
+```
+
+#### Migration Best Practices:
+
+1. **Always use descriptive names** that explain what the migration does
+2. **Never modify existing migrations** that have been run on production
+3. **Use `Schema::hasTable()` and `Schema::hasColumn()` checks** to prevent errors
+4. **Follow the string length guidelines** for indexed columns
+5. **Include proper `down()` method** for rollback capability
+
+#### Example Migration Template:
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('table_name', function (Blueprint $table) {
+            if (!Schema::hasColumn('table_name', 'new_column')) {
+                $table->string('new_column', 191)->nullable()->after('existing_column');
+                $table->index('new_column'); // If needed for queries
+            }
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('table_name', function (Blueprint $table) {
+            if (Schema::hasColumn('table_name', 'new_column')) {
+                $table->dropIndex(['new_column']); // Drop index first if exists
+                $table->dropColumn('new_column');
+            }
+        });
+    }
+};
+```
+
+#### Column Existence Checks:
+Always check if columns exist before adding/dropping them:
+```php
+// Adding columns
+if (!Schema::hasColumn('table_name', 'column_name')) {
+    $table->string('column_name');
+}
+
+// Dropping columns  
+if (Schema::hasColumn('table_name', 'column_name')) {
+    $table->dropColumn('column_name');
+}
+
+// Adding indexes
+if (!Schema::hasIndex('table_name', 'index_name')) {
+    $table->index('column_name', 'index_name');
+}
+```
+
+This prevents MySQL key length errors and ensures migrations work on production servers.
+
 This documentation should help future Claude instances understand the codebase structure, make informed decisions, and maintain consistency with the existing architecture and patterns.

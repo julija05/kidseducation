@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chat_conversations', function (Blueprint $table) {
+        if (!Schema::hasTable('chat_conversations')) {
+            Schema::create('chat_conversations', function (Blueprint $table) {
             $table->id();
             $table->string('session_id')->unique(); // For guest users
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade'); // For authenticated users
@@ -26,7 +27,8 @@ return new class extends Migration
             $table->index(['status', 'admin_id']);
             $table->index(['user_id', 'status']);
             $table->index('session_id');
-        });
+            });
+        }
     }
 
     /**

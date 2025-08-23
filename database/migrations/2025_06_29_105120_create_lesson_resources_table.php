@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lesson_resources', function (Blueprint $table) {
+        if (!Schema::hasTable('lesson_resources')) {
+            Schema::create('lesson_resources', function (Blueprint $table) {
             $table->id();
             $table->foreignId('lesson_id')->constrained()->onDelete('cascade');
             $table->string('title');
@@ -31,7 +32,8 @@ return new class extends Migration
             // Indexes
             $table->index(['lesson_id', 'order']);
             $table->index(['lesson_id', 'type']);
-        });
+            });
+        }
     }
 
     /**
