@@ -207,18 +207,30 @@ class AdminChatController extends Controller
 
             // Verify admin has access to this conversation
             if (! $this->adminCanAccessConversation($admin, $conversation)) {
-                \Log::warning('Admin chat access denied', [
+                // Add detailed debugging for 403 errors
+                \Log::error('DETAILED: Admin chat access denied', [
                     'admin_id' => $admin->id,
+                    'admin_name' => $admin->name,
+                    'admin_roles' => $admin->roles->pluck('name'),
                     'conversation_id' => $conversationId,
                     'conversation_admin_id' => $conversation->admin_id,
                     'conversation_status' => $conversation->status,
+                    'conversation_user_id' => $conversation->user_id,
                     'request_url' => $request->url(),
+                    'request_method' => $request->method(),
+                    'admin_id_matches' => $conversation->admin_id === $admin->id,
+                    'is_waiting' => $conversation->status === 'waiting',
+                    'is_active_unassigned' => ($conversation->status === 'active' && $conversation->admin_id === null),
+                    'timestamp' => now()->toISOString(),
                 ]);
+                
                 return response()->json([
                     'error' => 'Access denied',
                     'message' => 'This conversation is not accessible to you',
                     'conversation_status' => $conversation->status,
                     'assigned_admin' => $conversation->admin_id,
+                    'current_admin' => $admin->id,
+                    'debug_url' => "/debug/chat/{$conversationId}",
                 ], 403);
             }
 

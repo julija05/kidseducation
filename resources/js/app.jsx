@@ -84,5 +84,23 @@ router.on('error', (event) => {
         window.location.reload()
         return false
     }
+    
+    // Handle 403 (Forbidden) errors to prevent endless polling loops
+    if (detail.response && detail.response.status === 403) {
+        console.error('403 Forbidden error:', detail.response.data)
+        
+        // If this is a chat-related 403 error, show user a message and stop polling
+        if (detail.request.responseURL && detail.request.responseURL.includes('/admin/chat/')) {
+            console.error('Chat access denied. Stopping polling to prevent endless requests.')
+            
+            // Optional: Show user notification
+            if (detail.response.data && detail.response.data.debug_url) {
+                console.log('Debug info available at:', detail.response.data.debug_url)
+            }
+            
+            // Don't reload for 403 errors - let the user handle it manually
+            return false
+        }
+    }
 });
 
