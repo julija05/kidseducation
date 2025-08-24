@@ -14,6 +14,7 @@
     <meta name="theme-color" content="#3B82F6">
 
     <!-- Open Graph Meta Tags -->
+
     <meta property="og:title" content="{{ config('app.name') }} - Interactive Learning Platform for Children">
     <meta property="og:description" content="Where children learn to think fast and build the future. Explore our magical world of learning with abacus and coding programs for curious and creative young minds.">
     <meta property="og:type" content="website">

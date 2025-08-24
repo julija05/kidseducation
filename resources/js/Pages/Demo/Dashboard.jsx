@@ -26,6 +26,14 @@ export default function DemoDashboard({
     const { t } = useTranslation();
     const { post, processing } = useForm();
     
+    // Debug logging
+    console.log('Demo Dashboard Props:', {
+        program,
+        firstLesson,
+        lockedLessons: lockedLessons?.length,
+        demoExpiresAt,
+        daysRemaining
+    });
 
     const handleEnrollment = () => {
         post(route('demo.enroll', program.slug));
@@ -73,6 +81,14 @@ export default function DemoDashboard({
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+                        {/* Debug Info */}
+                        {!firstLesson && (
+                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                                <strong className="font-bold">Debug: </strong>
+                                <span className="block sm:inline">No first lesson found for demo. Program: {program?.slug}</span>
+                            </div>
+                        )}
+                        
                         {/* Available Lesson */}
                         {firstLesson && (
                             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -155,8 +171,15 @@ export default function DemoDashboard({
                                     )}
 
                                     <Link
-                                        href={route('lessons.show', firstLesson.id)}
+                                        href={`/lessons/${firstLesson.id}`}
                                         className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transform transition-all duration-200 hover:scale-105 touch-manipulation"
+                                        onClick={() => {
+                                            console.log('Demo lesson button clicked', {
+                                                lessonId: firstLesson.id,
+                                                lessonTitle: firstLesson.title,
+                                                routeUrl: `/lessons/${firstLesson.id}`
+                                            });
+                                        }}
                                     >
                                         <Play className="h-5 w-5 mr-2" />
                                         {t('lessons.start_lesson')}
