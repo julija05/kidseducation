@@ -310,4 +310,11 @@ Route::prefix('demo')->name('demo.')->group(function () {
     Route::get('/expired', [DemoController::class, 'expired'])->name('expired');
 });
 
+// CSRF Token refresh endpoint (to prevent 412 errors)
+Route::get('/csrf-token', function () {
+    return response()->json([
+        'csrf_token' => csrf_token(),
+    ]);
+})->name('csrf.refresh');
+
 require __DIR__ . '/auth.php';

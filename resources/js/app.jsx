@@ -50,12 +50,13 @@ createInertiaApp({
     },
 });
 
-// Handle authentication errors (session expiration)
+// Handle authentication and CSRF errors
 router.on('error', (event) => {
     const { detail } = event
     
     // Handle 401 (authentication) errors - session expired
     if (detail.response && detail.response.status === 401) {
+        console.log('Session expired, redirecting to login...')
         
         // If the response includes a redirect URL, use it
         if (detail.response.data && detail.response.data.redirect) {
@@ -68,8 +69,18 @@ router.on('error', (event) => {
         return false // Prevent default error handling
     }
     
-    // Handle 419 (CSRF token mismatch) errors
-    if (detail.response && detail.response.status === 419) {
+    // Handle 412 (Precondition Failed) and 419 (CSRF token mismatch) errors
+    if (detail.response && (detail.response.status === 419 || detail.response.status === 412)) {
+        console.log('CSRF token mismatch or precondition failed, reloading page...')
+        
+        // Show user-friendly message before reload
+        if (detail.response.data && detail.response.data.reload_required) {
+            // Optional: Show a brief message before reloading
+            const message = detail.response.data.message || 'Session expired. Refreshing page...'
+            console.log(message)
+        }
+        
+        // Reload the page to get fresh CSRF tokens
         window.location.reload()
         return false
     }

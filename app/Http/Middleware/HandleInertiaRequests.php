@@ -49,12 +49,15 @@ class HandleInertiaRequests extends Middleware
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
             'locale' => [
                 'current' => App::getLocale(),
                 'supported' => config('app.supported_locales'),
                 'translations' => $this->getTranslations(),
             ],
+            // Share CSRF token to prevent 412 errors
+            'csrf_token' => fn () => csrf_token(),
         ];
     }
 

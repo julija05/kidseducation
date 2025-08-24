@@ -25,10 +25,17 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\CacheHeaders::class,
         ]);
 
+        // Use custom CSRF token middleware for better error handling
+        $middleware->replace(
+            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+            \App\Http\Middleware\VerifyCsrfToken::class
+        );
+
         // Exclude chat routes from CSRF verification (for guest users and admin)
         $middleware->validateCsrfTokens(except: [
             'chat/*',
             'admin/chat/*',
+            'csrf-token', // Allow CSRF token refresh without verification
         ]);
 
         $middleware->alias([
