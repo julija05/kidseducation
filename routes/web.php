@@ -19,6 +19,7 @@ use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoController;
+use App\Http\Middleware\EnsureDemoAccess;
 use App\Http\Controllers\Front\AboutController;
 use App\Http\Controllers\Front\ContactController;
 use App\Http\Controllers\Front\SignUpKidController;
@@ -58,14 +59,8 @@ Route::post('/debug/language-preference', function (Request $request) {
     return back()->with('success', 'Debug route hit successfully');
 })->middleware('auth');
 
-// Student dashboard
-Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
-    Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
-
-    // Individual lesson routes
+// Individual lesson routes - accessible by both students and demo users
+Route::middleware(['auth', 'check.user.status', EnsureDemoAccess::class])->group(function () {
     Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
     Route::post('/lessons/{lesson}/start', [LessonController::class, 'start'])->name('lessons.start');
     Route::patch('/lessons/{lesson}/progress', [LessonController::class, 'updateProgress'])->name('lessons.updateProgress');
@@ -75,6 +70,14 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
     Route::get('/lesson-resources/{lessonResource}/download', [LessonResourceController::class, 'download'])->name('lesson-resources.download');
     Route::get('/lesson-resources/{lessonResource}/stream', [LessonResourceController::class, 'stream'])->name('lesson-resources.stream');
     Route::post('/lesson-resources/{lessonResource}/mark-viewed', [LessonResourceController::class, 'markAsViewed'])->name('lesson-resources.mark-viewed');
+});
+
+// Student dashboard
+Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
+    Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
 
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
