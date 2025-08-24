@@ -120,6 +120,51 @@
 
     <!-- Scripts -->
     @routes
+    
+    <!-- Ziggy Fallback to prevent errors -->
+    <script>
+        // Global error handler for debugging
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error, e.filename, e.lineno);
+        });
+
+        // Ensure Ziggy is always defined to prevent ReferenceError
+        if (typeof window.Ziggy === 'undefined') {
+            try {
+                window.Ziggy = @json(\Tighten\Ziggy\Ziggy::generate());
+                console.log('Ziggy loaded successfully');
+            } catch (e) {
+                console.warn('Ziggy generation failed, using minimal fallback:', e.message);
+                window.Ziggy = {
+                    routes: {},
+                    url: '{{ url("/") }}',
+                    port: null,
+                    defaults: {},
+                    location: window.location
+                };
+            }
+        }
+        
+        // Ensure route function exists
+        if (typeof window.route === 'undefined') {
+            console.warn('Route function not available, creating fallback');
+            window.route = function(name, params) {
+                console.warn('Using fallback route function for:', name);
+                const routes = {
+                    'dashboard': '{{ route("dashboard") ?? "/dashboard" }}',
+                    'admin.dashboard': '{{ route("admin.dashboard") ?? "/admin/dashboard" }}', 
+                    'login': '{{ route("login") ?? "/login" }}',
+                    'register': '{{ route("register") ?? "/register" }}',
+                    'landing.index': '{{ route("landing.index") ?? "/" }}',
+                    'programs.index': '{{ route("programs.index") ?? "/programs" }}'
+                };
+                return routes[name] || ('{{ url("/") }}/' + name);
+            };
+        } else {
+            console.log('Route function available');
+        }
+    </script>
+    
     @viteReactRefresh
     @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
     @inertiaHead

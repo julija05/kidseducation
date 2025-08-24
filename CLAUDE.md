@@ -309,6 +309,41 @@ if (!Schema::hasTable('table_name')) {
 
 This prevents MySQL key length errors and ensures migrations work on production servers.
 
+## Ziggy Route Configuration Issues
+
+### Problem
+Server environments may have issues with Ziggy route generation causing "Ziggy is not defined" errors and 500 Internal Server Errors on page refresh.
+
+### Solution Commands for Server
+Run these commands on the server to fix Ziggy route issues:
+
+```bash
+# Generate Ziggy routes
+php artisan ziggy:generate
+
+# Clear all caches
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+php artisan optimize:clear
+
+# Rebuild caches
+php artisan route:cache
+php artisan config:cache
+
+# Install/update Ziggy if needed
+composer require tightenco/ziggy
+php artisan vendor:publish --provider="Tighten\Ziggy\ZiggyServiceProvider"
+```
+
+### Fallback Implementation
+The app.blade.php file includes robust Ziggy fallbacks that:
+- Check if Ziggy is defined before using it
+- Provide backup route function if Ziggy fails to load
+- Include error logging for debugging
+- Prevent JavaScript crashes from missing Ziggy
+
 ### Creating New Migrations
 
 When making changes to existing table structures, ALWAYS create new migration files instead of modifying existing ones. This ensures database consistency across different environments.
