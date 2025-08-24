@@ -178,20 +178,38 @@ export default function DemoDashboard({
                                                 routeUrl: `/lessons/${firstLesson.id}`
                                             });
                                             
+                                            // Add a loading state for visual feedback
+                                            const button = document.activeElement;
+                                            const originalText = button.textContent;
+                                            button.textContent = 'Loading...';
+                                            button.disabled = true;
+                                            
                                             try {
                                                 // Use Inertia router for navigation
                                                 router.visit(`/lessons/${firstLesson.id}`, {
+                                                    onStart: () => {
+                                                        console.log('Navigation starting...');
+                                                    },
                                                     onError: (errors) => {
                                                         console.error('Navigation error:', errors);
-                                                        alert('Error accessing lesson. Please try again.');
+                                                        alert(`Navigation error: ${JSON.stringify(errors)}`);
+                                                        button.textContent = originalText;
+                                                        button.disabled = false;
                                                     },
                                                     onSuccess: () => {
-                                                        console.log('Navigation successful');
+                                                        console.log('Navigation successful - should be on lesson page');
+                                                    },
+                                                    onFinish: () => {
+                                                        console.log('Navigation finished');
+                                                        button.textContent = originalText;
+                                                        button.disabled = false;
                                                     }
                                                 });
                                             } catch (error) {
                                                 console.error('Navigation failed:', error);
+                                                alert(`Navigation failed: ${error.message}`);
                                                 // Fallback to regular navigation
+                                                console.log('Trying fallback navigation...');
                                                 window.location.href = `/lessons/${firstLesson.id}`;
                                             }
                                         }}

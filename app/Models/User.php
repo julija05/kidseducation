@@ -208,28 +208,60 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function canAccessLessonInDemo($lesson): bool
     {
+        \Log::info('canAccessLessonInDemo called', [
+            'user_id' => $this->id,
+            'lesson_id' => $lesson->id,
+            'lesson_level' => $lesson->level,
+            'lesson_order_in_level' => $lesson->order_in_level,
+            'lesson_program_id' => $lesson->program_id,
+            'has_demo_access' => $this->hasDemoAccess(),
+            'demo_program_slug' => $this->demo_program_slug,
+            'has_pending_enrollments' => $this->enrollments()->where('approval_status', 'pending')->exists(),
+        ]);
+
         // Regular demo access
         if ($this->hasDemoAccess()) {
             $demoProgram = $this->getDemoProgram();
+            \Log::info('Regular demo access check', [
+                'demo_program' => $demoProgram ? $demoProgram->id : null,
+                'lesson_program_id' => $lesson->program_id,
+                'programs_match' => $demoProgram && $lesson->program_id === $demoProgram->id,
+                'lesson_is_first' => $lesson->level === 1 && $lesson->order_in_level === 1,
+            ]);
+            
             if (! $demoProgram || $lesson->program_id !== $demoProgram->id) {
+                \Log::info('Program mismatch or no demo program');
                 return false;
             }
 
             // Only allow access to the first lesson (level 1, order_in_level 1)
-            return $lesson->level === 1 && $lesson->order_in_level === 1;
+            $canAccess = $lesson->level === 1 && $lesson->order_in_level === 1;
+            \Log::info('Regular demo access result', ['can_access' => $canAccess]);
+            return $canAccess;
         }
 
         // Special case: Users with pending enrollments can access demo if they have demo_program_slug
         if ($this->enrollments()->where('approval_status', 'pending')->exists() && $this->demo_program_slug) {
             $demoProgram = \App\Models\Program::where('slug', $this->demo_program_slug)->first();
+            \Log::info('Pending enrollment demo access check', [
+                'demo_program' => $demoProgram ? $demoProgram->id : null,
+                'lesson_program_id' => $lesson->program_id,
+                'programs_match' => $demoProgram && $lesson->program_id === $demoProgram->id,
+                'lesson_is_first' => $lesson->level === 1 && $lesson->order_in_level === 1,
+            ]);
+            
             if (! $demoProgram || $lesson->program_id !== $demoProgram->id) {
+                \Log::info('Program mismatch or no demo program in pending enrollment check');
                 return false;
             }
 
             // Only allow access to the first lesson (level 1, order_in_level 1)
-            return $lesson->level === 1 && $lesson->order_in_level === 1;
+            $canAccess = $lesson->level === 1 && $lesson->order_in_level === 1;
+            \Log::info('Pending enrollment demo access result', ['can_access' => $canAccess]);
+            return $canAccess;
         }
 
+        \Log::info('No demo access found');
         return false;
     }
 

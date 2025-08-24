@@ -36,9 +36,22 @@ class EnsureDemoAccess
             // Allow access to lesson routes only for their demo lesson
             if ($request->routeIs('lessons.*')) {
                 $lesson = $request->route('lesson');
+                \Log::info('EnsureDemoAccess middleware - lesson route check', [
+                    'user_id' => $user->id,
+                    'lesson' => $lesson ? $lesson->id : 'null',
+                    'demo_program_slug' => $user->demo_program_slug,
+                    'route_name' => $request->route()->getName(),
+                ]);
+                
                 if ($lesson && $user->canAccessLessonInDemo($lesson)) {
+                    \Log::info('EnsureDemoAccess middleware - allowing lesson access');
                     return $next($request);
                 }
+
+                \Log::info('EnsureDemoAccess middleware - blocking lesson access', [
+                    'lesson_id' => $lesson ? $lesson->id : 'null',
+                    'can_access' => $lesson ? $user->canAccessLessonInDemo($lesson) : false,
+                ]);
 
                 // Redirect to demo dashboard if trying to access other lessons
                 return redirect()->route('demo.dashboard', $user->demo_program_slug)
