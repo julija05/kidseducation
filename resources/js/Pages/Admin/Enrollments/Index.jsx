@@ -51,7 +51,7 @@ export default function AllEnrollments({
     const handleUnblockAccess = (enrollment) => {
         if (
             !confirm(
-                `Restore access for ${enrollment.user.name} in ${enrollment.program.name}?`
+                `Restore access for ${enrollment.user?.name || 'Unknown User'} in ${enrollment.program?.name || 'Unknown Program'}?`
             )
         ) {
             return;
@@ -255,18 +255,18 @@ export default function AllEnrollments({
                                                 </div>
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {enrollment.user.name}
+                                                        {enrollment.user?.name || 'Unknown User'}
                                                     </div>
                                                     <div className="text-sm text-gray-500 flex items-center">
                                                         <Mail className="h-3 w-3 mr-1" />
-                                                        {enrollment.user.email}
+                                                        {enrollment.user?.email || 'No email'}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-900 font-medium">
-                                                {enrollment.program.name}
+                                                {enrollment.program?.name || 'Unknown Program'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -275,11 +275,41 @@ export default function AllEnrollments({
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            {getAccessBadge(enrollment)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm text-gray-900 flex items-center">
                                                 <Calendar className="h-4 w-4 mr-1 text-gray-400" />
                                                 {new Date(
                                                     enrollment.created_at
                                                 ).toLocaleDateString()}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex items-center justify-end space-x-2">
+                                                {enrollment.approval_status === 'approved' && (
+                                                    <>
+                                                        {enrollment.access_blocked ? (
+                                                            <button
+                                                                onClick={() => handleUnblockAccess(enrollment)}
+                                                                disabled={processing}
+                                                                className="inline-flex items-center px-3 py-1 border border-green-300 text-xs font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                            >
+                                                                <Unlock className="w-3 h-3 mr-1" />
+                                                                Restore Access
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleBlockAccess(enrollment)}
+                                                                disabled={processing}
+                                                                className="inline-flex items-center px-3 py-1 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                            >
+                                                                <Lock className="w-3 h-3 mr-1" />
+                                                                Block Access
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -367,6 +397,62 @@ export default function AllEnrollments({
                         </div>
                     )}
                 </div>
+
+                {/* Block Access Modal */}
+                {showBlockModal && selectedEnrollment && (
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                            <div className="mt-3">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-medium text-gray-900">
+                                        Block Access
+                                    </h3>
+                                    <button
+                                        onClick={() => setShowBlockModal(false)}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <XCircle className="h-6 w-6" />
+                                    </button>
+                                </div>
+                                
+                                <p className="text-sm text-gray-500 mb-4">
+                                    Block access for <strong>{selectedEnrollment.user?.name || 'Unknown User'}</strong> in{' '}
+                                    <strong>{selectedEnrollment.program?.name || 'Unknown Program'}</strong>
+                                </p>
+                                
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Reason for blocking access (required)
+                                    </label>
+                                    <textarea
+                                        value={blockReason}
+                                        onChange={(e) => setBlockReason(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                                        rows="3"
+                                        placeholder="Please provide a reason for blocking access..."
+                                    />
+                                </div>
+                                
+                                <div className="flex justify-end space-x-3">
+                                    <button
+                                        onClick={() => setShowBlockModal(false)}
+                                        disabled={processing}
+                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={submitBlock}
+                                        disabled={processing || !blockReason.trim()}
+                                        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {processing ? 'Blocking...' : 'Block Access'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AdminLayout>
     );
