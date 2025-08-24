@@ -317,39 +317,5 @@ Route::get('/csrf-token', function () {
     ]);
 })->name('csrf.refresh');
 
-// Debug endpoint for chat conversation (TEMPORARY - remove after debugging)
-Route::get('/debug/chat/{conversationId}', function ($conversationId) {
-    $conversation = \App\Models\ChatConversation::with(['user', 'admin'])->find($conversationId);
-    $admin = auth()->user();
-    
-    if (!$conversation) {
-        return response()->json(['error' => 'Conversation not found']);
-    }
-    
-    return response()->json([
-        'conversation_id' => $conversationId,
-        'conversation_exists' => true,
-        'conversation_status' => $conversation->status,
-        'conversation_admin_id' => $conversation->admin_id,
-        'conversation_user_id' => $conversation->user_id,
-        'current_admin_id' => $admin ? $admin->id : null,
-        'current_admin_roles' => $admin ? $admin->roles->pluck('name') : null,
-        'admin_matches' => $admin && (int)$conversation->admin_id === (int)$admin->id,
-        'admin_matches_strict' => $admin && $conversation->admin_id === $admin->id,
-        'conversation_admin_id_type' => gettype($conversation->admin_id),
-        'current_admin_id_type' => gettype($admin ? $admin->id : null),
-        'is_waiting' => $conversation->status === 'waiting',
-        'is_active_unassigned' => $conversation->status === 'active' && $conversation->admin_id === null,
-        'should_have_access' => $admin && (
-            (int)$conversation->admin_id === (int)$admin->id || 
-            $conversation->status === 'waiting' || 
-            ($conversation->status === 'active' && $conversation->admin_id === null)
-        ),
-        'messages_count' => $conversation->messages()->count(),
-        'last_activity' => $conversation->last_activity_at,
-        'created_at' => $conversation->created_at,
-        'updated_at' => $conversation->updated_at,
-    ]);
-})->middleware('auth');
 
 require __DIR__ . '/auth.php';
