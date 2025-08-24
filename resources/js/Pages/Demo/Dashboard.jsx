@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { 
     Play, 
@@ -170,20 +170,36 @@ export default function DemoDashboard({
                                         </div>
                                     )}
 
-                                    <Link
-                                        href={`/lessons/${firstLesson.id}`}
-                                        className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transform transition-all duration-200 hover:scale-105 touch-manipulation"
+                                    <button
                                         onClick={() => {
                                             console.log('Demo lesson button clicked', {
                                                 lessonId: firstLesson.id,
                                                 lessonTitle: firstLesson.title,
                                                 routeUrl: `/lessons/${firstLesson.id}`
                                             });
+                                            
+                                            try {
+                                                // Use Inertia router for navigation
+                                                router.visit(`/lessons/${firstLesson.id}`, {
+                                                    onError: (errors) => {
+                                                        console.error('Navigation error:', errors);
+                                                        alert('Error accessing lesson. Please try again.');
+                                                    },
+                                                    onSuccess: () => {
+                                                        console.log('Navigation successful');
+                                                    }
+                                                });
+                                            } catch (error) {
+                                                console.error('Navigation failed:', error);
+                                                // Fallback to regular navigation
+                                                window.location.href = `/lessons/${firstLesson.id}`;
+                                            }
                                         }}
+                                        className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transform transition-all duration-200 hover:scale-105 touch-manipulation"
                                     >
                                         <Play className="h-5 w-5 mr-2" />
                                         {t('lessons.start_lesson')}
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         )}
