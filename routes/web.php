@@ -321,5 +321,38 @@ Route::get('/csrf-token', function () {
     ]);
 })->name('csrf.refresh');
 
+// Debug route for checking user demo access - REMOVE AFTER DEBUGGING
+Route::get('/debug/user-demo-access', function () {
+    if (!Auth::check()) {
+        return response()->json(['error' => 'Not authenticated']);
+    }
+    
+    $user = Auth::user();
+    $lesson = \App\Models\Lesson::find(1);
+    
+    return response()->json([
+        'user_id' => $user->id,
+        'user_email' => $user->email,
+        'is_demo_account' => $user->is_demo_account ?? false,
+        'demo_program_slug' => $user->demo_program_slug,
+        'demo_created_at' => $user->demo_created_at,
+        'demo_expires_at' => $user->demo_expires_at,
+        'hasDemoAccess' => $user->hasDemoAccess(),
+        'isDemoAccount' => $user->isDemoAccount(),
+        'isDemoExpired' => $user->isDemoExpired(),
+        'canAccessLessonInDemo' => $lesson ? $user->canAccessLessonInDemo($lesson) : null,
+        'pending_enrollments' => $user->enrollments()->where('approval_status', 'pending')->exists(),
+        'approved_enrollments' => $user->enrollments()->where('approval_status', 'approved')->count(),
+        'lesson_1_details' => $lesson ? [
+            'id' => $lesson->id,
+            'title' => $lesson->title,
+            'level' => $lesson->level,
+            'order_in_level' => $lesson->order_in_level,
+            'program_id' => $lesson->program_id,
+            'program_slug' => $lesson->program->slug
+        ] : null
+    ]);
+})->middleware('auth');
+
 
 require __DIR__ . '/auth.php';
