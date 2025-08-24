@@ -95,11 +95,22 @@
 
     <!-- Google Tag Manager -->
     @if(env('GOOGLE_TAG_MANAGER_ID'))
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','{!! env("GOOGLE_TAG_MANAGER_ID") !!}');</script>
+    <script>
+        (function(w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js'
+            });
+            var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s),
+                dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true;
+            j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+            f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', '{!! env("GOOGLE_TAG_MANAGER_ID") !!}');
+    </script>
     @endif
 
 
@@ -108,7 +119,10 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id={!! env('GOOGLE_ANALYTICS_ID') !!}"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
         gtag('js', new Date());
         gtag('config', '{!! env("GOOGLE_ANALYTICS_ID") !!}', {
             page_title: document.title,
@@ -121,7 +135,8 @@
     <!-- Scripts -->
     @routes
     @viteReactRefresh
-    @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
+    @viteReactRefresh
+    @vite('resources/js/app.jsx')
     @inertiaHead
 </head>
 
