@@ -60,8 +60,8 @@ Route::post('/debug/language-preference', function (Request $request) {
 })->middleware('auth');
 
 // Individual lesson routes - accessible by both students and demo users
-// Temporarily disable EnsureDemoAccess for debugging
-Route::middleware(['auth', 'check.user.status'])->group(function () {
+// Temporarily disable ALL middleware for debugging
+Route::middleware(['auth'])->group(function () {
     Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
     Route::post('/lessons/{lesson}/start', [LessonController::class, 'start'])->name('lessons.start');
     Route::patch('/lessons/{lesson}/progress', [LessonController::class, 'updateProgress'])->name('lessons.updateProgress');

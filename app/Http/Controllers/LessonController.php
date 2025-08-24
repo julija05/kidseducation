@@ -29,6 +29,15 @@ class LessonController extends Controller
 
     public function show(Lesson $lesson)
     {
+        // TEMPORARY DEBUG - Remove after fixing
+        \Log::info('=== LESSON CONTROLLER REACHED ===', [
+            'lesson_id' => $lesson->id,
+            'lesson_title' => $lesson->title,
+            'user_id' => Auth::id(),
+            'user_email' => Auth::user()?->email,
+            'timestamp' => now(),
+        ]);
+        
         $user = Auth::user();
 
         // Check if user is suspended - deny access to lessons
