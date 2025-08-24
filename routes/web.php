@@ -38,6 +38,7 @@ use App\Http\Controllers\Student\ReviewController;
 use App\Http\Controllers\TestEmailController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 // Language switching - IMPORTANT: Specific routes must come before parameterized routes
@@ -47,7 +48,7 @@ Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('
 
 // Debug route for language preference
 Route::post('/debug/language-preference', function (Request $request) {
-    \Log::info('DEBUG: Language preference request', [
+    Log::info('DEBUG: Language preference request', [
         'all_data' => $request->all(),
         'method' => $request->method(),
         'user' => Auth::user()?->only(['id', 'name', 'language_preference']),
@@ -309,4 +310,4 @@ Route::prefix('demo')->name('demo.')->group(function () {
     Route::get('/expired', [DemoController::class, 'expired'])->name('expired');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
