@@ -327,31 +327,55 @@ Route::get('/debug/user-demo-access', function () {
         return response()->json(['error' => 'Not authenticated']);
     }
     
-    $user = Auth::user();
-    $lesson = \App\Models\Lesson::find(1);
-    
-    return response()->json([
-        'user_id' => $user->id,
-        'user_email' => $user->email,
-        'is_demo_account' => $user->is_demo_account ?? false,
-        'demo_program_slug' => $user->demo_program_slug,
-        'demo_created_at' => $user->demo_created_at,
-        'demo_expires_at' => $user->demo_expires_at,
-        'hasDemoAccess' => $user->hasDemoAccess(),
-        'isDemoAccount' => $user->isDemoAccount(),
-        'isDemoExpired' => $user->isDemoExpired(),
-        'canAccessLessonInDemo' => $lesson ? $user->canAccessLessonInDemo($lesson) : null,
-        'pending_enrollments' => $user->enrollments()->where('approval_status', 'pending')->exists(),
-        'approved_enrollments' => $user->enrollments()->where('approval_status', 'approved')->count(),
-        'lesson_1_details' => $lesson ? [
-            'id' => $lesson->id,
-            'title' => $lesson->title,
-            'level' => $lesson->level,
-            'order_in_level' => $lesson->order_in_level,
-            'program_id' => $lesson->program_id,
-            'program_slug' => $lesson->program->slug
-        ] : null
-    ]);
+    try {
+        $user = Auth::user();
+        $lesson = \App\Models\Lesson::find(1);
+        
+        $data = [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'is_demo_account' => $user->is_demo_account ?? false,
+            'demo_program_slug' => $user->demo_program_slug ?? null,
+            'demo_created_at' => $user->demo_created_at ?? null,
+            'demo_expires_at' => $user->demo_expires_at ?? null,
+            'lesson_1_exists' => $lesson ? true : false
+        ];
+        
+        // Safely call methods that might not exist
+        if (method_exists($user, 'hasDemoAccess')) {
+            $data['hasDemoAccess'] = $user->hasDemoAccess();
+        }
+        
+        if (method_exists($user, 'isDemoAccount')) {
+            $data['isDemoAccount'] = $user->isDemoAccount();
+        }
+        
+        if (method_exists($user, 'isDemoExpired')) {
+            $data['isDemoExpired'] = $user->isDemoExpired();
+        }
+        
+        if ($lesson && method_exists($user, 'canAccessLessonInDemo')) {
+            $data['canAccessLessonInDemo'] = $user->canAccessLessonInDemo($lesson);
+            $data['lesson_1_details'] = [
+                'id' => $lesson->id,
+                'title' => $lesson->title,
+                'level' => $lesson->level,
+                'order_in_level' => $lesson->order_in_level,
+                'program_id' => $lesson->program_id,
+                'program_slug' => $lesson->program ? $lesson->program->slug : null
+            ];
+        }
+        
+        return response()->json($data);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Debug failed',
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => basename($e->getFile())
+        ]);
+    }
 })->middleware('auth');
 
 
