@@ -151,9 +151,38 @@ class AdminChatController extends Controller
         $conversation = ChatConversation::with(['user', 'admin'])->findOrFail($conversationId);
         $admin = Auth::user();
 
+        // Debug logging for 403 issues
+        \Log::info('AdminChatController getMessages debug', [
+            'conversation_id' => $conversationId,
+            'admin_id' => $admin->id,
+            'conversation_admin_id' => $conversation->admin_id,
+            'conversation_status' => $conversation->status,
+            'admin_roles' => $admin->roles->pluck('name'),
+            'can_access_before' => $this->adminCanAccessConversation($admin, $conversation),
+        ]);
+
+        // Auto-assign waiting conversations to the requesting admin
+        if ($conversation->status === 'waiting' && !$conversation->admin_id) {
+            $conversation->update([
+                'admin_id' => $admin->id,
+                'status' => 'active',
+            ]);
+            
+            \Log::info('Auto-assigned conversation to admin', [
+                'conversation_id' => $conversationId,
+                'admin_id' => $admin->id,
+            ]);
+        }
+
         // Verify admin has access to this conversation
         if (! $this->adminCanAccessConversation($admin, $conversation)) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            \Log::warning('Admin chat access denied', [
+                'admin_id' => $admin->id,
+                'conversation_id' => $conversationId,
+                'conversation_admin_id' => $conversation->admin_id,
+                'conversation_status' => $conversation->status,
+            ]);
+            return response()->json(['error' => 'Unauthorized - This conversation is assigned to another admin'], 403);
         }
 
         // Mark user messages as read and get messages
@@ -231,8 +260,25 @@ class AdminChatController extends Controller
      */
     private function adminCanAccessConversation($admin, ChatConversation $conversation): bool
     {
-        // Allow access to assigned conversations or waiting conversations
-        return $conversation->admin_id === $admin->id || $conversation->status === 'waiting';
+        // Allow access to:
+        // 1. Conversations assigned to this admin
+        // 2. Waiting conversations (any admin can take them)
+        // 3. Active conversations not assigned yet (for compatibility)
+        $canAccess = $conversation->admin_id === $admin->id 
+                    || $conversation->status === 'waiting'
+                    || ($conversation->status === 'active' && $conversation->admin_id === null);
+        
+        \Log::info('AdminChatController access check', [
+            'admin_id' => $admin->id,
+            'conversation_admin_id' => $conversation->admin_id,
+            'conversation_status' => $conversation->status,
+            'admin_id_matches' => $conversation->admin_id === $admin->id,
+            'is_waiting' => $conversation->status === 'waiting',
+            'is_active_unassigned' => ($conversation->status === 'active' && $conversation->admin_id === null),
+            'can_access' => $canAccess,
+        ]);
+        
+        return $canAccess;
     }
 
     /**

@@ -17,29 +17,61 @@ class EnsureSessionConfiguration
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Ensure session is properly started for database-based sessions on production
+        // Ensure session is properly started for database-based sessions
         if (config('session.driver') === 'database' && !$request->hasSession()) {
-            $request->setLaravelSession(Session::driver());
+            try {
+                $request->setLaravelSession(Session::driver());
+            } catch (\Exception $e) {
+                \Log::warning('Failed to set Laravel session', [
+                    'error' => $e->getMessage(),
+                    'url' => $request->url(),
+                ]);
+            }
         }
 
-        // Force session start for production environment
-        if (app()->environment('production')) {
-            // Ensure session ID exists
-            if (!Session::getId()) {
+        // Ensure session is started
+        if (!Session::getId()) {
+            try {
                 Session::start();
+                \Log::debug('Started new session', [
+                    'session_id' => Session::getId(),
+                    'url' => $request->url(),
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to start session', [
+                    'error' => $e->getMessage(),
+                    'url' => $request->url(),
+                ]);
             }
-            
-            // Ensure CSRF token exists
-            if (!Session::token()) {
+        }
+        
+        // Ensure CSRF token exists
+        if (!Session::token()) {
+            try {
                 Session::regenerateToken();
+                \Log::debug('Generated new CSRF token', [
+                    'session_id' => Session::getId(),
+                    'url' => $request->url(),
+                ]);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to generate CSRF token', [
+                    'error' => $e->getMessage(),
+                    'session_id' => Session::getId(),
+                ]);
             }
         }
 
+        // Handle session timeout gracefully
         $response = $next($request);
 
-        // Ensure session is saved for production
-        if (app()->environment('production')) {
+        // Ensure session is saved
+        try {
             Session::save();
+        } catch (\Exception $e) {
+            \Log::warning('Failed to save session', [
+                'error' => $e->getMessage(),
+                'session_id' => Session::getId(),
+            ]);
         }
 
         return $response;
