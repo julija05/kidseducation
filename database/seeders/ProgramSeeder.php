@@ -34,8 +34,11 @@ class ProgramSeeder extends Seeder
             // Convert duration to weeks
             $program['duration_weeks'] = $this->convertDurationToWeeks($program['duration']);
 
-            // Create program
-            Program::create($program);
+            // Create program only if it doesn't exist (prevent duplicates)
+            Program::firstOrCreate(
+                ['slug' => $program['slug']], // Check by slug (unique identifier)
+                $program // Create with these attributes if not found
+            );
         }
     }
 

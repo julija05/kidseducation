@@ -60,11 +60,50 @@ if ($returnMigrate !== 0) {
     echo "\nReturn Code: $returnMigrate\n";
 }
 
-exec('php artisan db:seed --force 2>&1', $outputMigrate, $returnMigrate);
-if ($returnMigrate !== 0) {
-    echo "Migration Failed:\n";
-    echo implode("\n", $outputMigrate);
-    echo "\nReturn Code: $returnMigrate\n";
+// Only seed if database is empty or seeding is specifically needed
+// Check if programs table is empty before seeding
+exec('php artisan tinker --execute="echo App\Models\Program::count();" 2>&1', $programCountOutput, $programCountResult);
+$programCount = isset($programCountOutput[0]) ? intval(trim($programCountOutput[0])) : 0;
+
+// Only seed if no programs exist OR if seeders have been modified in this commit
+$shouldSeed = false;
+
+if ($programCount === 0) {
+    echo "No programs found, seeding database...\n";
+    $shouldSeed = true;
+} else {
+    // Check if any seeder files were modified in this commit
+    if (isset($data['commits'])) {
+        foreach ($data['commits'] as $commit) {
+            if (isset($commit['modified']) || isset($commit['added'])) {
+                $allFiles = array_merge(
+                    $commit['modified'] ?? [],
+                    $commit['added'] ?? []
+                );
+                
+                foreach ($allFiles as $file) {
+                    if (strpos($file, 'database/seeders/') === 0 || strpos($file, 'database/migrations/') === 0) {
+                        echo "Seeder/migration files modified, re-seeding database...\n";
+                        $shouldSeed = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+    }
+}
+
+if ($shouldSeed) {
+    exec('php artisan db:seed --force 2>&1', $outputSeed, $returnSeed);
+    if ($returnSeed !== 0) {
+        echo "Seeding Failed:\n";
+        echo implode("\n", $outputSeed);
+        echo "\nReturn Code: $returnSeed\n";
+    } else {
+        echo "Database seeding completed successfully.\n";
+    }
+} else {
+    echo "Skipping database seeding - no changes needed.\n";
 }
 
 exec('php artisan cache:clear 2>&1', $outputMigrate, $returnMigrate);

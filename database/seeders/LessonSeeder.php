@@ -216,21 +216,28 @@ class LessonSeeder extends Seeder
     private function createLessonsForLevel(Program $program, int $level, array $lessons): void
     {
         foreach ($lessons as $lessonData) {
-            Lesson::create([
-                'program_id' => $program->id,
-                'level' => $level,
-                'title' => $lessonData['title'],
-                'description' => $lessonData['description'],
-                'content_type' => $lessonData['content_type'],
-                'content_url' => $lessonData['content_url'] ?? null,
-                'content_body' => $lessonData['content_body'] ?? null,
-                'duration_minutes' => $lessonData['duration_minutes'],
-                'order_in_level' => $lessonData['order_in_level'],
-                'is_active' => true,
-                'metadata' => [
-                    'difficulty' => $level === 1 ? 'beginner' : ($level === 2 ? 'intermediate' : 'advanced'),
-                    'prerequisites' => $level > 1 ? ['Complete Level '.($level - 1)] : [],
-                ],
+            // Create lesson only if it doesn't exist (prevent duplicates)
+            Lesson::firstOrCreate(
+                [
+                    'program_id' => $program->id,
+                    'level' => $level,
+                    'order_in_level' => $lessonData['order_in_level'],
+                ], // Check by program, level, and order (unique identifier)
+                [
+                    'program_id' => $program->id,
+                    'level' => $level,
+                    'title' => $lessonData['title'],
+                    'description' => $lessonData['description'],
+                    'content_type' => $lessonData['content_type'],
+                    'content_url' => $lessonData['content_url'] ?? null,
+                    'content_body' => $lessonData['content_body'] ?? null,
+                    'duration_minutes' => $lessonData['duration_minutes'],
+                    'order_in_level' => $lessonData['order_in_level'],
+                    'is_active' => true,
+                    'metadata' => [
+                        'difficulty' => $level === 1 ? 'beginner' : ($level === 2 ? 'intermediate' : 'advanced'),
+                        'prerequisites' => $level > 1 ? ['Complete Level '.($level - 1)] : [],
+                    ],
             ]);
         }
     }
