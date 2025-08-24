@@ -334,11 +334,14 @@ Route::get('/debug/chat/{conversationId}', function ($conversationId) {
         'conversation_user_id' => $conversation->user_id,
         'current_admin_id' => $admin ? $admin->id : null,
         'current_admin_roles' => $admin ? $admin->roles->pluck('name') : null,
-        'admin_matches' => $admin && $conversation->admin_id === $admin->id,
+        'admin_matches' => $admin && (int)$conversation->admin_id === (int)$admin->id,
+        'admin_matches_strict' => $admin && $conversation->admin_id === $admin->id,
+        'conversation_admin_id_type' => gettype($conversation->admin_id),
+        'current_admin_id_type' => gettype($admin ? $admin->id : null),
         'is_waiting' => $conversation->status === 'waiting',
         'is_active_unassigned' => $conversation->status === 'active' && $conversation->admin_id === null,
         'should_have_access' => $admin && (
-            $conversation->admin_id === $admin->id || 
+            (int)$conversation->admin_id === (int)$admin->id || 
             $conversation->status === 'waiting' || 
             ($conversation->status === 'active' && $conversation->admin_id === null)
         ),

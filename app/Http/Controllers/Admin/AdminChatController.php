@@ -218,7 +218,7 @@ class AdminChatController extends Controller
                     'conversation_user_id' => $conversation->user_id,
                     'request_url' => $request->url(),
                     'request_method' => $request->method(),
-                    'admin_id_matches' => $conversation->admin_id === $admin->id,
+                    'admin_id_matches' => (int)$conversation->admin_id === (int)$admin->id,
                     'is_waiting' => $conversation->status === 'waiting',
                     'is_active_unassigned' => ($conversation->status === 'active' && $conversation->admin_id === null),
                     'timestamp' => now()->toISOString(),
@@ -254,7 +254,7 @@ class AdminChatController extends Controller
         $admin = Auth::user();
 
         // Verify admin has access to this conversation
-        if ($conversation->admin_id !== $admin->id) {
+        if ((int)$conversation->admin_id !== (int)$admin->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -311,10 +311,10 @@ class AdminChatController extends Controller
     private function adminCanAccessConversation($admin, ChatConversation $conversation): bool
     {
         // Allow access to:
-        // 1. Conversations assigned to this admin
+        // 1. Conversations assigned to this admin (with proper type casting)
         // 2. Waiting conversations (any admin can take them)
         // 3. Active conversations not assigned yet (for compatibility)
-        return $conversation->admin_id === $admin->id 
+        return (int)$conversation->admin_id === (int)$admin->id 
                || $conversation->status === 'waiting'
                || ($conversation->status === 'active' && $conversation->admin_id === null);
     }
@@ -354,7 +354,7 @@ class AdminChatController extends Controller
         }
 
         // Verify admin has access to this conversation
-        if ($conversation->admin_id !== $admin->id) {
+        if ((int)$conversation->admin_id !== (int)$admin->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
