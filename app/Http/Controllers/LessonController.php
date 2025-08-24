@@ -50,19 +50,52 @@ class LessonController extends Controller
                     ->with('error', 'You need to complete previous level lessons to unlock this lesson.');
             }
         } else {
-            // PRIORITY 2: Check demo access (even with pending enrollments)
-            if ($user->isDemoAccount()) {
+            // PRIORITY 2: Check demo access (including pending enrollments with demo access)
+            $hasDemoAccess = $user->hasDemoAccess();
+            $hasPendingEnrollmentDemoAccess = $user->enrollments()->where('approval_status', 'pending')->exists() 
+                                            && $user->demo_program_slug;
+            $isDemoAccount = $user->isDemoAccount();
+            
+            // Log demo access check for debugging
+            Log::info('Demo access check', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'lesson_id' => $lesson->id,
+                'lesson_title' => $lesson->title,
+                'has_demo_access' => $hasDemoAccess,
+                'has_pending_enrollment_demo_access' => $hasPendingEnrollmentDemoAccess,
+                'is_demo_account' => $isDemoAccount,
+                'demo_program_slug' => $user->demo_program_slug,
+                'demo_expires_at' => $user->demo_expires_at,
+                'is_demo_expired' => $user->isDemoExpired(),
+            ]);
+
+            if ($isDemoAccount || $hasDemoAccess || $hasPendingEnrollmentDemoAccess) {
+                // Check if demo has expired first
+                if ($user->isDemoExpired() && !$hasPendingEnrollmentDemoAccess) {
+                    Log::info('Demo expired, logging out user', ['user_id' => $user->id]);
+                    Auth::logout();
+                    return redirect()->route('demo.expired');
+                }
+                
+                // Check if user can access this specific lesson in demo mode
                 if (! $user->canAccessLessonInDemo($lesson)) {
+                    Log::info('Demo user cannot access lesson', [
+                        'user_id' => $user->id,
+                        'lesson_id' => $lesson->id,
+                        'lesson_level' => $lesson->level,
+                        'lesson_order' => $lesson->order_in_level,
+                        'lesson_program_id' => $lesson->program_id,
+                    ]);
+                    
                     return redirect()->route('demo.dashboard', $user->demo_program_slug)
                         ->with('error', 'Demo access is limited to the first lesson only. Enroll for full access.');
                 }
-
-                // Check if demo has expired
-                if ($user->isDemoExpired()) {
-                    Auth::logout();
-
-                    return redirect()->route('demo.expired');
-                }
+                
+                Log::info('Demo user granted lesson access', [
+                    'user_id' => $user->id,
+                    'lesson_id' => $lesson->id,
+                ]);
             } else {
                 // PRIORITY 3: Check if user has pending enrollment - redirect to dashboard
                 if ($user->enrollments()->where('approval_status', 'pending')->exists()) {
