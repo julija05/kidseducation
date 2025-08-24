@@ -10,6 +10,7 @@ use App\Models\ChatMessage;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdminChatController extends Controller
 {
@@ -91,10 +92,14 @@ class AdminChatController extends Controller
         $admin = Auth::user();
 
         if ($conversation->status === 'waiting' || $conversation->admin_id === null) {
+            // Update conversation and refresh to ensure we have the latest data
             $conversation->update([
                 'admin_id' => $admin->id,
                 'status' => 'active',
+                'last_activity_at' => now(),
             ]);
+            
+            $conversation->refresh();
 
             // Send system message
             ChatMessage::create([
@@ -104,7 +109,18 @@ class AdminChatController extends Controller
                 'message' => "Hello! I'm {$admin->name} and I'll be helping you today. How can I assist you?",
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Conversation assigned successfully']);
+            \Log::info('Conversation taken by admin', [
+                'conversation_id' => $conversationId,
+                'admin_id' => $admin->id,
+                'new_status' => $conversation->status,
+                'new_admin_id' => $conversation->admin_id,
+            ]);
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Conversation assigned successfully',
+                'conversation' => $conversation,
+            ]);
         }
 
         return response()->json(['error' => 'Conversation already assigned'], 400);
@@ -115,32 +131,56 @@ class AdminChatController extends Controller
      */
     public function sendMessage(AdminSendMessageRequest $request)
     {
-
         $validated = $request->validated();
-        $conversation = ChatConversation::findOrFail($validated['conversation_id']);
         $admin = Auth::user();
+        
+        return DB::transaction(function () use ($validated, $admin) {
+            // Get fresh conversation data with lock
+            $conversation = ChatConversation::with(['user', 'admin'])
+                ->lockForUpdate()
+                ->findOrFail($validated['conversation_id']);
 
-        // Verify admin has access to this conversation
-        if ($conversation->admin_id !== $admin->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+            // Auto-assign waiting conversations when sending message
+            if ($conversation->status === 'waiting' && !$conversation->admin_id) {
+                $conversation->update([
+                    'admin_id' => $admin->id,
+                    'status' => 'active',
+                    'last_activity_at' => now(),
+                ]);
+            }
 
-        $message = ChatMessage::create([
-            'conversation_id' => $conversation->id,
-            'sender_id' => $admin->id,
-            'sender_type' => 'admin',
-            'message' => $validated['message'],
-        ]);
+            // Use the same authorization logic as getMessages
+            if (! $this->adminCanAccessConversation($admin, $conversation)) {
+                \Log::warning('Admin message send access denied', [
+                    'admin_id' => $admin->id,
+                    'conversation_id' => $validated['conversation_id'],
+                    'conversation_admin_id' => $conversation->admin_id,
+                    'conversation_status' => $conversation->status,
+                ]);
+                
+                return response()->json([
+                    'error' => 'Access denied',
+                    'message' => 'You cannot send messages to this conversation',
+                ], 403);
+            }
 
-        // Update conversation activity and mark messages as read
-        $conversation->updateActivity();
-        $conversation->markAsReadByAdmin();
-        $message->load('sender');
+            $message = ChatMessage::create([
+                'conversation_id' => $conversation->id,
+                'sender_id' => $admin->id,
+                'sender_type' => 'admin',
+                'message' => $validated['message'],
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-        ]);
+            // Update conversation activity and mark messages as read
+            $conversation->updateActivity();
+            $conversation->markAsReadByAdmin();
+            $message->load('sender');
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+        });
     }
 
     /**
@@ -148,51 +188,49 @@ class AdminChatController extends Controller
      */
     public function getMessages(Request $request, $conversationId)
     {
-        $conversation = ChatConversation::with(['user', 'admin'])->findOrFail($conversationId);
         $admin = Auth::user();
+        
+        return DB::transaction(function () use ($conversationId, $admin, $request) {
+            // Get fresh conversation data with lock to prevent race conditions
+            $conversation = ChatConversation::with(['user', 'admin'])
+                ->lockForUpdate()
+                ->findOrFail($conversationId);
 
-        // Debug logging for 403 issues
-        \Log::info('AdminChatController getMessages debug', [
-            'conversation_id' => $conversationId,
-            'admin_id' => $admin->id,
-            'conversation_admin_id' => $conversation->admin_id,
-            'conversation_status' => $conversation->status,
-            'admin_roles' => $admin->roles->pluck('name'),
-            'can_access_before' => $this->adminCanAccessConversation($admin, $conversation),
-        ]);
+            // Auto-assign waiting conversations to the requesting admin
+            if ($conversation->status === 'waiting' && !$conversation->admin_id) {
+                $conversation->update([
+                    'admin_id' => $admin->id,
+                    'status' => 'active',
+                    'last_activity_at' => now(),
+                ]);
+            }
 
-        // Auto-assign waiting conversations to the requesting admin
-        if ($conversation->status === 'waiting' && !$conversation->admin_id) {
-            $conversation->update([
-                'admin_id' => $admin->id,
-                'status' => 'active',
+            // Verify admin has access to this conversation
+            if (! $this->adminCanAccessConversation($admin, $conversation)) {
+                \Log::warning('Admin chat access denied', [
+                    'admin_id' => $admin->id,
+                    'conversation_id' => $conversationId,
+                    'conversation_admin_id' => $conversation->admin_id,
+                    'conversation_status' => $conversation->status,
+                    'request_url' => $request->url(),
+                ]);
+                return response()->json([
+                    'error' => 'Access denied',
+                    'message' => 'This conversation is not accessible to you',
+                    'conversation_status' => $conversation->status,
+                    'assigned_admin' => $conversation->admin_id,
+                ], 403);
+            }
+
+            // Mark user messages as read and get messages
+            $conversation->markAsReadByAdmin();
+            $messages = $conversation->messages()->with('sender')->get();
+
+            return response()->json([
+                'messages' => $messages,
+                'conversation' => $conversation,
             ]);
-            
-            \Log::info('Auto-assigned conversation to admin', [
-                'conversation_id' => $conversationId,
-                'admin_id' => $admin->id,
-            ]);
-        }
-
-        // Verify admin has access to this conversation
-        if (! $this->adminCanAccessConversation($admin, $conversation)) {
-            \Log::warning('Admin chat access denied', [
-                'admin_id' => $admin->id,
-                'conversation_id' => $conversationId,
-                'conversation_admin_id' => $conversation->admin_id,
-                'conversation_status' => $conversation->status,
-            ]);
-            return response()->json(['error' => 'Unauthorized - This conversation is assigned to another admin'], 403);
-        }
-
-        // Mark user messages as read and get messages
-        $conversation->markAsReadByAdmin();
-        $messages = $conversation->messages()->with('sender')->get();
-
-        return response()->json([
-            'messages' => $messages,
-            'conversation' => $conversation,
-        ]);
+        });
     }
 
     /**
@@ -264,21 +302,9 @@ class AdminChatController extends Controller
         // 1. Conversations assigned to this admin
         // 2. Waiting conversations (any admin can take them)
         // 3. Active conversations not assigned yet (for compatibility)
-        $canAccess = $conversation->admin_id === $admin->id 
-                    || $conversation->status === 'waiting'
-                    || ($conversation->status === 'active' && $conversation->admin_id === null);
-        
-        \Log::info('AdminChatController access check', [
-            'admin_id' => $admin->id,
-            'conversation_admin_id' => $conversation->admin_id,
-            'conversation_status' => $conversation->status,
-            'admin_id_matches' => $conversation->admin_id === $admin->id,
-            'is_waiting' => $conversation->status === 'waiting',
-            'is_active_unassigned' => ($conversation->status === 'active' && $conversation->admin_id === null),
-            'can_access' => $canAccess,
-        ]);
-        
-        return $canAccess;
+        return $conversation->admin_id === $admin->id 
+               || $conversation->status === 'waiting'
+               || ($conversation->status === 'active' && $conversation->admin_id === null);
     }
 
     /**
