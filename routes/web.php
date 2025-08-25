@@ -329,7 +329,7 @@ Route::get('/debug/user-demo-access', function () {
     
     try {
         $user = Auth::user();
-        $lesson = \App\Models\Lesson::find(1);
+        $lesson = \App\Models\Lesson::with('program')->find(1);
         
         $data = [
             'user_id' => $user->id,

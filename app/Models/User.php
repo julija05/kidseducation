@@ -225,11 +225,11 @@ class User extends Authenticatable implements MustVerifyEmail
             \Log::info('Regular demo access check', [
                 'demo_program' => $demoProgram ? $demoProgram->id : null,
                 'lesson_program_id' => $lesson->program_id,
-                'programs_match' => $demoProgram && $lesson->program_id === $demoProgram->id,
+                'programs_match' => $demoProgram && $lesson->program_id == $demoProgram->id,
                 'lesson_is_first' => $lesson->level === 1 && $lesson->order_in_level === 1,
             ]);
             
-            if (! $demoProgram || $lesson->program_id !== $demoProgram->id) {
+            if (! $demoProgram || $lesson->program_id != $demoProgram->id) {
                 \Log::info('Program mismatch or no demo program');
                 return false;
             }
@@ -246,11 +246,11 @@ class User extends Authenticatable implements MustVerifyEmail
             \Log::info('Pending enrollment demo access check', [
                 'demo_program' => $demoProgram ? $demoProgram->id : null,
                 'lesson_program_id' => $lesson->program_id,
-                'programs_match' => $demoProgram && $lesson->program_id === $demoProgram->id,
+                'programs_match' => $demoProgram && $lesson->program_id == $demoProgram->id,
                 'lesson_is_first' => $lesson->level === 1 && $lesson->order_in_level === 1,
             ]);
             
-            if (! $demoProgram || $lesson->program_id !== $demoProgram->id) {
+            if (! $demoProgram || $lesson->program_id != $demoProgram->id) {
                 \Log::info('Program mismatch or no demo program in pending enrollment check');
                 return false;
             }
