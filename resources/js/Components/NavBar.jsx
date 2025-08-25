@@ -39,6 +39,20 @@ const NavBar = React.memo(() => {
     const toggleMenu = () => setIsOpen(!isOpen);
 
     // Navigation items with icons - now preserving locale parameters
+    // Helper function to get the correct dashboard route based on user role
+    const getDashboardRoute = () => {
+        if (!auth?.user) return routeWithLocale("dashboard");
+        
+        // Check if user has admin role - roles is an array of strings
+        const hasAdminRole = auth.user.roles?.includes('admin');
+        if (hasAdminRole) {
+            return routeWithLocale("admin.dashboard");
+        }
+        
+        // Default to student dashboard
+        return routeWithLocale("dashboard");
+    };
+
     const navItems = [
         {
             href: routeWithLocale("landing.index"),
@@ -70,7 +84,7 @@ const NavBar = React.memo(() => {
     const authItems = auth?.user
         ? [
               {
-                  href: routeWithLocale("dashboard"),
+                  href: getDashboardRoute(),
                   label: t("nav.dashboard"),
                   icon: LayoutDashboard,
               },

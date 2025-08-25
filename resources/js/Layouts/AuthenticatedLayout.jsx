@@ -27,6 +27,7 @@ function AuthenticatedLayoutContentSimple({
 }) {
     const { props } = usePage();
     const user = props.auth.user;
+    const { auth } = props;
     const { t } = useTranslation();
     const { avatarData, renderAvatar } = useAvatar();
     const { routeWithLocale } = useRouteWithLocale();
@@ -39,6 +40,20 @@ function AuthenticatedLayoutContentSimple({
             return 'default';
         }
     });
+    
+    // Helper function to get the correct dashboard route based on user role
+    const getDashboardRoute = () => {
+        if (!auth?.user) return "dashboard";
+        
+        // Check if user has admin role - roles is an array of strings
+        const hasAdminRole = auth.user.roles?.includes('admin');
+        if (hasAdminRole) {
+            return "admin.dashboard";
+        }
+        
+        // Default to student dashboard
+        return "dashboard";
+    };
     
     // Check if user is a student (has student role)
     const isStudent = user.roles && user.roles.includes('student');
@@ -267,7 +282,7 @@ function AuthenticatedLayoutContentSimple({
                                     {/* Navigation Links */}
                                     <div className="py-2">
                                         <Dropdown.Link
-                                            href={routeWithLocale("dashboard")}
+                                            href={routeWithLocale(getDashboardRoute())}
                                             className="rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 mx-2"
                                         >
                                             🏠 {t('nav.dashboard')}

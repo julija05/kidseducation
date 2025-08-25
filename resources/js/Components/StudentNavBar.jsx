@@ -1,5 +1,5 @@
 import React from 'react';
-import { router, Link } from '@inertiajs/react';
+import { router, Link, usePage } from '@inertiajs/react';
 import { User, BookOpen, Calendar, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -24,9 +24,25 @@ export default function StudentNavBar({
     onClick
 }) {
     const { t } = useTranslation();
+    const page = usePage();
+    const { auth } = page.props;
     
-    // Default click handler - redirect to dashboard
-    const handleClick = onClick || (() => router.visit(route("dashboard")));
+    // Helper function to get the correct dashboard route based on user role
+    const getDashboardRoute = () => {
+        if (!auth?.user) return "dashboard";
+        
+        // Check if user has admin role - roles is an array of strings
+        const hasAdminRole = auth.user.roles?.includes('admin');
+        if (hasAdminRole) {
+            return "admin.dashboard";
+        }
+        
+        // Default to student dashboard
+        return "dashboard";
+    };
+    
+    // Default click handler - redirect to appropriate dashboard
+    const handleClick = onClick || (() => router.visit(route(getDashboardRoute())));
     
     // Determine the icon based on panel type
     const getIcon = () => {
@@ -97,7 +113,7 @@ export default function StudentNavBar({
                 />
             </motion.div>
             <Link 
-                href={route("dashboard")}
+                href={route(getDashboardRoute())}
                 className="text-white hover:text-gray-200 transition-colors group min-w-0 flex-1"
             >
                 <motion.div 
