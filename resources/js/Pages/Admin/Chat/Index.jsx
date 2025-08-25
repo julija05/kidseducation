@@ -29,6 +29,7 @@ export default function AdminChatIndex({ auth, conversations: initialConversatio
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [filter, setFilter] = useState('all');
+    const [showMobileChat, setShowMobileChat] = useState(false);
     const [stats, setStats] = useState({
         waiting_conversations: waitingCount,
         active_conversations: activeCount,
@@ -364,79 +365,79 @@ export default function AdminChatIndex({ auth, conversations: initialConversatio
             </div>
 
             {/* Stats Cards */}
-            <div className="flex-shrink-0 px-6 py-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="flex-shrink-0 px-4 md:px-6 py-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                     <motion.div
-                        className="bg-white rounded-xl shadow-sm border p-6"
+                        className="bg-white rounded-xl shadow-sm border p-4 md:p-6"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
                     >
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Waiting</p>
-                                <p className="text-3xl font-bold text-yellow-600">{stats.waiting_conversations || 0}</p>
+                                <p className="text-xs md:text-sm font-medium text-gray-600">Waiting</p>
+                                <p className="text-2xl md:text-3xl font-bold text-yellow-600">{stats.waiting_conversations || 0}</p>
                             </div>
-                            <Clock className="text-yellow-500" size={32} />
+                            <Clock className="text-yellow-500" size={24} />
                         </div>
                     </motion.div>
 
                     <motion.div
-                        className="bg-white rounded-xl shadow-sm border p-6"
+                        className="bg-white rounded-xl shadow-sm border p-4 md:p-6"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
                     >
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Active</p>
-                                <p className="text-3xl font-bold text-green-600">{stats.active_conversations || 0}</p>
+                                <p className="text-xs md:text-sm font-medium text-gray-600">Active</p>
+                                <p className="text-2xl md:text-3xl font-bold text-green-600">{stats.active_conversations || 0}</p>
                             </div>
-                            <MessageCircle className="text-green-500" size={32} />
+                            <MessageCircle className="text-green-500" size={24} />
                         </div>
                     </motion.div>
 
                     <motion.div
-                        className="bg-white rounded-xl shadow-sm border p-6"
+                        className="bg-white rounded-xl shadow-sm border p-4 md:p-6"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
                     >
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Unread</p>
-                                <p className="text-3xl font-bold text-red-600">{stats.unread_messages || 0}</p>
+                                <p className="text-xs md:text-sm font-medium text-gray-600">Unread</p>
+                                <p className="text-2xl md:text-3xl font-bold text-red-600">{stats.unread_messages || 0}</p>
                             </div>
-                            <AlertCircle className="text-red-500" size={32} />
+                            <AlertCircle className="text-red-500" size={24} />
                         </div>
                     </motion.div>
 
                     <motion.div
-                        className="bg-white rounded-xl shadow-sm border p-6"
+                        className="bg-white rounded-xl shadow-sm border p-4 md:p-6"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
                     >
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Total</p>
-                                <p className="text-3xl font-bold text-blue-600">{stats.total_conversations || 0}</p>
+                                <p className="text-xs md:text-sm font-medium text-gray-600">Total</p>
+                                <p className="text-2xl md:text-3xl font-bold text-blue-600">{stats.total_conversations || 0}</p>
                             </div>
-                            <Users className="text-blue-500" size={32} />
+                            <Users className="text-blue-500" size={24} />
                         </div>
                     </motion.div>
                 </div>
             </div>
 
             {/* Main Chat Interface */}
-            <div className="flex-1 mx-6 mb-6 bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col min-h-0">
-                <div className="flex h-full">
+            <div className="flex-1 mx-4 md:mx-6 mb-6 bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col min-h-0">
+                <div className="flex h-full relative">
                     {/* Conversations List */}
-                    <div className="w-1/3 border-r border-gray-200 flex flex-col h-full">
+                    <div className={`${showMobileChat ? 'hidden' : 'flex'} md:flex w-full md:w-1/3 border-r border-gray-200 flex-col h-full`}>
                         {/* Filter Tabs */}
                         <div className="border-b border-gray-200 p-4 flex-shrink-0">
                             <div className="flex justify-between items-center">
-                                <div className="flex space-x-1">
+                                <div className="flex flex-wrap gap-1">
                                     {[
                                         { key: 'all', label: 'All' },
                                         { key: 'waiting', label: 'Waiting' },
@@ -447,7 +448,7 @@ export default function AdminChatIndex({ auth, conversations: initialConversatio
                                         <button
                                             key={tab.key}
                                             onClick={() => setFilter(tab.key)}
-                                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                            className={`px-2 md:px-3 py-2 text-xs md:text-sm font-medium rounded-lg transition-colors ${
                                                 filter === tab.key
                                                     ? 'bg-blue-100 text-blue-700'
                                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
@@ -495,6 +496,8 @@ export default function AdminChatIndex({ auth, conversations: initialConversatio
                                                 setSelectedConversation(conversation);
                                                 loadMessages(conversation.id);
                                                 lastSelectionTimeRef.current = Date.now();
+                                                // On mobile, show chat view
+                                                setShowMobileChat(true);
                                             }
                                         }}
                                     >
@@ -566,18 +569,27 @@ export default function AdminChatIndex({ auth, conversations: initialConversatio
                     </div>
 
                     {/* Chat Area */}
-                    <div className="flex-1 flex flex-col h-full min-w-0">
+                    <div className={`${!showMobileChat ? 'hidden' : 'flex'} md:flex flex-1 flex-col h-full min-w-0`}>
                         {selectedConversation ? (
                             <>
                                 {/* Chat Header */}
                                 <div className="border-b border-gray-200 p-4 flex items-center justify-between bg-gray-50 flex-shrink-0">
-                                    <div>
-                                        <h3 className="font-medium text-gray-900">
-                                            {getVisitorName(selectedConversation)}
-                                        </h3>
-                                        <p className="text-sm text-gray-500">
-                                            {selectedConversation.status === 'active' ? 'Active conversation' : 'Waiting for response'}
-                                        </p>
+                                    <div className="flex items-center gap-3">
+                                        {/* Mobile Back Button */}
+                                        <button
+                                            onClick={() => setShowMobileChat(false)}
+                                            className="md:hidden p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
+                                        >
+                                            <ArrowLeft size={20} />
+                                        </button>
+                                        <div>
+                                            <h3 className="font-medium text-gray-900">
+                                                {getVisitorName(selectedConversation)}
+                                            </h3>
+                                            <p className="text-sm text-gray-500">
+                                                {selectedConversation.status === 'active' ? 'Active conversation' : 'Waiting for response'}
+                                            </p>
+                                        </div>
                                     </div>
                                     <div className="flex gap-2">
                                         {selectedConversation.status === 'active' && (

@@ -139,43 +139,44 @@ export default function AllEnrollments({
         <AdminLayout>
             <Head title="All Enrollments" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">
+            <div className="space-y-4 sm:space-y-6">
+                {/* Header */}
+                <div className="mb-4 sm:mb-8">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                         All Enrollments
                     </h1>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-2 text-sm sm:text-base text-gray-600">
                         View and manage all student enrollments
                     </p>
                 </div>
 
-                {/* Filters and Search */}
-                <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1">
-                        <form onSubmit={handleSearch} className="flex gap-2">
-                            <div className="relative flex-1">
-                                <input
-                                    type="text"
-                                    name="search"
-                                    defaultValue={searchTerm}
-                                    placeholder="Search by student name, email, or program..."
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                />
-                                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                            </div>
-                            <button
-                                type="submit"
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                            >
-                                Search
-                            </button>
-                        </form>
-                    </div>
+                {/* Search and Filters */}
+                <div className="space-y-4">
+                    {/* Search Form */}
+                    <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                name="search"
+                                defaultValue={searchTerm}
+                                placeholder="Search by student name, email, or program..."
+                                className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base min-h-[44px]"
+                            />
+                            <Search className="absolute left-3 top-3.5 sm:top-2.5 h-5 w-5 text-gray-400" />
+                        </div>
+                        <button
+                            type="submit"
+                            className="px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium min-h-[44px] flex items-center justify-center"
+                        >
+                            Search
+                        </button>
+                    </form>
 
-                    <div className="flex gap-2">
+                    {/* Status Filter Buttons */}
+                    <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => handleStatusFilter("all")}
-                            className={`px-4 py-2 rounded-lg font-medium ${
+                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
                                 currentStatus === "all"
                                     ? "bg-blue-600 text-white"
                                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -185,7 +186,7 @@ export default function AllEnrollments({
                         </button>
                         <button
                             onClick={() => handleStatusFilter("pending")}
-                            className={`px-4 py-2 rounded-lg font-medium ${
+                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
                                 currentStatus === "pending"
                                     ? "bg-yellow-600 text-white"
                                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -195,7 +196,7 @@ export default function AllEnrollments({
                         </button>
                         <button
                             onClick={() => handleStatusFilter("approved")}
-                            className={`px-4 py-2 rounded-lg font-medium ${
+                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
                                 currentStatus === "approved"
                                     ? "bg-green-600 text-white"
                                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -205,7 +206,7 @@ export default function AllEnrollments({
                         </button>
                         <button
                             onClick={() => handleStatusFilter("rejected")}
-                            className={`px-4 py-2 rounded-lg font-medium ${
+                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
                                 currentStatus === "rejected"
                                     ? "bg-red-600 text-white"
                                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -216,200 +217,231 @@ export default function AllEnrollments({
                     </div>
                 </div>
 
-                {/* Enrollments Table */}
-                <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Student
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Program
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Access
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Date
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {enrollments.data.map((enrollment) => (
-                                    <tr
-                                        key={enrollment.id}
-                                        className="hover:bg-gray-50"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                                    <User className="h-6 w-6 text-gray-500" />
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {enrollment.user?.name || 'Unknown User'}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500 flex items-center">
-                                                        <Mail className="h-3 w-3 mr-1" />
-                                                        {enrollment.user?.email || 'No email'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 font-medium">
-                                                {enrollment.program?.name || 'Unknown Program'}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {getStatusBadge(
-                                                enrollment.approval_status
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {getAccessBadge(enrollment)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 flex items-center">
-                                                <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                                                {new Date(
-                                                    enrollment.created_at
-                                                ).toLocaleDateString()}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end space-x-2">
-                                                {enrollment.approval_status === 'approved' && (
-                                                    <>
-                                                        {enrollment.access_blocked ? (
-                                                            <button
-                                                                onClick={() => handleUnblockAccess(enrollment)}
-                                                                disabled={processing}
-                                                                className="inline-flex items-center px-3 py-1 border border-green-300 text-xs font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                                            >
-                                                                <Unlock className="w-3 h-3 mr-1" />
-                                                                Restore Access
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleBlockAccess(enrollment)}
-                                                                disabled={processing}
-                                                                className="inline-flex items-center px-3 py-1 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                                            >
-                                                                <Lock className="w-3 h-3 mr-1" />
-                                                                Block Access
-                                                            </button>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                {/* Enrollments List - Mobile First Design */}
+                {enrollments.data.length === 0 ? (
+                    <div className="text-center text-gray-500 bg-gray-50 rounded-lg p-6 sm:p-8">
+                        <h3 className="text-base sm:text-lg font-medium mb-2">No enrollments found</h3>
+                        <p className="text-sm sm:text-base">
+                            No enrollments match your current filters.
+                        </p>
                     </div>
+                ) : (
+                    <>
+                        {/* Mobile Card View */}
+                        <div className="block lg:hidden space-y-4">
+                            {enrollments.data.map((enrollment) => (
+                                <div
+                                    key={enrollment.id}
+                                    className="bg-white rounded-lg shadow border p-4 hover:shadow-md transition-shadow"
+                                >
+                                    {/* Student Info */}
+                                    <div className="flex items-start space-x-3 mb-3">
+                                        <div className="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-full flex items-center justify-center">
+                                            <User className="h-6 w-6 text-gray-500" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-base font-medium text-gray-900 truncate">
+                                                {enrollment.user?.name || 'Unknown User'}
+                                            </p>
+                                            <p className="text-sm text-gray-500 flex items-center">
+                                                <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                                                <span className="truncate">{enrollment.user?.email || 'No email'}</span>
+                                            </p>
+                                        </div>
+                                    </div>
 
-                    {/* Pagination */}
-                    {enrollments.links && enrollments.links.length > 3 && (
-                        <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                            <div className="flex-1 flex justify-between sm:hidden">
-                                {enrollments.links[0].url && (
-                                    <Link
-                                        href={enrollments.links[0].url}
-                                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                    >
-                                        Previous
-                                    </Link>
-                                )}
-                                {enrollments.links[enrollments.links.length - 1]
-                                    .url && (
-                                    <Link
-                                        href={
-                                            enrollments.links[
-                                                enrollments.links.length - 1
-                                            ].url
-                                        }
-                                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                    >
-                                        Next
-                                    </Link>
-                                )}
-                            </div>
-                            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700">
-                                        Showing{" "}
-                                        <span className="font-medium">
-                                            {enrollments.from}
-                                        </span>{" "}
-                                        to{" "}
-                                        <span className="font-medium">
-                                            {enrollments.to}
-                                        </span>{" "}
-                                        of{" "}
-                                        <span className="font-medium">
-                                            {enrollments.total}
-                                        </span>{" "}
-                                        results
-                                    </p>
+                                    {/* Program & Status Info */}
+                                    <div className="mb-3">
+                                        <p className="text-sm font-medium text-gray-900 mb-1">
+                                            {enrollment.program?.name || 'Unknown Program'}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {getStatusBadge(enrollment.approval_status)}
+                                            {getAccessBadge(enrollment)}
+                                        </div>
+                                    </div>
+
+                                    {/* Date */}
+                                    <div className="mb-4">
+                                        <p className="text-xs text-gray-500 flex items-center">
+                                            <Calendar className="h-3 w-3 mr-1" />
+                                            {new Date(enrollment.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+
+                                    {/* Actions */}
+                                    {enrollment.approval_status === 'approved' && (
+                                        <div className="pt-3 border-t">
+                                            {enrollment.access_blocked ? (
+                                                <button
+                                                    onClick={() => handleUnblockAccess(enrollment)}
+                                                    disabled={processing}
+                                                    className="w-full inline-flex items-center justify-center px-4 py-3 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px]"
+                                                >
+                                                    <Unlock className="w-4 h-4 mr-2" />
+                                                    Restore Access
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleBlockAccess(enrollment)}
+                                                    disabled={processing}
+                                                    className="w-full inline-flex items-center justify-center px-4 py-3 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[44px]"
+                                                >
+                                                    <Lock className="w-4 h-4 mr-2" />
+                                                    Block Access
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
-                                <div>
-                                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                        {enrollments.links.map(
-                                            (link, index) => (
-                                                <Link
-                                                    key={index}
-                                                    href={link.url || "#"}
-                                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                                        link.active
-                                                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                                                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                                                    } ${
-                                                        index === 0
-                                                            ? "rounded-l-md"
-                                                            : ""
-                                                    } ${
-                                                        index ===
-                                                        enrollments.links
-                                                            .length -
-                                                            1
-                                                            ? "rounded-r-md"
-                                                            : ""
-                                                    }`}
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: link.label,
-                                                    }}
-                                                />
-                                            )
-                                        )}
-                                    </nav>
-                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden lg:block bg-white shadow-sm rounded-lg overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Student
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Program
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Access
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Date
+                                            </th>
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {enrollments.data.map((enrollment) => (
+                                            <tr
+                                                key={enrollment.id}
+                                                className="hover:bg-gray-50"
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                                            <User className="h-6 w-6 text-gray-500" />
+                                                        </div>
+                                                        <div className="ml-4">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {enrollment.user?.name || 'Unknown User'}
+                                                            </div>
+                                                            <div className="text-sm text-gray-500 flex items-center">
+                                                                <Mail className="h-3 w-3 mr-1" />
+                                                                {enrollment.user?.email || 'No email'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900 font-medium">
+                                                        {enrollment.program?.name || 'Unknown Program'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getStatusBadge(
+                                                        enrollment.approval_status
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getAccessBadge(enrollment)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900 flex items-center">
+                                                        <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                                                        {new Date(
+                                                            enrollment.created_at
+                                                        ).toLocaleDateString()}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex items-center justify-end space-x-2">
+                                                        {enrollment.approval_status === 'approved' && (
+                                                            <>
+                                                                {enrollment.access_blocked ? (
+                                                                    <button
+                                                                        onClick={() => handleUnblockAccess(enrollment)}
+                                                                        disabled={processing}
+                                                                        className="inline-flex items-center px-3 py-2 border border-green-300 text-xs font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                    >
+                                                                        <Unlock className="w-3 h-3 mr-1" />
+                                                                        Restore
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handleBlockAccess(enrollment)}
+                                                                        disabled={processing}
+                                                                        className="inline-flex items-center px-3 py-2 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                                    >
+                                                                        <Lock className="w-3 h-3 mr-1" />
+                                                                        Block
+                                                                    </button>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                    )}
-                </div>
+                    </>
+                )}
 
-                {/* Block Access Modal */}
+                {/* Pagination */}
+                {enrollments.links && enrollments.links.length > 3 && (
+                    <div className="flex justify-center mt-6">
+                        <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
+                            {enrollments.links.map((link, index) =>
+                                link.url ? (
+                                    <Link
+                                        key={index}
+                                        href={link.url}
+                                        className={`px-3 py-2 sm:px-3 sm:py-1 rounded border text-xs sm:text-sm min-h-[44px] sm:min-h-0 flex items-center justify-center ${
+                                            link.active
+                                                ? "bg-blue-600 text-white border-blue-600"
+                                                : "bg-white text-blue-600 border-gray-300 hover:bg-blue-100"
+                                        }`}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ) : (
+                                    <span
+                                        key={index}
+                                        className="px-3 py-2 sm:px-3 sm:py-1 rounded border text-gray-400 border-gray-300 text-xs sm:text-sm min-h-[44px] sm:min-h-0 flex items-center justify-center"
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                )
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Block Access Modal - Mobile Responsive */}
                 {showBlockModal && selectedEnrollment && (
-                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                            <div className="mt-3">
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+                        <div className="relative mx-auto max-w-md w-full bg-white rounded-lg shadow-lg">
+                            <div className="p-4 sm:p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">
                                         Block Access
                                     </h3>
                                     <button
                                         onClick={() => setShowBlockModal(false)}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        className="text-gray-400 hover:text-gray-600 p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
                                     >
                                         <XCircle className="h-6 w-6" />
                                     </button>
@@ -420,31 +452,31 @@ export default function AllEnrollments({
                                     <strong>{selectedEnrollment.program?.name || 'Unknown Program'}</strong>
                                 </p>
                                 
-                                <div className="mb-4">
+                                <div className="mb-6">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Reason for blocking access (required)
                                     </label>
                                     <textarea
                                         value={blockReason}
                                         onChange={(e) => setBlockReason(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                                        className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 text-base"
                                         rows="3"
                                         placeholder="Please provide a reason for blocking access..."
                                     />
                                 </div>
                                 
-                                <div className="flex justify-end space-x-3">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 sm:justify-end">
                                     <button
                                         onClick={() => setShowBlockModal(false)}
                                         disabled={processing}
-                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                        className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 min-h-[44px]"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={submitBlock}
                                         disabled={processing || !blockReason.trim()}
-                                        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
                                     >
                                         {processing ? 'Blocking...' : 'Block Access'}
                                     </button>
