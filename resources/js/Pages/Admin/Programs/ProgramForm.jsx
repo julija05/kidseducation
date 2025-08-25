@@ -107,96 +107,113 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
     ];
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-6">
-            {formFields.map((field) => (
-                <FormField
-                    key={field.name}
-                    {...field}
-                    value={data[field.name]}
-                    checked={field.type === 'checkbox' ? data[field.name] : undefined}
-                    onChange={handleFieldChange}
-                    error={errors[field.name]}
-                />
-            ))}
-
-            {/* Icon Selection */}
-            <div className="space-y-4">
-                <label className="block text-sm font-medium mb-2">
-                    Program Icon
-                </label>
-                <div className="grid grid-cols-4 gap-3">
-                    {Object.entries(iconMap).map(([iconName, IconComponent]) => (
-                        <button
-                            key={iconName}
-                            type="button"
-                            onClick={() => setData('icon', iconName)}
-                            className={`p-4 rounded-lg border-2 flex flex-col items-center space-y-2 transition-all ${
-                                data.icon === iconName
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-300 hover:border-gray-400'
-                            }`}
-                        >
-                            <IconComponent size={32} className="text-gray-700" />
-                            <span className="text-xs text-gray-600">{iconName}</span>
-                        </button>
+        <div className="max-w-3xl mx-auto">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                {/* Basic form fields */}
+                <div className="space-y-4 sm:space-y-6">
+                    {formFields.map((field) => (
+                        <FormField
+                            key={field.name}
+                            {...field}
+                            value={data[field.name]}
+                            checked={field.type === 'checkbox' ? data[field.name] : undefined}
+                            onChange={handleFieldChange}
+                            error={errors[field.name]}
+                        />
                     ))}
                 </div>
-                {errors.icon && <div className="text-red-500 text-sm">{errors.icon}</div>}
-            </div>
 
-            {/* Color Theme Selection */}
-            <div className="space-y-4">
-                <label className="block text-sm font-medium mb-2">
-                    Color Theme
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                    {[
-                        { name: 'Blue', color: 'bg-blue-600', light: 'bg-blue-100', text: 'text-blue-900', border: 'border-blue-200' },
-                        { name: 'Purple', color: 'bg-purple-600', light: 'bg-purple-100', text: 'text-purple-900', border: 'border-purple-200' },
-                        { name: 'Green', color: 'bg-green-600', light: 'bg-green-100', text: 'text-green-900', border: 'border-green-200' },
-                        { name: 'Orange', color: 'bg-orange-600', light: 'bg-orange-100', text: 'text-orange-900', border: 'border-orange-200' },
-                        { name: 'Pink', color: 'bg-pink-600', light: 'bg-pink-100', text: 'text-pink-900', border: 'border-pink-200' },
-                        { name: 'Indigo', color: 'bg-indigo-600', light: 'bg-indigo-100', text: 'text-indigo-900', border: 'border-indigo-200' },
-                    ].map((theme) => (
-                        <button
-                            key={theme.name}
-                            type="button"
-                            onClick={() => {
-                                setData({
-                                    ...data,
-                                    color: theme.color,
-                                    light_color: theme.light,
-                                    text_color: theme.text,
-                                    border_color: theme.border,
-                                });
-                            }}
-                            className={`p-4 rounded-lg border-2 flex items-center space-x-3 transition-all ${
-                                data.color === theme.color
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-300 hover:border-gray-400'
-                            }`}
-                        >
-                            <div className={`w-8 h-8 rounded-full ${theme.color}`}></div>
-                            <div className="text-left">
-                                <div className="font-medium">{theme.name}</div>
-                                <div className="text-sm text-gray-500">{theme.color}</div>
-                            </div>
-                        </button>
-                    ))}
+                {/* Icon Selection */}
+                <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Program Icon
+                    </label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3">
+                        {Object.entries(iconMap).map(([iconName, IconComponent]) => (
+                            <button
+                                key={iconName}
+                                type="button"
+                                onClick={() => setData('icon', iconName)}
+                                className={`p-3 sm:p-4 rounded-lg border-2 flex flex-col items-center space-y-1 sm:space-y-2 transition-all min-h-[80px] sm:min-h-[88px] ${
+                                    data.icon === iconName
+                                        ? 'border-blue-500 bg-blue-50'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}
+                            >
+                                <IconComponent size={24} className="text-gray-700 sm:w-8 sm:h-8" />
+                                <span className="text-xs text-gray-600 text-center leading-tight">
+                                    {iconName}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                    {errors.icon && <div className="text-red-500 text-sm mt-1">{errors.icon}</div>}
                 </div>
-            </div>
 
-            <button
-                type="submit"
-                disabled={processing}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-                {processing
-                    ? "Saving..."
-                    : isUpdate
-                    ? "Update Program"
-                    : "Create Program"}
-            </button>
-        </form>
+                {/* Color Theme Selection */}
+                <div className="space-y-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Color Theme
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        {[
+                            { name: 'Blue', color: 'bg-blue-600', light: 'bg-blue-100', text: 'text-blue-900', border: 'border-blue-200' },
+                            { name: 'Purple', color: 'bg-purple-600', light: 'bg-purple-100', text: 'text-purple-900', border: 'border-purple-200' },
+                            { name: 'Green', color: 'bg-green-600', light: 'bg-green-100', text: 'text-green-900', border: 'border-green-200' },
+                            { name: 'Orange', color: 'bg-orange-600', light: 'bg-orange-100', text: 'text-orange-900', border: 'border-orange-200' },
+                            { name: 'Pink', color: 'bg-pink-600', light: 'bg-pink-100', text: 'text-pink-900', border: 'border-pink-200' },
+                            { name: 'Indigo', color: 'bg-indigo-600', light: 'bg-indigo-100', text: 'text-indigo-900', border: 'border-indigo-200' },
+                        ].map((theme) => (
+                            <button
+                                key={theme.name}
+                                type="button"
+                                onClick={() => {
+                                    setData({
+                                        ...data,
+                                        color: theme.color,
+                                        light_color: theme.light,
+                                        text_color: theme.text,
+                                        border_color: theme.border,
+                                    });
+                                }}
+                                className={`p-3 sm:p-4 rounded-lg border-2 flex items-center space-x-3 transition-all min-h-[60px] sm:min-h-[68px] ${
+                                    data.color === theme.color
+                                        ? 'border-blue-500 bg-blue-50'
+                                        : 'border-gray-300 hover:border-gray-400'
+                                }`}
+                            >
+                                <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full ${theme.color} flex-shrink-0`}></div>
+                                <div className="text-left min-w-0 flex-1">
+                                    <div className="font-medium text-sm sm:text-base">{theme.name}</div>
+                                    <div className="text-xs sm:text-sm text-gray-500 truncate">{theme.color}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Submit button */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 border-t">
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="w-full sm:w-auto bg-blue-600 text-white px-6 py-3 sm:py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium min-h-[44px]"
+                    >
+                        {processing
+                            ? "Saving..."
+                            : isUpdate
+                            ? "Update Program"
+                            : "Create Program"}
+                    </button>
+
+                    <a
+                        href="/admin/programs"
+                        className="w-full sm:w-auto bg-gray-500 text-white px-6 py-3 sm:py-2 rounded hover:bg-gray-600 font-medium min-h-[44px] flex items-center justify-center text-center"
+                    >
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     );
 }

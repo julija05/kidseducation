@@ -198,11 +198,11 @@ export default function ChatWidget() {
                                 }
                             }
                         }}
-                        className="relative bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300"
+                        className="relative bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all duration-300 min-h-[64px] min-w-[64px] flex items-center justify-center"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                     >
-                        <MessageCircle size={24} />
+                        <MessageCircle className="w-6 h-6" />
                         
                         {/* Unread count badge */}
                         {unreadCount > 0 && (
@@ -254,7 +254,7 @@ export default function ChatWidget() {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        className="fixed bottom-6 right-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
+                        className="fixed inset-x-2 bottom-2 top-16 sm:bottom-6 sm:right-6 sm:top-auto sm:left-auto sm:inset-x-auto sm:w-96 sm:h-[500px] bg-white rounded-lg sm:rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
                         initial={{ opacity: 0, scale: 0.8, y: 50 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 50 }}
@@ -262,10 +262,10 @@ export default function ChatWidget() {
                     >
                         {/* Header */}
                         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div>
-                                    <h3 className="font-bold text-lg">Live Support</h3>
-                                    <p className="text-sm opacity-90">{getStatusDisplay()}</p>
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="font-bold text-lg truncate">Live Support</h3>
+                                    <p className="text-sm opacity-90 truncate">{getStatusDisplay()}</p>
                                 </div>
                                 {/* Unread count in header */}
                                 {unreadCount > 0 && (
@@ -279,18 +279,20 @@ export default function ChatWidget() {
                                     </motion.span>
                                 )}
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-shrink-0">
                                 <button
                                     onClick={minimizeChat}
-                                    className="p-1 hover:bg-white/20 rounded transition-colors"
+                                    className="p-3 hover:bg-white/20 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+                                    aria-label="Minimize chat"
                                 >
-                                    <Minimize2 size={16} />
+                                    <Minimize2 className="w-5 h-5" />
                                 </button>
                                 <button
                                     onClick={closeChat}
-                                    className="p-1 hover:bg-white/20 rounded transition-colors"
+                                    className="p-3 hover:bg-white/20 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+                                    aria-label="Close chat"
                                 >
-                                    <X size={16} />
+                                    <X className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
@@ -302,9 +304,9 @@ export default function ChatWidget() {
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                                 </div>
                             ) : messages.length === 0 ? (
-                                <div className="text-center text-gray-500 mt-8">
-                                    <MessageCircle className="mx-auto mb-4 text-gray-400" size={48} />
-                                    <p className="mb-2">Welcome to Abacoding Support!</p>
+                                <div className="text-center text-gray-500 mt-8 px-4">
+                                    <MessageCircle className="mx-auto mb-4 text-gray-400 w-12 h-12" />
+                                    <p className="mb-2 text-base font-medium">Welcome to Abacoding Support!</p>
                                     <p className="text-sm">Send us a message and we'll help you right away.</p>
                                 </div>
                             ) : (
@@ -316,27 +318,27 @@ export default function ChatWidget() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.1 }}
                                     >
-                                        <div className={`max-w-[80%] ${
+                                        <div className={`max-w-[85%] ${
                                             message.sender_type === 'admin'
                                                 ? 'bg-gray-100 text-gray-800'
                                                 : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                                        } rounded-2xl px-4 py-2`}>
+                                        } rounded-2xl px-4 py-3`}>
                                             {message.sender_type === 'admin' && (
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <User size={12} />
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <User className="w-3 h-3" />
                                                     <span className="text-xs font-medium">
                                                         {message.sender?.name || 'Support'}
                                                     </span>
                                                 </div>
                                             )}
-                                            <p className="text-sm leading-relaxed">{message.message}</p>
+                                            <p className="text-sm leading-relaxed break-words">{message.message}</p>
                                             <div className={`flex items-center justify-end gap-1 mt-1 text-xs ${
                                                 message.sender_type === 'admin' ? 'text-gray-500' : 'text-white/70'
                                             }`}>
-                                                <Clock size={10} />
-                                                <span>{formatMessageTime(message.created_at)}</span>
+                                                <Clock className="w-2.5 h-2.5" />
+                                                <span className="text-xs">{formatMessageTime(message.created_at)}</span>
                                                 {message.sender_type !== 'admin' && (
-                                                    <CheckCircle size={10} className="ml-1" />
+                                                    <CheckCircle className="w-2.5 h-2.5 ml-1" />
                                                 )}
                                             </div>
                                         </div>
@@ -349,36 +351,36 @@ export default function ChatWidget() {
                         {/* Visitor Info Form */}
                         {showVisitorForm && (
                             <div className="border-t p-4 bg-gray-50">
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Your Name
                                         </label>
                                         <input
                                             type="text"
                                             value={visitorInfo.name}
                                             onChange={(e) => setVisitorInfo(prev => ({ ...prev, name: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base min-h-[48px]"
                                             placeholder="Enter your name"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Email (Optional)
                                         </label>
                                         <input
                                             type="email"
                                             value={visitorInfo.email}
                                             onChange={handleEmailChange}
-                                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm ${
+                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base min-h-[48px] ${
                                                 emailError ? 'border-red-300' : 'border-gray-300'
                                             }`}
                                             placeholder="your@email.com"
                                         />
                                         {emailError && (
-                                            <div className="mt-1 flex items-center text-red-600 text-xs">
-                                                <AlertCircle size={12} className="mr-1" />
-                                                {emailError}
+                                            <div className="mt-2 flex items-center text-red-600 text-sm">
+                                                <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                                                <span>{emailError}</span>
                                             </div>
                                         )}
                                     </div>
@@ -387,8 +389,8 @@ export default function ChatWidget() {
                         )}
 
                         {/* Message Input */}
-                        <div className="border-t p-4">
-                            <form onSubmit={sendMessage} className="flex gap-2">
+                        <div className="border-t p-4 bg-white">
+                            <form onSubmit={sendMessage} className="flex gap-3">
                                 <input
                                     type="text"
                                     value={newMessage}
@@ -399,18 +401,19 @@ export default function ChatWidget() {
                         }
                     }}
                                     disabled={isLoading}
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm"
+                                    className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-base min-h-[48px]"
                                     placeholder="Type your message..."
                                 />
                                 <button
                                     type="submit"
                                     disabled={isLoading || !newMessage.trim() || (showVisitorForm && !visitorInfo.name.trim())}
-                                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2 rounded-full transition-all duration-200"
+                                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white p-3 rounded-full transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center flex-shrink-0"
+                                    aria-label="Send message"
                                 >
                                     {isLoading ? (
                                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                                     ) : (
-                                        <Send size={16} />
+                                        <Send className="w-5 h-5" />
                                     )}
                                 </button>
                             </form>
