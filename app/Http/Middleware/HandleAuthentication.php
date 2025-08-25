@@ -62,11 +62,8 @@ class HandleAuthentication extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        // For Inertia requests, we need to return a JSON response that Inertia can handle
-        if ($request->expectsJson() || $request->header('X-Inertia')) {
-            return null; // This will cause a 401, which Inertia handles properly
-        }
-
+        // Always redirect to login for all requests (including Inertia)
+        // This prevents the JSON response that users were seeing
         return route('login');
     }
 }

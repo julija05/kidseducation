@@ -59,6 +59,7 @@ router.on('error', async (event) => {
     const { detail } = event
     
     // Handle 401 (authentication) errors - session expired
+    // Note: Server-side now handles redirects, but keep this as fallback
     if (detail.response && detail.response.status === 401) {
         console.log('Session expired, redirecting to login...')
         

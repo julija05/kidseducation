@@ -161,15 +161,20 @@ return Application::configure(basePath: dirname(__DIR__))
                 'expects_json' => $request->expectsJson(),
             ]);
 
-            // For Inertia requests, return 401 to trigger client-side redirect
-            if ($request->header('X-Inertia')) {
-                return response()->json([
-                    'message' => 'Unauthenticated.',
-                    'redirect' => route('login'),
-                ], 401);
+            // Clear any existing session data to prevent session conflicts
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
             }
 
-            // For regular requests, redirect to login
+            // Store intended URL for redirect after login
+            $intended = $request->url();
+            if ($intended !== route('login') && !str_contains($intended, '/login')) {
+                session(['url.intended' => $intended]);
+            }
+
+            // For ALL requests (including Inertia), redirect to login
+            // This prevents the JSON response that users are seeing
             return redirect()->guest(route('login'));
         });
 
