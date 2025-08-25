@@ -6,6 +6,7 @@ import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 import { router } from "@inertiajs/react";
+import { refreshCsrfToken, initializeCsrfManagement } from './utils/csrf.js';
 
 const appName = import.meta.env.VITE_APP_NAME || "Abacoding";
 
@@ -22,6 +23,9 @@ function initializeTheme() {
 
 // Initialize theme before React renders
 initializeTheme();
+
+// Initialize CSRF management
+initializeCsrfManagement();
 
 // Language switching logic removed to prevent auto-switching issues
 // Clear any existing localStorage flags from previous versions
@@ -51,7 +55,7 @@ createInertiaApp({
 });
 
 // Handle authentication and CSRF errors
-router.on('error', (event) => {
+router.on('error', async (event) => {
     const { detail } = event
     
     // Handle 401 (authentication) errors - session expired
@@ -71,18 +75,23 @@ router.on('error', (event) => {
     
     // Handle 412 (Precondition Failed) and 419 (CSRF token mismatch) errors
     if (detail.response && (detail.response.status === 419 || detail.response.status === 412)) {
-        console.log('CSRF token mismatch or precondition failed, reloading page...')
+        console.log('CSRF token mismatch or precondition failed, attempting to refresh token...')
         
-        // Show user-friendly message before reload
-        if (detail.response.data && detail.response.data.reload_required) {
-            // Optional: Show a brief message before reloading
-            const message = detail.response.data.message || 'Session expired. Refreshing page...'
-            console.log(message)
+        try {
+            // Try to refresh the CSRF token instead of immediately reloading
+            await refreshCsrfToken()
+            console.log('CSRF token refreshed successfully. Please try your action again.')
+            
+            // Don't reload - let the user retry their action
+            return false
+        } catch (error) {
+            console.error('Failed to refresh CSRF token:', error)
+            
+            // Only reload as last resort
+            console.log('Could not refresh token, reloading page...')
+            window.location.reload()
+            return false
         }
-        
-        // Reload the page to get fresh CSRF tokens
-        window.location.reload()
-        return false
     }
     
     // Handle 403 (Forbidden) errors to prevent endless polling loops
