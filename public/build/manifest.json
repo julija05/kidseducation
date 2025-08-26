@@ -762,7 +762,7 @@
     ]
   },
   "resources/js/Pages/Auth/Login.jsx": {
-    "file": "assets/Login-ZOs1qD9F.js",
+    "file": "assets/Login-DA9QbEnB.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.jsx",
     "isDynamicEntry": true,
@@ -781,7 +781,7 @@
     ]
   },
   "resources/js/Pages/Auth/Register.jsx": {
-    "file": "assets/Register-4cZXx9QN.js",
+    "file": "assets/Register-BolRqbkT.js",
     "name": "Register",
     "src": "resources/js/Pages/Auth/Register.jsx",
     "isDynamicEntry": true,
@@ -1294,7 +1294,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-Bb-uihOg.js",
+    "file": "assets/app-BiFlyHo-.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,

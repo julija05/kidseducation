@@ -38,11 +38,12 @@ export default function Register({ auth }) {
         e.preventDefault();
 
         console.log("Registration data:", data);
+        console.log("Current errors:", errors);
 
         post(route("register"), {
             onFinish: () => reset("password", "password_confirmation"),
             onError: (errors) => {
-                console.log("Registration errors:", errors);
+                console.log("Registration errors received:", errors);
             },
             onSuccess: () => {
                 console.log("Registration successful");

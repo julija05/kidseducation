@@ -53,7 +53,7 @@ class RegisteredUserController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:users,email',
             'password' => [
                 'required',
                 'confirmed',
@@ -63,6 +63,9 @@ class RegisteredUserController extends Controller
                     ->numbers()
                     ->symbols(),
             ],
+        ], [
+            'email.unique' => 'This email address is already registered.',
+            'password.confirmed' => 'The password confirmation does not match.',
         ]);
 
         $user = User::create([

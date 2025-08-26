@@ -23,8 +23,14 @@ export default function Login({ status, canResetPassword, auth }) {
 
     const submit = (e) => {
         e.preventDefault();
+        console.log("Login data:", data);
+        console.log("Current errors:", errors);
+        
         post(route("login"), {
             onFinish: () => reset("password"),
+            onError: (errors) => {
+                console.log("Login errors received:", errors);
+            },
         });
     };
 
@@ -168,6 +174,31 @@ export default function Login({ status, canResetPassword, auth }) {
                                 className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-sm font-medium text-green-700 text-center"
                             >
                                 {status}
+                            </motion.div>
+                        )}
+
+                        {/* Global Error Display */}
+                        {Object.keys(errors).length > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6"
+                            >
+                                <p className="text-red-800 font-medium mb-2">
+                                    Please fix the following errors:
+                                </p>
+                                <ul className="text-sm text-red-700 space-y-1">
+                                    {Object.entries(errors).map(
+                                        ([field, messages]) => (
+                                            <li key={field}>
+                                                <strong className="capitalize">{field}:</strong>{" "}
+                                                {Array.isArray(messages)
+                                                    ? messages[0]
+                                                    : messages}
+                                            </li>
+                                        )
+                                    )}
+                                </ul>
                             </motion.div>
                         )}
 
