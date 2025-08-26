@@ -65,7 +65,7 @@ class ProgramController extends Controller
             }
 
             // Get enrollment info
-            $userEnrollments = $user->enrollments()->with('program')->get()->map(function ($enrollment) {
+            $userEnrollments = $user->enrollments()->with('program')->whereHas('program')->get()->map(function ($enrollment) {
                 return [
                     'program_id' => $enrollment->program_id,
                     'approval_status' => $enrollment->approval_status,
@@ -146,6 +146,7 @@ class ProgramController extends Controller
             if ($hasAnyActiveEnrollment) {
                 $currentEnrollment = $user->enrollments()
                     ->with('program')
+                    ->whereHas('program') // Only include enrollments with valid programs
                     ->whereIn('approval_status', ['pending', 'approved'])
                     ->where('status', '!=', 'completed')
                     ->first();
@@ -219,7 +220,7 @@ class ProgramController extends Controller
             ] : null,
             'hasAnyEnrollment' => $hasAnyEnrollment,
             'hasAnyActiveEnrollment' => $hasAnyActiveEnrollment,
-            'currentEnrollment' => $currentEnrollment ? [
+            'currentEnrollment' => $currentEnrollment && $currentEnrollment->program ? [
                 'id' => $currentEnrollment->id,
                 'approval_status' => $currentEnrollment->approval_status,
                 'status' => $currentEnrollment->status,

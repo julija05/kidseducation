@@ -298,7 +298,9 @@ class DashboardController extends Controller
 
     private function renderPendingDashboard($user, $pendingEnrollments, $studentData = [], $completedEnrollments = [])
     {
-        $formattedPending = $pendingEnrollments->map(function ($enrollment) {
+        $formattedPending = $pendingEnrollments->filter(function ($enrollment) {
+            return $enrollment->program !== null; // Filter out enrollments with null programs
+        })->map(function ($enrollment) {
             return [
                 'id' => $enrollment->id,
                 'created_at' => $enrollment->created_at,
@@ -322,7 +324,9 @@ class DashboardController extends Controller
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
         // Format completed enrollments for certificate functionality
-        $formattedCompleted = collect($completedEnrollments)->map(function ($enrollment) {
+        $formattedCompleted = collect($completedEnrollments)->filter(function ($enrollment) {
+            return $enrollment->program !== null; // Filter out enrollments with null programs
+        })->map(function ($enrollment) {
             return [
                 'id' => $enrollment->id,
                 'progress' => $enrollment->progress,
@@ -377,7 +381,9 @@ class DashboardController extends Controller
     private function renderCompletedDashboard($user, $completedEnrollments, $request, $studentData = [])
     {
         // Format completed enrollments for certificate functionality
-        $formattedCompleted = $completedEnrollments->map(function ($enrollment) {
+        $formattedCompleted = $completedEnrollments->filter(function ($enrollment) {
+            return $enrollment->program !== null; // Filter out enrollments with null programs
+        })->map(function ($enrollment) {
             return [
                 'id' => $enrollment->id,
                 'progress' => $enrollment->progress,
@@ -734,10 +740,10 @@ class DashboardController extends Controller
             'enrollmentStatus' => 'blocked',
             'blockedEnrollment' => [
                 'id' => $blockedEnrollment->id,
-                'program' => [
+                'program' => $blockedEnrollment->program ? [
                     'name' => $blockedEnrollment->program->translated_name,
                     'slug' => $blockedEnrollment->program->slug,
-                ],
+                ] : null,
                 'block_reason' => $blockedEnrollment->block_reason,
                 'blocked_at' => $blockedEnrollment->blocked_at?->format('M d, Y'),
             ],
@@ -768,7 +774,7 @@ class DashboardController extends Controller
         return $this->createView('Dashboard', [
             'userStatus' => 'suspended',
             'enrolledProgram' => null,
-            'currentEnrollment' => $currentEnrollment ? [
+            'currentEnrollment' => $currentEnrollment && $currentEnrollment->program ? [
                 'id' => $currentEnrollment->id,
                 'program' => [
                     'name' => $currentEnrollment->program->name,
