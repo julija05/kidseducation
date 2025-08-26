@@ -61,6 +61,10 @@ class EnrollmentService
      */
     public function getCurrentLevel(Enrollment $enrollment): int
     {
+        if (!$enrollment->program) {
+            return 1; // Default level if program doesn't exist
+        }
+        
         return $this->programService->getCurrentLevelForUser($enrollment->program, $enrollment->user);
     }
 
@@ -71,6 +75,10 @@ class EnrollmentService
     {
         $user = $enrollment->user;
         $program = $enrollment->program;
+
+        if (!$program) {
+            return null; // No next lesson if program doesn't exist
+        }
 
         // Get the last lesson the user was working on
         $lastProgress = LessonProgress::where('user_id', $user->id)
@@ -113,6 +121,21 @@ class EnrollmentService
     {
         $program = $enrollment->program;
         $user = $enrollment->user;
+
+        // Check if program exists - if not, return empty dashboard data
+        if (!$program) {
+            return [
+                'id' => $enrollment->id,
+                'program' => null,
+                'enrolledDate' => $enrollment->enrolled_at?->format('Y-m-d'),
+                'status' => $enrollment->status,
+                'progress' => 0,
+                'lessons' => [],
+                'currentLevel' => 1,
+                'nextLesson' => null,
+                'levelProgress' => []
+            ];
+        }
 
         // Get lessons with progress grouped by level
         $lessonsWithProgress = $this->programService->getLessonsWithProgressForUser($program, $user);

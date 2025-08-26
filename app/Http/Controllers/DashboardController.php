@@ -86,6 +86,7 @@ class DashboardController extends Controller
                         ->orderBy('order_in_level', 'asc');
                 }]);
             }])
+            ->whereHas('program') // Only include enrollments with valid programs
             ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->where('access_blocked', false)
@@ -95,6 +96,7 @@ class DashboardController extends Controller
         // Check if user has approved enrollment but access is blocked
         $blockedEnrollment = $user->enrollments()
             ->with('program')
+            ->whereHas('program') // Only include enrollments with valid programs
             ->where('approval_status', 'approved')
             ->where('access_blocked', true)
             ->first();
@@ -102,6 +104,7 @@ class DashboardController extends Controller
         // Get completed enrollments for certificate functionality
         $completedEnrollments = $user->enrollments()
             ->with('program')
+            ->whereHas('program') // Only include enrollments with valid programs
             ->where('status', 'completed')
             ->where('approval_status', 'approved')
             ->get();
@@ -109,6 +112,7 @@ class DashboardController extends Controller
         // Get pending enrollments
         $pendingEnrollments = $user->enrollments()
             ->with('program')
+            ->whereHas('program') // Only include enrollments with valid programs
             ->where('approval_status', 'pending')
             ->get();
 
