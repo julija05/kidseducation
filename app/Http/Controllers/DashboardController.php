@@ -86,17 +86,29 @@ class DashboardController extends Controller
                         ->orderBy('order_in_level', 'asc');
                 }]);
             }])
-            ->whereHas('program') // Only include enrollments with valid programs
             ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->where('access_blocked', false)
             ->orderByRaw("FIELD(status, 'active', 'completed')")
             ->first();
+        
+        // If we found an enrollment but it has no program, show a message that the program was removed
+        if ($approvedEnrollment && !$approvedEnrollment->program) {
+            return $this->createView('Dashboard', [
+                'enrollmentStatus' => 'program_removed',
+                'message' => 'Your enrolled program has been temporarily removed. Please contact support.',
+                'availablePrograms' => collect([]),
+                'pendingEnrollments' => collect([]),
+                'completedEnrollments' => collect([]),
+                'nextClass' => $studentData['nextScheduledClass'] ?? null,
+                'notifications' => $studentData['notifications'] ?? [],
+                'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
+            ]);
+        }
 
         // Check if user has approved enrollment but access is blocked
         $blockedEnrollment = $user->enrollments()
             ->with('program')
-            ->whereHas('program') // Only include enrollments with valid programs
             ->where('approval_status', 'approved')
             ->where('access_blocked', true)
             ->first();
@@ -104,7 +116,6 @@ class DashboardController extends Controller
         // Get completed enrollments for certificate functionality
         $completedEnrollments = $user->enrollments()
             ->with('program')
-            ->whereHas('program') // Only include enrollments with valid programs
             ->where('status', 'completed')
             ->where('approval_status', 'approved')
             ->get();
@@ -112,7 +123,6 @@ class DashboardController extends Controller
         // Get pending enrollments
         $pendingEnrollments = $user->enrollments()
             ->with('program')
-            ->whereHas('program') // Only include enrollments with valid programs
             ->where('approval_status', 'pending')
             ->get();
 
