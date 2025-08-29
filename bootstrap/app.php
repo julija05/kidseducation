@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'chat/*',
             'admin/chat/*',
             'csrf-token', // Allow CSRF token refresh without verification
+            'language/*', // Allow language switching without CSRF (for guests after logout)
         ]);
 
         $middleware->alias([

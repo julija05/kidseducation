@@ -40,21 +40,11 @@ const LanguageSelector = ({ className = '', isMobile = false }) => {
         // Disable all interactions during switch
         document.body.style.pointerEvents = 'none';
         
-        // Create a form to POST the language change (bypasses GET caching)
+        // Use GET request for language switching (avoids CSRF issues after logout)
         const form = document.createElement('form');
-        form.method = 'POST';
+        form.method = 'GET';
         form.action = `/language/${newLocale}`;
         form.style.display = 'none';
-        
-        // Add CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]');
-        if (csrfToken) {
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '_token';
-            tokenInput.value = csrfToken.getAttribute('content');
-            form.appendChild(tokenInput);
-        }
         
         // Add cache busting parameters
         const timestampInput = document.createElement('input');
