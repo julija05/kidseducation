@@ -98,7 +98,7 @@ return [
         'enhanced_memory' => 'Enhanced memory & concentration',
         'visual_learning' => 'Visual learning techniques',
         'perfect_for_ages' => 'Perfect for ages',
-        'math_age_range' => '5-12 years',
+        'math_age_range' => '7-17 years',
         'duration' => 'Duration',
         'math_levels' => '8 levels',
 
@@ -110,7 +110,7 @@ return [
         'logical_thinking' => 'Logical thinking development',
         'problem_solving' => 'Problem-solving mastery',
         'future_tech_skills' => 'Future-ready tech skills',
-        'coding_age_range' => '6-14 years',
+        'coding_age_range' => '7-17 years',
         'projects' => 'Projects',
         'coding_games' => '50+ games',
 
@@ -211,7 +211,7 @@ return [
         'faq_1_q' => 'What makes Abacoding different from other educational programs?',
         'faq_1_a' => 'Our unique blend of ancient abacus wisdom with modern coding creativity creates an unparalleled learning experience. We don\'t just teach math and programming – we build cognitive skills, confidence, and creativity that serve children for life. Our personalized approach ensures every child learns at their own pace while having fun.',
         'faq_2_q' => 'What age groups do you serve, and how do you adapt to different learning styles?',
-        'faq_2_a' => 'We welcome children ages 5-14 across all our programs. Our expert instructors are trained to recognize different learning styles – visual, auditory, kinesthetic, and logical learners all thrive in our environment. We use gamification, storytelling, hands-on activities, and interactive technology to ensure every child finds their perfect learning path.',
+        'faq_2_a' => 'We welcome children ages 7-17 across all our programs. Our expert instructors are trained to recognize different learning styles – visual, auditory, kinesthetic, and logical learners all thrive in our environment. We use gamification, storytelling, hands-on activities, and interactive technology to ensure every child finds their perfect learning path.',
         'faq_3_q' => 'Do I need any prior experience or special equipment to get started?',
         'faq_3_a' => 'Absolutely not! Our programs are designed for complete beginners. We provide all necessary materials and guide families through every step. For our coding programs, a basic computer with internet access is all you need. Our abacus programs include physical abacus tools as part of the enrollment.',
         'faq_4_q' => 'How do you track progress and communicate with parents?',

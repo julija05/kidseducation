@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Abacoding - Interactive educational platform for children. Learn mental arithmetic with abacus and coding with Scratch. Fun, engaging programs for young minds aged 4-12.">
+    <meta name="description" content="Abacoding - Interactive educational platform for children. Learn mental arithmetic with abacus and coding with Scratch. Fun, engaging programs for young minds aged 7-17.">
     <meta name="keywords" content="abacus learning, mental arithmetic, coding for kids, scratch programming, children education, math skills, problem solving, creative thinking">
     <meta name="author" content="Abacoding">
     <meta name="robots" content="index, follow">

@@ -37,7 +37,7 @@ If the artisan commands don't work due to PHP version issues, you can manually r
 INSERT INTO programs (name, description, slug, price, duration, duration_weeks, icon, color, light_color, text_color, requires_monthly_payment, created_at, updated_at) 
 VALUES (
     'Mental Arithmetic Mastery',
-    'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 6-12.',
+    'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 7-17.',
     'mental-arithmetic-mastery',
     55,
     '12 months',

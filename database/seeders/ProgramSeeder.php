@@ -16,7 +16,7 @@ class ProgramSeeder extends Seeder
         $programs = [
             [
                 'name' => 'Mental Arithmetic Mastery',
-                'description' => 'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 6-12.',
+                'description' => 'Develop exceptional calculation speed and accuracy using abacus techniques. Enhances concentration, memory, and analytical thinking skills for children aged 7-17.',
                 'price' => 55,
                 'duration' => '12 months',
                 'icon' => 'Calculator',
