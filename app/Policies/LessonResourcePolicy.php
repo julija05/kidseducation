@@ -12,7 +12,8 @@ class LessonResourcePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        // Admins can view all resources, students can view resources for enrolled programs
+        return $user->hasRole('admin') || $user->hasRole('student');
     }
 
     /**
@@ -20,6 +21,23 @@ class LessonResourcePolicy
      */
     public function view(User $user, LessonResource $lessonResource): bool
     {
+        // Admins can view all resources
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+        
+        // Students can view resources if they're enrolled in the program
+        if ($user->hasRole('student')) {
+            $lesson = $lessonResource->lesson;
+            if ($lesson && $lesson->program) {
+                // Check if student is enrolled and approved for this program
+                return $user->enrollments()
+                    ->where('program_id', $lesson->program_id)
+                    ->where('status', 'approved')
+                    ->exists();
+            }
+        }
+        
         return false;
     }
 
@@ -28,7 +46,7 @@ class LessonResourcePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -36,7 +54,7 @@ class LessonResourcePolicy
      */
     public function update(User $user, LessonResource $lessonResource): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -44,7 +62,7 @@ class LessonResourcePolicy
      */
     public function delete(User $user, LessonResource $lessonResource): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -52,7 +70,7 @@ class LessonResourcePolicy
      */
     public function restore(User $user, LessonResource $lessonResource): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 
     /**
@@ -60,6 +78,6 @@ class LessonResourcePolicy
      */
     public function forceDelete(User $user, LessonResource $lessonResource): bool
     {
-        return false;
+        return $user->hasRole('admin');
     }
 }
