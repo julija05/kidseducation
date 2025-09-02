@@ -531,6 +531,12 @@ return [
         ],
     ],
 
+    // Main level translations for article pages
+    'ready_to_start_learning' => 'Спремен си да започнеш со учење?',
+    'explore_programs_description' => 'Истражи ги нашите образовни програми и започни го твоето патување во учењето денес. Од математика до програмирање, имаме нешто за секое младо дете.',
+    'view_programs' => 'Видете ги програмите',
+    'back_to' => 'Назад кон',
+
     // Articles
     'articles' => [
         'all' => 'Сите статии',
@@ -587,6 +593,9 @@ return [
         'hi_super_learner' => 'Здраво, иден лидеру!',
         'welcome_back_message' => 'Дали си подготвен/a за следниот предизвик во учењето?',
         'lets_start_adventure' => 'Ајде да ја започнеме оваа авантура!',
+        'ready_to_start_learning' => 'Спремен си да започнеш со учење?',
+        'explore_programs_description' => 'Истражи ги програмите подолу и избери ја совршената авантура за тебе!',
+        'view_programs' => 'Видете ги програмите',
         'doing_great' => 'Фантастично напредуваш – само напред!',
         'awesome_progress' => 'Неверојатен напредок!',
         'halfway_there' => 'На половина пат си!',

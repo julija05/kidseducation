@@ -569,6 +569,12 @@ return [
         ],
     ],
 
+    // Main level translations for article pages
+    'ready_to_start_learning' => 'Ready to Start Learning?',
+    'explore_programs_description' => 'Explore our educational programs and start your learning journey today. From mathematics to coding, we have something for every young learner.',
+    'view_programs' => 'View Programs',
+    'back_to' => 'Back to',
+
     // Articles
     'articles' => [
         'all' => 'All Articles',
@@ -625,6 +631,9 @@ return [
         'hi_super_learner' => 'Hi, Super Learner!',
         'welcome_back_message' => 'Ready to continue your amazing learning adventure?',
         'lets_start_adventure' => "Let's start this adventure!",
+        'ready_to_start_learning' => 'Ready to start learning?',
+        'explore_programs_description' => 'Explore the programs below and choose the perfect adventure for you!',
+        'view_programs' => 'View Programs',
         'doing_great' => "You're doing great!",
         'awesome_progress' => 'Awesome progress!',
         'halfway_there' => "You're halfway there!",
