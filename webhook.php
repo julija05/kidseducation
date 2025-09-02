@@ -26,6 +26,7 @@ $data = json_decode($payload, true);
 // Uncomment if you want to restrict only to push events
 // if (isset($headers['X-GitHub-Event']) && $headers['X-GitHub-Event'] === 'push') {
 
+
 chdir($repoDir);
 
 exec('git stash 2>&1', $output, $result);
@@ -80,7 +81,7 @@ if ($programCount === 0) {
                     $commit['modified'] ?? [],
                     $commit['added'] ?? []
                 );
-                
+
                 foreach ($allFiles as $file) {
                     if (strpos($file, 'database/seeders/') === 0 || strpos($file, 'database/migrations/') === 0) {
                         echo "Seeder/migration files modified, re-seeding database...\n";
@@ -113,6 +114,14 @@ if ($returnMigrate !== 0) {
     echo "\nReturn Code: $returnMigrate\n";
 }
 
+// Run Laravel migrations
+exec('php artisan storage:link', $outputMigrate, $returnMigrate);
+if ($returnMigrate !== 0) {
+    echo "Link Failed:\n";
+    echo implode("\n", $outputMigrate);
+    echo "\nReturn Code: $returnMigrate\n";
+}
+
 // Clear destination except webhook.php
 exec("find {$deployDestination} -mindepth 1 ! -name {$preserveFile} -exec rm -rf {} +");
 
@@ -129,6 +138,7 @@ if ($zip->open($buildZip) === TRUE) {
 
 // Copy build to destination
 exec("cp -r {$buildDir}/* {$deployDestination}/");
+exec("cp -f {$repoDir}/webhook.php* {$deployDestination}/webhook.php");
 copy($customIndexSource, $deployIndexPath);
 copy($buildDir . "/.htaccess", $deployDestination . "/.htaccess");
 unlink($deployDestination . "/hot");
