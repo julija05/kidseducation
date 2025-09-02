@@ -128,47 +128,45 @@ copy($buildDir . "/.htaccess", $deployDestination . "/.htaccess");
 
 echo "Deployment completed successfully.\n";
 
-// ---- STORAGE SYNC & SYMLINK ----
+// ---- STORAGE MOVE & SYMLINK ----
 
-$storageSource = "$repoDir/storage/app/public";
-$storageDestination = "$deployDestination/storage";
+$appPublic = "$repoDir/storage/app/public";
+$webStorage = "$deployDestination/storage";
 
-// Ensure destination exists
-if (!is_dir($storageDestination)) {
-    mkdir($storageDestination, 0775, true);
+// Ensure public_html/storage exists
+if (!is_dir($webStorage)) {
+    mkdir($webStorage, 0775, true);
 }
 
-// Copy missing files
+// Move all files from app/public → public_html/storage
 $iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($storageSource, RecursiveDirectoryIterator::SKIP_DOTS),
-    RecursiveIteratorIterator::SELF_FIRST
+    new RecursiveDirectoryIterator($appPublic, RecursiveDirectoryIterator::SKIP_DOTS),
+    RecursiveIteratorIterator::CHILD_FIRST
 );
 
 foreach ($iterator as $item) {
-    $targetPath = $storageDestination . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
-
+    $targetPath = $webStorage . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
     if ($item->isDir()) {
         if (!is_dir($targetPath)) {
             mkdir($targetPath, 0775, true);
         }
     } else {
-        if (!file_exists($targetPath)) {
-            copy($item, $targetPath);
-        }
+        copy($item, $targetPath);
     }
 }
 
-// Try symlink
-if (is_link($storageDestination)) {
-    unlink($storageDestination);
+// Delete old app/public folder
+if (is_dir($appPublic)) {
+    exec("rm -rf " . escapeshellarg($appPublic));
 }
 
-if (!is_link($storageDestination)) {
-    if (@symlink($storageSource, $storageDestination)) {
-        echo "Symlink created: $storageDestination -> $storageSource\n";
+// Create symlink: app/public -> public_html/storage
+if (!is_link($appPublic)) {
+    if (@symlink($webStorage, $appPublic)) {
+        echo "Symlink created: $appPublic -> $webStorage\n";
     } else {
-        echo "Symlink failed. Using copied files instead.\n";
+        echo "Symlink creation failed. Files are still available in $webStorage\n";
     }
 }
 
-echo "Storage sync step completed.\n";
+echo "Storage move & symlink step completed.\n";
