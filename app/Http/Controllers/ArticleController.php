@@ -12,28 +12,38 @@ class ArticleController extends Controller
      */
     public function index(Request $request)
     {
-        $category = $request->get('category', 'how_to_use');
+        $category = $request->get('category');
         $currentLocale = app()->getLocale();
 
         try {
-            $articles = News::published()
-                ->byCategory($category)
-                ->withTranslation($currentLocale) // Filter by available translations
-                ->latest('published_at')
-                ->paginate(12);
-        } catch (\Exception $e) {
+            $articlesQuery = News::published()->withTranslation($currentLocale);
+            
+            // Only filter by category if one is specified
+            if ($category) {
+                $articlesQuery->byCategory($category);
+            }
+            
+            $articles = $articlesQuery->latest('published_at')->paginate(12);
+        } catch (\Exception) {
             // Fallback if migration hasn't been applied yet
-            $articles = News::where('title', 'LIKE', '%'.$category.'%')
-                ->latest('created_at')
-                ->paginate(12);
+            $articlesQuery = News::query();
+            
+            if ($category) {
+                $articlesQuery->where('title', 'LIKE', '%'.$category.'%');
+            }
+            
+            $articles = $articlesQuery->latest('created_at')->paginate(12);
         }
+
+        // Set category name based on filter or default
+        $categoryName = $category ? $this->getCategoryTranslation($category) : __('app.articles.all');
 
         return $this->createView('Front/Articles/Index', [
             'articles' => $articles,
-            'currentCategory' => $category,
+            'currentCategory' => $category ?: 'all',
             'categories' => $this->getPublicCategories(),
             'categoriesWithArticles' => $this->getCategoriesWithArticles($currentLocale),
-            'categoryName' => $this->getCategoryTranslation($category),
+            'categoryName' => $categoryName,
             'currentLocale' => $currentLocale,
         ]);
     }
@@ -41,13 +51,13 @@ class ArticleController extends Controller
     /**
      * Display the specified article.
      */
-    public function show(Request $request, $slug)
+    public function show($slug)
     {
         $currentLocale = app()->getLocale();
 
         try {
             $article = News::where('slug', $slug)->firstOrFail();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Fallback if slug column doesn't exist yet
             $article = News::where('id', $slug)->firstOrFail();
         }
@@ -57,7 +67,7 @@ class ArticleController extends Controller
             if (! $article->is_published) {
                 abort(404);
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Column doesn't exist yet, skip check
         }
 
@@ -74,7 +84,7 @@ class ArticleController extends Controller
                 ->latest('published_at')
                 ->limit(3)
                 ->get();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Fallback if migration hasn't been applied yet
             $relatedArticles = News::where('id', '!=', $article->id)
                 ->latest('created_at')
@@ -121,7 +131,7 @@ class ArticleController extends Controller
         $categoriesWithArticles = [];
         $publicCategories = $this->getPublicCategories();
 
-        foreach ($publicCategories as $key => $name) {
+        foreach ($publicCategories as $key => $_) {
             try {
                 $hasArticles = News::published()
                     ->byCategory($key)
@@ -131,7 +141,7 @@ class ArticleController extends Controller
                 if ($hasArticles) {
                     $categoriesWithArticles[$key] = $this->getCategoryTranslation($key);
                 }
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 // Fallback if migration hasn't been applied yet
                 $hasArticles = News::where('title', 'LIKE', '%'.str_replace('_', ' ', $key).'%')
                     ->exists();

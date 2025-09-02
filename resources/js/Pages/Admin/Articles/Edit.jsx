@@ -3,7 +3,32 @@ import ArticleForm from "./ArticleForm";
 
 export default function Edit({ article, categories, migrationRequired, supportedLanguages }) {
     const handleSubmit = (data, post, put, options) => {
-        put(route("admin.articles.update", article.id), options);
+        const updateRoute = route("admin.articles.update", article.id);
+        
+        // If forceFormData is true, manually construct FormData to ensure proper serialization
+        if (options.forceFormData) {
+            const formData = new FormData();
+            
+            // Add all fields to FormData manually
+            Object.keys(data).forEach(key => {
+                if (data[key] !== null && data[key] !== undefined) {
+                    if (data[key] instanceof File) {
+                        formData.append(key, data[key]);
+                    } else {
+                        formData.append(key, String(data[key]));
+                    }
+                }
+            });
+            
+            // Use post method with _method override for Laravel
+            post(updateRoute, {
+                ...options,
+                data: formData,
+                forceFormData: false, // We're handling FormData manually
+            });
+        } else {
+            put(updateRoute, options);
+        }
     };
 
     return (

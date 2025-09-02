@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useRef } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { 
     PlayCircle, 
     Star, 
@@ -16,9 +16,6 @@ import {
     Heart,
     Zap
 } from "lucide-react";
-import kid from "../../../../assets/Abacoding.png";
-import learningMap from "../../../../assets/learning_map.png";
-import learningMapCoding from "../../../../assets/lerning-map-coding.png";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import GuestFrontLayout from "@/Layouts/GuessFrontLayout";
@@ -47,22 +44,15 @@ const useCounter = (target, isInView) => {
 };
 
 const Home = ({ auth }) => {
-    const { programs = [], pageTitle, content } = usePage().props;
+    const { articles = [] } = usePage().props;
     const { t } = useTranslation();
     
-    // Refs for scroll animations
-    const heroRef = useRef(null);
-    const statsRef = useRef(null);
-    const featuresRef = useRef(null);
     
-    // Scroll progress for parallax effects
-    const { scrollYProgress } = useScroll();
-    const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
-    const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
+    // Refs for scroll animations
+    const statsRef = useRef(null);
     
     // In-view detection
     const isStatsInView = useInView(statsRef, { once: true, threshold: 0.1 });
-    const isFeaturesInView = useInView(featuresRef, { once: true });
     
     // Animated counters
     const studentsCount = useCounter(150, isStatsInView);
@@ -633,6 +623,96 @@ const Home = ({ auth }) => {
                         </div>
                     </div>
                 </section>
+
+                {/* Latest Articles Section */}
+                {articles && articles.length > 0 && (
+                    <section className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+                        <div className="max-w-7xl mx-auto">
+                            <motion.div
+                                className="text-center mb-16"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8 }}
+                            >
+                                <h2 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+                                    {t('home.latest_articles', 'Latest Articles')}
+                                </h2>
+                                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                                    {t('home.articles_description', 'Stay updated with the latest educational insights and platform updates')}
+                                </p>
+                            </motion.div>
+
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {articles.slice(0, 6).map((article, index) => (
+                                    <motion.div
+                                        key={article.id}
+                                        className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 group h-full flex flex-col"
+                                        initial={{ opacity: 0, y: 30 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1, duration: 0.6 }}
+                                        whileHover={{ y: -5 }}
+                                    >
+                                        {article.image && (
+                                            <div className="w-full h-48 rounded-2xl overflow-hidden mb-6">
+                                                <img 
+                                                    src={article.image} 
+                                                    alt={article.translated_title || article.title}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                />
+                                            </div>
+                                        )}
+                                        
+                                        <div className="flex-grow flex flex-col">
+                                            {article.category && (
+                                                <span className="inline-block px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs font-semibold rounded-full mb-3 self-start">
+                                                    {article.category_name || article.category}
+                                                </span>
+                                            )}
+                                            
+                                            <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-purple-600 transition-colors duration-300">
+                                                {article.translated_title || article.title}
+                                            </h3>
+                                            
+                                            <p className="text-gray-600 leading-relaxed mb-4 flex-grow line-clamp-3">
+                                                {(article.translated_content || article.content || '').substring(0, 150)}...
+                                            </p>
+                                            
+                                            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                                                <span className="text-sm text-gray-500">
+                                                    {new Date(article.published_at || article.created_at).toLocaleDateString()}
+                                                </span>
+                                                <Link
+                                                    href={route('articles.show', article.slug)}
+                                                    className="text-purple-600 hover:text-purple-700 font-semibold text-sm inline-flex items-center space-x-1 group-hover:transform group-hover:translate-x-1 transition-all duration-300"
+                                                >
+                                                    <span>{t('home.read_more', 'Read More')}</span>
+                                                    <ChevronRight size={16} />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {articles.length > 6 && (
+                                <motion.div
+                                    className="text-center mt-12"
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{ opacity: 1 }}
+                                    transition={{ delay: 0.5, duration: 0.8 }}
+                                >
+                                    <Link
+                                        href={route('articles.index')}
+                                        className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105"
+                                    >
+                                        <span>{t('home.view_all_articles', 'View All Articles')}</span>
+                                        <ChevronRight size={18} />
+                                    </Link>
+                                </motion.div>
+                            )}
+                        </div>
+                    </section>
+                )}
 
                 {/* Call to Action Section */}
                 <section className="bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 text-center px-6 py-24 relative overflow-hidden">

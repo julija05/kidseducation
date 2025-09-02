@@ -571,6 +571,7 @@ return [
 
     // Articles
     'articles' => [
+        'all' => 'All Articles',
         'how_to_use_platform' => 'How to Use Platform',
         'tutorials_guides' => 'Tutorials & Guides',
         'platform_updates' => 'Platform Updates',

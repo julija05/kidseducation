@@ -533,6 +533,7 @@ return [
 
     // Articles
     'articles' => [
+        'all' => 'Сите статии',
         'how_to_use_platform' => 'Како да ја користите платформата',
         'tutorials_guides' => 'Упатства и водичи',
         'platform_updates' => 'Ажурирања на платформата',

@@ -15,8 +15,12 @@ export default function ArticleForm({ formData = {}, categories = {}, selectedCa
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Use FormData only when image is present, otherwise use regular JSON
+        const hasImage = data.image && data.image instanceof File;
+        
         onSubmit(data, post, put, {
-            forceFormData: true,
+            forceFormData: hasImage,
             preserveScroll: true,
             preserveState: false,
         });
