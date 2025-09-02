@@ -2,7 +2,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build && zip -r ./prod/public.zip ./public/ -x *.* && cd ..",
+        "build":"vite build && zip -r ./prod/public.zip ./public/ -x '*/storage/*'",
         "dev": "vite"
     },
     "devDependencies": {
