@@ -1,14 +1,14 @@
 <?php
 
-$repoDir = '/home/abacygmx/repositories/kidseducation'; // <-- CHANGE THIS!
+$repoDir = '/home/abacygmx/repositories/kidseducation';
 $buildZip = "$repoDir/prod/public.zip";
 $buildDir = "$repoDir/public";
-$deployDestination = '/home/abacygmx/public_html'; // <-- CHANGE THIS if needed
+$deployDestination = '/home/abacygmx/public_html';
 $preserveFile = 'webhook.php';
-$customIndexSource = "$repoDir/prod/index.php"; // <-- index.php from prod folder
+$customIndexSource = "$repoDir/prod/index.php";
 $deployIndexPath = "$deployDestination/index.php";
 
-$secret = 'SrdglkkjdsnrgiuoserhgoihklNDH)O*DSF(ESF'; // <-- GitHub Webhook secret (optional)
+$secret = 'SrdglkkjdsnrgiuoserhgoihklNDH)O*DSF(ESF'; // GitHub Webhook secret (optional)
 
 $payload = file_get_contents('php://input');
 $headers = getallheaders();
@@ -23,19 +23,15 @@ if ($secret != '' && isset($headers['X-Hub-Signature-256'])) {
 
 $data = json_decode($payload, true);
 
-// Uncomment if you want to restrict only to push events
-// if (isset($headers['X-GitHub-Event']) && $headers['X-GitHub-Event'] === 'push') {
-
-
 chdir($repoDir);
 
+// Git stash
 exec('git stash 2>&1', $output, $result);
 if ($result !== 0) {
-    error_log("Git pull failed:\n" . implode("\n", $output));
+    error_log("Git stash failed:\n" . implode("\n", $output));
     http_response_code(500);
-    die("Git pull failed:\n" . implode("\n", $output));
+    die("Git stash failed:\n" . implode("\n", $output));
 }
-
 
 // Git pull
 exec('git pull 2>&1', $output, $result);
@@ -61,19 +57,16 @@ if ($returnMigrate !== 0) {
     echo "\nReturn Code: $returnMigrate\n";
 }
 
-// Only seed if database is empty or seeding is specifically needed
-// Check if programs table is empty before seeding
+// Check seeding condition
 exec('php artisan tinker --execute="echo App\Models\Program::count();" 2>&1', $programCountOutput, $programCountResult);
 $programCount = isset($programCountOutput[0]) ? intval(trim($programCountOutput[0])) : 0;
 
-// Only seed if no programs exist OR if seeders have been modified in this commit
 $shouldSeed = false;
 
 if ($programCount === 0) {
     echo "No programs found, seeding database...\n";
     $shouldSeed = true;
 } else {
-    // Check if any seeder files were modified in this commit
     if (isset($data['commits'])) {
         foreach ($data['commits'] as $commit) {
             if (isset($commit['modified']) || isset($commit['added'])) {
@@ -107,29 +100,18 @@ if ($shouldSeed) {
     echo "Skipping database seeding - no changes needed.\n";
 }
 
-exec('php artisan cache:clear 2>&1', $outputMigrate, $returnMigrate);
-if ($returnMigrate !== 0) {
-    echo "Migration Failed:\n";
-    echo implode("\n", $outputMigrate);
-    echo "\nReturn Code: $returnMigrate\n";
-}
+// Clear Laravel cache
+exec('php artisan optimize:clear 2>&1', $outputClear, $returnClear);
 
-// Run Laravel migrations
-exec('php artisan storage:link', $outputMigrate, $returnMigrate);
-if ($returnMigrate !== 0) {
-    echo "Link Failed:\n";
-    echo implode("\n", $outputMigrate);
-    echo "\nReturn Code: $returnMigrate\n";
-}
+// ---- DEPLOY FILES ----
 
 // Clear destination except webhook.php
 exec("find {$deployDestination} -mindepth 1 ! -name {$preserveFile} -exec rm -rf {} +");
 
 $zip = new ZipArchive;
-$extractTo = $repoDir; // Path to the folder where you want to extract
+$extractTo = $repoDir;
 
 if ($zip->open($buildZip) === TRUE) {
-    // Extract all files to the specified folder
     $zip->extractTo($extractTo);
     $zip->close();
 } else {
@@ -141,11 +123,52 @@ exec("cp -r {$buildDir}/* {$deployDestination}/");
 exec("cp -f {$repoDir}/webhook.php* {$deployDestination}/webhook.php");
 copy($customIndexSource, $deployIndexPath);
 copy($buildDir . "/.htaccess", $deployDestination . "/.htaccess");
-unlink($deployDestination . "/hot");
-unlink($repoDir . "/public/hot");
-echo "Deployment completed successfully.";
+@unlink($deployDestination . "/hot");
+@unlink($repoDir . "/public/hot");
 
-// } else {
-//     http_response_code(400);
-//     die('Not a push event');
-// }
+echo "Deployment completed successfully.\n";
+
+// ---- STORAGE SYNC & SYMLINK ----
+
+$storageSource = "$repoDir/storage/app/public";
+$storageDestination = "$deployDestination/storage";
+
+// Ensure destination exists
+if (!is_dir($storageDestination)) {
+    mkdir($storageDestination, 0775, true);
+}
+
+// Copy missing files
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($storageSource, RecursiveDirectoryIterator::SKIP_DOTS),
+    RecursiveIteratorIterator::SELF_FIRST
+);
+
+foreach ($iterator as $item) {
+    $targetPath = $storageDestination . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+
+    if ($item->isDir()) {
+        if (!is_dir($targetPath)) {
+            mkdir($targetPath, 0775, true);
+        }
+    } else {
+        if (!file_exists($targetPath)) {
+            copy($item, $targetPath);
+        }
+    }
+}
+
+// Try symlink
+if (is_link($storageDestination)) {
+    unlink($storageDestination);
+}
+
+if (!is_link($storageDestination)) {
+    if (@symlink($storageSource, $storageDestination)) {
+        echo "Symlink created: $storageDestination -> $storageSource\n";
+    } else {
+        echo "Symlink failed. Using copied files instead.\n";
+    }
+}
+
+echo "Storage sync step completed.\n";
