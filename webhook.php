@@ -133,6 +133,10 @@ echo "Deployment completed successfully.\n";
 $appPublic = "$repoDir/storage/app/public";
 $webStorage = "$deployDestination/storage";
 
+if (is_link($webStorage)) {
+    unlink($webStorage);
+}
+
 // Ensure public_html/storage exists
 if (!is_dir($webStorage)) {
     mkdir($webStorage, 0775, true);
