@@ -380,7 +380,7 @@ Route::get('/debug/user-demo-access', function () {
 
 use App\Http\Controllers\FileController;
 
-Route::get('/fileschanged/{path}', [FileController::class, 'serve'])
+Route::get('/storage/{path}', [FileController::class, 'serve'])
     ->where('path', '.*'); // allow nested folders
 
 
