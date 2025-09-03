@@ -59,32 +59,6 @@ Route::post('/debug/language-preference', function (Request $request) {
     return back()->with('success', 'Debug route hit successfully');
 })->middleware('auth');
 
-// Storage file serving route with path sanitization
-Route::middleware([])->group(function () {
-    Route::get('/storage/{path}', function ($path) {
-        $sanitizedPath = ltrim(str_replace(['../', '.\\', '..\\'], '', $path), '/');
-
-        $filePath = storage_path('app/public/' . $sanitizedPath);
-
-        if (!file_exists($filePath) || !is_file($filePath)) {
-            abort(404);
-        }
-
-        $realPath = realpath($filePath);
-        $allowedPath = realpath(storage_path('app/public'));
-
-        if (!$realPath || strpos($realPath, $allowedPath) !== 0) {
-            abort(403, 'Access denied');
-        }
-
-        $mimeType = mime_content_type($realPath);
-
-        return response()->file($realPath, [
-            'Content-Type' => $mimeType,
-        ]);
-    })->where('path', '.*');
-});
-
 // Individual lesson routes - accessible by both students and demo users
 // Temporarily disable ALL middleware for debugging
 Route::middleware(['auth'])->group(function () {
@@ -404,8 +378,10 @@ Route::get('/debug/user-demo-access', function () {
 })->middleware('auth');
 
 
+use App\Http\Controllers\FileController;
 
-
+Route::get('/storage/{path}', [FileController::class, 'serve'])
+    ->where('path', '.*'); // allow nested folders
 
 
 require __DIR__ . '/auth.php';
