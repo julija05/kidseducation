@@ -128,6 +128,8 @@ class AdminLessonController extends Controller
     public function edit(Program $program, Lesson $lesson)
     {
         Log::info('Route hit', [
+            'lesson_id' => $lesson->id,
+            'program_id' => $program->id,
             'program' => $program,
             'lesson' => $lesson,
             'url' => request()->url(),
@@ -142,7 +144,7 @@ class AdminLessonController extends Controller
         ]);
 
         // Ensure lesson belongs to the program
-        if ($lesson->program_id !== $program->id) {
+        if ($lesson->program_id != $program->id) {
             abort(404);
         }
 
