@@ -72,7 +72,7 @@ class AdminArticleController extends Controller
             // Handle image upload
             if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')->store('news', 'public');
-                $data['image'] = '/storage/'.$imagePath;
+                $data['image'] = '/files/'.$imagePath;
             }
 
             News::create($data);

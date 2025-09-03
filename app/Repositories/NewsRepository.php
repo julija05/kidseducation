@@ -65,7 +65,7 @@ class NewsRepository implements NewsRepositoryInterface
 
         $imagePath = $request->file($field)->store('news', 'public');
 
-        return "/storage/{$imagePath}";
+        return "/files/{$imagePath}";
     }
 
     /**
@@ -77,8 +77,8 @@ class NewsRepository implements NewsRepositoryInterface
             return false;
         }
 
-        // Extract the path from the full URL (/storage/news/abc.jpg -> news/abc.jpg)
-        $relativePath = str_replace('/storage/', '', $imagePath);
+        // Extract the path from the full URL (/files/news/abc.jpg -> news/abc.jpg)
+        $relativePath = str_replace(['/files/', '/storage/'], '', $imagePath);
 
         return Storage::disk('public')->delete($relativePath);
     }
