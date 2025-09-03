@@ -326,11 +326,11 @@ Route::get('/debug/user-demo-access', function () {
     if (!Auth::check()) {
         return response()->json(['error' => 'Not authenticated']);
     }
-    
+
     try {
         $user = Auth::user();
         $lesson = \App\Models\Lesson::with('program')->find(1);
-        
+
         $data = [
             'user_id' => $user->id,
             'user_email' => $user->email,
@@ -340,20 +340,20 @@ Route::get('/debug/user-demo-access', function () {
             'demo_expires_at' => $user->demo_expires_at ?? null,
             'lesson_1_exists' => $lesson ? true : false
         ];
-        
+
         // Safely call methods that might not exist
         if (method_exists($user, 'hasDemoAccess')) {
             $data['hasDemoAccess'] = $user->hasDemoAccess();
         }
-        
+
         if (method_exists($user, 'isDemoAccount')) {
             $data['isDemoAccount'] = $user->isDemoAccount();
         }
-        
+
         if (method_exists($user, 'isDemoExpired')) {
             $data['isDemoExpired'] = $user->isDemoExpired();
         }
-        
+
         if ($lesson && method_exists($user, 'canAccessLessonInDemo')) {
             $data['canAccessLessonInDemo'] = $user->canAccessLessonInDemo($lesson);
             $data['lesson_1_details'] = [
@@ -365,9 +365,8 @@ Route::get('/debug/user-demo-access', function () {
                 'program_slug' => $lesson->program ? $lesson->program->slug : null
             ];
         }
-        
+
         return response()->json($data);
-        
     } catch (\Exception $e) {
         return response()->json([
             'error' => 'Debug failed',
@@ -383,31 +382,40 @@ Route::get('/debug/user-demo-access', function () {
 Route::get('/storage/{path}', function ($path) {
     // Sanitize the path to prevent directory traversal attacks
     $sanitizedPath = ltrim(str_replace(['../', '.\\', '..\\'], '', $path), '/');
-    
+
     // Construct the full path to the file
     $filePath = storage_path('app/public/' . $sanitizedPath);
-    
-    // Check if file exists and is within the allowed directory
+
+    Log::info('Storage route debug', [
+        'requested' => $path,
+        'sanitized' => $sanitizedPath,
+        'filePath'  => $filePath,
+        'exists'    => file_exists($filePath),
+    ]);
+
+
+    // Check if file exists and is a file
     if (!file_exists($filePath) || !is_file($filePath)) {
         abort(404);
     }
-    
+
     // Ensure the resolved path is within the storage/app/public directory
     $realPath = realpath($filePath);
     $allowedPath = realpath(storage_path('app/public'));
-    
-    if (!$realPath || !str_starts_with($realPath, $allowedPath)) {
+
+    if (!$realPath || strpos($realPath, $allowedPath) !== 0) {
         abort(403, 'Access denied');
     }
-    
+
     // Get the file's mime type
     $mimeType = mime_content_type($realPath);
-    
-    // Return the file with appropriate headers
+
+    // Return the file with proper headers
     return response()->file($realPath, [
         'Content-Type' => $mimeType,
         'Cache-Control' => 'public, max-age=31536000', // 1 year cache
     ]);
 })->where('path', '.*');
+
 
 require __DIR__ . '/auth.php';
