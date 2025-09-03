@@ -379,4 +379,35 @@ Route::get('/debug/user-demo-access', function () {
 })->middleware('auth');
 
 
+// Storage file serving route with path sanitization
+Route::get('/storage/{path}', function ($path) {
+    // Sanitize the path to prevent directory traversal attacks
+    $sanitizedPath = ltrim(str_replace(['../', '.\\', '..\\'], '', $path), '/');
+    
+    // Construct the full path to the file
+    $filePath = storage_path('app/public/' . $sanitizedPath);
+    
+    // Check if file exists and is within the allowed directory
+    if (!file_exists($filePath) || !is_file($filePath)) {
+        abort(404);
+    }
+    
+    // Ensure the resolved path is within the storage/app/public directory
+    $realPath = realpath($filePath);
+    $allowedPath = realpath(storage_path('app/public'));
+    
+    if (!$realPath || !str_starts_with($realPath, $allowedPath)) {
+        abort(403, 'Access denied');
+    }
+    
+    // Get the file's mime type
+    $mimeType = mime_content_type($realPath);
+    
+    // Return the file with appropriate headers
+    return response()->file($realPath, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=31536000', // 1 year cache
+    ]);
+})->where('path', '.*');
+
 require __DIR__ . '/auth.php';

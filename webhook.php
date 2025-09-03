@@ -1,14 +1,15 @@
 <?php
 
-$repoDir = '/home/abacygmx/repositories/kidseducation';
+$repoDir = '/home/abacygmx/repositories/kidseducation'; // <-- CHANGE THIS!
 $buildZip = "$repoDir/prod/public.zip";
 $buildDir = "$repoDir/public";
-$deployDestination = '/home/abacygmx/public_html';
+$deployDestination = '/home/abacygmx/public_html'; // <-- CHANGE THIS if needed
 $preserveFile = 'webhook.php';
-$customIndexSource = "$repoDir/prod/index.php";
+$customIndexSource = "$repoDir/prod/index.php"; // <-- index.php from prod folder
 $deployIndexPath = "$deployDestination/index.php";
 
-$secret = 'SrdglkkjdsnrgiuoserhgoihklNDH)O*DSF(ESF'; // GitHub Webhook secret (optional)
+$secret = 'SrdglkkjdsnrgiuoserhgoihklNDH)O*DSF(ESF'; // <-- GitHub Webhook secret (optional)
+
 
 $payload = file_get_contents('php://input');
 $headers = getallheaders();
@@ -23,15 +24,18 @@ if ($secret != '' && isset($headers['X-Hub-Signature-256'])) {
 
 $data = json_decode($payload, true);
 
+// Uncomment if you want to restrict only to push events
+// if (isset($headers['X-GitHub-Event']) && $headers['X-GitHub-Event'] === 'push') {
+
 chdir($repoDir);
 
-// Git stash
 exec('git stash 2>&1', $output, $result);
 if ($result !== 0) {
-    error_log("Git stash failed:\n" . implode("\n", $output));
+    error_log("Git pull failed:\n" . implode("\n", $output));
     http_response_code(500);
-    die("Git stash failed:\n" . implode("\n", $output));
+    die("Git pull failed:\n" . implode("\n", $output));
 }
+
 
 // Git pull
 exec('git pull 2>&1', $output, $result);
@@ -57,16 +61,19 @@ if ($returnMigrate !== 0) {
     echo "\nReturn Code: $returnMigrate\n";
 }
 
-// Check seeding condition
+// Only seed if database is empty or seeding is specifically needed
+// Check if programs table is empty before seeding
 exec('php artisan tinker --execute="echo App\Models\Program::count();" 2>&1', $programCountOutput, $programCountResult);
 $programCount = isset($programCountOutput[0]) ? intval(trim($programCountOutput[0])) : 0;
 
+// Only seed if no programs exist OR if seeders have been modified in this commit
 $shouldSeed = false;
 
 if ($programCount === 0) {
     echo "No programs found, seeding database...\n";
     $shouldSeed = true;
 } else {
+    // Check if any seeder files were modified in this commit
     if (isset($data['commits'])) {
         foreach ($data['commits'] as $commit) {
             if (isset($commit['modified']) || isset($commit['added'])) {
@@ -100,18 +107,21 @@ if ($shouldSeed) {
     echo "Skipping database seeding - no changes needed.\n";
 }
 
-// Clear Laravel cache
-exec('php artisan optimize:clear 2>&1', $outputClear, $returnClear);
-
-// ---- DEPLOY FILES ----
+exec('php artisan cache:clear 2>&1', $outputMigrate, $returnMigrate);
+if ($returnMigrate !== 0) {
+    echo "Migration Failed:\n";
+    echo implode("\n", $outputMigrate);
+    echo "\nReturn Code: $returnMigrate\n";
+}
 
 // Clear destination except webhook.php
 exec("find {$deployDestination} -mindepth 1 ! -name {$preserveFile} -exec rm -rf {} +");
 
 $zip = new ZipArchive;
-$extractTo = $repoDir;
+$extractTo = $repoDir; // Path to the folder where you want to extract
 
 if ($zip->open($buildZip) === TRUE) {
+    // Extract all files to the specified folder
     $zip->extractTo($extractTo);
     $zip->close();
 } else {
@@ -120,57 +130,14 @@ if ($zip->open($buildZip) === TRUE) {
 
 // Copy build to destination
 exec("cp -r {$buildDir}/* {$deployDestination}/");
-exec("cp -f {$repoDir}/webhook.php* {$deployDestination}/webhook.php");
 copy($customIndexSource, $deployIndexPath);
 copy($buildDir . "/.htaccess", $deployDestination . "/.htaccess");
-@unlink($deployDestination . "/hot");
-@unlink($repoDir . "/public/hot");
+unlink($deployDestination . "/hot");
+unlink($repoDir . "/public/hot");
+unlink($deployDestination . "/storage");
+echo "Deployment completed successfully.";
 
-echo "Deployment completed successfully.\n";
-
-// ---- STORAGE MOVE & SYMLINK ----
-
-$appPublic = "$repoDir/storage/app/public";
-$webStorage = "$deployDestination/storage";
-
-if (is_link($webStorage)) {
-    unlink($webStorage);
-}
-
-// Ensure public_html/storage exists
-if (!is_dir($webStorage)) {
-    mkdir($webStorage, 0775, true);
-}
-
-// Move all files from app/public → public_html/storage
-$iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($appPublic, RecursiveDirectoryIterator::SKIP_DOTS),
-    RecursiveIteratorIterator::CHILD_FIRST
-);
-
-foreach ($iterator as $item) {
-    $targetPath = $webStorage . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
-    if ($item->isDir()) {
-        if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0775, true);
-        }
-    } else {
-        copy($item, $targetPath);
-    }
-}
-
-// Delete old app/public folder
-if (is_dir($appPublic)) {
-    exec("rm -rf " . escapeshellarg($appPublic));
-}
-
-// Create symlink: app/public -> public_html/storage
-if (!is_link($appPublic)) {
-    if (@symlink($webStorage, $appPublic)) {
-        echo "Symlink created: $appPublic -> $webStorage\n";
-    } else {
-        echo "Symlink creation failed. Files are still available in $webStorage\n";
-    }
-}
-
-echo "Storage move & symlink step completed.\n";
+// } else {
+//     http_response_code(400);
+//     die('Not a push event');
+// }
