@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\Program;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -126,6 +127,20 @@ class AdminLessonController extends Controller
      */
     public function edit(Program $program, Lesson $lesson)
     {
+        Log::info('Route hit', [
+            'program' => $program,
+            'lesson' => $lesson,
+            'url' => request()->url(),
+            'full_url' => request()->fullUrl()
+        ]);
+
+        // Also log if these records exist in DB
+        Log::info('Database check', [
+            'program_exists_by_slug' => \App\Models\Program::where('slug', $program)->exists(),
+            'program_exists_by_id' => \App\Models\Program::where('id', $program)->exists(),
+            'lesson_exists' => \App\Models\Lesson::where('id', $lesson)->exists(),
+        ]);
+
         // Ensure lesson belongs to the program
         if ($lesson->program_id !== $program->id) {
             abort(404);
