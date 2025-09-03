@@ -379,43 +379,31 @@ Route::get('/debug/user-demo-access', function () {
 
 
 // Storage file serving route with path sanitization
-Route::get('/storage/{path}', function ($path) {
-    // Sanitize the path to prevent directory traversal attacks
-    $sanitizedPath = ltrim(str_replace(['../', '.\\', '..\\'], '', $path), '/');
+Route::middleware([])->group(function () {
+    Route::get('/storage/{path}', function ($path) {
+        $sanitizedPath = ltrim(str_replace(['../', '.\\', '..\\'], '', $path), '/');
 
-    // Construct the full path to the file
-    $filePath = storage_path('app/public/' . $sanitizedPath);
+        $filePath = storage_path('app/public/' . $sanitizedPath);
 
-    Log::info('Storage route debug', [
-        'requested' => $path,
-        'sanitized' => $sanitizedPath,
-        'filePath'  => $filePath,
-        'exists'    => file_exists($filePath),
-    ]);
+        if (!file_exists($filePath) || !is_file($filePath)) {
+            abort(404);
+        }
 
+        $realPath = realpath($filePath);
+        $allowedPath = realpath(storage_path('app/public'));
 
-    // Check if file exists and is a file
-    if (!file_exists($filePath) || !is_file($filePath)) {
-        abort(404);
-    }
+        if (!$realPath || strpos($realPath, $allowedPath) !== 0) {
+            abort(403, 'Access denied');
+        }
 
-    // Ensure the resolved path is within the storage/app/public directory
-    $realPath = realpath($filePath);
-    $allowedPath = realpath(storage_path('app/public'));
+        $mimeType = mime_content_type($realPath);
 
-    if (!$realPath || strpos($realPath, $allowedPath) !== 0) {
-        abort(403, 'Access denied');
-    }
+        return response()->file($realPath, [
+            'Content-Type' => $mimeType,
+        ]);
+    })->where('path', '.*');
+});
 
-    // Get the file's mime type
-    $mimeType = mime_content_type($realPath);
-
-    // Return the file with proper headers
-    return response()->file($realPath, [
-        'Content-Type' => $mimeType,
-        'Cache-Control' => 'public, max-age=31536000', // 1 year cache
-    ]);
-})->where('path', '.*');
 
 
 require __DIR__ . '/auth.php';
