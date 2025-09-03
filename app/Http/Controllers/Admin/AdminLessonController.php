@@ -127,21 +127,6 @@ class AdminLessonController extends Controller
      */
     public function edit(Program $program, Lesson $lesson)
     {
-        Log::info('Route hit', [
-            'lesson_id' => $lesson->id,
-            'program_id' => $program->id,
-            'program' => $program,
-            'lesson' => $lesson,
-            'url' => request()->url(),
-            'full_url' => request()->fullUrl()
-        ]);
-
-        // Also log if these records exist in DB
-        Log::info('Database check', [
-            'program_exists_by_slug' => \App\Models\Program::where('slug', $program)->exists(),
-            'program_exists_by_id' => \App\Models\Program::where('id', $program)->exists(),
-            'lesson_exists' => \App\Models\Lesson::where('id', $lesson)->exists(),
-        ]);
 
         // Ensure lesson belongs to the program
         if ($lesson->program_id != $program->id) {
@@ -214,7 +199,7 @@ class AdminLessonController extends Controller
     public function destroy(Program $program, Lesson $lesson)
     {
         // Ensure lesson belongs to the program
-        if ($lesson->program_id !== $program->id) {
+        if ($lesson->program_id != $program->id) {
             abort(404);
         }
 
