@@ -380,8 +380,7 @@ Route::get('/debug/user-demo-access', function () {
 
 use App\Http\Controllers\FileController;
 
-Route::get('/files/{path}', [FileController::class, 'serve'])
-    ->where('path', '.*'); // allow nested folders
+Route::get('/files/{path}', [FileController::class, 'serve'])->where('path', '.*')->name('files.serve');
 
 
 require __DIR__ . '/auth.php';
