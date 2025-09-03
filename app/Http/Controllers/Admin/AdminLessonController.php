@@ -181,7 +181,7 @@ class AdminLessonController extends Controller
     public function update(Request $request, Program $program, Lesson $lesson)
     {
         // Ensure lesson belongs to the program
-        if ($lesson->program_id !== $program->id) {
+        if ((int)$lesson->program_id !== $program->id) {
             abort(404);
         }
 
