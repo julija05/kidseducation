@@ -94,6 +94,18 @@ class EnrollmentApprovalController extends Controller
                 'approved_by' => auth()->id(),
             ]);
 
+            // Clear demo account status when enrollment is approved
+            // This allows former demo users to access all resources with their approved enrollment
+            if ($enrollment->user->is_demo_account) {
+                $enrollment->user->update([
+                    'is_demo_account' => false,
+                    // Keep demo tracking fields for record keeping, but clear the active flag
+                    // 'demo_created_at' => null, // Keep for history
+                    // 'demo_expires_at' => null, // Keep for history  
+                    // 'demo_program_slug' => null, // Keep for history
+                ]);
+            }
+
             // Create notification
             $notificationService = new NotificationService;
             $notificationService->createEnrollmentNotification($enrollment, 'approved');

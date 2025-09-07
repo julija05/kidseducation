@@ -291,6 +291,11 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isDemoAccount(): bool
     {
+        // If user has any approved enrollments, they are no longer a demo account
+        if ($this->enrollments()->where('approval_status', 'approved')->exists()) {
+            return false;
+        }
+
         // Regular demo accounts
         if ($this->is_demo_account || $this->hasDemoAccess()) {
             return true;
