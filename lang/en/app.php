@@ -61,8 +61,8 @@ return [
     'home' => [
         // Hero section
         'trusted_by_families' => 'Trusted by :count+ Families Worldwide',
-        'unlock_potential' => 'Unlock Your',
-        'child_potential' => "Child's Potential",
+        'unlock_potential' => 'Where Young Minds',
+        'child_potential' => "Discover Their Superpowers",
         'transform_future_text' => 'Transform your child\'s future with our innovative',
         'math_coding' => 'Math & Coding',
         'programs_text' => 'programs.',

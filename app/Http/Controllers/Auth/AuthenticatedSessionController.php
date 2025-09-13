@@ -35,20 +35,21 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
+        // Clear any intended URL that might point to admin routes if user is not admin
+        $intendedUrl = $request->session()->get('url.intended');
+        
         if ($user->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
+            // Admin users can be redirected to their intended URL or admin dashboard
+            return redirect()->intended(route('admin.dashboard'));
+        } else {
+            // For non-admin users, clear any intended URL that points to admin routes
+            if ($intendedUrl && str_contains($intendedUrl, '/admin/')) {
+                $request->session()->forget('url.intended');
+            }
+            
+            // Always redirect students to student dashboard
+            return redirect()->route('dashboard');
         }
-
-        // Check if this is a demo account
-        if ($user->isDemoAccount()) {
-            // Allow expired demo users to log in - they'll see expired demo buttons
-            // but can still see the programs panel and browse available programs
-
-            // Redirect demo users to regular dashboard, they can browse but not access program dashboards
-            return redirect()->intended(route('dashboard', absolute: false));
-        }
-
-        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**
