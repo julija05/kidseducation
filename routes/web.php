@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\TranslationController;
+use App\Http\Controllers\Mentor\MentorDashboardController;
+use App\Http\Controllers\Mentor\MentorProgramController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ChatController;
@@ -124,6 +126,18 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
         Route::get('/view/{filename}', [CertificateController::class, 'view'])->name('view');
         Route::get('/download/{filename}', [CertificateController::class, 'download'])->name('download');
     });
+});
+
+// Mentor routes
+Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->prefix('mentor')->name('mentor.')->group(function () {
+    Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
+
+    // Mentor application routes (apply to teach programs)
+    Route::post('/apply/{program:slug}', [MentorDashboardController::class, 'applyToTeach'])->name('apply');
+    Route::post('/applications/{enrollment}/cancel', [MentorDashboardController::class, 'cancelApplication'])->name('applications.cancel');
+
+    // Mentor program view (teaching dashboard for a specific program)
+    Route::get('/programs/{program:slug}', [MentorProgramController::class, 'show'])->name('programs.show');
 });
 
 // Profile routes (shared)

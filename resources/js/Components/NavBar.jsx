@@ -13,6 +13,7 @@ import {
     LogIn,
     UserPlus,
     LayoutDashboard,
+    GraduationCap,
 } from "lucide-react";
 import LanguageSelector from "./LanguageSelector";
 import { useTranslation } from "../hooks/useTranslation";
@@ -42,13 +43,19 @@ const NavBar = React.memo(() => {
     // Helper function to get the correct dashboard route based on user role
     const getDashboardRoute = () => {
         if (!auth?.user) return routeWithLocale("dashboard");
-        
+
         // Check if user has admin role - roles is an array of strings
         const hasAdminRole = auth.user.roles?.includes('admin');
         if (hasAdminRole) {
             return routeWithLocale("admin.dashboard");
         }
-        
+
+        // Check if user has mentor role
+        const hasMentorRole = auth.user.roles?.includes('mentor');
+        if (hasMentorRole) {
+            return routeWithLocale("mentor.dashboard");
+        }
+
         // Default to student dashboard
         return routeWithLocale("dashboard");
     };
@@ -99,6 +106,11 @@ const NavBar = React.memo(() => {
                   href: routeWithLocale("register"),
                   label: t("nav.register"),
                   icon: UserPlus,
+              },
+              {
+                  href: routeWithLocale("mentor.register"),
+                  label: t("nav.register_as_mentor"),
+                  icon: GraduationCap,
               },
           ];
 

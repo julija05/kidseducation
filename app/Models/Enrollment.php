@@ -14,6 +14,7 @@ class Enrollment extends Model
     protected $fillable = [
         'user_id',
         'program_id',
+        'enrollment_type', // student or mentor
         'enrolled_at',
         'completed_at',
         'approval_status',
@@ -92,6 +93,18 @@ class Enrollment extends Model
         }
 
         $this->update($updateData);
+    }
+
+    // Check if this is a mentor enrollment
+    public function isMentorEnrollment(): bool
+    {
+        return $this->enrollment_type === 'mentor';
+    }
+
+    // Check if this is a student enrollment
+    public function isStudentEnrollment(): bool
+    {
+        return $this->enrollment_type === 'student';
     }
 
     // Check if enrollment is active and approved
