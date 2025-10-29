@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Student;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
+use App\Constants\EnrollmentType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEnrollmentRequest;
 use App\Http\Requests\UpdateEnrollmentRequest;
@@ -77,8 +80,8 @@ class EnrollmentController extends Controller
 
         // Check for existing active/pending enrollments
         $existingActiveEnrollment = $user->enrollments()
-            ->whereIn('approval_status', ['pending', 'approved'])
-            ->where('status', '!=', 'completed')
+            ->whereIn('approval_status', [ApprovalStatus::PENDING, ApprovalStatus::APPROVED])
+            ->where('status', '!=', EnrollmentStatus::COMPLETED)
             ->first();
 
         if ($existingActiveEnrollment) {
@@ -96,8 +99,8 @@ class EnrollmentController extends Controller
                 ]);
 
                 // Only allow switching FROM pending enrollments or FROM approved but not completed
-                if ($existingActiveEnrollment->approval_status === 'pending' ||
-                    ($existingActiveEnrollment->approval_status === 'approved' && $existingActiveEnrollment->status !== 'completed')) {
+                if ($existingActiveEnrollment->approval_status === ApprovalStatus::PENDING ||
+                    ($existingActiveEnrollment->approval_status === ApprovalStatus::APPROVED && $existingActiveEnrollment->status !== EnrollmentStatus::COMPLETED)) {
 
                     // Delete the old enrollment
                     $oldProgramName = $existingActiveEnrollment->program->name;
@@ -121,7 +124,7 @@ class EnrollmentController extends Controller
                 }
             } else {
                 // Normal enrollment attempt blocked by existing enrollment
-                $message = $existingActiveEnrollment->approval_status === 'pending'
+                $message = $existingActiveEnrollment->approval_status === ApprovalStatus::PENDING
                     ? 'You already have a pending enrollment request. Please wait for approval or complete your current program before enrolling in another program.'
                     : 'You can only enroll in a new program after completing your current program. Please finish your current program first.';
 
@@ -141,8 +144,8 @@ class EnrollmentController extends Controller
 
         // Check if user has completed enrollments - they can enroll but will lose access to previous dashboard
         $completedEnrollments = $user->enrollments()
-            ->whereIn('approval_status', ['approved'])
-            ->where('status', 'completed')
+            ->whereIn('approval_status', [ApprovalStatus::APPROVED])
+            ->where('status', EnrollmentStatus::COMPLETED)
             ->get();
 
         if ($completedEnrollments->isNotEmpty()) {
@@ -160,7 +163,7 @@ class EnrollmentController extends Controller
         }
 
         // Determine enrollment type based on user role
-        $enrollmentType = $user->isMentor() ? 'mentor' : 'student';
+        $enrollmentType = $user->isMentor() ? EnrollmentType::MENTOR : EnrollmentType::STUDENT;
 
         // Create new enrollment with pending approval status
         try {
@@ -169,8 +172,8 @@ class EnrollmentController extends Controller
                 'program_id' => $program->id,
                 'enrollment_type' => $enrollmentType,
                 'enrolled_at' => now(),
-                'status' => 'paused', // Will become active after approval
-                'approval_status' => 'pending',
+                'status' => EnrollmentStatus::PAUSED, // Will become active after approval
+                'approval_status' => ApprovalStatus::PENDING,
                 'progress' => 0,
             ]);
 
@@ -195,7 +198,7 @@ class EnrollmentController extends Controller
 
         // Create notification for admins
         $notificationService = new NotificationService;
-        $notificationService->createEnrollmentNotification($enrollment, 'pending');
+        $notificationService->createEnrollmentNotification($enrollment, ApprovalStatus::PENDING);
 
         // Send email to admin
         try {
@@ -275,7 +278,7 @@ class EnrollmentController extends Controller
         }
 
         // Only allow cancellation of pending enrollments
-        if ($enrollment->approval_status !== 'pending') {
+        if ($enrollment->approval_status !== ApprovalStatus::PENDING) {
             return redirect()->route('programs.show', $enrollment->program->slug)
                 ->with('error', 'You can only leave the waiting list for pending requests.');
         }

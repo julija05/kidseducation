@@ -2,20 +2,28 @@
 
 namespace App\Http\Controllers\Mentor;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
+use App\Constants\EnrollmentType;
+use App\Contracts\EnrollmentRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Models\Program;
+use App\Mail\AdminEnrollmentNotification;
 use App\Models\Enrollment;
-use Illuminate\Http\Request;
+use App\Models\Program;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Services\NotificationService;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\AdminEnrollmentNotification;
 
 class MentorDashboardController extends Controller
 {
+    public function __construct(
+        private EnrollmentRepositoryInterface $enrollmentRepository
+    ) {}
+
     /**
      * Display the mentor dashboard.
      */
@@ -29,23 +37,46 @@ class MentorDashboardController extends Controller
             ->withCount('lessons')
             ->get();
 
-        // Get mentor's enrollments with programs (only mentor-type enrollments)
-        $enrollments = $user->enrollments()
-            ->with(['program' => function ($query) {
-                $query->select('id', 'name', 'slug', 'description', 'icon', 'color');
-            }])
-            ->where('enrollment_type', 'mentor')
-            ->where('approval_status', 'approved')
-            ->get();
+        // Get mentor's enrollments with programs and student counts using repository
+        $enrollments = $this->enrollmentRepository->getActiveEnrollments($user, EnrollmentType::MENTOR)
+            ->map(function ($enrollment) {
+                return [
+                    'id' => $enrollment->id,
+                    'program' => $enrollment->program,
+                    'enrolled_at' => $enrollment->enrolled_at,
+                    'students_count' => $this->enrollmentRepository->countStudentsInProgram($enrollment->program_id),
+                    'average_progress' => $this->enrollmentRepository->getAverageProgress($enrollment->program_id),
+                ];
+            });
 
         // Get pending enrollments (only mentor-type)
         $pendingEnrollments = $user->enrollments()
             ->with(['program' => function ($query) {
                 $query->select('id', 'name', 'slug', 'description', 'icon', 'color');
             }])
-            ->where('enrollment_type', 'mentor')
-            ->where('approval_status', 'pending')
+            ->where('enrollment_type', EnrollmentType::MENTOR)
+            ->where('approval_status', ApprovalStatus::PENDING)
             ->get();
+
+        // Get all students across all programs the mentor teaches using repository
+        $programIds = $enrollments->pluck('program.id')->toArray();
+        $allStudents = $this->enrollmentRepository->getStudentsAcrossPrograms($programIds)
+            ->map(function ($enrollment) {
+                return [
+                    'id' => $enrollment->user->id,
+                    'name' => $enrollment->user->name,
+                    'email' => $enrollment->user->email,
+                    'program_name' => $enrollment->program->name,
+                    'program_slug' => $enrollment->program->slug,
+                    'progress' => $enrollment->progress,
+                    'status' => $enrollment->status,
+                    'enrolled_at' => $enrollment->enrolled_at,
+                    'quiz_points' => $enrollment->quiz_points,
+                    'highest_unlocked_level' => $enrollment->highest_unlocked_level,
+                ];
+            })
+            ->unique('id')
+            ->values();
 
         return Inertia::render('Mentor/Dashboard', [
             'user' => [
@@ -57,6 +88,7 @@ class MentorDashboardController extends Controller
             'availablePrograms' => $availablePrograms,
             'enrollments' => $enrollments,
             'pendingEnrollments' => $pendingEnrollments,
+            'allStudents' => $allStudents,
         ]);
     }
 
@@ -76,16 +108,16 @@ class MentorDashboardController extends Controller
         // Check if mentor already has an enrollment for this program
         $existingEnrollment = $user->enrollments()
             ->where('program_id', $program->id)
-            ->where('enrollment_type', 'mentor')
+            ->where('enrollment_type', EnrollmentType::MENTOR)
             ->first();
 
         if ($existingEnrollment) {
             $status = $existingEnrollment->approval_status;
 
-            if ($status === 'pending') {
+            if ($status === ApprovalStatus::PENDING) {
                 return redirect()->route('mentor.dashboard')
                     ->with('error', 'You already have a pending application to teach this program.');
-            } elseif ($status === 'approved') {
+            } elseif ($status === ApprovalStatus::APPROVED) {
                 return redirect()->route('mentor.programs.show', $program->slug)
                     ->with('info', 'You are already approved to teach this program.');
             }
@@ -96,10 +128,10 @@ class MentorDashboardController extends Controller
             $enrollment = Enrollment::create([
                 'user_id' => $user->id,
                 'program_id' => $program->id,
-                'enrollment_type' => 'mentor',
+                'enrollment_type' => EnrollmentType::MENTOR,
                 'enrolled_at' => now(),
-                'status' => 'paused', // Will become active after approval
-                'approval_status' => 'pending',
+                'status' => EnrollmentStatus::PAUSED, // Will become active after approval
+                'approval_status' => ApprovalStatus::PENDING,
                 'progress' => 0,
             ]);
 
@@ -146,12 +178,12 @@ class MentorDashboardController extends Controller
         $user = auth()->user();
 
         // Verify enrollment belongs to current mentor
-        if ($enrollment->user_id !== $user->id || $enrollment->enrollment_type !== 'mentor') {
+        if ($enrollment->user_id !== $user->id || $enrollment->enrollment_type !== EnrollmentType::MENTOR) {
             abort(403, 'Unauthorized action.');
         }
 
         // Only allow cancellation of pending applications
-        if ($enrollment->approval_status !== 'pending') {
+        if ($enrollment->approval_status !== ApprovalStatus::PENDING) {
             return redirect()->route('mentor.dashboard')
                 ->with('error', 'You can only cancel pending applications.');
         }

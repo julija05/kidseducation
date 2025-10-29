@@ -69,9 +69,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/lessons/{lesson}/progress', [LessonController::class, 'updateProgress'])->name('lessons.updateProgress');
     Route::post('/lessons/{lesson}/complete', [LessonController::class, 'complete'])->name('lessons.complete');
 
-    // Lesson resource routes
+    // Lesson resource routes (accessible to students and mentors)
     Route::get('/lesson-resources/{lessonResource}/download', [LessonResourceController::class, 'download'])->name('lesson-resources.download');
     Route::get('/lesson-resources/{lessonResource}/stream', [LessonResourceController::class, 'stream'])->name('lesson-resources.stream');
+    Route::get('/lesson-resources/{lessonResource}/serve', [LessonResourceController::class, 'serve'])->name('lesson-resources.serve');
+    Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])->name('lesson-resources.preview');
     Route::post('/lesson-resources/{lessonResource}/mark-viewed', [LessonResourceController::class, 'markAsViewed'])->name('lesson-resources.mark-viewed');
 });
 
@@ -91,12 +93,6 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 
     // Student schedule routes
     Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
-
-    Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])
-        ->name('lesson-resources.preview');
-
-    Route::get('/lesson-resources/{lessonResource}/serve', [LessonResourceController::class, 'serve'])
-        ->name('lesson-resources.serve');
 
     // Quiz routes for students
     Route::prefix('quizzes')->name('student.quiz.')->group(function () {
@@ -138,6 +134,16 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
 
     // Mentor program view (teaching dashboard for a specific program)
     Route::get('/programs/{program:slug}', [MentorProgramController::class, 'show'])->name('programs.show');
+
+    // Resource viewing routes
+    Route::get('/resources/{resource}/view', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'viewResource'])->name('resources.view');
+    Route::get('/resources/{resource}/download', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'downloadResource'])->name('resources.download');
+
+    // Resource proposal routes
+    Route::post('/lessons/{lesson}/resources/propose-create', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'proposeCreate'])->name('resources.propose-create');
+    Route::post('/resources/{resource}/propose-update', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'proposeUpdate'])->name('resources.propose-update');
+    Route::post('/resources/{resource}/propose-delete', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'proposeDelete'])->name('resources.propose-delete');
+    Route::delete('/proposals/{proposal}/cancel', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'cancel'])->name('proposals.cancel');
 });
 
 // Profile routes (shared)
@@ -199,6 +205,19 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
     Route::post('/enrollments/{enrollment}/block', [EnrollmentApprovalController::class, 'blockAccess'])->name('enrollments.block');
     Route::post('/enrollments/{enrollment}/unblock', [EnrollmentApprovalController::class, 'unblockAccess'])->name('enrollments.unblock');
+
+    // Resource Proposal Routes
+    Route::prefix('resource-proposals')->name('resource-proposals.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ResourceProposalController::class, 'index'])->name('index');
+        Route::get('/{proposal}', [App\Http\Controllers\Admin\ResourceProposalController::class, 'show'])->name('show');
+        Route::post('/{proposal}/approve', [App\Http\Controllers\Admin\ResourceProposalController::class, 'approve'])->name('approve');
+        Route::post('/{proposal}/reject', [App\Http\Controllers\Admin\ResourceProposalController::class, 'reject'])->name('reject');
+        Route::delete('/{proposal}', [App\Http\Controllers\Admin\ResourceProposalController::class, 'destroy'])->name('destroy');
+
+        // Preview routes for proposed resources
+        Route::get('/{proposal}/preview/proposed', [App\Http\Controllers\Admin\ResourceProposalController::class, 'previewProposed'])->name('preview.proposed');
+        Route::get('/{proposal}/preview/original', [App\Http\Controllers\Admin\ResourceProposalController::class, 'previewOriginal'])->name('preview.original');
+    });
 
     // User Management Routes
     Route::prefix('users')->name('users.')->group(function () {

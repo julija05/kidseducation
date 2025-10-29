@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
 use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use App\Models\Program;
@@ -35,7 +37,7 @@ class EnrollmentService
         // Mark as completed if all lessons are done
         if ($progressPercentage >= 100 && ! $enrollment->completed_at) {
             $updateData['completed_at'] = now();
-            $updateData['status'] = 'completed';
+            $updateData['status'] = EnrollmentStatus::COMPLETED;
         }
 
         $enrollment->update($updateData);
@@ -51,8 +53,8 @@ class EnrollmentService
         // 'active' is for users currently learning
         // 'completed' users should not be redirected to dashboard automatically
         // 'access_blocked' users should not have learning access
-        return $enrollment->approval_status === 'approved' &&
-               in_array($enrollment->status, ['active', 'paused']) &&
+        return $enrollment->approval_status === ApprovalStatus::APPROVED &&
+               in_array($enrollment->status, [EnrollmentStatus::ACTIVE, EnrollmentStatus::PAUSED]) &&
                ! $enrollment->access_blocked;
     }
 

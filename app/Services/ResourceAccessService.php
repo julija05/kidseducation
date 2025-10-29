@@ -2,23 +2,26 @@
 
 namespace App\Services;
 
+use App\Contracts\ResourceAccessInterface;
 use App\Models\LessonResource;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * Service for handling file serving and streaming of resources
+ * Separate from access control logic (Single Responsibility Principle)
+ */
 class ResourceAccessService
 {
     public function __construct(
-        private ResourceService $resourceService
+        private ResourceAccessInterface $accessService
     ) {}
 
     public function validateAccess(LessonResource $resource, User $user): void
     {
-        if (! $this->resourceService->canUserAccessResource($resource, $user)) {
-            abort(403, 'You do not have access to this resource.');
-        }
+        $this->accessService->validateAccess($resource, $user);
     }
 
     public function serveFile(LessonResource $resource, string $disposition = 'inline'): Response
