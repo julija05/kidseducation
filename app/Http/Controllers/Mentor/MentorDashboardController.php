@@ -78,6 +78,11 @@ class MentorDashboardController extends Controller
             ->unique('id')
             ->values();
 
+        // Get mentor's invitation URL
+        $invitationUrl = $user->getInvitationUrl();
+        $referralCode = $user->getReferralCode();
+        $referredStudentsCount = $user->getReferredStudentsCount();
+
         return Inertia::render('Mentor/Dashboard', [
             'user' => [
                 'id' => $user->id,
@@ -89,6 +94,9 @@ class MentorDashboardController extends Controller
             'enrollments' => $enrollments,
             'pendingEnrollments' => $pendingEnrollments,
             'allStudents' => $allStudents,
+            'invitationUrl' => $invitationUrl,
+            'referralCode' => $referralCode,
+            'referredStudentsCount' => $referredStudentsCount,
         ]);
     }
 

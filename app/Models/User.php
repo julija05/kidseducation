@@ -41,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'demo_expires_at',
         'demo_program_slug',
         'status',
+        'referral_code',
     ];
 
     /**
@@ -430,5 +431,84 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeSuspended($query)
     {
         return $query->where('status', 'suspended');
+    }
+
+    /**
+     * Generate a unique referral code for the mentor
+     * Creates a code in format: MENTOR-{random8chars}
+     *
+     * @return string
+     */
+    public function generateReferralCode(): string
+    {
+        do {
+            $code = 'MENTOR-' . strtoupper(substr(md5(uniqid($this->id, true)), 0, 8));
+        } while (self::where('referral_code', $code)->exists());
+
+        $this->update(['referral_code' => $code]);
+
+        return $code;
+    }
+
+    /**
+     * Get the mentor's referral code, generate if it doesn't exist
+     *
+     * @return string|null
+     */
+    public function getReferralCode(): ?string
+    {
+        if (!$this->hasRole('mentor')) {
+            return null;
+        }
+
+        if (empty($this->referral_code)) {
+            return $this->generateReferralCode();
+        }
+
+        return $this->referral_code;
+    }
+
+    /**
+     * Get the full invitation URL for the mentor
+     *
+     * @return string|null
+     */
+    public function getInvitationUrl(): ?string
+    {
+        $code = $this->getReferralCode();
+
+        if (!$code) {
+            return null;
+        }
+
+        return route('mentor.invite', ['code' => $code]);
+    }
+
+    /**
+     * Get students enrolled through this mentor's referral
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getReferredStudents()
+    {
+        return Enrollment::where('referred_by_mentor_id', $this->id)
+            ->where('enrollment_type', 'student')
+            ->with('user', 'program')
+            ->get()
+            ->pluck('user')
+            ->unique('id');
+    }
+
+    /**
+     * Get the number of students referred by this mentor
+     *
+     * @return int
+     */
+    public function getReferredStudentsCount(): int
+    {
+        return Enrollment::where('referred_by_mentor_id', $this->id)
+            ->where('enrollment_type', 'student')
+            ->distinct('user_id')
+            ->count('user_id');
     }
 }

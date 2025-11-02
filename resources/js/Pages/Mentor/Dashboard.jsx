@@ -20,6 +20,8 @@ import {
     Star,
     ChevronRight,
     PlayCircle,
+    Copy,
+    Link as LinkIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -29,8 +31,20 @@ export default function Dashboard({
     enrollments,
     pendingEnrollments,
     allStudents = [],
+    invitationUrl,
+    referralCode,
+    referredStudentsCount = 0,
 }) {
     const { t } = useTranslation();
+    const [copied, setCopied] = useState(false);
+
+    const copyInvitationLink = () => {
+        if (invitationUrl) {
+            navigator.clipboard.writeText(invitationUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
 
     const handleApplyToTeach = (programSlug) => {
         router.post(
@@ -146,6 +160,65 @@ export default function Dashboard({
                             <p className="text-sm text-slate-600 mt-1">Avg Completion</p>
                         </div>
                     </motion.div>
+
+                    {/* Invitation Link Section */}
+                    {invitationUrl && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                            className="mb-8"
+                        >
+                            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+                                <div className="flex items-start gap-4">
+                                    <div className="p-2 bg-white/20 rounded-lg">
+                                        <LinkIcon className="w-6 h-6" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold mb-2">
+                                            Share Your Invitation Link
+                                        </h3>
+                                        <p className="text-indigo-100 mb-4">
+                                            Share this link with students to enroll them directly under your mentorship.
+                                            {referredStudentsCount > 0 && (
+                                                <span className="font-semibold"> {referredStudentsCount} student{referredStudentsCount > 1 ? 's have' : ' has'} enrolled via your link!</span>
+                                            )}
+                                        </p>
+                                        <div className="flex gap-3">
+                                            <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <code className="text-sm font-mono text-white truncate flex-1">
+                                                        {invitationUrl}
+                                                    </code>
+                                                    <button
+                                                        onClick={copyInvitationLink}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors font-semibold whitespace-nowrap"
+                                                    >
+                                                        {copied ? (
+                                                            <>
+                                                                <CheckCircle className="w-4 h-4" />
+                                                                Copied!
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Copy className="w-4 h-4" />
+                                                                Copy Link
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {referralCode && (
+                                            <p className="text-xs text-indigo-200 mt-3">
+                                                Referral Code: <span className="font-mono font-bold">{referralCode}</span>
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
 
                     {/* Pending Applications */}
                     {pendingEnrollments && pendingEnrollments.length > 0 && (
