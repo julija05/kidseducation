@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Contracts\ResourceAccessInterface;
 use App\Services\EnrollmentService;
 use App\Services\LessonService;
 use App\Services\ProgramService;
+use App\Services\ResourceAccessService;
 use App\Services\ResourceService;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,9 +19,18 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register services in the correct order to avoid circular dependencies
 
-        // ResourceService has no dependencies on other services
+        // ResourceAccessService depends on ResourceAccessInterface
+        $this->app->singleton(ResourceAccessService::class, function ($app) {
+            return new ResourceAccessService(
+                $app->make(ResourceAccessInterface::class)
+            );
+        });
+
+        // ResourceService depends on ResourceAccessInterface
         $this->app->singleton(ResourceService::class, function ($app) {
-            return new ResourceService;
+            return new ResourceService(
+                $app->make(ResourceAccessInterface::class)
+            );
         });
 
         // ProgramService depends on ImageService (which you already have)

@@ -13,14 +13,15 @@ class LessonResourceController extends Controller
 {
     public function __construct(
         private ResourceService $resourceService,
-        private ResourceAccessService $accessService
+        private ResourceAccessService $fileService
     ) {}
 
     public function download(LessonResource $lessonResource)
     {
         $user = Auth::user();
 
-        $this->accessService->validateAccess($lessonResource, $user);
+        // Validate access
+        $this->fileService->validateAccess($lessonResource, $user);
 
         if (! $lessonResource->canDownload()) {
             abort(404, 'Resource is not available for download.');
@@ -50,44 +51,47 @@ class LessonResourceController extends Controller
     {
         $user = Auth::user();
 
-        $this->accessService->validateAccess($lessonResource, $user);
+        // Validate access
+        $this->fileService->validateAccess($lessonResource, $user);
 
-        return $this->accessService->serveFile($lessonResource, 'inline');
+        return $this->fileService->serveFile($lessonResource, 'inline');
     }
 
     public function serve(LessonResource $lessonResource, Request $request)
     {
         $user = Auth::user();
 
-        $this->accessService->validateAccess($lessonResource, $user);
+        // Validate access
+        $this->fileService->validateAccess($lessonResource, $user);
 
         $disposition = $this->determineDisposition($lessonResource, $request);
 
-        return $this->accessService->serveFile($lessonResource, $disposition);
+        return $this->fileService->serveFile($lessonResource, $disposition);
     }
 
     public function stream(LessonResource $lessonResource)
     {
         $user = Auth::user();
 
-        $this->accessService->validateAccess($lessonResource, $user);
+        // Validate access
+        $this->fileService->validateAccess($lessonResource, $user);
 
-        return $this->accessService->streamFile($lessonResource);
+        return $this->fileService->streamFile($lessonResource);
     }
 
     public function markAsViewed(Request $request, LessonResource $lessonResource)
     {
         $user = Auth::user();
 
-        if (! $this->resourceService->canUserAccessResource($lessonResource, $user)) {
+        $result = $this->resourceService->markResourceAsViewed($lessonResource, $user);
+
+        if (! $result['success']) {
             if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-                return response()->json(['error' => 'Not enrolled in this program'], 403);
+                return response()->json(['error' => $result['message']], 403);
             }
 
-            return back()->with('error', 'You do not have access to this resource.');
+            return back()->with('error', $result['message']);
         }
-
-        $result = $this->resourceService->markResourceAsViewed($lessonResource, $user);
 
         if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json($result);

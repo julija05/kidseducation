@@ -36,8 +36,11 @@ class HandleAuthentication extends Middleware
 
             return parent::handle($request, $next, ...$guards);
         } catch (AuthenticationException $e) {
+            // Check if this is a resource request (preview, download, stream)
+            $isResourceRequest = $request->is('lesson-resources/*');
+
             // Handle session expiration gracefully for Inertia requests
-            if ($request->hasSession()) {
+            if ($request->hasSession() && !$isResourceRequest) {
                 // Session exists but user is not authenticated - likely expired
                 Log::info('Session expired, authentication failed', [
                     'url' => $request->url(),
@@ -48,6 +51,7 @@ class HandleAuthentication extends Middleware
                 ]);
 
                 // Clear the expired session to prevent issues
+                // But NOT for resource requests (they may be in iframes)
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
             }

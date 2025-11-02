@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
+use App\Constants\EnrollmentType;
+use App\Constants\LessonProgressStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -89,7 +93,7 @@ class Enrollment extends Model
         // Mark as completed if all lessons are done
         if ($progressPercentage >= 100 && ! $this->completed_at) {
             $updateData['completed_at'] = now();
-            $updateData['status'] = 'completed';
+            $updateData['status'] = EnrollmentStatus::COMPLETED;
         }
 
         $this->update($updateData);
@@ -98,25 +102,25 @@ class Enrollment extends Model
     // Check if this is a mentor enrollment
     public function isMentorEnrollment(): bool
     {
-        return $this->enrollment_type === 'mentor';
+        return $this->enrollment_type === EnrollmentType::MENTOR;
     }
 
     // Check if this is a student enrollment
     public function isStudentEnrollment(): bool
     {
-        return $this->enrollment_type === 'student';
+        return $this->enrollment_type === EnrollmentType::STUDENT;
     }
 
     // Check if enrollment is active and approved
     public function isActiveAndApproved(): bool
     {
-        return $this->status === 'active' && $this->approval_status === 'approved' && ! $this->access_blocked;
+        return $this->status === EnrollmentStatus::ACTIVE && $this->approval_status === ApprovalStatus::APPROVED && ! $this->access_blocked;
     }
 
     // Check if user has access to learning content
     public function hasLearningAccess(): bool
     {
-        return $this->approval_status === 'approved' && ! $this->access_blocked;
+        return $this->approval_status === ApprovalStatus::APPROVED && ! $this->access_blocked;
     }
 
     // Get current level for this enrollment
@@ -238,7 +242,7 @@ class Enrollment extends Model
         foreach ($quizzes as $quiz) {
             // Get the best passing attempt for this user for this quiz
             $bestPassingAttempt = $quiz->userAttempts($this->user)
-                ->where('status', 'completed')
+                ->where('status', LessonProgressStatus::COMPLETED)
                 ->where('score', '>=', $quiz->passing_score)
                 ->orderBy('earned_points', 'desc')
                 ->first();

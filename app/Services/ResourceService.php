@@ -2,61 +2,35 @@
 
 namespace App\Services;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
+use App\Constants\LessonProgressStatus;
+use App\Constants\ResourceType;
+use App\Contracts\ResourceAccessInterface;
 use App\Models\LessonResource;
 use App\Models\User;
 
+/**
+ * Service for resource-related business logic
+ * Focuses on resource operations and statistics
+ */
 class ResourceService
 {
+    public function __construct(
+        private ResourceAccessInterface $accessService
+    ) {}
+
     /**
-     * Format resource data for frontend
+     * Format resource data for frontend display
+     * Delegates to ResourceFormatterService for consistent formatting
+     *
+     * @param LessonResource $resource
+     * @return array
      */
     public function formatResourceForFrontend(LessonResource $resource): array
     {
-        return [
-            'id' => $resource->id,
-            'title' => $resource->title,
-            'description' => $resource->description,
-            'type' => $resource->type,
-            'type_display' => $resource->type_display,
-            'icon' => $resource->icon,
-            'resource_url' => $resource->resource_url,
-            'is_downloadable' => $resource->is_downloadable,
-            'is_required' => $resource->is_required,
-            'file_name' => $resource->file_name,
-            'file_size' => $resource->formatted_file_size,
-            'download_url' => $resource->getDownloadUrl(),
-            'youtube_embed_url' => $resource->getYouTubeEmbedUrl(),
-            // 'youtube_thumbnail' => $resource->getYouTubeThumbnail(),
-            'is_youtube_video' => $resource->isYouTubeVideo(),
-            'order' => $resource->order,
-        ];
-    }
-
-    /**
-     * Check if user can access a resource
-     */
-    public function canUserAccessResource(LessonResource $resource, User $user): bool
-    {
-        // Handle demo users
-        if ($user->isDemoAccount()) {
-            // Demo users can only access resources from their demo lesson
-            return $user->canAccessLessonInDemo($resource->lesson);
-        }
-
-        // Check if user is enrolled and approved for this lesson's program
-        // Allow access for both active and completed enrollments
-        $enrollment = $user->enrollments()
-            ->where('program_id', $resource->lesson->program_id)
-            ->whereIn('status', ['active', 'completed'])
-            ->where('approval_status', 'approved')
-            ->first();
-
-        if (! $enrollment) {
-            return false;
-        }
-
-        // Check if lesson is unlocked (avoiding circular dependency)
-        return $this->isLessonUnlockedForUser($resource->lesson, $user);
+        $formatter = app(\App\Services\ResourceFormatterService::class);
+        return $formatter->formatResource($resource);
     }
 
     /**
@@ -64,8 +38,8 @@ class ResourceService
      */
     public function markResourceAsViewed(LessonResource $resource, User $user): array
     {
-        // Check access first
-        if (! $this->canUserAccessResource($resource, $user)) {
+        // Check access first using the access service
+        if (! $this->accessService->canAccess($resource, $user)) {
             return [
                 'success' => false,
                 'message' => 'You do not have access to this resource',
@@ -79,7 +53,7 @@ class ResourceService
                 'lesson_id' => $resource->lesson_id,
             ],
             [
-                'status' => 'not_started',
+                'status' => LessonProgressStatus::NOT_STARTED,
                 'progress_percentage' => 0,
             ]
         );
@@ -156,8 +130,8 @@ class ResourceService
     public function getResourceStatsForUser(User $user, $programId = null): array
     {
         $query = $user->enrollments()
-            ->whereIn('status', ['active', 'completed'])
-            ->where('approval_status', 'approved');
+            ->whereIn('status', EnrollmentStatus::activeStatuses())
+            ->where('approval_status', ApprovalStatus::APPROVED);
 
         if ($programId) {
             $query->where('program_id', $programId);
@@ -196,21 +170,6 @@ class ResourceService
     }
 
     /**
-     * Get available resource types
-     */
-    public function getResourceTypes(): array
-    {
-        return [
-            'video' => 'Video (YouTube, Vimeo, etc.)',
-            'document' => 'Document (PDF, Word, etc.)',
-            'link' => 'External Link',
-            'download' => 'Downloadable File',
-            'interactive' => 'Interactive Content',
-            'quiz' => 'Quiz/Assessment',
-        ];
-    }
-
-    /**
      * Validate resource data
      */
     public function validateResourceData(array $data): array
@@ -222,61 +181,25 @@ class ResourceService
             $errors[] = 'Title is required';
         }
 
-        if (empty($data['type']) || ! array_key_exists($data['type'], $this->getResourceTypes())) {
+        if (empty($data['type']) || ! ResourceType::isValid($data['type'])) {
             $errors[] = 'Valid resource type is required';
         }
 
         // Type-specific validation
         if (isset($data['type'])) {
-            switch ($data['type']) {
-                case 'video':
-                case 'link':
-                    if (empty($data['resource_url'])) {
-                        $errors[] = 'URL is required for '.$data['type'].' resources';
-                    } elseif (! filter_var($data['resource_url'], FILTER_VALIDATE_URL)) {
-                        $errors[] = 'Invalid URL format';
-                    }
-                    break;
-
-                case 'document':
-                case 'download':
-                    if (empty($data['resource_url']) && empty($data['file'])) {
-                        $errors[] = 'Either URL or file upload is required for '.$data['type'].' resources';
-                    }
-                    break;
+            if (in_array($data['type'], ResourceType::urlBasedTypes())) {
+                if (empty($data['resource_url'])) {
+                    $errors[] = 'URL is required for '.$data['type'].' resources';
+                } elseif (! filter_var($data['resource_url'], FILTER_VALIDATE_URL)) {
+                    $errors[] = 'Invalid URL format';
+                }
+            } elseif (in_array($data['type'], ResourceType::fileBasedTypes())) {
+                if (empty($data['resource_url']) && empty($data['file'])) {
+                    $errors[] = 'Either URL or file upload is required for '.$data['type'].' resources';
+                }
             }
         }
 
         return $errors;
-    }
-
-    /**
-     * Check if lesson is unlocked for user (helper to avoid circular dependency)
-     */
-    private function isLessonUnlockedForUser($lesson, User $user): bool
-    {
-        // Level 1 lessons are always unlocked
-        if ($lesson->level === 1) {
-            return true;
-        }
-
-        // Check if user has completed all lessons in the previous level
-        $previousLevel = $lesson->level - 1;
-        $previousLevelLessons = $lesson->program->lessons()
-            ->byLevel($previousLevel)
-            ->active()
-            ->pluck('id');
-
-        if ($previousLevelLessons->isEmpty()) {
-            return true;
-        }
-
-        // Count completed lessons in previous level
-        $completedCount = \App\Models\LessonProgress::where('user_id', $user->id)
-            ->whereIn('lesson_id', $previousLevelLessons)
-            ->where('status', 'completed')
-            ->count();
-
-        return $completedCount === $previousLevelLessons->count();
     }
 }

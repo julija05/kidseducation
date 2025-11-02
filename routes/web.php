@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
+use App\Http\Controllers\Admin\AdminProposalController;
 use App\Http\Controllers\Admin\AdminQuizController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Mentor\MentorDashboardController;
 use App\Http\Controllers\Mentor\MentorProgramController;
+use App\Http\Controllers\Mentor\MentorProposalController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ChatController;
@@ -69,9 +71,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/lessons/{lesson}/progress', [LessonController::class, 'updateProgress'])->name('lessons.updateProgress');
     Route::post('/lessons/{lesson}/complete', [LessonController::class, 'complete'])->name('lessons.complete');
 
-    // Lesson resource routes
+    // Lesson resource routes (accessible to students and mentors)
     Route::get('/lesson-resources/{lessonResource}/download', [LessonResourceController::class, 'download'])->name('lesson-resources.download');
     Route::get('/lesson-resources/{lessonResource}/stream', [LessonResourceController::class, 'stream'])->name('lesson-resources.stream');
+    Route::get('/lesson-resources/{lessonResource}/serve', [LessonResourceController::class, 'serve'])->name('lesson-resources.serve');
+    Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])->name('lesson-resources.preview');
     Route::post('/lesson-resources/{lessonResource}/mark-viewed', [LessonResourceController::class, 'markAsViewed'])->name('lesson-resources.mark-viewed');
 });
 
@@ -91,12 +95,6 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 
     // Student schedule routes
     Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
-
-    Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])
-        ->name('lesson-resources.preview');
-
-    Route::get('/lesson-resources/{lessonResource}/serve', [LessonResourceController::class, 'serve'])
-        ->name('lesson-resources.serve');
 
     // Quiz routes for students
     Route::prefix('quizzes')->name('student.quiz.')->group(function () {
@@ -138,6 +136,29 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
 
     // Mentor program view (teaching dashboard for a specific program)
     Route::get('/programs/{program:slug}', [MentorProgramController::class, 'show'])->name('programs.show');
+
+    // Mentor proposal routes
+    Route::prefix('proposals')->name('proposals.')->group(function () {
+        // View all proposals
+        Route::get('/', [MentorProposalController::class, 'index'])->name('index');
+
+        // Resource proposals
+        Route::get('/resources/create/{lesson}', [MentorProposalController::class, 'createResource'])->name('resources.create');
+        Route::post('/resources/create/{lesson}', [MentorProposalController::class, 'storeResource'])->name('resources.store');
+        Route::get('/resources/edit/{resource}', [MentorProposalController::class, 'editResource'])->name('resources.edit');
+        Route::post('/resources/update/{resource}', [MentorProposalController::class, 'updateResource'])->name('resources.update');
+        Route::post('/resources/delete/{resource}', [MentorProposalController::class, 'deleteResource'])->name('resources.delete');
+
+        // Lesson proposals
+        Route::get('/lessons/create/{program:slug}', [MentorProposalController::class, 'createLesson'])->name('lessons.create');
+        Route::post('/lessons/create/{program:slug}', [MentorProposalController::class, 'storeLesson'])->name('lessons.store');
+        Route::get('/lessons/edit/{lesson}', [MentorProposalController::class, 'editLesson'])->name('lessons.edit');
+        Route::post('/lessons/update/{lesson}', [MentorProposalController::class, 'updateLesson'])->name('lessons.update');
+
+        // Level proposals
+        Route::get('/levels/create/{program:slug}', [MentorProposalController::class, 'createLevel'])->name('levels.create');
+        Route::post('/levels/create/{program:slug}', [MentorProposalController::class, 'storeLevel'])->name('levels.store');
+    });
 });
 
 // Profile routes (shared)
@@ -199,6 +220,14 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
     Route::post('/enrollments/{enrollment}/block', [EnrollmentApprovalController::class, 'blockAccess'])->name('enrollments.block');
     Route::post('/enrollments/{enrollment}/unblock', [EnrollmentApprovalController::class, 'unblockAccess'])->name('enrollments.unblock');
+
+    // Proposal Routes (Resource, Lesson, and Level proposals from mentors)
+    Route::prefix('proposals')->name('proposals.')->group(function () {
+        Route::get('/', [AdminProposalController::class, 'index'])->name('index');
+        Route::get('/{proposal}', [AdminProposalController::class, 'show'])->name('show');
+        Route::post('/{proposal}/approve', [AdminProposalController::class, 'approve'])->name('approve');
+        Route::post('/{proposal}/reject', [AdminProposalController::class, 'reject'])->name('reject');
+    });
 
     // User Management Routes
     Route::prefix('users')->name('users.')->group(function () {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Constants\LessonProgressStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,24 +44,24 @@ class LessonProgress extends Model
     // Status check methods
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === LessonProgressStatus::COMPLETED;
     }
 
     public function isInProgress(): bool
     {
-        return $this->status === 'in_progress';
+        return $this->status === LessonProgressStatus::IN_PROGRESS;
     }
 
     public function isNotStarted(): bool
     {
-        return $this->status === 'not_started';
+        return $this->status === LessonProgressStatus::NOT_STARTED;
     }
 
     // Progress actions
     public function markAsStarted(): void
     {
         $this->update([
-            'status' => 'in_progress',
+            'status' => LessonProgressStatus::IN_PROGRESS,
             'started_at' => $this->started_at ?? now(),
             'progress_percentage' => max($this->progress_percentage, 1),
         ]);
@@ -69,7 +70,7 @@ class LessonProgress extends Model
     public function markAsCompleted(?float $score = null): void
     {
         $this->update([
-            'status' => 'completed',
+            'status' => LessonProgressStatus::COMPLETED,
             'completed_at' => now(),
             'progress_percentage' => 100,
             'score' => $score,
@@ -80,7 +81,7 @@ class LessonProgress extends Model
     {
         $this->update([
             'progress_percentage' => min(max($percentage, 0), 100),
-            'status' => $percentage >= 100 ? 'completed' : 'in_progress',
+            'status' => $percentage >= 100 ? LessonProgressStatus::COMPLETED : LessonProgressStatus::IN_PROGRESS,
             'started_at' => $this->started_at ?? now(),
             'completed_at' => $percentage >= 100 ? now() : null,
         ]);
