@@ -37,17 +37,23 @@ class AuthenticatedSessionController extends Controller
 
         // Clear any intended URL that might point to admin routes if user is not admin
         $intendedUrl = $request->session()->get('url.intended');
-        
+
         if ($user->hasRole('admin')) {
             // Admin users can be redirected to their intended URL or admin dashboard
             return redirect()->intended(route('admin.dashboard'));
+        } elseif ($user->hasRole('mentor')) {
+            // Mentor users go to mentor dashboard
+            if ($intendedUrl && (str_contains($intendedUrl, '/admin/') || str_contains($intendedUrl, '/dashboard'))) {
+                $request->session()->forget('url.intended');
+            }
+            return redirect()->route('mentor.dashboard');
         } else {
-            // For non-admin users, clear any intended URL that points to admin routes
+            // For non-admin/non-mentor users, clear any intended URL that points to admin routes
             if ($intendedUrl && str_contains($intendedUrl, '/admin/')) {
                 $request->session()->forget('url.intended');
             }
-            
-            // Always redirect students to student dashboard
+
+            // Students go to student dashboard
             return redirect()->route('dashboard');
         }
     }

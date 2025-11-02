@@ -10,6 +10,7 @@ return [
         'contact' => 'Contact',
         'login' => 'Login',
         'register' => 'Register',
+        'register_as_mentor' => 'Register as Mentor',
         'dashboard' => 'Dashboard',
         'logout' => 'Logout',
         'log_out' => 'Log Out',
@@ -18,6 +19,7 @@ return [
         'program_panel' => 'program panel',
         'schedule_panel' => 'schedule panel',
         'profile_panel' => 'profile panel',
+        'mentor_panel' => 'Mentor Panel',
     ],
 
     // Navigation actions
@@ -505,6 +507,19 @@ return [
             'forgot_password' => 'Forgot your password?',
             'login_button' => 'Log in',
         ],
+        'mentor_register' => [
+            'title' => 'Become a Mentor',
+            'subtitle' => 'Join our community of educators',
+            'become_mentor' => 'Become a Mentor',
+            'mentor_description' => 'Share your knowledge and help students grow by becoming a mentor on our platform.',
+            'benefit_1' => 'Enroll in existing programs to enhance your teaching skills',
+            'benefit_2' => 'Future ability to create and manage your own programs',
+            'benefit_3' => 'Be part of a growing educational community',
+            'create_account' => 'Create Mentor Account',
+            'already_have_account' => 'Already have an account?',
+            'student_instead' => 'Want to join as a student?',
+            'register_as_student' => 'Register as Student',
+        ],
         'register' => [
             'title' => 'Join Abacoding!',
             'subtitle' => 'Start your learning adventure today',
@@ -623,6 +638,40 @@ return [
     'messages' => [
         'success' => 'Success!',
         'error' => 'Error!',
+    ],
+
+    // Mentor Dashboard
+    'mentor' => [
+        'dashboard' => [
+            'title' => 'Mentor Dashboard',
+            'welcome' => 'Welcome, :name!',
+            'subtitle' => 'Manage your programs and track your progress',
+            'enrolled_programs' => 'Enrolled Programs',
+            'pending_approvals' => 'Pending Approvals',
+            'available_programs' => 'Available Programs',
+            'pending_enrollments' => 'Pending Enrollments',
+            'my_programs' => 'My Programs',
+            'requested_on' => 'Requested on',
+            'no_programs' => 'No programs available at the moment',
+            'apply_to_teach' => 'Apply to Teach',
+            'go_to_teaching' => 'Go to Teaching Dashboard',
+            'pending_applications' => 'Pending Applications',
+            'applied_on' => 'Applied on',
+            'waiting_admin_approval' => 'Waiting for admin approval to start teaching',
+            'cancel_application' => 'Cancel Application',
+            'cancel_application_confirm' => 'Are you sure you want to cancel this application?',
+        ],
+        'program' => [
+            'teaching_view' => 'Teaching View',
+            'students' => 'Students',
+            'enrolled_students' => 'Enrolled Students',
+            'no_students' => 'No students enrolled yet',
+            'program_content' => 'Program Content',
+            'view_students' => 'View Students',
+            'teach' => 'Teach',
+            'current_level' => 'Current Level',
+            'student_name' => 'Student Name',
+        ],
     ],
 
     // Dashboard

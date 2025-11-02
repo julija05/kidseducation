@@ -159,11 +159,15 @@ class EnrollmentController extends Controller
                 'Note: By enrolling in this program, you will lose access to your previous program dashboard. You can still download certificates for completed programs from your profile.');
         }
 
+        // Determine enrollment type based on user role
+        $enrollmentType = $user->isMentor() ? 'mentor' : 'student';
+
         // Create new enrollment with pending approval status
         try {
             $enrollment = Enrollment::create([
                 'user_id' => $user->id,
                 'program_id' => $program->id,
+                'enrollment_type' => $enrollmentType,
                 'enrolled_at' => now(),
                 'status' => 'paused', // Will become active after approval
                 'approval_status' => 'pending',

@@ -10,6 +10,7 @@ return [
         'contact' => 'Контакт',
         'login' => 'Најава',
         'register' => 'Регистрација',
+        'register_as_mentor' => 'Регистрирај се како ментор',
         'dashboard' => 'Контролна табла',
         'logout' => 'Одјава',
         'log_out' => 'Одјави се',
@@ -18,6 +19,7 @@ return [
         'program_panel' => 'програми',
         'schedule_panel' => 'распоред на часови',
         'profile_panel' => 'студентски профил',
+        'mentor_panel' => 'Менторски панел',
     ],
 
     // Navigation actions
@@ -499,6 +501,19 @@ return [
             'terms_of_service' => 'Услови за користење',
             'privacy_policy' => 'Политика за приватност',
         ],
+        'mentor_register' => [
+            'title' => 'Стани ментор',
+            'subtitle' => 'Придружи се на нашата заедница на едукатори',
+            'become_mentor' => 'Стани ментор',
+            'mentor_description' => 'Сподели го твоето знаење и помогни им на учениците да растат како ментор на нашата платформа.',
+            'benefit_1' => 'Запиши се во постоечки програми за да ги подобриш твоите наставни вештини',
+            'benefit_2' => 'Идна можност да создаваш и управуваш со твои програми',
+            'benefit_3' => 'Биди дел од растечката образовна заедница',
+            'create_account' => 'Создај менторска сметка',
+            'already_have_account' => 'Веќе имате сметка?',
+            'student_instead' => 'Сакате да се придружите како ученик?',
+            'register_as_student' => 'Регистрирај се како ученик',
+        ],
 
         // Verify Email
         'verify_email' => [
@@ -585,6 +600,40 @@ return [
     'messages' => [
         'success' => 'Успех!',
         'error' => 'Грешка!',
+    ],
+
+    // Mentor Dashboard
+    'mentor' => [
+        'dashboard' => [
+            'title' => 'Менторска контролна табла',
+            'welcome' => 'Добредојде, :name!',
+            'subtitle' => 'Управувај со твоите програми и следи го твојот напредок',
+            'enrolled_programs' => 'Запишани програми',
+            'pending_approvals' => 'Чекаат одобрување',
+            'available_programs' => 'Достапни програми',
+            'pending_enrollments' => 'Барања за запишување',
+            'my_programs' => 'Мои програми',
+            'requested_on' => 'Побарано на',
+            'no_programs' => 'Моментално нема достапни програми',
+            'apply_to_teach' => 'Аплицирај за предавање',
+            'go_to_teaching' => 'Оди на контролна табла за предавање',
+            'pending_applications' => 'Барања во тек',
+            'applied_on' => 'Аплицирано на',
+            'waiting_admin_approval' => 'Се чека одобрување од администратор за да започнете со предавање',
+            'cancel_application' => 'Откажи барање',
+            'cancel_application_confirm' => 'Дали сте сигурни дека сакате да го откажете ова барање?',
+        ],
+        'program' => [
+            'teaching_view' => 'Преглед на предавање',
+            'students' => 'Ученици',
+            'enrolled_students' => 'Запишани ученици',
+            'no_students' => 'Сè уште нема запишани ученици',
+            'program_content' => 'Содржина на програмата',
+            'view_students' => 'Види ученици',
+            'teach' => 'Предавај',
+            'current_level' => 'Тековно ниво',
+            'student_name' => 'Име на ученик',
+        ],
     ],
 
     // Dashboard
