@@ -6,11 +6,12 @@ use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
 use App\Contracts\EnrollmentRepositoryInterface;
+use App\Repositories\Interfaces\EnrollmentRepositoryInterface as RepositoryEnrollmentInterface;
 use App\Models\Enrollment;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
-class EnrollmentRepository implements EnrollmentRepositoryInterface
+class EnrollmentRepository implements EnrollmentRepositoryInterface, RepositoryEnrollmentInterface
 {
     public function findByUserAndProgram(int $userId, int $programId, string $enrollmentType): ?Enrollment
     {
@@ -71,5 +72,36 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             ->where('approval_status', ApprovalStatus::APPROVED)
             ->with(['user', 'program'])
             ->get();
+    }
+
+    /**
+     * Find an active, approved enrollment for a user in a program
+     * Implementation for App\Repositories\Interfaces\EnrollmentRepositoryInterface
+     *
+     * @param User $user
+     * @param int $programId
+     * @return Enrollment|null
+     */
+    public function findActiveApprovedEnrollment(User $user, int $programId): ?Enrollment
+    {
+        return $user->enrollments()
+            ->where('program_id', $programId)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->whereIn('status', EnrollmentStatus::activeStatuses())
+            ->where('access_blocked', false)
+            ->first();
+    }
+
+    /**
+     * Check if a user has an active, approved enrollment in a program
+     * Implementation for App\Repositories\Interfaces\EnrollmentRepositoryInterface
+     *
+     * @param User $user
+     * @param int $programId
+     * @return bool
+     */
+    public function userHasActiveApprovedEnrollment(User $user, int $programId): bool
+    {
+        return $this->findActiveApprovedEnrollment($user, $programId) !== null;
     }
 }

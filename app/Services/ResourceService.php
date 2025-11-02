@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
-use App\Constants\EnrollmentType;
 use App\Constants\LessonProgressStatus;
 use App\Constants\ResourceType;
 use App\Contracts\ResourceAccessInterface;
@@ -20,6 +19,19 @@ class ResourceService
     public function __construct(
         private ResourceAccessInterface $accessService
     ) {}
+
+    /**
+     * Format resource data for frontend display
+     * Delegates to ResourceFormatterService for consistent formatting
+     *
+     * @param LessonResource $resource
+     * @return array
+     */
+    public function formatResourceForFrontend(LessonResource $resource): array
+    {
+        $formatter = app(\App\Services\ResourceFormatterService::class);
+        return $formatter->formatResource($resource);
+    }
 
     /**
      * Mark resource as viewed for user

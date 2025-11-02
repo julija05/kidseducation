@@ -3,10 +3,10 @@ import { useState } from "react";
 import FlashMessage from "@/Components/FlashMessage";
 import Notifications from "@/Components/Admin/Notifications";
 import ChatNotifications from "@/Components/Admin/ChatNotifications";
-import { Menu, X, Home, BookOpen, FileText, Users, Calendar, MessageSquare, Settings, LogOut, Bell, ChevronDown } from "lucide-react";
+import { Menu, X, Home, BookOpen, FileText, Users, Calendar, MessageSquare, Settings, LogOut, Bell, ChevronDown, Layers } from "lucide-react";
 
 export default function AdminLayout({ children }) {
-    const { auth, notifications } = usePage().props;
+    const { auth, notifications, pendingProposalsCount } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const handleMarkAsRead = (notificationId) => {
@@ -49,15 +49,20 @@ export default function AdminLayout({ children }) {
             href: route("admin.quizzes.index"), 
             icon: FileText 
         },
-        { 
-            name: "Class Schedules", 
-            href: route("admin.class-schedules.index"), 
-            icon: Calendar 
+        {
+            name: "Class Schedules",
+            href: route("admin.class-schedules.index"),
+            icon: Calendar
         },
-        { 
-            name: "Enrollments", 
-            href: route("admin.enrollments.index"), 
-            icon: Users 
+        {
+            name: "Mentor Proposals",
+            href: route("admin.proposals.index"),
+            icon: Layers
+        },
+        {
+            name: "Enrollments",
+            href: route("admin.enrollments.index"),
+            icon: Users
         },
         { 
             name: "User Management", 
@@ -101,15 +106,23 @@ export default function AdminLayout({ children }) {
                 <nav className="flex-1 px-4 py-4 space-y-2 lg:px-6">
                     {menuItems.map((item) => {
                         const Icon = item.icon;
+                        const showBadge = item.name === 'Mentor Proposals' && pendingProposalsCount > 0;
                         return (
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className="flex items-center px-3 py-3 text-sm font-medium rounded-md hover:bg-gray-700 hover:text-white transition-colors group"
+                                className="flex items-center justify-between px-3 py-3 text-sm font-medium rounded-md hover:bg-gray-700 hover:text-white transition-colors group"
                                 onClick={() => setSidebarOpen(false)}
                             >
-                                <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                                <span className="truncate">{item.name}</span>
+                                <div className="flex items-center">
+                                    <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                                    <span className="truncate">{item.name}</span>
+                                </div>
+                                {showBadge && (
+                                    <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                        {pendingProposalsCount}
+                                    </span>
+                                )}
                             </Link>
                         );
                     })}

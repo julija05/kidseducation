@@ -30,21 +30,29 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $pendingProposalsCount = 0;
+
+        // Get pending proposals count for admin users
+        if ($user && $user->hasRole('admin')) {
+            $pendingProposalsCount = \App\Models\ResourceProposal::where('status', \App\Constants\ProposalStatus::PENDING)->count();
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'email_verified_at' => $request->user()->email_verified_at,
-                    'roles' => $request->user()->roles->pluck('name'),
-                    'language_preference' => $request->user()->language_preference,
-                    'language_selected' => $request->user()->language_selected,
-                    'created_at' => $request->user()->created_at,
-                    'first_name' => $request->user()->first_name,
-                    'last_name' => $request->user()->last_name,
-                    'avatar_path' => $request->user()->avatar_path,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
+                    'roles' => $user->roles->pluck('name'),
+                    'language_preference' => $user->language_preference,
+                    'language_selected' => $user->language_selected,
+                    'created_at' => $user->created_at,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'avatar_path' => $user->avatar_path,
                 ] : null,
             ],
             'flash' => [
@@ -58,6 +66,8 @@ class HandleInertiaRequests extends Middleware
             ],
             // Share CSRF token to prevent 412 errors
             'csrf_token' => fn () => csrf_token(),
+            // Share pending proposals count for admin users
+            'pendingProposalsCount' => $pendingProposalsCount,
         ];
     }
 

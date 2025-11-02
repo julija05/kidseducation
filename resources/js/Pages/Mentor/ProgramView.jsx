@@ -27,6 +27,8 @@ import {
     BarChart3,
     Target,
     Sparkles,
+    Plus,
+    PlusCircle,
 } from "lucide-react";
 import MentorResourceViewer from "@/Components/Lessons/Resources/Viewers/MentorResourceViewer";
 import { motion, AnimatePresence } from "framer-motion";
@@ -216,16 +218,38 @@ export default function ProgramView({ program, students, lessons, mentorEnrollme
         setStudentsToShow(UI_CONSTANTS.ITEMS_PER_PAGE);
     }, [studentSearchQuery, studentSortOption]);
 
+    // Resource Proposal Handlers
+    const handleProposeAddResource = (lessonId) => {
+        router.get(route('mentor.proposals.resources.create', lessonId));
+    };
+
     const handleProposeUpdate = (resourceId) => {
-        // TODO: Implement resource update proposal
-        console.log("Propose update for resource", resourceId);
+        router.get(route('mentor.proposals.resources.edit', resourceId));
     };
 
     const handleProposeDelete = (resourceId) => {
         if (confirm(t("mentor.resources.confirm_delete") || "Are you sure you want to propose deletion of this resource?")) {
-            // TODO: Implement resource delete proposal
-            console.log("Propose delete for resource", resourceId);
+            router.delete(route('mentor.proposals.resources.delete', resourceId), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Success handled by flash message
+                },
+            });
         }
+    };
+
+    // Lesson Proposal Handlers
+    const handleProposeAddLesson = () => {
+        router.get(route('mentor.proposals.lessons.create', program.slug));
+    };
+
+    const handleProposeUpdateLesson = (lessonId) => {
+        router.get(route('mentor.proposals.lessons.edit', lessonId));
+    };
+
+    // Level Proposal Handler
+    const handleProposeAddLevel = () => {
+        router.get(route('mentor.proposals.levels.create', program.slug));
     };
 
     const handleDownloadResource = (resourceId) => {
@@ -334,6 +358,15 @@ export default function ProgramView({ program, students, lessons, mentorEnrollme
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* Propose New Level Button */}
+                                <button
+                                    onClick={handleProposeAddLevel}
+                                    className="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold rounded-lg transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                                >
+                                    <PlusCircle className="w-4 h-4" />
+                                    Propose New Level
+                                </button>
                             </div>
 
                             {/* Levels Accordion */}
@@ -347,29 +380,41 @@ export default function ProgramView({ program, students, lessons, mentorEnrollme
                                         return (
                                             <div key={level} className="border-2 border-slate-200 rounded-lg overflow-hidden bg-white">
                                                 {/* Level Header */}
-                                                <button
-                                                    onClick={() => toggleLevel(levelNum)}
-                                                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
-                                                            {level}
+                                                <div className="flex items-center">
+                                                    <button
+                                                        onClick={() => toggleLevel(levelNum)}
+                                                        className="flex-1 px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
+                                                                {level}
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <h3 className="text-sm font-bold text-slate-900">
+                                                                    Level {level}
+                                                                </h3>
+                                                                <p className="text-xs text-slate-600">
+                                                                    {stats.lessonCount} lesson{stats.lessonCount !== 1 ? 's' : ''} · {stats.resourceCount} resource{stats.resourceCount !== 1 ? 's' : ''}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div className="text-left">
-                                                            <h3 className="text-sm font-bold text-slate-900">
-                                                                Level {level}
-                                                            </h3>
-                                                            <p className="text-xs text-slate-600">
-                                                                {stats.lessonCount} lesson{stats.lessonCount !== 1 ? 's' : ''} · {stats.resourceCount} resource{stats.resourceCount !== 1 ? 's' : ''}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    {isExpanded ? (
-                                                        <ChevronUp className="w-5 h-5 text-slate-400" />
-                                                    ) : (
-                                                        <ChevronDown className="w-5 h-5 text-slate-400" />
-                                                    )}
-                                                </button>
+                                                        {isExpanded ? (
+                                                            <ChevronUp className="w-5 h-5 text-slate-400" />
+                                                        ) : (
+                                                            <ChevronDown className="w-5 h-5 text-slate-400" />
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleProposeAddLesson();
+                                                        }}
+                                                        className="px-3 py-3 hover:bg-emerald-50 transition-colors border-l border-slate-200 text-emerald-600 hover:text-emerald-700"
+                                                        title="Propose new lesson"
+                                                    >
+                                                        <Plus className="w-5 h-5" />
+                                                    </button>
+                                                </div>
 
                                                 {/* Level Content - Collapsible */}
                                                 <AnimatePresence>
@@ -383,31 +428,51 @@ export default function ProgramView({ program, students, lessons, mentorEnrollme
                                                         >
                                                             <div className="p-3 space-y-1">
                                                                 {lessonsByLevel[level].map((lesson) => (
-                                                                    <button
+                                                                    <div
                                                                         key={lesson.id}
-                                                                        onClick={() => setSelectedLesson(lesson)}
-                                                                        className={`w-full text-left px-3 py-2.5 rounded-lg transition-all ${
+                                                                        className={`rounded-lg transition-all ${
                                                                             selectedLesson?.id === lesson.id
-                                                                                ? "bg-emerald-50 border-2 border-emerald-400 text-emerald-900"
-                                                                                : "bg-slate-50 border-2 border-slate-200 hover:border-slate-300 text-slate-700"
+                                                                                ? "bg-emerald-50 border-2 border-emerald-400"
+                                                                                : "bg-slate-50 border-2 border-slate-200 hover:border-slate-300"
                                                                         }`}
                                                                     >
-                                                                        <div className="flex items-start gap-2">
-                                                                            <BookOpen className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                                                                                selectedLesson?.id === lesson.id ? "text-emerald-600" : "text-slate-400"
-                                                                            }`} />
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <p className={`text-sm font-semibold line-clamp-2 ${
-                                                                                    selectedLesson?.id === lesson.id ? "text-emerald-900" : "text-slate-900"
-                                                                                }`}>
-                                                                                    {lesson.title}
-                                                                                </p>
-                                                                                <p className="text-xs text-slate-600 mt-0.5">
-                                                                                    {lesson.resources?.length || 0} resource{lesson.resources?.length !== 1 ? 's' : ''}
-                                                                                </p>
-                                                                            </div>
+                                                                        <div className="flex items-stretch">
+                                                                            <button
+                                                                                onClick={() => setSelectedLesson(lesson)}
+                                                                                className="flex-1 text-left px-3 py-2.5"
+                                                                            >
+                                                                                <div className="flex items-start gap-2">
+                                                                                    <BookOpen className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                                                                                        selectedLesson?.id === lesson.id ? "text-emerald-600" : "text-slate-400"
+                                                                                    }`} />
+                                                                                    <div className="flex-1 min-w-0">
+                                                                                        <p className={`text-sm font-semibold line-clamp-2 ${
+                                                                                            selectedLesson?.id === lesson.id ? "text-emerald-900" : "text-slate-900"
+                                                                                        }`}>
+                                                                                            {lesson.title}
+                                                                                        </p>
+                                                                                        <p className="text-xs text-slate-600 mt-0.5">
+                                                                                            {lesson.resources?.length || 0} resource{lesson.resources?.length !== 1 ? 's' : ''}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleProposeUpdateLesson(lesson.id);
+                                                                                }}
+                                                                                className={`px-2 flex items-center border-l transition-colors ${
+                                                                                    selectedLesson?.id === lesson.id
+                                                                                        ? "border-emerald-300 text-emerald-600 hover:bg-emerald-100"
+                                                                                        : "border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                                                                                }`}
+                                                                                title="Propose lesson update"
+                                                                            >
+                                                                                <Edit className="w-3.5 h-3.5" />
+                                                                            </button>
                                                                         </div>
-                                                                    </button>
+                                                                    </div>
                                                                 ))}
                                                             </div>
                                                         </motion.div>
@@ -678,10 +743,23 @@ export default function ProgramView({ program, students, lessons, mentorEnrollme
                 {/* Right Sidebar - Resources List */}
                 <div className="w-80 bg-white border-l border-slate-200 flex flex-col">
                     <div className="p-6 border-b border-slate-200">
-                        <h2 className="text-lg font-black text-slate-900">Resources</h2>
-                        <p className="text-sm text-slate-600 mt-1">
-                            {selectedLesson?.resources?.length || 0} items
-                        </p>
+                        <div className="flex items-start justify-between mb-3">
+                            <div>
+                                <h2 className="text-lg font-black text-slate-900">Resources</h2>
+                                <p className="text-sm text-slate-600 mt-1">
+                                    {selectedLesson?.resources?.length || 0} items
+                                </p>
+                            </div>
+                        </div>
+                        {selectedLesson && (
+                            <button
+                                onClick={() => handleProposeAddResource(selectedLesson.id)}
+                                className="w-full py-2 px-4 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold rounded-lg transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-sm"
+                            >
+                                <PlusCircle className="w-4 h-4" />
+                                Propose New Resource
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">

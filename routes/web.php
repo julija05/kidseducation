@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
+use App\Http\Controllers\Admin\AdminProposalController;
 use App\Http\Controllers\Admin\AdminQuizController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\EnrollmentApprovalController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Mentor\MentorDashboardController;
 use App\Http\Controllers\Mentor\MentorProgramController;
+use App\Http\Controllers\Mentor\MentorProposalController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ChatController;
@@ -135,15 +137,28 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
     // Mentor program view (teaching dashboard for a specific program)
     Route::get('/programs/{program:slug}', [MentorProgramController::class, 'show'])->name('programs.show');
 
-    // Resource viewing routes
-    Route::get('/resources/{resource}/view', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'viewResource'])->name('resources.view');
-    Route::get('/resources/{resource}/download', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'downloadResource'])->name('resources.download');
+    // Mentor proposal routes
+    Route::prefix('proposals')->name('proposals.')->group(function () {
+        // View all proposals
+        Route::get('/', [MentorProposalController::class, 'index'])->name('index');
 
-    // Resource proposal routes
-    Route::post('/lessons/{lesson}/resources/propose-create', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'proposeCreate'])->name('resources.propose-create');
-    Route::post('/resources/{resource}/propose-update', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'proposeUpdate'])->name('resources.propose-update');
-    Route::post('/resources/{resource}/propose-delete', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'proposeDelete'])->name('resources.propose-delete');
-    Route::delete('/proposals/{proposal}/cancel', [App\Http\Controllers\Mentor\ResourceProposalController::class, 'cancel'])->name('proposals.cancel');
+        // Resource proposals
+        Route::get('/resources/create/{lesson}', [MentorProposalController::class, 'createResource'])->name('resources.create');
+        Route::post('/resources/create/{lesson}', [MentorProposalController::class, 'storeResource'])->name('resources.store');
+        Route::get('/resources/edit/{resource}', [MentorProposalController::class, 'editResource'])->name('resources.edit');
+        Route::post('/resources/update/{resource}', [MentorProposalController::class, 'updateResource'])->name('resources.update');
+        Route::post('/resources/delete/{resource}', [MentorProposalController::class, 'deleteResource'])->name('resources.delete');
+
+        // Lesson proposals
+        Route::get('/lessons/create/{program:slug}', [MentorProposalController::class, 'createLesson'])->name('lessons.create');
+        Route::post('/lessons/create/{program:slug}', [MentorProposalController::class, 'storeLesson'])->name('lessons.store');
+        Route::get('/lessons/edit/{lesson}', [MentorProposalController::class, 'editLesson'])->name('lessons.edit');
+        Route::post('/lessons/update/{lesson}', [MentorProposalController::class, 'updateLesson'])->name('lessons.update');
+
+        // Level proposals
+        Route::get('/levels/create/{program:slug}', [MentorProposalController::class, 'createLevel'])->name('levels.create');
+        Route::post('/levels/create/{program:slug}', [MentorProposalController::class, 'storeLevel'])->name('levels.store');
+    });
 });
 
 // Profile routes (shared)
@@ -206,17 +221,12 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::post('/enrollments/{enrollment}/block', [EnrollmentApprovalController::class, 'blockAccess'])->name('enrollments.block');
     Route::post('/enrollments/{enrollment}/unblock', [EnrollmentApprovalController::class, 'unblockAccess'])->name('enrollments.unblock');
 
-    // Resource Proposal Routes
-    Route::prefix('resource-proposals')->name('resource-proposals.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Admin\ResourceProposalController::class, 'index'])->name('index');
-        Route::get('/{proposal}', [App\Http\Controllers\Admin\ResourceProposalController::class, 'show'])->name('show');
-        Route::post('/{proposal}/approve', [App\Http\Controllers\Admin\ResourceProposalController::class, 'approve'])->name('approve');
-        Route::post('/{proposal}/reject', [App\Http\Controllers\Admin\ResourceProposalController::class, 'reject'])->name('reject');
-        Route::delete('/{proposal}', [App\Http\Controllers\Admin\ResourceProposalController::class, 'destroy'])->name('destroy');
-
-        // Preview routes for proposed resources
-        Route::get('/{proposal}/preview/proposed', [App\Http\Controllers\Admin\ResourceProposalController::class, 'previewProposed'])->name('preview.proposed');
-        Route::get('/{proposal}/preview/original', [App\Http\Controllers\Admin\ResourceProposalController::class, 'previewOriginal'])->name('preview.original');
+    // Proposal Routes (Resource, Lesson, and Level proposals from mentors)
+    Route::prefix('proposals')->name('proposals.')->group(function () {
+        Route::get('/', [AdminProposalController::class, 'index'])->name('index');
+        Route::get('/{proposal}', [AdminProposalController::class, 'show'])->name('show');
+        Route::post('/{proposal}/approve', [AdminProposalController::class, 'approve'])->name('approve');
+        Route::post('/{proposal}/reject', [AdminProposalController::class, 'reject'])->name('reject');
     });
 
     // User Management Routes
