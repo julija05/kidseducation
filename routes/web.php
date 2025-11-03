@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Mentor\MentorDashboardController;
 use App\Http\Controllers\Mentor\MentorProgramController;
 use App\Http\Controllers\Mentor\MentorProposalController;
+use App\Http\Controllers\MentorInviteController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ChatController;
@@ -321,6 +322,10 @@ Route::get('/', [LandingController::class, 'index'])->name('landing.index');
 Route::get('/about', [AboutController::class, 'index'])->name('about.index');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'create'])->name('contact.create');
+
+// Mentor invitation routes (public - allows guests to view before registering)
+Route::get('/mentor/invite/{code}', [MentorInviteController::class, 'show'])->name('mentor.invite');
+Route::post('/mentor/invite/{code}/enroll', [MentorInviteController::class, 'enroll'])->name('mentor.invite.enroll');
 
 // Chat routes (public)
 Route::post('/chat/init', [ChatController::class, 'initChat'])->name('chat.init');

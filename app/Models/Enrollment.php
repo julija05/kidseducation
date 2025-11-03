@@ -22,6 +22,7 @@ class Enrollment extends Model
         'enrolled_at',
         'completed_at',
         'approval_status',
+        'referred_by_mentor_id', // mentor who referred this student
         'access_blocked',
         'block_reason',
         'blocked_at',
@@ -72,6 +73,16 @@ class Enrollment extends Model
     public function blockedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'blocked_by');
+    }
+
+    /**
+     * Get the mentor who referred this student
+     *
+     * @return BelongsTo
+     */
+    public function referredByMentor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referred_by_mentor_id');
     }
 
     // Update progress based on completed lessons
