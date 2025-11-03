@@ -1223,7 +1223,7 @@
     ]
   },
   "resources/js/Pages/Mentor/Dashboard.jsx": {
-    "file": "assets/Dashboard-CpppQgFF.js",
+    "file": "assets/Dashboard-BWqW3Bfi.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Mentor/Dashboard.jsx",
     "isDynamicEntry": true,
@@ -1486,7 +1486,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-w2-6jbOB.js",
+    "file": "assets/app-Bf9RBq15.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -1594,7 +1594,7 @@
       "resources/js/Pages/Student/Reviews/Edit.jsx"
     ],
     "css": [
-      "assets/app-7COFw24H.css"
+      "assets/app-CYWlGaZc.css"
     ]
   }
 }

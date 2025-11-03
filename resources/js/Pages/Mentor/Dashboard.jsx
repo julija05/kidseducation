@@ -169,50 +169,85 @@ export default function Dashboard({
                             transition={{ delay: 0.15 }}
                             className="mb-8"
                         >
-                            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-                                <div className="flex items-start gap-4">
-                                    <div className="p-2 bg-white/20 rounded-lg">
-                                        <LinkIcon className="w-6 h-6" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-xl font-bold mb-2">
-                                            Share Your Invitation Link
-                                        </h3>
-                                        <p className="text-indigo-100 mb-4">
-                                            Share this link with students to enroll them directly under your mentorship.
-                                            {referredStudentsCount > 0 && (
-                                                <span className="font-semibold"> {referredStudentsCount} student{referredStudentsCount > 1 ? 's have' : ' has'} enrolled via your link!</span>
-                                            )}
-                                        </p>
-                                        <div className="flex gap-3">
-                                            <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <code className="text-sm font-mono text-white truncate flex-1">
-                                                        {invitationUrl}
-                                                    </code>
-                                                    <button
-                                                        onClick={copyInvitationLink}
-                                                        className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors font-semibold whitespace-nowrap"
-                                                    >
-                                                        {copied ? (
-                                                            <>
-                                                                <CheckCircle className="w-4 h-4" />
-                                                                Copied!
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Copy className="w-4 h-4" />
-                                                                Copy Link
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                </div>
-                                            </div>
+                            <div className="bg-white rounded-2xl border-2 border-indigo-200 shadow-xl overflow-hidden">
+                                {/* Header */}
+                                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl">
+                                            <LinkIcon className="w-6 h-6 text-white" />
                                         </div>
-                                        {referralCode && (
-                                            <p className="text-xs text-indigo-200 mt-3">
-                                                Referral Code: <span className="font-mono font-bold">{referralCode}</span>
+                                        <div className="flex-1">
+                                            <h3 className="text-xl font-bold text-white mb-1">
+                                                Share Your Invitation Link
+                                            </h3>
+                                            <p className="text-sm text-white/90">
+                                                Get students enrolled directly under your mentorship
                                             </p>
+                                        </div>
+                                        {referredStudentsCount > 0 && (
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+                                                <p className="text-2xl font-bold text-white">{referredStudentsCount}</p>
+                                                <p className="text-xs text-white/90">Student{referredStudentsCount > 1 ? 's' : ''}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Link Section */}
+                                <div className="p-6 bg-gray-50">
+                                    <div className="flex flex-col gap-3">
+                                        {/* URL Display */}
+                                        <div className="flex items-center gap-3 bg-white rounded-xl p-4 border-2 border-gray-200 shadow-sm">
+                                            <div className="flex-1 min-w-0">
+                                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block">
+                                                    Your Invitation Link
+                                                </label>
+                                                <code className="text-sm font-mono text-gray-900 block truncate">
+                                                    {invitationUrl}
+                                                </code>
+                                            </div>
+                                            <button
+                                                onClick={copyInvitationLink}
+                                                className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold whitespace-nowrap transition-all ${
+                                                    copied
+                                                        ? 'bg-green-600 text-white hover:bg-green-700'
+                                                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                                                }`}
+                                            >
+                                                {copied ? (
+                                                    <>
+                                                        <CheckCircle className="w-4 h-4" />
+                                                        Copied!
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Copy className="w-4 h-4" />
+                                                        Copy Link
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+
+                                        {/* Referral Code */}
+                                        {referralCode && (
+                                            <div className="flex items-center justify-between bg-indigo-50 rounded-lg p-3 border border-indigo-200">
+                                                <span className="text-sm font-medium text-gray-700">
+                                                    Referral Code:
+                                                </span>
+                                                <code className="text-sm font-mono font-bold text-indigo-700 bg-white px-3 py-1 rounded border border-indigo-300">
+                                                    {referralCode}
+                                                </code>
+                                            </div>
+                                        )}
+
+                                        {/* Success Message */}
+                                        {referredStudentsCount > 0 && (
+                                            <div className="flex items-center gap-2 bg-green-50 text-green-800 rounded-lg p-3 border border-green-200">
+                                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                                <p className="text-sm font-medium">
+                                                    {referredStudentsCount} student{referredStudentsCount > 1 ? 's have' : ' has'} enrolled using your invitation link!
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
