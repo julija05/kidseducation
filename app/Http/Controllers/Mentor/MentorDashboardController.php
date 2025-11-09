@@ -9,6 +9,7 @@ use App\Contracts\EnrollmentRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Mail\AdminEnrollmentNotification;
 use App\Models\Enrollment;
+use App\Models\Meeting;
 use App\Models\Program;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
@@ -83,6 +84,23 @@ class MentorDashboardController extends Controller
         $referralCode = $user->getReferralCode();
         $referredStudentsCount = $user->getReferredStudentsCount();
 
+        // Get upcoming meetings (next 5)
+        $upcomingMeetings = Meeting::byMentor($user->id)
+            ->upcoming()
+            ->with(['students'])
+            ->take(5)
+            ->get()
+            ->map(function ($meeting) {
+                return [
+                    'id' => $meeting->id,
+                    'title' => $meeting->title,
+                    'meeting_type' => $meeting->meeting_type,
+                    'scheduled_at' => $meeting->scheduled_at,
+                    'duration_minutes' => $meeting->duration_minutes,
+                    'participants_count' => $meeting->participants->count(),
+                ];
+            });
+
         return Inertia::render('Mentor/Dashboard', [
             'user' => [
                 'id' => $user->id,
@@ -97,6 +115,7 @@ class MentorDashboardController extends Controller
             'invitationUrl' => $invitationUrl,
             'referralCode' => $referralCode,
             'referredStudentsCount' => $referredStudentsCount,
+            'upcomingMeetings' => $upcomingMeetings,
         ]);
     }
 

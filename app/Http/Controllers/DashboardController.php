@@ -155,7 +155,7 @@ class DashboardController extends Controller
 
     private function getStudentData($user)
     {
-        // Get next scheduled class for the student
+        // Get next scheduled class from ClassSchedule (admin-scheduled classes)
         $nextScheduledClass = ClassSchedule::with(['admin', 'program', 'lesson'])
             ->where(function ($query) use ($user) {
                 // Check both individual and group classes
@@ -168,29 +168,75 @@ class DashboardController extends Controller
             ->orderBy('scheduled_at', 'asc')
             ->first();
 
-        // Format next class data
+        // Get next scheduled meeting from Meeting (mentor-scheduled meetings)
+        $nextMeeting = \App\Models\Meeting::with(['mentor'])
+            ->whereHas('participants', function ($query) use ($user) {
+                $query->where('student_id', $user->id)
+                    ->whereIn('status', ['invited', 'confirmed']); // Only show invited or confirmed
+            })
+            ->upcoming()
+            ->orderBy('scheduled_at', 'asc')
+            ->first();
+
+        // Determine which one is coming up next
+        $upcomingEvent = null;
+        if ($nextScheduledClass && $nextMeeting) {
+            // Compare and pick the earliest one
+            $upcomingEvent = $nextScheduledClass->scheduled_at < $nextMeeting->scheduled_at
+                ? $nextScheduledClass
+                : $nextMeeting;
+        } else {
+            $upcomingEvent = $nextScheduledClass ?? $nextMeeting;
+        }
+
+        // Format next class/meeting data
         $formattedNextClass = null;
-        if ($nextScheduledClass) {
-            $scheduledAt = $nextScheduledClass->scheduled_at;
+        if ($upcomingEvent) {
+            $scheduledAt = $upcomingEvent->scheduled_at;
             $dayName = $scheduledAt->isToday() ? __('app.time.today') : ($scheduledAt->isTomorrow() ? __('app.time.tomorrow') : $scheduledAt->format('l'));
 
-            $formattedNextClass = [
-                'id' => $nextScheduledClass->id,
-                'title' => $nextScheduledClass->title,
-                'description' => $nextScheduledClass->description,
-                'admin_name' => $nextScheduledClass->admin->name,
-                'program_name' => $nextScheduledClass->program?->translated_name ?? $nextScheduledClass->program?->name,
-                'lesson_name' => $nextScheduledClass->lesson?->translated_title ?? $nextScheduledClass->lesson?->title,
-                'scheduled_at' => $nextScheduledClass->scheduled_at,
-                'formatted_time' => $nextScheduledClass->getFormattedScheduledTime(),
-                'day_description' => $dayName,
-                'time_only' => $scheduledAt->format('g:i A'),
-                'duration' => $nextScheduledClass->getFormattedDuration(),
-                'type' => $nextScheduledClass->getTypeLabel(),
-                'location' => $nextScheduledClass->location,
-                'meeting_link' => $nextScheduledClass->meeting_link,
-                'status' => $nextScheduledClass->status,
-            ];
+            // Check if it's a Meeting or ClassSchedule
+            if ($upcomingEvent instanceof \App\Models\Meeting) {
+                // Format Meeting data
+                $formattedNextClass = [
+                    'id' => $upcomingEvent->id,
+                    'title' => $upcomingEvent->title,
+                    'description' => $upcomingEvent->description,
+                    'admin_name' => $upcomingEvent->mentor->name, // Mentor name
+                    'program_name' => null, // Meetings may not have programs
+                    'lesson_name' => null, // Meetings may not have lessons
+                    'scheduled_at' => $upcomingEvent->scheduled_at,
+                    'formatted_time' => $scheduledAt->format('M d, Y \a\t g:i A'),
+                    'day_description' => $dayName,
+                    'time_only' => $scheduledAt->format('g:i A'),
+                    'duration' => $this->formatDuration($upcomingEvent->duration_minutes),
+                    'type' => $upcomingEvent->meeting_type === 'group' ? 'Group Meeting' : 'Individual Meeting',
+                    'location' => $upcomingEvent->location,
+                    'meeting_link' => $upcomingEvent->meeting_url,
+                    'status' => $upcomingEvent->status,
+                    'source' => 'meeting', // Indicate this is from Meeting model
+                ];
+            } else {
+                // Format ClassSchedule data
+                $formattedNextClass = [
+                    'id' => $upcomingEvent->id,
+                    'title' => $upcomingEvent->title,
+                    'description' => $upcomingEvent->description,
+                    'admin_name' => $upcomingEvent->admin->name,
+                    'program_name' => $upcomingEvent->program?->translated_name ?? $upcomingEvent->program?->name,
+                    'lesson_name' => $upcomingEvent->lesson?->translated_title ?? $upcomingEvent->lesson?->title,
+                    'scheduled_at' => $upcomingEvent->scheduled_at,
+                    'formatted_time' => $upcomingEvent->getFormattedScheduledTime(),
+                    'day_description' => $dayName,
+                    'time_only' => $scheduledAt->format('g:i A'),
+                    'duration' => $upcomingEvent->getFormattedDuration(),
+                    'type' => $upcomingEvent->getTypeLabel(),
+                    'location' => $upcomingEvent->location,
+                    'meeting_link' => $upcomingEvent->meeting_link,
+                    'status' => $upcomingEvent->status,
+                    'source' => 'class_schedule', // Indicate this is from ClassSchedule model
+                ];
+            }
         }
 
         // Get student notifications using the service
@@ -213,6 +259,23 @@ class DashboardController extends Controller
             'notifications' => $notifications,
             'unreadNotificationCount' => $unreadNotificationCount,
         ];
+    }
+
+    /**
+     * Format duration in minutes to a human-readable string
+     */
+    private function formatDuration($minutes)
+    {
+        $hours = intval($minutes / 60);
+        $mins = $minutes % 60;
+
+        if ($hours > 0 && $mins > 0) {
+            return "{$hours}h {$mins}m";
+        } elseif ($hours > 0) {
+            return "{$hours}h";
+        } else {
+            return "{$mins}m";
+        }
     }
 
     private function renderApprovedDashboard($user, $enrollment, $studentData = [])

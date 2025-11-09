@@ -511,4 +511,20 @@ class User extends Authenticatable implements MustVerifyEmail
             ->distinct('user_id')
             ->count('user_id');
     }
+
+    /**
+     * Meetings scheduled by this mentor
+     */
+    public function scheduledMeetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class, 'mentor_id');
+    }
+
+    /**
+     * Meetings this student is participating in
+     */
+    public function participatingMeetings(): HasMany
+    {
+        return $this->hasMany(MeetingParticipant::class, 'student_id');
+    }
 }

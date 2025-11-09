@@ -34,6 +34,7 @@ export default function Dashboard({
     invitationUrl,
     referralCode,
     referredStudentsCount = 0,
+    upcomingMeetings = [],
 }) {
     const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
@@ -114,7 +115,7 @@ export default function Dashboard({
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
+                        className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8"
                     >
                         <div className="bg-white rounded-2xl p-6 border-2 border-slate-200 hover:border-emerald-300 transition-all group">
                             <div className="flex items-center justify-between mb-3">
@@ -159,7 +160,80 @@ export default function Dashboard({
                             <p className="text-3xl font-bold text-slate-900">{completionRate}%</p>
                             <p className="text-sm text-slate-600 mt-1">Avg Completion</p>
                         </div>
+
+                        {/* Schedule Meeting Card */}
+                        <Link href={route('mentor.meetings.create')}>
+                            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 border-2 border-emerald-400 hover:shadow-xl transition-all group cursor-pointer h-full">
+                                <div className="flex flex-col items-center justify-center h-full text-white">
+                                    <div className="p-3 bg-white/20 rounded-xl mb-3 group-hover:bg-white/30 transition-colors">
+                                        <Calendar className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-center">Schedule Meeting</p>
+                                </div>
+                            </div>
+                        </Link>
                     </motion.div>
+
+                    {/* Upcoming Meetings Section */}
+                    {upcomingMeetings && upcomingMeetings.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                            className="mb-8"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-2xl font-black text-slate-900">Upcoming Meetings</h2>
+                                <Link href={route('mentor.meetings.index')}>
+                                    <button className="text-sm text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1">
+                                        View All
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </Link>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {upcomingMeetings.map((meeting, index) => (
+                                    <motion.div
+                                        key={meeting.id}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: 0.05 * index }}
+                                        className="bg-white rounded-xl border-2 border-slate-200 p-4 hover:border-emerald-300 hover:shadow-md transition-all"
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <h4 className="font-bold text-slate-900 text-sm">{meeting.title}</h4>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                                meeting.meeting_type === 'individual'
+                                                    ? 'bg-blue-100 text-blue-700'
+                                                    : 'bg-purple-100 text-purple-700'
+                                            }`}>
+                                                {meeting.meeting_type === 'individual' ? 'Individual' : 'Group'}
+                                            </span>
+                                        </div>
+                                        <div className="space-y-1 mb-3">
+                                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                                                <Calendar className="w-3 h-3 text-emerald-600" />
+                                                <span>{new Date(meeting.scheduled_at).toLocaleDateString()}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                                                <Clock className="w-3 h-3 text-emerald-600" />
+                                                <span>{new Date(meeting.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ({meeting.duration_minutes}min)</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                                                <Users className="w-3 h-3 text-emerald-600" />
+                                                <span>{meeting.participants_count} student{meeting.participants_count > 1 ? 's' : ''}</span>
+                                            </div>
+                                        </div>
+                                        <Link href={route('mentor.meetings.show', meeting.id)}>
+                                            <button className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs rounded-lg font-semibold transition-all">
+                                                View Details
+                                            </button>
+                                        </Link>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
 
                     {/* Invitation Link Section */}
                     {invitationUrl && (

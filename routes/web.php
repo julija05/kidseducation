@@ -125,6 +125,13 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
         Route::get('/view/{filename}', [CertificateController::class, 'view'])->name('view');
         Route::get('/download/{filename}', [CertificateController::class, 'download'])->name('download');
     });
+
+    // Meeting routes for students
+    Route::prefix('meetings')->name('meetings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Student\StudentMeetingController::class, 'index'])->name('index');
+        Route::post('/{participant}/confirm', [\App\Http\Controllers\Student\StudentMeetingController::class, 'confirm'])->name('confirm');
+        Route::post('/{participant}/decline', [\App\Http\Controllers\Student\StudentMeetingController::class, 'decline'])->name('decline');
+    });
 });
 
 // Mentor routes
@@ -159,6 +166,18 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         // Level proposals
         Route::get('/levels/create/{program:slug}', [MentorProposalController::class, 'createLevel'])->name('levels.create');
         Route::post('/levels/create/{program:slug}', [MentorProposalController::class, 'storeLevel'])->name('levels.store');
+    });
+
+    // Meeting routes
+    Route::prefix('meetings')->name('meetings.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Mentor\MeetingController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Mentor\MeetingController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Mentor\MeetingController::class, 'store'])->name('store');
+        Route::get('/{meeting}', [\App\Http\Controllers\Mentor\MeetingController::class, 'show'])->name('show');
+        Route::put('/{meeting}', [\App\Http\Controllers\Mentor\MeetingController::class, 'update'])->name('update');
+        Route::post('/{meeting}/cancel', [\App\Http\Controllers\Mentor\MeetingController::class, 'cancel'])->name('cancel');
+        Route::post('/{meeting}/complete', [\App\Http\Controllers\Mentor\MeetingController::class, 'complete'])->name('complete');
+        Route::delete('/{meeting}', [\App\Http\Controllers\Mentor\MeetingController::class, 'destroy'])->name('destroy');
     });
 });
 

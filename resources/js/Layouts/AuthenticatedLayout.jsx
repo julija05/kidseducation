@@ -288,12 +288,20 @@ function AuthenticatedLayoutContentSimple({
                                             🏠 {t('nav.dashboard')}
                                         </Dropdown.Link>
                                         {isStudent && (
-                                            <Dropdown.Link
-                                                href={routeWithLocale("my-schedule")}
-                                                className="rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 mx-2"
-                                            >
-                                                📅 {t('nav.my_schedule')}
-                                            </Dropdown.Link>
+                                            <>
+                                                <Dropdown.Link
+                                                    href={routeWithLocale("my-schedule")}
+                                                    className="rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 mx-2"
+                                                >
+                                                    📅 {t('nav.my_schedule')}
+                                                </Dropdown.Link>
+                                                <Dropdown.Link
+                                                    href={routeWithLocale("meetings.index")}
+                                                    className="rounded-lg hover:bg-gradient-to-r hover:from-teal-50 hover:to-cyan-50 hover:text-teal-700 mx-2"
+                                                >
+                                                    🎓 {t('nav.my_meetings', { fallback: 'My Meetings' })}
+                                                </Dropdown.Link>
+                                            </>
                                         )}
                                         <Dropdown.Link
                                             href={routeWithLocale("profile.edit")}
