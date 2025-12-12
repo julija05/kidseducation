@@ -10,11 +10,15 @@ import {
     Check,
     X,
     AlertCircle,
+    UserCheck,
+    RefreshCw,
 } from "lucide-react";
+import AdminMentorReassignmentModal from "@/Components/Dashboard/AdminMentorReassignmentModal";
 
-export default function PendingEnrollments({ enrollments, highlight_user_id }) {
+export default function PendingEnrollments({ enrollments, highlight_user_id, availableMentors }) {
     const [selectedEnrollment, setSelectedEnrollment] = useState(null);
     const [showRejectModal, setShowRejectModal] = useState(false);
+    const [showMentorModal, setShowMentorModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
     const [processing, setProcessing] = useState(false);
 
@@ -52,6 +56,31 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                 onFinish: () => {
                     setProcessing(false);
                     setShowRejectModal(false);
+                    setSelectedEnrollment(null);
+                },
+            }
+        );
+    };
+
+    const handleChangeMentor = (enrollment) => {
+        setSelectedEnrollment(enrollment);
+        setShowMentorModal(true);
+    };
+
+    const handleMentorChange = (mentorId) => {
+        if (!mentorId) {
+            alert("Please select a mentor.");
+            return;
+        }
+
+        setProcessing(true);
+        router.post(
+            route("admin.enrollments.updateMentor", selectedEnrollment.id),
+            { mentor_id: mentorId },
+            {
+                onFinish: () => {
+                    setProcessing(false);
+                    setShowMentorModal(false);
                     setSelectedEnrollment(null);
                 },
             }
@@ -120,6 +149,27 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                                             </p>
                                         </div>
 
+                                        {/* Mentor Info */}
+                                        {enrollment.enrollment_type === 'student' && (
+                                            <div className="mb-3">
+                                                <p className="text-xs text-gray-500 mb-1">Assigned Mentor:</p>
+                                                {enrollment.assigned_mentor ? (
+                                                    <div className="flex items-center gap-2 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                                                        <div className="flex-shrink-0 h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                                            <UserCheck className="h-4 w-4 text-emerald-600" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                                                {enrollment.assigned_mentor.name}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-red-600 font-medium">⚠ No mentor assigned</p>
+                                                )}
+                                            </div>
+                                        )}
+
                                         {/* Date & Waiting Time */}
                                         <div className="mb-4 space-y-1">
                                             <p className="text-xs text-gray-500 flex items-center">
@@ -134,23 +184,35 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t">
-                                            <button
-                                                onClick={() => handleApprove(enrollment)}
-                                                disabled={processing}
-                                                className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-                                            >
-                                                <Check className="h-4 w-4 mr-2" />
-                                                Approve
-                                            </button>
-                                            <button
-                                                onClick={() => handleReject(enrollment)}
-                                                disabled={processing}
-                                                className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-                                            >
-                                                <X className="h-4 w-4 mr-2" />
-                                                Reject
-                                            </button>
+                                        <div className="flex flex-col gap-3 pt-3 border-t">
+                                            {enrollment.enrollment_type === 'student' && (
+                                                <button
+                                                    onClick={() => handleChangeMentor(enrollment)}
+                                                    disabled={processing}
+                                                    className="w-full inline-flex items-center justify-center px-4 py-3 border border-blue-600 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
+                                                >
+                                                    <RefreshCw className="w-4 h-4 mr-2" />
+                                                    {enrollment.assigned_mentor ? 'Change Mentor' : 'Assign Mentor'}
+                                                </button>
+                                            )}
+                                            <div className="flex flex-col sm:flex-row gap-3">
+                                                <button
+                                                    onClick={() => handleApprove(enrollment)}
+                                                    disabled={processing}
+                                                    className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+                                                >
+                                                    <Check className="h-4 w-4 mr-2" />
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(enrollment)}
+                                                    disabled={processing}
+                                                    className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-red-600 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+                                                >
+                                                    <X className="h-4 w-4 mr-2" />
+                                                    Reject
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -168,6 +230,9 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Program
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Assigned Mentor
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Requested On
@@ -213,6 +278,26 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
+                                                    {enrollment.enrollment_type === 'student' ? (
+                                                        enrollment.assigned_mentor ? (
+                                                            <div className="flex items-center">
+                                                                <div className="flex-shrink-0 h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                                                    <UserCheck className="h-4 w-4 text-emerald-600" />
+                                                                </div>
+                                                                <div className="ml-2">
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {enrollment.assigned_mentor.name}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-sm text-red-600 font-medium">⚠ Not assigned</span>
+                                                        )
+                                                    ) : (
+                                                        <span className="text-sm text-gray-400 italic">N/A</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm text-gray-900 flex items-center">
                                                         <Calendar className="h-4 w-4 mr-1 text-gray-400" />
                                                         {new Date(enrollment.created_at).toLocaleDateString()}
@@ -229,6 +314,17 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex items-center justify-end space-x-2">
+                                                        {enrollment.enrollment_type === 'student' && (
+                                                            <button
+                                                                onClick={() => handleChangeMentor(enrollment)}
+                                                                disabled={processing}
+                                                                className="inline-flex items-center px-3 py-2 border border-blue-600 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                title={enrollment.assigned_mentor ? "Change mentor" : "Assign mentor"}
+                                                            >
+                                                                <RefreshCw className="w-3 h-3 mr-1" />
+                                                                {enrollment.assigned_mentor ? 'Change' : 'Assign'}
+                                                            </button>
+                                                        )}
                                                         <button
                                                             onClick={() => handleApprove(enrollment)}
                                                             disabled={processing}
@@ -240,7 +336,7 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                                                         <button
                                                             onClick={() => handleReject(enrollment)}
                                                             disabled={processing}
-                                                            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="inline-flex items-center px-3 py-2 border border-red-600 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                         >
                                                             <X className="h-4 w-4 mr-1" />
                                                             Reject
@@ -302,6 +398,19 @@ export default function PendingEnrollments({ enrollments, highlight_user_id }) {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Mentor Reassignment Modal */}
+            {showMentorModal && selectedEnrollment && (
+                <AdminMentorReassignmentModal
+                    enrollment={selectedEnrollment}
+                    availableMentors={availableMentors}
+                    onConfirm={handleMentorChange}
+                    onCancel={() => {
+                        setShowMentorModal(false);
+                        setSelectedEnrollment(null);
+                    }}
+                />
             )}
         </AdminLayout>
     );

@@ -15,15 +15,21 @@ import {
     Unlock,
     Shield,
     ShieldOff,
+    UserCheck,
+    RefreshCw,
+    ArrowRight,
 } from "lucide-react";
+import AdminMentorReassignmentModal from "@/Components/Dashboard/AdminMentorReassignmentModal";
 
 export default function AllEnrollments({
     enrollments,
     currentStatus,
     searchTerm,
+    availableMentors,
 }) {
     const [selectedEnrollment, setSelectedEnrollment] = useState(null);
     const [showBlockModal, setShowBlockModal] = useState(false);
+    const [showMentorModal, setShowMentorModal] = useState(false);
     const [blockReason, setBlockReason] = useState("");
     const [processing, setProcessing] = useState(false);
     const handleSearch = (e) => {
@@ -81,6 +87,31 @@ export default function AllEnrollments({
                 onFinish: () => {
                     setProcessing(false);
                     setShowBlockModal(false);
+                    setSelectedEnrollment(null);
+                },
+            }
+        );
+    };
+
+    const handleChangeMentor = (enrollment) => {
+        setSelectedEnrollment(enrollment);
+        setShowMentorModal(true);
+    };
+
+    const handleMentorChange = (mentorId) => {
+        if (!mentorId) {
+            alert("Please select a mentor.");
+            return;
+        }
+
+        setProcessing(true);
+        router.post(
+            route("admin.enrollments.updateMentor", selectedEnrollment.id),
+            { mentor_id: mentorId },
+            {
+                onFinish: () => {
+                    setProcessing(false);
+                    setShowMentorModal(false);
                     setSelectedEnrollment(null);
                 },
             }
@@ -261,6 +292,27 @@ export default function AllEnrollments({
                                         </div>
                                     </div>
 
+                                    {/* Mentor Info */}
+                                    {enrollment.enrollment_type === 'student' && (
+                                        <div className="mb-3">
+                                            <p className="text-xs text-gray-500 mb-1">Assigned Mentor:</p>
+                                            {enrollment.assigned_mentor ? (
+                                                <div className="flex items-center gap-2 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                                                    <div className="flex-shrink-0 h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                                        <UserCheck className="h-4 w-4 text-emerald-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                                            {enrollment.assigned_mentor.name}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-gray-400 italic">No mentor assigned</p>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* Date */}
                                     <div className="mb-4">
                                         <p className="text-xs text-gray-500 flex items-center">
@@ -270,29 +322,49 @@ export default function AllEnrollments({
                                     </div>
 
                                     {/* Actions */}
-                                    {enrollment.approval_status === 'approved' && (
-                                        <div className="pt-3 border-t">
-                                            {enrollment.access_blocked ? (
-                                                <button
-                                                    onClick={() => handleUnblockAccess(enrollment)}
-                                                    disabled={processing}
-                                                    className="w-full inline-flex items-center justify-center px-4 py-3 border border-green-300 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px]"
-                                                >
-                                                    <Unlock className="w-4 h-4 mr-2" />
-                                                    Restore Access
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleBlockAccess(enrollment)}
-                                                    disabled={processing}
-                                                    className="w-full inline-flex items-center justify-center px-4 py-3 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[44px]"
-                                                >
-                                                    <Lock className="w-4 h-4 mr-2" />
-                                                    Block Access
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
+                                    <div className="pt-3 border-t space-y-2">
+                                        {enrollment.enrollment_type === 'student' && (
+                                            <button
+                                                onClick={() => handleChangeMentor(enrollment)}
+                                                disabled={processing}
+                                                className="w-full inline-flex items-center justify-center px-4 py-3 border border-blue-600 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
+                                            >
+                                                <RefreshCw className="w-4 h-4 mr-2 flex-shrink-0" />
+                                                Change Mentor
+                                            </button>
+                                        )}
+                                        {enrollment.approval_status === 'approved' ? (
+                                            <>
+                                                {enrollment.access_blocked ? (
+                                                    <button
+                                                        onClick={() => handleUnblockAccess(enrollment)}
+                                                        disabled={processing}
+                                                        className="w-full inline-flex items-center justify-center px-4 py-3 border border-green-600 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px]"
+                                                    >
+                                                        <Unlock className="w-4 h-4 mr-2 flex-shrink-0" />
+                                                        Restore Access
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleBlockAccess(enrollment)}
+                                                        disabled={processing}
+                                                        className="w-full inline-flex items-center justify-center px-4 py-3 border border-red-600 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[44px]"
+                                                    >
+                                                        <Lock className="w-4 h-4 mr-2 flex-shrink-0" />
+                                                        Block Access
+                                                    </button>
+                                                )}
+                                            </>
+                                        ) : enrollment.approval_status === 'pending' && (
+                                            <Link
+                                                href={route('admin.enrollments.pending')}
+                                                className="w-full inline-flex items-center justify-center px-4 py-3 border border-amber-600 text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[44px]"
+                                            >
+                                                <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
+                                                Go to Approve
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -308,6 +380,9 @@ export default function AllEnrollments({
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Program
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Mentor
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Status
@@ -351,6 +426,26 @@ export default function AllEnrollments({
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
+                                                    {enrollment.enrollment_type === 'student' ? (
+                                                        enrollment.assigned_mentor ? (
+                                                            <div className="flex items-center">
+                                                                <div className="flex-shrink-0 h-8 w-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                                                    <UserCheck className="h-4 w-4 text-emerald-600" />
+                                                                </div>
+                                                                <div className="ml-2">
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {enrollment.assigned_mentor.name}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-sm text-gray-400 italic">No mentor assigned</span>
+                                                        )
+                                                    ) : (
+                                                        <span className="text-sm text-gray-400 italic">N/A (Mentor enrollment)</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
                                                     {getStatusBadge(
                                                         enrollment.approval_status
                                                     )}
@@ -367,29 +462,49 @@ export default function AllEnrollments({
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex items-center justify-end space-x-2">
-                                                        {enrollment.approval_status === 'approved' && (
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {enrollment.enrollment_type === 'student' && (
+                                                            <button
+                                                                onClick={() => handleChangeMentor(enrollment)}
+                                                                disabled={processing}
+                                                                className="inline-flex items-center justify-center px-3 py-2 border border-blue-600 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[110px]"
+                                                                title="Change mentor assignment"
+                                                            >
+                                                                <RefreshCw className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                                <span className="truncate">Change</span>
+                                                            </button>
+                                                        )}
+                                                        {enrollment.approval_status === 'approved' ? (
                                                             <>
                                                                 {enrollment.access_blocked ? (
                                                                     <button
                                                                         onClick={() => handleUnblockAccess(enrollment)}
                                                                         disabled={processing}
-                                                                        className="inline-flex items-center px-3 py-2 border border-green-300 text-xs font-medium rounded-md text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                        className="inline-flex items-center justify-center px-3 py-2 border border-green-600 text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 min-w-[90px]"
                                                                     >
-                                                                        <Unlock className="w-3 h-3 mr-1" />
-                                                                        Restore
+                                                                        <Unlock className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                                        <span>Restore</span>
                                                                     </button>
                                                                 ) : (
                                                                     <button
                                                                         onClick={() => handleBlockAccess(enrollment)}
                                                                         disabled={processing}
-                                                                        className="inline-flex items-center px-3 py-2 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                                        className="inline-flex items-center justify-center px-3 py-2 border border-red-600 text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 min-w-[90px]"
                                                                     >
-                                                                        <Lock className="w-3 h-3 mr-1" />
-                                                                        Block
+                                                                        <Lock className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                                        <span>Block</span>
                                                                     </button>
                                                                 )}
                                                             </>
+                                                        ) : enrollment.approval_status === 'pending' && (
+                                                            <Link
+                                                                href={route('admin.enrollments.pending')}
+                                                                className="inline-flex items-center justify-center px-3 py-2 border border-amber-600 text-xs font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[90px]"
+                                                                title="Go to approval page"
+                                                            >
+                                                                <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                                <span>Approve</span>
+                                                            </Link>
                                                         )}
                                                     </div>
                                                 </td>
@@ -484,6 +599,19 @@ export default function AllEnrollments({
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Mentor Reassignment Modal */}
+                {showMentorModal && selectedEnrollment && (
+                    <AdminMentorReassignmentModal
+                        enrollment={selectedEnrollment}
+                        availableMentors={availableMentors}
+                        onConfirm={handleMentorChange}
+                        onCancel={() => {
+                            setShowMentorModal(false);
+                            setSelectedEnrollment(null);
+                        }}
+                    />
                 )}
             </div>
         </AdminLayout>

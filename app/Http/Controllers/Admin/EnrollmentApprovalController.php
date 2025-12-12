@@ -19,7 +19,7 @@ class EnrollmentApprovalController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Enrollment::with(['user', 'program'])
+        $query = Enrollment::with(['user', 'program', 'assignedMentor'])
             ->where('approval_status', 'pending');
 
         // Check if we need to highlight a specific user
@@ -35,9 +35,26 @@ class EnrollmentApprovalController extends Controller
 
         $pendingEnrollments = $query->get();
 
+        // Get available mentors
+        $availableMentors = User::role('mentor')
+            ->whereNotNull('email_verified_at')
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'admin');
+            })
+            ->orderBy('name')
+            ->get()
+            ->map(function ($mentor) {
+                return [
+                    'id' => $mentor->id,
+                    'name' => $mentor->name,
+                    'email' => $mentor->email,
+                ];
+            });
+
         return $this->createView('Admin/Enrollments/Pending', [
             'enrollments' => $pendingEnrollments->toArray(),
             'highlight_user_id' => $highlightUserId,
+            'availableMentors' => $availableMentors,
         ]);
     }
 
@@ -46,7 +63,7 @@ class EnrollmentApprovalController extends Controller
      */
     public function all(Request $request)
     {
-        $query = Enrollment::with(['user', 'program']);
+        $query = Enrollment::with(['user', 'program', 'assignedMentor']);
 
         // Filter by status if provided
         if ($request->has('status') && $request->status !== 'all') {
@@ -68,10 +85,27 @@ class EnrollmentApprovalController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        // Get available mentors
+        $availableMentors = User::role('mentor')
+            ->whereNotNull('email_verified_at')
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'admin');
+            })
+            ->orderBy('name')
+            ->get()
+            ->map(function ($mentor) {
+                return [
+                    'id' => $mentor->id,
+                    'name' => $mentor->name,
+                    'email' => $mentor->email,
+                ];
+            });
+
         return $this->createView('Admin/Enrollments/Index', [
             'enrollments' => $enrollments,
             'currentStatus' => $request->status ?? 'all',
             'searchTerm' => $request->search ?? '',
+            'availableMentors' => $availableMentors,
         ]);
     }
 
@@ -246,6 +280,61 @@ class EnrollmentApprovalController extends Controller
             Log::error('Error unblocking access: '.$e->getMessage());
 
             return redirect()->back()->with('error', 'Error unblocking access: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Update/reassign mentor for a student enrollment
+     */
+    public function updateMentor(Request $request, Enrollment $enrollment)
+    {
+        // Validate that the enrollment is a student enrollment
+        if ($enrollment->enrollment_type !== 'student') {
+            return redirect()->back()->with('error', 'Can only assign mentors to student enrollments.');
+        }
+
+        // Validate the new mentor ID
+        $request->validate([
+            'mentor_id' => 'required|exists:users,id',
+        ]);
+
+        $newMentorId = $request->input('mentor_id');
+
+        // Verify that the new user is actually a mentor
+        $newMentor = User::find($newMentorId);
+        if (! $newMentor || ! $newMentor->isMentor()) {
+            return redirect()->back()->with('error', 'Invalid mentor selection. Please select a valid mentor.');
+        }
+
+        // Check if the mentor is already assigned
+        if ($enrollment->assigned_mentor_id == $newMentorId) {
+            return redirect()->back()->with('error', 'This mentor is already assigned to this student.');
+        }
+
+        try {
+            $oldMentorName = $enrollment->assignedMentor ? $enrollment->assignedMentor->name : 'None';
+
+            // Update the assigned mentor
+            $enrollment->update([
+                'assigned_mentor_id' => $newMentorId,
+            ]);
+
+            Log::info('Mentor reassigned by admin', [
+                'enrollment_id' => $enrollment->id,
+                'student_id' => $enrollment->user_id,
+                'student_name' => $enrollment->user->name,
+                'old_mentor_id' => $enrollment->assigned_mentor_id,
+                'old_mentor_name' => $oldMentorName,
+                'new_mentor_id' => $newMentorId,
+                'new_mentor_name' => $newMentor->name,
+                'admin_id' => auth()->id(),
+            ]);
+
+            return redirect()->back()->with('success', "Mentor successfully changed from {$oldMentorName} to {$newMentor->name}.");
+        } catch (\Exception $e) {
+            Log::error('Error updating mentor: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Error updating mentor: '.$e->getMessage());
         }
     }
 }

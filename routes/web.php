@@ -240,6 +240,7 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::post('/enrollments/{enrollment}/reject', [EnrollmentApprovalController::class, 'reject'])->name('enrollments.reject');
     Route::post('/enrollments/{enrollment}/block', [EnrollmentApprovalController::class, 'blockAccess'])->name('enrollments.block');
     Route::post('/enrollments/{enrollment}/unblock', [EnrollmentApprovalController::class, 'unblockAccess'])->name('enrollments.unblock');
+    Route::post('/enrollments/{enrollment}/update-mentor', [EnrollmentApprovalController::class, 'updateMentor'])->name('enrollments.updateMentor');
 
     // Proposal Routes (Resource, Lesson, and Level proposals from mentors)
     Route::prefix('proposals')->name('proposals.')->group(function () {

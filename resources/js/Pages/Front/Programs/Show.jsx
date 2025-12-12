@@ -8,18 +8,21 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import StarRating from "@/Components/StarRating";
 import ReviewCard from "@/Components/ReviewCard";
 import EnrollmentSwitchWarningModal from "@/Components/Dashboard/EnrollmentSwitchWarningModal";
+import { MentorSelectionModal } from "@/Components/Dashboard";
 import { MessageSquare, Plus, Sparkles, CheckCircle, Clock, XCircle, AlertTriangle, Users, Play } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProgramDetail({ auth }) {
-    const { program, userEnrollment, hasAnyEnrollment, hasAnyActiveEnrollment, canReview, userReview, topReviews, flash, waiting_list_program, currentEnrollment } = usePage().props;
+    const { program, userEnrollment, hasAnyEnrollment, hasAnyActiveEnrollment, canReview, userReview, topReviews, flash, waiting_list_program, currentEnrollment, availableMentors } = usePage().props;
     const { t } = useTranslation();
-    
+
     // Get flash messages from Inertia props
     const flashMessages = flash || {};
-    
+
     // Modal state
     const [showSwitchWarningModal, setShowSwitchWarningModal] = useState(false);
+    const [showMentorSelectionModal, setShowMentorSelectionModal] = useState(false);
+    const [isProgramSwitch, setIsProgramSwitch] = useState(false);
     
     // Dynamic viewer count for guest users
     const [currentViewers, setCurrentViewers] = useState(0);
@@ -49,30 +52,40 @@ export default function ProgramDetail({ auth }) {
     const handleEnrollClick = () => {
         // If user has active enrollment, show warning modal instead of direct enrollment
         if (hasAnyActiveEnrollment && currentEnrollment) {
+            setIsProgramSwitch(true);
             setShowSwitchWarningModal(true);
         } else {
-            // Direct enrollment
-            performEnrollment();
+            // Show mentor selection modal for new enrollment
+            setIsProgramSwitch(false);
+            setShowMentorSelectionModal(true);
         }
     };
 
-    const performEnrollment = (isSwitch = false) => {
-        const data = isSwitch ? { switch_program: true } : {};
-        
+    const performEnrollment = (mentorId, isSwitch = false) => {
+        const data = {
+            assigned_mentor_id: mentorId,
+            ...(isSwitch ? { switch_program: true } : {}),
+        };
+
         router.post(
             route("programs.enroll", program.slug),
             data,
             {
                 onSuccess: () => {
+                    setShowMentorSelectionModal(false);
                     // Handle success (page will reload with success message)
                 },
             }
         );
     };
 
+    const handleMentorSelected = (mentorId) => {
+        performEnrollment(mentorId, isProgramSwitch);
+    };
+
     const handleSwitchConfirm = () => {
         setShowSwitchWarningModal(false);
-        performEnrollment(true); // Pass true to indicate this is a switch
+        setShowMentorSelectionModal(true); // Show mentor selection for program switch too
     };
 
     const getEnrollmentSection = () => {
@@ -549,6 +562,16 @@ export default function ProgramDetail({ auth }) {
                         newProgram={program}
                         onConfirm={handleSwitchConfirm}
                         onCancel={() => setShowSwitchWarningModal(false)}
+                    />
+                )}
+
+                {/* Mentor Selection Modal */}
+                {showMentorSelectionModal && availableMentors && availableMentors.length > 0 && (
+                    <MentorSelectionModal
+                        program={program}
+                        availableMentors={availableMentors}
+                        onConfirm={handleMentorSelected}
+                        onCancel={() => setShowMentorSelectionModal(false)}
                     />
                 )}
             </div>

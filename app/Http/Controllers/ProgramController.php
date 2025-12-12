@@ -193,6 +193,22 @@ class ProgramController extends Controller
                 ];
             });
 
+        // Get available mentors (exclude admins, only mentors with verified emails)
+        $availableMentors = \App\Models\User::role('mentor')
+            ->whereNotNull('email_verified_at')
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'admin');
+            })
+            ->orderBy('name')
+            ->get()
+            ->map(function ($mentor) {
+                return [
+                    'id' => $mentor->id,
+                    'name' => $mentor->name,
+                    'email' => $mentor->email,
+                ];
+            });
+
         return $this->createView('Front/Programs/Show', [
             'program' => [
                 'id' => $program->id,
@@ -239,6 +255,7 @@ class ProgramController extends Controller
                 'created_at' => $userReview->created_at,
             ] : null,
             'topReviews' => $topReviews,
+            'availableMentors' => $availableMentors,
         ]);
     }
 

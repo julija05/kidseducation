@@ -165,12 +165,32 @@ class EnrollmentController extends Controller
         // Determine enrollment type based on user role
         $enrollmentType = $user->isMentor() ? EnrollmentType::MENTOR : EnrollmentType::STUDENT;
 
+        // Get assigned mentor ID from request (only for student enrollments)
+        $assignedMentorId = null;
+        if ($enrollmentType === EnrollmentType::STUDENT) {
+            $assignedMentorId = $request->input('assigned_mentor_id');
+
+            // Validate that mentor ID is provided for student enrollments
+            if (! $assignedMentorId) {
+                return redirect()->route('programs.show', $program->slug)
+                    ->with('error', 'Please select a mentor to continue with enrollment.');
+            }
+
+            // Validate that the selected user is actually a mentor
+            $mentor = User::find($assignedMentorId);
+            if (! $mentor || ! $mentor->isMentor()) {
+                return redirect()->route('programs.show', $program->slug)
+                    ->with('error', 'Invalid mentor selection. Please try again.');
+            }
+        }
+
         // Create new enrollment with pending approval status
         try {
             $enrollment = Enrollment::create([
                 'user_id' => $user->id,
                 'program_id' => $program->id,
                 'enrollment_type' => $enrollmentType,
+                'assigned_mentor_id' => $assignedMentorId,
                 'enrolled_at' => now(),
                 'status' => EnrollmentStatus::PAUSED, // Will become active after approval
                 'approval_status' => ApprovalStatus::PENDING,
