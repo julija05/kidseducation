@@ -109,4 +109,81 @@ class MentorProgramController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Show program content overview for mentor who created/proposed it
+     */
+    public function showContent(Program $program): Response
+    {
+        $user = auth()->user();
+
+        // Check if the mentor owns this program
+        if ($program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Load program with all content
+        $program->load(['lessons.resources', 'lessons.quizzes.questions']);
+
+        // Organize lessons by level
+        $lessonsByLevel = $program->lessons->groupBy('level')->map(function ($lessons, $level) {
+            return [
+                'level' => $level,
+                'lessons' => $lessons->map(function ($lesson) {
+                    return [
+                        'id' => $lesson->id,
+                        'title' => $lesson->title,
+                        'description' => $lesson->description,
+                        'order_in_level' => $lesson->order_in_level,
+                        'resources_count' => $lesson->resources->count(),
+                        'quizzes_count' => $lesson->quizzes->count(),
+                        'resources' => $lesson->resources->map(function ($resource) {
+                            return [
+                                'id' => $resource->id,
+                                'title' => $resource->title,
+                                'description' => $resource->description,
+                                'type' => $resource->type,
+                                'order' => $resource->order,
+                                'resource_url' => $resource->resource_url,
+                                'file_path' => $resource->file_path,
+                                'file_name' => $resource->file_name,
+                                'file_size' => $resource->file_size,
+                                'mime_type' => $resource->mime_type,
+                                'is_downloadable' => $resource->is_downloadable,
+                            ];
+                        }),
+                        'quizzes' => $lesson->quizzes->map(function ($quiz) {
+                            return [
+                                'id' => $quiz->id,
+                                'title' => $quiz->title,
+                                'type' => $quiz->type,
+                                'questions_count' => $quiz->questions->count(),
+                                'is_active' => $quiz->is_active,
+                            ];
+                        }),
+                    ];
+                })->sortBy('order_in_level')->values(),
+            ];
+        })->sortBy('level')->values();
+
+        return Inertia::render('Mentor/ProgramContent', [
+            'program' => [
+                'id' => $program->id,
+                'name' => $program->name,
+                'slug' => $program->slug,
+                'description' => $program->description,
+                'approval_status' => $program->approval_status,
+                'can_add_content' => $program->canAddContent(),
+                'can_submit_for_review' => $program->isInContentDevelopment() && $program->lessons->count() > 0,
+            ],
+            'lessonsByLevel' => $lessonsByLevel,
+            'totalLessons' => $program->lessons->count(),
+            'totalResources' => $program->lessons->sum(function ($lesson) {
+                return $lesson->resources->count();
+            }),
+            'totalQuizzes' => $program->lessons->sum(function ($lesson) {
+                return $lesson->quizzes->count();
+            }),
+        ]);
+    }
 }

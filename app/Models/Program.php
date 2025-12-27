@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -30,6 +31,12 @@ class Program extends Model
         'duration_weeks',
         'is_active',
         'level_requirements',
+        'approval_status',
+        'proposed_by',
+        'approved_by',
+        'approved_at',
+        'rejected_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
@@ -39,6 +46,8 @@ class Program extends Model
         'level_requirements' => 'array',
         'name_translations' => 'array',
         'description_translations' => 'array',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     protected $attributes = [
@@ -49,6 +58,22 @@ class Program extends Model
     ];
 
     // Relationships
+    /**
+     * Get the user who proposed this program (mentor)
+     */
+    public function proposedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'proposed_by');
+    }
+
+    /**
+     * Get the user who approved/rejected this program (admin)
+     */
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'enrollments')
@@ -101,6 +126,161 @@ class Program extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope to get only approved programs (fully approved and public)
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', \App\Constants\ApprovalStatus::APPROVED);
+    }
+
+    /**
+     * Scope to get only pending programs (legacy)
+     */
+    public function scopePending($query)
+    {
+        return $query->where('approval_status', \App\Constants\ApprovalStatus::PENDING);
+    }
+
+    /**
+     * Scope to get programs pending initial review
+     */
+    public function scopePendingInitialReview($query)
+    {
+        return $query->where('approval_status', \App\Constants\ApprovalStatus::PENDING_INITIAL_REVIEW);
+    }
+
+    /**
+     * Scope to get programs in content development stage
+     */
+    public function scopeContentDevelopment($query)
+    {
+        return $query->where('approval_status', \App\Constants\ApprovalStatus::CONTENT_DEVELOPMENT);
+    }
+
+    /**
+     * Scope to get programs pending final review
+     */
+    public function scopePendingFinalReview($query)
+    {
+        return $query->where('approval_status', \App\Constants\ApprovalStatus::PENDING_FINAL_REVIEW);
+    }
+
+    /**
+     * Scope to get only rejected programs
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('approval_status', \App\Constants\ApprovalStatus::REJECTED);
+    }
+
+    /**
+     * Scope to get programs proposed by a specific mentor
+     */
+    public function scopeProposedBy($query, $userId)
+    {
+        return $query->where('proposed_by', $userId);
+    }
+
+    /**
+     * Scope to get programs needing admin review (both initial and final)
+     */
+    public function scopeNeedingReview($query)
+    {
+        return $query->whereIn('approval_status', [
+            \App\Constants\ApprovalStatus::PENDING_INITIAL_REVIEW,
+            \App\Constants\ApprovalStatus::PENDING_FINAL_REVIEW,
+        ]);
+    }
+
+    /**
+     * Check if the program can be resubmitted (only rejected programs)
+     */
+    public function canResubmit(): bool
+    {
+        return $this->isRejected();
+    }
+
+    // Approval status checks
+    /**
+     * Check if the program is fully approved and public
+     */
+    public function isApproved(): bool
+    {
+        return $this->approval_status === \App\Constants\ApprovalStatus::APPROVED;
+    }
+
+    /**
+     * Check if the program is pending initial review
+     */
+    public function isPendingInitialReview(): bool
+    {
+        return $this->approval_status === \App\Constants\ApprovalStatus::PENDING_INITIAL_REVIEW;
+    }
+
+    /**
+     * Check if the program is in content development stage
+     */
+    public function isInContentDevelopment(): bool
+    {
+        return $this->approval_status === \App\Constants\ApprovalStatus::CONTENT_DEVELOPMENT;
+    }
+
+    /**
+     * Check if the program is pending final review
+     */
+    public function isPendingFinalReview(): bool
+    {
+        return $this->approval_status === \App\Constants\ApprovalStatus::PENDING_FINAL_REVIEW;
+    }
+
+    /**
+     * Check if the program is pending approval (legacy or any pending state)
+     */
+    public function isPending(): bool
+    {
+        return in_array($this->approval_status, [
+            \App\Constants\ApprovalStatus::PENDING,
+            \App\Constants\ApprovalStatus::PENDING_INITIAL_REVIEW,
+            \App\Constants\ApprovalStatus::PENDING_FINAL_REVIEW,
+        ]);
+    }
+
+    /**
+     * Check if the program is rejected
+     */
+    public function isRejected(): bool
+    {
+        return $this->approval_status === \App\Constants\ApprovalStatus::REJECTED;
+    }
+
+    /**
+     * Check if the program was proposed by a mentor
+     */
+    public function isProposedByMentor(): bool
+    {
+        return $this->proposed_by !== null;
+    }
+
+    /**
+     * Check if mentor can add content to this program
+     */
+    public function canAddContent(): bool
+    {
+        return $this->approval_status === \App\Constants\ApprovalStatus::CONTENT_DEVELOPMENT;
+    }
+
+    /**
+     * Check if the program needs admin review
+     */
+    public function needsReview(): bool
+    {
+        return in_array($this->approval_status, [
+            \App\Constants\ApprovalStatus::PENDING_INITIAL_REVIEW,
+            \App\Constants\ApprovalStatus::PENDING_FINAL_REVIEW,
+        ]);
     }
 
     // Route key

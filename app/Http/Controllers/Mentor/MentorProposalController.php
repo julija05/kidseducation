@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Mentor;
 
+use App\Constants\ApprovalStatus;
 use App\Constants\ProposalType;
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
@@ -11,6 +12,7 @@ use App\Services\ProposalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,10 +43,25 @@ class MentorProposalController extends Controller
     }
 
     /**
-     * Show form to propose a new resource
+     * Show form to create a new resource
      */
     public function createResource(Lesson $lesson): Response
     {
+        $user = Auth::user();
+
+        // Load program relationship
+        $lesson->load('program');
+
+        // Check if the mentor owns this program
+        if ($lesson->program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is in content development stage
+        if (!$lesson->program->canAddContent()) {
+            abort(403, 'You can only add resources to programs in content development.');
+        }
+
         return Inertia::render('Mentor/Proposals/CreateResource', [
             'lesson' => [
                 'id' => $lesson->id,
@@ -53,39 +70,207 @@ class MentorProposalController extends Controller
                 'program' => [
                     'id' => $lesson->program->id,
                     'name' => $lesson->program->name,
+                    'slug' => $lesson->program->slug,
                 ],
             ],
         ]);
     }
 
     /**
-     * Store a resource proposal
+     * Store a resource (direct creation for programs in content development)
      */
     public function storeResource(Request $request, Lesson $lesson): RedirectResponse
     {
+        $user = Auth::user();
+
+        // Check if the mentor owns this program
+        if ($lesson->program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is in content development stage
+        if (!$lesson->program->canAddContent()) {
+            return back()->with('error', 'You can only add resources to programs in content development.');
+        }
+
         $validated = $request->validate([
             'proposed_title' => 'required|string|max:255',
             'proposed_description' => 'nullable|string',
-            'proposed_resource_type' => 'required|string|in:youtube,pdf,word,other',
+            'proposed_resource_type' => 'required|string|in:youtube,pdf,word,document,other',
             'proposed_youtube_url' => 'nullable|url',
             'proposed_order' => 'nullable|integer',
-            'mentor_notes' => 'nullable|string',
+            'file' => 'nullable|file|max:51200', // 50MB max
         ]);
 
-        $data = array_merge($validated, [
+        // Create the resource directly
+        $resourceData = [
             'lesson_id' => $lesson->id,
-            'program_id' => $lesson->program_id,
-            'proposal_type' => ProposalType::RESOURCE_CREATE,
-        ]);
+            'title' => $validated['proposed_title'],
+            'description' => $validated['proposed_description'] ?? '',
+            'type' => $validated['proposed_resource_type'],
+            'order' => $validated['proposed_order'] ?? 1,
+            'is_downloadable' => true,
+            'is_required' => false,
+        ];
 
-        $this->proposalService->createResourceProposal(Auth::user(), $data);
+        // Handle YouTube URL
+        if ($validated['proposed_resource_type'] === 'youtube' && isset($validated['proposed_youtube_url'])) {
+            $resourceData['resource_url'] = $validated['proposed_youtube_url'];
+        }
 
-        return redirect()->route('mentor.proposals.index')
-            ->with('success', 'Resource proposal submitted successfully. Waiting for admin approval.');
+        // Handle file upload
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->store('lesson-resources/' . $lesson->id, 'private');
+
+            $resourceData['file_path'] = $path;
+            $resourceData['file_name'] = $file->getClientOriginalName();
+            $resourceData['file_size'] = $file->getSize();
+            $resourceData['mime_type'] = $file->getMimeType();
+        }
+
+        LessonResource::create($resourceData);
+
+        // Redirect back to program content page
+        return redirect()->route('mentor.programs.content', $lesson->program->slug)
+            ->with('success', 'Resource added successfully!');
     }
 
     /**
-     * Show form to propose resource update
+     * Show form to edit a resource (for mentor-owned programs in content development)
+     */
+    public function editResourceDirect(LessonResource $resource): Response
+    {
+        $user = Auth::user();
+        $resource->load('lesson.program');
+
+        // Check if the mentor owns this program
+        if ($resource->lesson->program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is in content development stage
+        if (!$resource->lesson->program->canAddContent()) {
+            abort(403, 'You can only edit resources in programs that are in content development.');
+        }
+
+        return Inertia::render('Mentor/Proposals/EditResourceDirect', [
+            'resource' => [
+                'id' => $resource->id,
+                'title' => $resource->title,
+                'description' => $resource->description,
+                'type' => $resource->type,
+                'resource_url' => $resource->resource_url,
+                'file_path' => $resource->file_path,
+                'file_name' => $resource->file_name,
+                'order' => $resource->order,
+            ],
+            'lesson' => [
+                'id' => $resource->lesson->id,
+                'title' => $resource->lesson->title,
+            ],
+            'program' => [
+                'id' => $resource->lesson->program->id,
+                'name' => $resource->lesson->program->name,
+                'slug' => $resource->lesson->program->slug,
+            ],
+        ]);
+    }
+
+    /**
+     * Update a resource directly (for mentor-owned programs in content development)
+     */
+    public function updateResourceDirect(Request $request, LessonResource $resource): RedirectResponse
+    {
+        $user = Auth::user();
+        $resource->load('lesson.program');
+
+        // Check if the mentor owns this program
+        if ($resource->lesson->program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is in content development stage
+        if (!$resource->lesson->program->canAddContent()) {
+            return back()->with('error', 'You can only edit resources in programs that are in content development.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|string|in:youtube,pdf,word,document,other',
+            'resource_url' => 'nullable|url',
+            'order' => 'nullable|integer',
+            'file' => 'nullable|file|max:51200', // 50MB max
+        ]);
+
+        $updateData = [
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? '',
+            'type' => $validated['type'],
+            'order' => $validated['order'] ?? $resource->order,
+        ];
+
+        // Handle YouTube URL
+        if ($validated['type'] === 'youtube' && isset($validated['resource_url'])) {
+            $updateData['resource_url'] = $validated['resource_url'];
+        }
+
+        // Handle file upload (replace existing file)
+        if ($request->hasFile('file')) {
+            // Delete old file if exists
+            if ($resource->file_path) {
+                \Illuminate\Support\Facades\Storage::disk('private')->delete($resource->file_path);
+            }
+
+            $file = $request->file('file');
+            $path = $file->store('lesson-resources/' . $resource->lesson_id, 'private');
+
+            $updateData['file_path'] = $path;
+            $updateData['file_name'] = $file->getClientOriginalName();
+            $updateData['file_size'] = $file->getSize();
+            $updateData['mime_type'] = $file->getMimeType();
+        }
+
+        $resource->update($updateData);
+
+        return redirect()->route('mentor.programs.content', $resource->lesson->program->slug)
+            ->with('success', 'Resource updated successfully!');
+    }
+
+    /**
+     * Delete a resource directly (for mentor-owned programs in content development)
+     */
+    public function destroyResourceDirect(LessonResource $resource): RedirectResponse
+    {
+        $user = Auth::user();
+        $resource->load('lesson.program');
+
+        // Check if the mentor owns this program
+        if ($resource->lesson->program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is in content development stage
+        if (!$resource->lesson->program->canAddContent()) {
+            return back()->with('error', 'You can only delete resources in programs that are in content development.');
+        }
+
+        $programSlug = $resource->lesson->program->slug;
+
+        // Delete file if exists
+        if ($resource->file_path) {
+            \Illuminate\Support\Facades\Storage::disk('private')->delete($resource->file_path);
+        }
+
+        $resource->delete();
+
+        return redirect()->route('mentor.programs.content', $programSlug)
+            ->with('success', 'Resource deleted successfully!');
+    }
+
+    /**
+     * Show form to propose resource update (for approved programs)
      */
     public function editResource(LessonResource $resource): Response
     {
@@ -107,7 +292,7 @@ class MentorProposalController extends Controller
     }
 
     /**
-     * Store a resource update proposal
+     * Store a resource update proposal (for approved programs)
      */
     public function updateResource(Request $request, LessonResource $resource): RedirectResponse
     {
@@ -139,7 +324,7 @@ class MentorProposalController extends Controller
     }
 
     /**
-     * Propose deletion of a resource
+     * Propose deletion of a resource (for approved programs)
      */
     public function deleteResource(Request $request, LessonResource $resource): RedirectResponse
     {
@@ -176,33 +361,48 @@ class MentorProposalController extends Controller
             'program' => [
                 'id' => $program->id,
                 'name' => $program->name,
+                'slug' => $program->slug,
             ],
             'existingLevels' => $existingLevels,
         ]);
     }
 
     /**
-     * Store a lesson proposal
+     * Store a lesson (direct creation for programs in content development)
      */
     public function storeLesson(Request $request, Program $program): RedirectResponse
     {
+        $user = Auth::user();
+
+        // Check if the mentor owns this program
+        if ($program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is in content development stage
+        if (!$program->canAddContent()) {
+            return back()->with('error', 'You can only add lessons to programs in content development.');
+        }
+
         $validated = $request->validate([
             'proposed_lesson_title' => 'required|string|max:255',
             'proposed_lesson_description' => 'nullable|string',
             'proposed_lesson_level' => 'required|integer|min:1',
             'proposed_lesson_order' => 'nullable|integer',
-            'mentor_notes' => 'nullable|string',
         ]);
 
-        $data = array_merge($validated, [
+        // Create the lesson directly
+        Lesson::create([
             'program_id' => $program->id,
-            'proposal_type' => ProposalType::LESSON_CREATE,
+            'title' => $validated['proposed_lesson_title'],
+            'description' => $validated['proposed_lesson_description'] ?? '',
+            'level' => $validated['proposed_lesson_level'],
+            'order_in_level' => $validated['proposed_lesson_order'] ?? 1,
         ]);
 
-        $this->proposalService->createLessonProposal(Auth::user(), $data);
-
-        return redirect()->route('mentor.proposals.index')
-            ->with('success', 'Lesson proposal submitted successfully.');
+        // Redirect back to program content page
+        return redirect()->route('mentor.programs.content', $program->slug)
+            ->with('success', 'Lesson added successfully!');
     }
 
     /**
@@ -290,5 +490,170 @@ class MentorProposalController extends Controller
 
         return redirect()->route('mentor.proposals.index')
             ->with('success', 'Level proposal submitted successfully.');
+    }
+
+    /**
+     * Show form to propose a new program
+     */
+    public function createProgram(): Response
+    {
+        return Inertia::render('Mentor/Proposals/CreateProgram');
+    }
+
+    /**
+     * Store a program proposal
+     * Creates program in PENDING_INITIAL_REVIEW status - admin must approve before mentor can add content
+     */
+    public function storeProgram(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'duration' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'requires_monthly_payment' => 'boolean',
+            'duration_weeks' => 'nullable|integer|min:1',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:50',
+            'light_color' => 'nullable|string|max:50',
+            'border_color' => 'nullable|string|max:50',
+            'text_color' => 'nullable|string|max:50',
+        ]);
+
+        // Generate unique slug
+        $slug = Str::slug($validated['name']);
+        $originalSlug = $slug;
+        $counter = 1;
+        while (Program::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        // Create the program in PENDING_INITIAL_REVIEW status
+        // Admin must approve before mentor can add lessons/resources
+        $program = Program::create(array_merge($validated, [
+            'slug' => $slug,
+            'approval_status' => ApprovalStatus::PENDING_INITIAL_REVIEW,
+            'proposed_by' => Auth::id(),
+            'is_active' => false, // Inactive until fully approved
+        ]));
+
+        return redirect()->route('mentor.proposals.programs.my-programs')
+            ->with('success', 'Program proposal submitted! An administrator will review your proposal. Once approved, you can start adding lessons and resources.');
+    }
+
+    /**
+     * Show mentor's own proposed programs
+     */
+    public function myPrograms(): Response
+    {
+        $user = Auth::user();
+
+        // Get programs proposed by this mentor
+        $programs = Program::where('proposed_by', $user->id)
+            ->with(['proposedBy', 'approvedBy', 'lessons'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($program) {
+                return [
+                    'id' => $program->id,
+                    'name' => $program->name,
+                    'description' => $program->description,
+                    'slug' => $program->slug,
+                    'price' => $program->price,
+                    'duration' => $program->duration,
+                    'approval_status' => $program->approval_status,
+                    'approval_status_label' => ApprovalStatus::getLabel($program->approval_status),
+                    'approval_status_color' => ApprovalStatus::getColorClass($program->approval_status),
+                    'is_active' => $program->is_active,
+                    'lessons_count' => $program->lessons->count(),
+                    'can_add_content' => $program->canAddContent(),
+                    'can_submit_for_final_review' => $program->isInContentDevelopment() && $program->lessons->count() > 0,
+                    'can_resubmit' => $program->isRejected(),
+                    'is_pending_initial_review' => $program->isPendingInitialReview(),
+                    'is_pending_final_review' => $program->isPendingFinalReview(),
+                    'created_at' => $program->created_at->format('Y-m-d H:i:s'),
+                    'approved_at' => $program->approved_at?->format('Y-m-d H:i:s'),
+                    'rejected_at' => $program->rejected_at?->format('Y-m-d H:i:s'),
+                    'rejection_reason' => $program->rejection_reason,
+                    'approved_by' => $program->approvedBy ? [
+                        'id' => $program->approvedBy->id,
+                        'name' => $program->approvedBy->name,
+                    ] : null,
+                ];
+            });
+
+        return Inertia::render('Mentor/Proposals/MyPrograms', [
+            'programs' => $programs,
+        ]);
+    }
+
+    /**
+     * Submit program for final admin review after content has been added
+     * Changes status from CONTENT_DEVELOPMENT to PENDING_FINAL_REVIEW
+     */
+    public function submitForFinalReview(Program $program): RedirectResponse
+    {
+        $user = Auth::user();
+
+        // Check if the mentor owns this program
+        if ($program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is in content development stage
+        if (!$program->isInContentDevelopment()) {
+            return back()->with('error', 'Program must be in content development stage to submit for review.');
+        }
+
+        // Check if program has at least one lesson
+        if ($program->lessons()->count() === 0) {
+            return back()->with('error', 'Program must have at least one lesson before submitting for review.');
+        }
+
+        // Update program status to pending final review
+        $program->update([
+            'approval_status' => ApprovalStatus::PENDING_FINAL_REVIEW,
+        ]);
+
+        return back()->with('success', 'Program submitted for final review! An administrator will review your complete program and content soon.');
+    }
+
+    /**
+     * Resubmit a rejected program for review
+     * Mentor can resubmit after making improvements based on rejection feedback
+     */
+    public function resubmitProgram(Program $program): RedirectResponse
+    {
+        $user = Auth::user();
+
+        // Check if the mentor owns this program
+        if ($program->proposed_by !== $user->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if program is rejected
+        if (!$program->isRejected()) {
+            return back()->with('error', 'Only rejected programs can be resubmitted.');
+        }
+
+        // Determine which review stage to resubmit to
+        // If program has lessons, submit for final review; otherwise, submit for initial review
+        $hasLessons = $program->lessons()->count() > 0;
+        $newStatus = $hasLessons
+            ? ApprovalStatus::PENDING_FINAL_REVIEW
+            : ApprovalStatus::PENDING_INITIAL_REVIEW;
+
+        $program->update([
+            'approval_status' => $newStatus,
+            'rejected_at' => null,
+            'rejection_reason' => null,
+        ]);
+
+        $message = $hasLessons
+            ? 'Program resubmitted for final review! An administrator will review your improvements soon.'
+            : 'Program resubmitted for initial review! An administrator will review your proposal soon.';
+
+        return back()->with('success', $message);
     }
 }

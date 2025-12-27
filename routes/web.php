@@ -150,9 +150,21 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         // View all proposals
         Route::get('/', [MentorProposalController::class, 'index'])->name('index');
 
-        // Resource proposals
+        // Program proposals
+        Route::get('/programs/my-programs', [MentorProposalController::class, 'myPrograms'])->name('programs.my-programs');
+        Route::get('/programs/create', [MentorProposalController::class, 'createProgram'])->name('programs.create');
+        Route::post('/programs/create', [MentorProposalController::class, 'storeProgram'])->name('programs.store');
+        Route::post('/programs/{program}/submit-final-review', [MentorProposalController::class, 'submitForFinalReview'])->name('programs.submit-final-review');
+        Route::post('/programs/{program}/resubmit', [MentorProposalController::class, 'resubmitProgram'])->name('programs.resubmit');
+
+        // Resource management (direct edit/delete for mentor-owned programs in content development)
         Route::get('/resources/create/{lesson}', [MentorProposalController::class, 'createResource'])->name('resources.create');
         Route::post('/resources/create/{lesson}', [MentorProposalController::class, 'storeResource'])->name('resources.store');
+        Route::get('/resources/{resource}/edit-direct', [MentorProposalController::class, 'editResourceDirect'])->name('resources.edit-direct');
+        Route::post('/resources/{resource}/update-direct', [MentorProposalController::class, 'updateResourceDirect'])->name('resources.update-direct');
+        Route::delete('/resources/{resource}/destroy-direct', [MentorProposalController::class, 'destroyResourceDirect'])->name('resources.destroy-direct');
+
+        // Resource proposals (for approved programs - requires admin approval)
         Route::get('/resources/edit/{resource}', [MentorProposalController::class, 'editResource'])->name('resources.edit');
         Route::post('/resources/update/{resource}', [MentorProposalController::class, 'updateResource'])->name('resources.update');
         Route::post('/resources/delete/{resource}', [MentorProposalController::class, 'deleteResource'])->name('resources.delete');
@@ -167,6 +179,21 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         Route::get('/levels/create/{program:slug}', [MentorProposalController::class, 'createLevel'])->name('levels.create');
         Route::post('/levels/create/{program:slug}', [MentorProposalController::class, 'storeLevel'])->name('levels.store');
     });
+
+    // Quiz management for mentors
+    Route::prefix('quizzes')->name('quizzes.')->group(function () {
+        Route::get('/create/{lesson}', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'create'])->name('create');
+        Route::post('/create/{lesson}', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'store'])->name('store');
+        Route::get('/{quiz}/edit', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'edit'])->name('edit');
+        Route::put('/{quiz}', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'update'])->name('update');
+        Route::delete('/{quiz}', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'destroy'])->name('destroy');
+        Route::post('/{quiz}/questions', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'storeQuestion'])->name('questions.store');
+        Route::put('/{quiz}/questions/{question}', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'updateQuestion'])->name('questions.update');
+        Route::delete('/{quiz}/questions/{question}', [\App\Http\Controllers\Mentor\MentorQuizController::class, 'destroyQuestion'])->name('questions.destroy');
+    });
+
+    // Program content overview
+    Route::get('/programs/{program:slug}/content', [\App\Http\Controllers\Mentor\MentorProgramController::class, 'showContent'])->name('programs.content');
 
     // Meeting routes
     Route::prefix('meetings')->name('meetings.')->group(function () {
@@ -214,6 +241,15 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
             // Bulk import resources
             Route::post('/bulk-import', [AdminProgramResourcesController::class, 'bulkImport'])->name('bulkImport');
         });
+    });
+
+    // Program Proposal Routes (MUST come before resource route to avoid conflicts)
+    // These handle mentor-proposed programs requiring approval
+    Route::prefix('programs')->name('programs.')->group(function () {
+        Route::get('/proposals', [AdminProposalController::class, 'programProposals'])->name('proposals');
+        Route::get('/{program}/preview', [AdminProposalController::class, 'previewProgram'])->name('preview');
+        Route::post('/{program}/approve', [AdminProposalController::class, 'approveProgram'])->name('approve');
+        Route::post('/{program}/reject', [AdminProposalController::class, 'rejectProgram'])->name('reject');
     });
 
     // Program Routes

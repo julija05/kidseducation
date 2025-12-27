@@ -1,7 +1,11 @@
 import MentorLayout from "@/Layouts/MentorLayout";
 import { Head, useForm, router } from "@inertiajs/react";
-import { FileText, ArrowLeft, Loader2 } from "lucide-react";
+import { FileText, ArrowLeft, Loader2, Save } from "lucide-react";
 
+/**
+ * CreateResource Component
+ * Allows mentors to add resources to lessons in their programs
+ */
 export default function CreateResource({ lesson }) {
     const { data, setData, post, processing, errors } = useForm({
         proposed_title: '',
@@ -9,28 +13,30 @@ export default function CreateResource({ lesson }) {
         proposed_resource_type: 'youtube',
         proposed_youtube_url: '',
         proposed_order: '',
-        mentor_notes: '',
+        file: null,
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('mentor.proposals.resources.store', lesson.id));
+        post(route('mentor.proposals.resources.store', lesson.id), {
+            forceFormData: true,
+        });
     };
 
     return (
         <MentorLayout>
-            <Head title={`Propose New Resource - ${lesson.title}`} />
+            <Head title={`Add Resource - ${lesson.title}`} />
 
             <div className="min-h-screen bg-slate-50 py-8">
                 <div className="max-w-4xl mx-auto px-4">
                     {/* Header */}
                     <div className="mb-8">
                         <button
-                            onClick={() => router.get(route('mentor.programs.view', lesson.program.id))}
+                            onClick={() => router.get(route('mentor.programs.content', lesson.program.slug))}
                             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4" />
-                            Back to Program
+                            Back to Program Content
                         </button>
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
@@ -38,7 +44,7 @@ export default function CreateResource({ lesson }) {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-black text-slate-900">
-                                    Propose New Resource
+                                    Add New Resource
                                 </h1>
                                 <p className="text-slate-600 mt-1">
                                     For lesson: <span className="font-semibold">{lesson.title}</span>
@@ -98,7 +104,8 @@ export default function CreateResource({ lesson }) {
                                 <option value="youtube">YouTube Video</option>
                                 <option value="pdf">PDF Document</option>
                                 <option value="word">Word Document</option>
-                                <option value="other">Other</option>
+                                <option value="document">Document (General)</option>
+                                <option value="other">Other File</option>
                             </select>
                             {errors.proposed_resource_type && (
                                 <p className="text-red-600 text-sm mt-1">{errors.proposed_resource_type}</p>
@@ -109,7 +116,7 @@ export default function CreateResource({ lesson }) {
                         {data.proposed_resource_type === 'youtube' && (
                             <div>
                                 <label className="block text-sm font-bold text-slate-900 mb-2">
-                                    YouTube URL
+                                    YouTube URL *
                                 </label>
                                 <input
                                     type="url"
@@ -117,10 +124,36 @@ export default function CreateResource({ lesson }) {
                                     onChange={(e) => setData('proposed_youtube_url', e.target.value)}
                                     className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-400 focus:outline-none"
                                     placeholder="https://www.youtube.com/watch?v=..."
+                                    required
                                 />
                                 {errors.proposed_youtube_url && (
                                     <p className="text-red-600 text-sm mt-1">{errors.proposed_youtube_url}</p>
                                 )}
+                            </div>
+                        )}
+
+                        {/* File Upload (conditional) */}
+                        {(data.proposed_resource_type === 'pdf' ||
+                          data.proposed_resource_type === 'word' ||
+                          data.proposed_resource_type === 'document' ||
+                          data.proposed_resource_type === 'other') && (
+                            <div>
+                                <label className="block text-sm font-bold text-slate-900 mb-2">
+                                    Upload File *
+                                </label>
+                                <input
+                                    type="file"
+                                    onChange={(e) => setData('file', e.target.files[0])}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-400 focus:outline-none"
+                                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip"
+                                    required
+                                />
+                                {errors.file && (
+                                    <p className="text-red-600 text-sm mt-1">{errors.file}</p>
+                                )}
+                                <p className="text-xs text-slate-600 mt-2">
+                                    Max file size: 50MB. Supported formats: PDF, Word, PowerPoint, Text, ZIP
+                                </p>
                             </div>
                         )}
 
@@ -141,23 +174,6 @@ export default function CreateResource({ lesson }) {
                             )}
                         </div>
 
-                        {/* Mentor Notes */}
-                        <div>
-                            <label className="block text-sm font-bold text-slate-900 mb-2">
-                                Notes for Admin
-                            </label>
-                            <textarea
-                                value={data.mentor_notes}
-                                onChange={(e) => setData('mentor_notes', e.target.value)}
-                                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-400 focus:outline-none"
-                                rows="3"
-                                placeholder="Any additional context or reasoning for this proposal..."
-                            />
-                            {errors.mentor_notes && (
-                                <p className="text-red-600 text-sm mt-1">{errors.mentor_notes}</p>
-                            )}
-                        </div>
-
                         {/* Submit Button */}
                         <div className="flex items-center gap-4 pt-4">
                             <button
@@ -168,15 +184,18 @@ export default function CreateResource({ lesson }) {
                                 {processing ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Submitting...
+                                        Saving...
                                     </>
                                 ) : (
-                                    'Submit Proposal'
+                                    <>
+                                        <Save className="w-5 h-5" />
+                                        Save Resource
+                                    </>
                                 )}
                             </button>
                             <button
                                 type="button"
-                                onClick={() => router.get(route('mentor.programs.view', lesson.program.id))}
+                                onClick={() => router.get(route('mentor.programs.content', lesson.program.slug))}
                                 className="px-6 py-3 border-2 border-slate-300 hover:border-slate-400 text-slate-700 font-semibold rounded-lg transition-colors"
                             >
                                 Cancel
@@ -184,10 +203,10 @@ export default function CreateResource({ lesson }) {
                         </div>
 
                         {/* Info Box */}
-                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                            <p className="text-sm text-blue-900">
-                                <span className="font-semibold">Note:</span> This proposal will be sent to administrators for review.
-                                You'll be notified once it's been approved or if changes are requested.
+                        <div className="bg-emerald-50 border-2 border-emerald-200 rounded-lg p-4">
+                            <p className="text-sm text-emerald-900">
+                                <span className="font-semibold">Note:</span> This resource will be added directly to your program.
+                                It will be reviewed when you submit your program for final approval.
                             </p>
                         </div>
                     </form>

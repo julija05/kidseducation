@@ -22,6 +22,8 @@ import {
     PlayCircle,
     Copy,
     Link as LinkIcon,
+    Plus,
+    FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -169,6 +171,46 @@ export default function Dashboard({
                                         <Calendar className="w-6 h-6" />
                                     </div>
                                     <p className="text-sm font-semibold text-center">Schedule Meeting</p>
+                                </div>
+                            </div>
+                        </Link>
+                    </motion.div>
+
+                    {/* Create Program Proposal Section */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        className="mb-8"
+                    >
+                        <Link href={route('mentor.proposals.programs.create')}>
+                            <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 rounded-2xl p-8 border-2 border-purple-400 hover:shadow-2xl transition-all group cursor-pointer">
+                                <div className="flex items-center gap-6">
+                                    <div className="p-5 bg-white/20 backdrop-blur-sm rounded-2xl group-hover:bg-white/30 transition-all group-hover:scale-110">
+                                        <Plus className="w-10 h-10 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
+                                            Create New Program Proposal
+                                            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                        </h3>
+                                        <p className="text-purple-100 text-base">
+                                            Have an idea for a new educational program? Submit your proposal for admin review and start teaching your own course!
+                                        </p>
+                                        <div className="mt-4 flex items-center gap-3">
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg">
+                                                <FileText className="w-4 h-4 text-white" />
+                                                <span className="text-sm text-white font-medium">Easy submission process</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg">
+                                                <CheckCircle className="w-4 h-4 text-white" />
+                                                <span className="text-sm text-white font-medium">Admin review & approval</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="hidden lg:block p-4 bg-white/10 backdrop-blur-sm rounded-xl">
+                                        <Sparkles className="w-12 h-12 text-white" />
+                                    </div>
                                 </div>
                             </div>
                         </Link>
@@ -389,6 +431,12 @@ export default function Dashboard({
                                     <h2 className="text-2xl font-black text-slate-900">My Teaching Programs</h2>
                                     <p className="text-slate-600 mt-1">Click to manage lessons and students</p>
                                 </div>
+                                <Link href={route('mentor.proposals.programs.my-programs')}>
+                                    <button className="flex items-center gap-2 px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg">
+                                        <FileText className="w-5 h-5" />
+                                        My Proposed Programs
+                                    </button>
+                                </Link>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

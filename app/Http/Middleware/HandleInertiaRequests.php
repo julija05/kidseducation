@@ -32,10 +32,14 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $pendingProposalsCount = 0;
+        $programProposalsCount = 0;
 
         // Get pending proposals count for admin users
         if ($user && $user->hasRole('admin')) {
             $pendingProposalsCount = \App\Models\ResourceProposal::where('status', \App\Constants\ProposalStatus::PENDING)->count();
+
+            // Get programs needing review count (both initial and final review)
+            $programProposalsCount = \App\Models\Program::needingReview()->count();
         }
 
         return [
@@ -68,6 +72,8 @@ class HandleInertiaRequests extends Middleware
             'csrf_token' => fn () => csrf_token(),
             // Share pending proposals count for admin users
             'pendingProposalsCount' => $pendingProposalsCount,
+            // Share program proposals needing review count for admin users
+            'programProposalsCount' => $programProposalsCount,
         ];
     }
 

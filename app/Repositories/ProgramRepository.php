@@ -11,7 +11,19 @@ class ProgramRepository implements ProgramRepositoryInterface
 {
     private const CACHE_KEY = 'controllerData.programs';
 
+    /**
+     * Get all programs (admin-created only, excludes mentor proposals)
+     * Mentor-proposed programs should be managed in the Proposals section
+     */
     public function getAll(): Collection
+    {
+        return Program::whereNull('proposed_by')->get();
+    }
+
+    /**
+     * Get all programs including mentor-proposed ones
+     */
+    public function getAllIncludingProposed(): Collection
     {
         return Program::all();
     }

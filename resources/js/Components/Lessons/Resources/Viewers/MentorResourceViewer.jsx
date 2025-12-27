@@ -26,6 +26,9 @@ export default function MentorResourceViewer({ resource }) {
     // Transform resource data to match the expected format
     const resourceType = resource.type || resource.resource_type;
 
+    // Normalize video types - 'youtube' and 'video' should both be treated as video
+    const isVideoType = resourceType === 'video' || resourceType === 'youtube';
+
     const transformedResource = {
         id: resource.id,
         title: resource.title,
@@ -38,8 +41,8 @@ export default function MentorResourceViewer({ resource }) {
     };
 
     function getResourceUrl(resource, type) {
-        // For video resources, check for resource_url or youtube_url
-        if (type === 'video' && (resource.resource_url || resource.youtube_url)) {
+        // For video/youtube resources, check for resource_url or youtube_url
+        if ((type === 'video' || type === 'youtube') && (resource.resource_url || resource.youtube_url)) {
             return resource.resource_url || resource.youtube_url;
         }
 
@@ -62,18 +65,19 @@ export default function MentorResourceViewer({ resource }) {
     }
 
     function getMimeType(type) {
-        if (type === 'document') return 'application/pdf';
-        if (type === 'video') return 'video/mp4';
+        if (type === 'document' || type === 'pdf') return 'application/pdf';
+        if (type === 'video' || type === 'youtube') return 'video/mp4';
         return null;
     }
 
-    // Render video for YouTube resources
-    if (transformedResource.type === 'video' && transformedResource.resource_url) {
+    // Render video for YouTube/video resources
+    if (isVideoType && transformedResource.resource_url) {
         return <VideoViewer resource={transformedResource} />;
     }
 
     // Render document viewer for PDFs and Word docs
-    if (transformedResource.type === 'document' && transformedResource.file_path) {
+    const isDocumentType = transformedResource.type === 'document' || transformedResource.type === 'pdf' || transformedResource.type === 'word';
+    if (isDocumentType && transformedResource.file_path) {
         return (
             <DocumentViewer
                 resource={transformedResource}
@@ -89,10 +93,10 @@ export default function MentorResourceViewer({ resource }) {
         <div className="flex items-center justify-center h-full min-h-[400px]">
             <div className="text-center max-w-md">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-slate-100 rounded-full mb-6">
-                    {transformedResource.type === 'video' && <Video size={40} className="text-slate-600" />}
-                    {transformedResource.type === 'document' && <FileText size={40} className="text-slate-600" />}
+                    {(transformedResource.type === 'video' || transformedResource.type === 'youtube') && <Video size={40} className="text-slate-600" />}
+                    {(transformedResource.type === 'document' || transformedResource.type === 'pdf' || transformedResource.type === 'word') && <FileText size={40} className="text-slate-600" />}
                     {transformedResource.type === 'download' && <Download size={40} className="text-slate-600" />}
-                    {!['video', 'document', 'download'].includes(transformedResource.type) && <File size={40} className="text-slate-600" />}
+                    {!['video', 'youtube', 'document', 'pdf', 'word', 'download'].includes(transformedResource.type) && <File size={40} className="text-slate-600" />}
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
                     {transformedResource.title}

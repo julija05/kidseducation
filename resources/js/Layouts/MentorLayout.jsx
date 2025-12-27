@@ -1,7 +1,7 @@
 import Dropdown from "@/Components/Dropdown";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import { User, ChevronDown, GraduationCap, BookOpen, Settings, Calendar } from "lucide-react";
+import { User, ChevronDown, GraduationCap, BookOpen, Settings, Calendar, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAvatar } from "@/hooks/useAvatar.jsx";
@@ -48,6 +48,13 @@ export default function MentorLayout({ children }) {
                                 >
                                     <Calendar className="w-4 h-4 mr-2" />
                                     Meetings
+                                </Link>
+                                <Link
+                                    href={route("mentor.proposals.programs.my-programs")}
+                                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors"
+                                >
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    My Programs
                                 </Link>
                             </div>
                         </div>

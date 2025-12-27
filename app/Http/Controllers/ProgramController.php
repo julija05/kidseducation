@@ -22,7 +22,8 @@ class ProgramController extends Controller
      */
     public function index()
     {
-        $programs = Program::active()->withCount('approvedReviews')->get()->map(function ($program) {
+        // Only show fully approved programs on the front-end
+        $programs = Program::active()->approved()->withCount('approvedReviews')->get()->map(function ($program) {
             return [
                 'id' => $program->id,
                 'name' => $program->translated_name,

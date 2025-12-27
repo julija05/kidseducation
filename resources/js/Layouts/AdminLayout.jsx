@@ -6,7 +6,7 @@ import ChatNotifications from "@/Components/Admin/ChatNotifications";
 import { Menu, X, Home, BookOpen, FileText, Users, Calendar, MessageSquare, Settings, LogOut, Bell, ChevronDown, Layers } from "lucide-react";
 
 export default function AdminLayout({ children }) {
-    const { auth, notifications, pendingProposalsCount } = usePage().props;
+    const { auth, notifications, pendingProposalsCount, programProposalsCount } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const handleMarkAsRead = (notificationId) => {
@@ -24,20 +24,26 @@ export default function AdminLayout({ children }) {
     };
 
     const menuItems = [
-        { 
-            name: "Dashboard", 
-            href: route("admin.dashboard"), 
-            icon: Home 
+        {
+            name: "Dashboard",
+            href: route("admin.dashboard"),
+            icon: Home
         },
-        { 
-            name: "Programs", 
-            href: route("admin.programs.index"), 
-            icon: BookOpen 
+        {
+            name: "Programs",
+            href: route("admin.programs.index"),
+            icon: BookOpen
         },
-        { 
-            name: "News", 
-            href: route("admin.news.index"), 
-            icon: FileText 
+        {
+            name: "Program Proposals",
+            href: route("admin.programs.proposals"),
+            icon: Layers,
+            badge: 'programProposals'
+        },
+        {
+            name: "News",
+            href: route("admin.news.index"),
+            icon: FileText
         },
         { 
             name: "Articles & Guides", 
@@ -106,7 +112,16 @@ export default function AdminLayout({ children }) {
                 <nav className="flex-1 px-4 py-4 space-y-2 lg:px-6">
                     {menuItems.map((item) => {
                         const Icon = item.icon;
-                        const showBadge = item.name === 'Mentor Proposals' && pendingProposalsCount > 0;
+                        let badgeCount = 0;
+
+                        if (item.badge === 'programProposals' && programProposalsCount > 0) {
+                            badgeCount = programProposalsCount;
+                        } else if (item.name === 'Mentor Proposals' && pendingProposalsCount > 0) {
+                            badgeCount = pendingProposalsCount;
+                        }
+
+                        const showBadge = badgeCount > 0;
+
                         return (
                             <Link
                                 key={item.name}
@@ -120,7 +135,7 @@ export default function AdminLayout({ children }) {
                                 </div>
                                 {showBadge && (
                                     <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                                        {pendingProposalsCount}
+                                        {badgeCount}
                                     </span>
                                 )}
                             </Link>

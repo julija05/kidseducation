@@ -78,14 +78,15 @@ export default function Dashboard() {
 
 
     // Check if user came from program registration
+    // If there's a pending program, redirect to the program page for enrollment
     useEffect(() => {
         if (pendingProgramId && availablePrograms) {
             const program = availablePrograms.find(
                 (p) => p.id === pendingProgramId
             );
             if (program) {
-                setSelectedProgram(program);
-                setShowEnrollModal(true);
+                // Redirect to the program page where they can enroll
+                router.visit(route("programs.show", program.slug));
             }
         }
     }, [pendingProgramId, availablePrograms]);
