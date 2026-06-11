@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Mentor;
 
 use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentType;
 use App\Constants\ProposalType;
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
@@ -52,15 +53,11 @@ class MentorProposalController extends Controller
         // Load program relationship
         $lesson->load('program');
 
-        // Check if the mentor owns this program
-        if ($lesson->program->proposed_by !== $user->id) {
+        if (! $this->canCreateDirectContent($lesson->program, $user) && ! $this->canProposeProgramChanges($lesson->program, $user)) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Check if program is in content development stage
-        if (!$lesson->program->canAddContent()) {
-            abort(403, 'You can only add resources to programs in content development.');
-        }
+        $isDirectContentEdit = $this->canCreateDirectContent($lesson->program, $user);
 
         return Inertia::render('Mentor/Proposals/CreateResource', [
             'lesson' => [
@@ -73,6 +70,10 @@ class MentorProposalController extends Controller
                     'slug' => $lesson->program->slug,
                 ],
             ],
+            'mode' => $isDirectContentEdit ? 'direct' : 'proposal',
+            'backRoute' => $isDirectContentEdit
+                ? route('mentor.programs.content', $lesson->program->slug)
+                : route('mentor.programs.show', $lesson->program->slug),
         ]);
     }
 
@@ -82,15 +83,10 @@ class MentorProposalController extends Controller
     public function storeResource(Request $request, Lesson $lesson): RedirectResponse
     {
         $user = Auth::user();
+        $lesson->load('program');
 
-        // Check if the mentor owns this program
-        if ($lesson->program->proposed_by !== $user->id) {
+        if (! $this->canCreateDirectContent($lesson->program, $user) && ! $this->canProposeProgramChanges($lesson->program, $user)) {
             abort(403, 'Unauthorized action.');
-        }
-
-        // Check if program is in content development stage
-        if (!$lesson->program->canAddContent()) {
-            return back()->with('error', 'You can only add resources to programs in content development.');
         }
 
         $validated = $request->validate([
@@ -100,40 +96,58 @@ class MentorProposalController extends Controller
             'proposed_youtube_url' => 'nullable|url',
             'proposed_order' => 'nullable|integer',
             'file' => 'nullable|file|max:51200', // 50MB max
+            'mentor_notes' => 'nullable|string',
         ]);
 
-        // Create the resource directly
-        $resourceData = [
+        if ($this->canCreateDirectContent($lesson->program, $user)) {
+            // Create the resource directly
+            $resourceData = [
+                'lesson_id' => $lesson->id,
+                'title' => $validated['proposed_title'],
+                'description' => $validated['proposed_description'] ?? '',
+                'type' => $validated['proposed_resource_type'],
+                'order' => $validated['proposed_order'] ?? 1,
+                'is_downloadable' => true,
+                'is_required' => false,
+            ];
+
+            // Handle YouTube URL
+            if ($validated['proposed_resource_type'] === 'youtube' && isset($validated['proposed_youtube_url'])) {
+                $resourceData['resource_url'] = $validated['proposed_youtube_url'];
+            }
+
+            // Handle file upload
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $path = $file->store('lesson-resources/' . $lesson->id, 'private');
+
+                $resourceData['file_path'] = $path;
+                $resourceData['file_name'] = $file->getClientOriginalName();
+                $resourceData['file_size'] = $file->getSize();
+                $resourceData['mime_type'] = $file->getMimeType();
+            }
+
+            LessonResource::create($resourceData);
+
+            return redirect()->route('mentor.programs.content', $lesson->program->slug)
+                ->with('success', 'Resource added successfully!');
+        }
+
+        $proposalData = array_merge($validated, [
             'lesson_id' => $lesson->id,
-            'title' => $validated['proposed_title'],
-            'description' => $validated['proposed_description'] ?? '',
-            'type' => $validated['proposed_resource_type'],
-            'order' => $validated['proposed_order'] ?? 1,
-            'is_downloadable' => true,
-            'is_required' => false,
-        ];
+            'program_id' => $lesson->program_id,
+            'proposal_type' => ProposalType::RESOURCE_CREATE,
+        ]);
 
-        // Handle YouTube URL
-        if ($validated['proposed_resource_type'] === 'youtube' && isset($validated['proposed_youtube_url'])) {
-            $resourceData['resource_url'] = $validated['proposed_youtube_url'];
-        }
-
-        // Handle file upload
         if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $path = $file->store('lesson-resources/' . $lesson->id, 'private');
-
-            $resourceData['file_path'] = $path;
-            $resourceData['file_name'] = $file->getClientOriginalName();
-            $resourceData['file_size'] = $file->getSize();
-            $resourceData['mime_type'] = $file->getMimeType();
+            $proposalData['proposed_file_path'] = $request->file('file')
+                ->store('resource-proposals/' . $lesson->id, 'private');
         }
 
-        LessonResource::create($resourceData);
+        $this->proposalService->createResourceProposal($user, $proposalData);
 
-        // Redirect back to program content page
-        return redirect()->route('mentor.programs.content', $lesson->program->slug)
-            ->with('success', 'Resource added successfully!');
+        return redirect()->route('mentor.programs.show', $lesson->program->slug)
+            ->with('success', 'Resource proposal submitted for admin review.');
     }
 
     /**
@@ -351,11 +365,19 @@ class MentorProposalController extends Controller
      */
     public function createLesson(Program $program): Response
     {
+        $user = Auth::user();
+
+        if (! $this->canCreateDirectContent($program, $user) && ! $this->canProposeProgramChanges($program, $user)) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // Get existing levels in the program
         $existingLevels = \App\Models\Lesson::where('program_id', $program->id)
             ->distinct('level')
             ->orderBy('level')
             ->pluck('level');
+
+        $isDirectContentEdit = $this->canCreateDirectContent($program, $user);
 
         return Inertia::render('Mentor/Proposals/CreateLesson', [
             'program' => [
@@ -364,6 +386,10 @@ class MentorProposalController extends Controller
                 'slug' => $program->slug,
             ],
             'existingLevels' => $existingLevels,
+            'mode' => $isDirectContentEdit ? 'direct' : 'proposal',
+            'backRoute' => $isDirectContentEdit
+                ? route('mentor.programs.content', $program->slug)
+                : route('mentor.programs.show', $program->slug),
         ]);
     }
 
@@ -374,14 +400,8 @@ class MentorProposalController extends Controller
     {
         $user = Auth::user();
 
-        // Check if the mentor owns this program
-        if ($program->proposed_by !== $user->id) {
+        if (! $this->canCreateDirectContent($program, $user) && ! $this->canProposeProgramChanges($program, $user)) {
             abort(403, 'Unauthorized action.');
-        }
-
-        // Check if program is in content development stage
-        if (!$program->canAddContent()) {
-            return back()->with('error', 'You can only add lessons to programs in content development.');
         }
 
         $validated = $request->validate([
@@ -389,20 +409,30 @@ class MentorProposalController extends Controller
             'proposed_lesson_description' => 'nullable|string',
             'proposed_lesson_level' => 'required|integer|min:1',
             'proposed_lesson_order' => 'nullable|integer',
+            'mentor_notes' => 'nullable|string',
         ]);
 
-        // Create the lesson directly
-        Lesson::create([
+        if ($this->canCreateDirectContent($program, $user)) {
+            // Create the lesson directly
+            Lesson::create([
+                'program_id' => $program->id,
+                'title' => $validated['proposed_lesson_title'],
+                'description' => $validated['proposed_lesson_description'] ?? '',
+                'level' => $validated['proposed_lesson_level'],
+                'order_in_level' => $validated['proposed_lesson_order'] ?? 1,
+            ]);
+
+            return redirect()->route('mentor.programs.content', $program->slug)
+                ->with('success', 'Lesson added successfully!');
+        }
+
+        $this->proposalService->createLessonProposal($user, array_merge($validated, [
             'program_id' => $program->id,
-            'title' => $validated['proposed_lesson_title'],
-            'description' => $validated['proposed_lesson_description'] ?? '',
-            'level' => $validated['proposed_lesson_level'],
-            'order_in_level' => $validated['proposed_lesson_order'] ?? 1,
-        ]);
+            'proposal_type' => ProposalType::LESSON_CREATE,
+        ]));
 
-        // Redirect back to program content page
-        return redirect()->route('mentor.programs.content', $program->slug)
-            ->with('success', 'Lesson added successfully!');
+        return redirect()->route('mentor.programs.show', $program->slug)
+            ->with('success', 'Lesson proposal submitted for admin review.');
     }
 
     /**
@@ -655,5 +685,19 @@ class MentorProposalController extends Controller
             : 'Program resubmitted for initial review! An administrator will review your proposal soon.';
 
         return back()->with('success', $message);
+    }
+
+    private function canCreateDirectContent(Program $program, $user): bool
+    {
+        return $program->proposed_by === $user->id && $program->canAddContent();
+    }
+
+    private function canProposeProgramChanges(Program $program, $user): bool
+    {
+        return $user->enrollments()
+            ->where('program_id', $program->id)
+            ->where('enrollment_type', EnrollmentType::MENTOR)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->exists();
     }
 }

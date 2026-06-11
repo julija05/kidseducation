@@ -6,7 +6,7 @@ import { FileText, ArrowLeft, Loader2, Save } from "lucide-react";
  * CreateResource Component
  * Allows mentors to add resources to lessons in their programs
  */
-export default function CreateResource({ lesson }) {
+export default function CreateResource({ lesson, mode = 'direct', backRoute }) {
     const { data, setData, post, processing, errors } = useForm({
         proposed_title: '',
         proposed_description: '',
@@ -14,7 +14,11 @@ export default function CreateResource({ lesson }) {
         proposed_youtube_url: '',
         proposed_order: '',
         file: null,
+        mentor_notes: '',
     });
+
+    const isProposalMode = mode === 'proposal';
+    const returnUrl = backRoute || route('mentor.programs.show', lesson.program.slug);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -25,18 +29,18 @@ export default function CreateResource({ lesson }) {
 
     return (
         <MentorLayout>
-            <Head title={`Add Resource - ${lesson.title}`} />
+            <Head title={`${isProposalMode ? 'Propose Resource' : 'Add Resource'} - ${lesson.title}`} />
 
             <div className="min-h-screen bg-slate-50 py-8">
                 <div className="max-w-4xl mx-auto px-4">
                     {/* Header */}
                     <div className="mb-8">
                         <button
-                            onClick={() => router.get(route('mentor.programs.content', lesson.program.slug))}
+                            onClick={() => router.get(returnUrl)}
                             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4" />
-                            Back to Program Content
+                            Back to Program Dashboard
                         </button>
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
@@ -44,7 +48,7 @@ export default function CreateResource({ lesson }) {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-black text-slate-900">
-                                    Add New Resource
+                                    {isProposalMode ? 'Propose New Resource' : 'Add New Resource'}
                                 </h1>
                                 <p className="text-slate-600 mt-1">
                                     For lesson: <span className="font-semibold">{lesson.title}</span>
@@ -174,6 +178,24 @@ export default function CreateResource({ lesson }) {
                             )}
                         </div>
 
+                        {isProposalMode && (
+                            <div>
+                                <label className="block text-sm font-bold text-slate-900 mb-2">
+                                    Mentor Notes
+                                </label>
+                                <textarea
+                                    value={data.mentor_notes}
+                                    onChange={(e) => setData('mentor_notes', e.target.value)}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-400 focus:outline-none"
+                                    rows="4"
+                                    placeholder="Explain why this resource should be added..."
+                                />
+                                {errors.mentor_notes && (
+                                    <p className="text-red-600 text-sm mt-1">{errors.mentor_notes}</p>
+                                )}
+                            </div>
+                        )}
+
                         {/* Submit Button */}
                         <div className="flex items-center gap-4 pt-4">
                             <button
@@ -184,18 +206,18 @@ export default function CreateResource({ lesson }) {
                                 {processing ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Saving...
+                                        {isProposalMode ? 'Submitting...' : 'Saving...'}
                                     </>
                                 ) : (
                                     <>
                                         <Save className="w-5 h-5" />
-                                        Save Resource
+                                        {isProposalMode ? 'Submit Proposal' : 'Save Resource'}
                                     </>
                                 )}
                             </button>
                             <button
                                 type="button"
-                                onClick={() => router.get(route('mentor.programs.content', lesson.program.slug))}
+                                onClick={() => router.get(returnUrl)}
                                 className="px-6 py-3 border-2 border-slate-300 hover:border-slate-400 text-slate-700 font-semibold rounded-lg transition-colors"
                             >
                                 Cancel
@@ -205,8 +227,10 @@ export default function CreateResource({ lesson }) {
                         {/* Info Box */}
                         <div className="bg-emerald-50 border-2 border-emerald-200 rounded-lg p-4">
                             <p className="text-sm text-emerald-900">
-                                <span className="font-semibold">Note:</span> This resource will be added directly to your program.
-                                It will be reviewed when you submit your program for final approval.
+                                <span className="font-semibold">Note:</span>{' '}
+                                {isProposalMode
+                                    ? 'This resource proposal will be sent to the admin team for review before it appears in the lesson.'
+                                    : 'This resource will be added directly to your program. It will be reviewed when you submit your program for final approval.'}
                             </p>
                         </div>
                     </form>

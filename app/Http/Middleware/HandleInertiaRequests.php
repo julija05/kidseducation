@@ -57,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
                     'avatar_path' => $user->avatar_path,
+                    'can_use_abacus' => $user->canUseAbacusSimulator(),
                 ] : null,
             ],
             'flash' => [

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentType;
 use App\Notifications\CustomResetPassword;
 use App\Notifications\CustomVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -123,6 +125,26 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->programs()
             ->wherePivot('status', 'active')
             ->first();
+    }
+
+    public function canUseAbacusSimulator(): bool
+    {
+        if (! $this->hasAnyRole(['student', 'mentor'])) {
+            return false;
+        }
+
+        $enrollmentType = $this->hasRole('mentor')
+            ? EnrollmentType::MENTOR
+            : EnrollmentType::STUDENT;
+
+        return $this->enrollments()
+            ->where('enrollment_type', $enrollmentType)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->whereHas('program', function ($query) {
+                $query->where('slug', 'like', '%mental-arithmetic%')
+                    ->orWhere('name', 'like', '%Mental Arithmetic%');
+            })
+            ->exists();
     }
 
     /**

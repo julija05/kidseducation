@@ -2,7 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentType;
+use App\Constants\ProposalStatus;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Enrollment;
+use App\Models\Meeting;
+use App\Models\ResourceProposal;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,11 +22,55 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request): Response|RedirectResponse
     {
+        if ($request->user()?->hasRole('mentor')) {
+            return Redirect::route('mentor.profile.edit');
+        }
+
         return $this->createView('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+        ]);
+    }
+
+    /**
+     * Display the mentor-safe profile form.
+     */
+    public function editMentor(Request $request): Response
+    {
+        $user = $request->user();
+        $mentorProgramIds = $user->enrollments()
+            ->where('enrollment_type', EnrollmentType::MENTOR)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->pluck('program_id');
+
+        $assignedStudents = Enrollment::whereIn('program_id', $mentorProgramIds)
+            ->where('enrollment_type', EnrollmentType::STUDENT)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->where(function ($query) use ($user) {
+                $query->where('assigned_mentor_id', $user->id)
+                    ->orWhere(function ($query) use ($user) {
+                        $query->whereNull('assigned_mentor_id')
+                            ->where('referred_by_mentor_id', $user->id);
+                    });
+            })
+            ->distinct('user_id')
+            ->count('user_id');
+
+        return $this->createView('Mentor/Profile/Edit', [
+            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'status' => session('status'),
+            'mentorStats' => [
+                'teaching_programs' => $mentorProgramIds->count(),
+                'assigned_students' => $assignedStudents,
+                'scheduled_meetings' => Meeting::where('mentor_id', $user->id)
+                    ->where('status', 'scheduled')
+                    ->count(),
+                'pending_proposals' => ResourceProposal::where('proposed_by', $user->id)
+                    ->where('status', ProposalStatus::PENDING)
+                    ->count(),
+            ],
         ]);
     }
 
@@ -75,7 +125,9 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        $profileRoute = $user->hasRole('mentor') ? 'mentor.profile.edit' : 'profile.edit';
+
+        return Redirect::route($profileRoute)->with('status', 'profile-updated');
     }
 
     /**

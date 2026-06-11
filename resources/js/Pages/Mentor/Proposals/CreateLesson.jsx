@@ -7,7 +7,7 @@ import { useState } from "react";
  * CreateLesson Component
  * Allows mentors to add lessons to their programs (including at new levels)
  */
-export default function CreateLesson({ program, existingLevels }) {
+export default function CreateLesson({ program, existingLevels, mode = 'direct', backRoute }) {
     // State to track if user wants to create a new level
     const [createNewLevel, setCreateNewLevel] = useState(existingLevels.length === 0);
     const suggestedNewLevel = existingLevels.length > 0 ? Math.max(...existingLevels) + 1 : 1;
@@ -17,7 +17,11 @@ export default function CreateLesson({ program, existingLevels }) {
         proposed_lesson_description: '',
         proposed_lesson_level: existingLevels.length > 0 ? existingLevels[0] : 1,
         proposed_lesson_order: '',
+        mentor_notes: '',
     });
+
+    const isProposalMode = mode === 'proposal';
+    const returnUrl = backRoute || route('mentor.programs.show', program.slug);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -38,18 +42,18 @@ export default function CreateLesson({ program, existingLevels }) {
 
     return (
         <MentorLayout>
-            <Head title={`Add Lesson - ${program.name}`} />
+            <Head title={`${isProposalMode ? 'Propose Lesson' : 'Add Lesson'} - ${program.name}`} />
 
             <div className="min-h-screen bg-slate-50 py-8">
                 <div className="max-w-4xl mx-auto px-4">
                     {/* Header */}
                     <div className="mb-8">
                         <button
-                            onClick={() => router.get(route('mentor.programs.content', program.slug))}
+                            onClick={() => router.get(returnUrl)}
                             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4" />
-                            Back to Program Content
+                            Back to Program Dashboard
                         </button>
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
@@ -57,7 +61,7 @@ export default function CreateLesson({ program, existingLevels }) {
                             </div>
                             <div>
                                 <h1 className="text-3xl font-black text-slate-900">
-                                    Add New Lesson
+                                    {isProposalMode ? 'Propose New Lesson' : 'Add New Lesson'}
                                 </h1>
                                 <p className="text-slate-600 mt-1">
                                     For program: <span className="font-semibold">{program.name}</span>
@@ -203,6 +207,24 @@ export default function CreateLesson({ program, existingLevels }) {
                             </p>
                         </div>
 
+                        {isProposalMode && (
+                            <div>
+                                <label className="block text-sm font-bold text-slate-900 mb-2">
+                                    Mentor Notes
+                                </label>
+                                <textarea
+                                    value={data.mentor_notes}
+                                    onChange={(e) => setData('mentor_notes', e.target.value)}
+                                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-400 focus:outline-none"
+                                    rows="4"
+                                    placeholder="Explain why this lesson should be added or what students need from it..."
+                                />
+                                {errors.mentor_notes && (
+                                    <p className="text-red-600 text-sm mt-1">{errors.mentor_notes}</p>
+                                )}
+                            </div>
+                        )}
+
                         {/* Submit Button */}
                         <div className="flex items-center gap-4 pt-4">
                             <button
@@ -213,18 +235,18 @@ export default function CreateLesson({ program, existingLevels }) {
                                 {processing ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Saving...
+                                        {isProposalMode ? 'Submitting...' : 'Saving...'}
                                     </>
                                 ) : (
                                     <>
                                         <Save className="w-5 h-5" />
-                                        Save Lesson
+                                        {isProposalMode ? 'Submit Proposal' : 'Save Lesson'}
                                     </>
                                 )}
                             </button>
                             <button
                                 type="button"
-                                onClick={() => router.get(route('mentor.programs.content', program.slug))}
+                                onClick={() => router.get(returnUrl)}
                                 className="px-6 py-3 border-2 border-slate-300 hover:border-slate-400 text-slate-700 font-semibold rounded-lg transition-colors"
                             >
                                 Cancel
@@ -234,9 +256,10 @@ export default function CreateLesson({ program, existingLevels }) {
                         {/* Info Box */}
                         <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                             <p className="text-sm text-blue-900">
-                                <span className="font-semibold">Note:</span> This lesson will be added directly to your program.
-                                After saving, you can add resources and quizzes to this lesson.
-                                Everything will be reviewed when you submit your program for final approval.
+                                <span className="font-semibold">Note:</span>{' '}
+                                {isProposalMode
+                                    ? 'This lesson proposal will be sent to the admin team for review before it appears in the program.'
+                                    : 'This lesson will be added directly to your program. After saving, you can add resources and quizzes to this lesson. Everything will be reviewed when you submit your program for final approval.'}
                             </p>
                         </div>
                     </form>

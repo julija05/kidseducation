@@ -34,8 +34,8 @@ class MentorProgramController extends Controller
             abort(403, 'You are not authorized to teach this program.');
         }
 
-        // Get students enrolled in this program using repository
-        $students = $this->enrollmentRepository->getStudentsInProgram($program->id)
+        // Get only students assigned to this mentor in this program
+        $students = $this->enrollmentRepository->getStudentsForMentor($user, [$program->id])
             ->map(function ($enrollment) {
                 return [
                     'id' => $enrollment->user->id,

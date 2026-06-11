@@ -137,6 +137,7 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 // Mentor routes
 Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->prefix('mentor')->name('mentor.')->group(function () {
     Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [ProfileController::class, 'editMentor'])->name('profile.edit');
 
     // Mentor application routes (apply to teach programs)
     Route::post('/apply/{program:slug}', [MentorDashboardController::class, 'applyToTeach'])->name('apply');

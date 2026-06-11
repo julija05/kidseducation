@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Mentor;
 
 use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentType;
+use App\Contracts\EnrollmentRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
 use App\Models\Meeting;
@@ -14,6 +15,10 @@ use Inertia\Inertia;
 
 class MeetingController extends Controller
 {
+    public function __construct(
+        private EnrollmentRepositoryInterface $enrollmentRepository
+    ) {}
+
     /**
      * Display a listing of the mentor's meetings
      */
@@ -85,12 +90,8 @@ class MeetingController extends Controller
             ->where('approval_status', ApprovalStatus::APPROVED)
             ->pluck('program_id');
 
-        // Get all students enrolled in those programs
-        $students = Enrollment::whereIn('program_id', $mentorPrograms)
-            ->where('enrollment_type', EnrollmentType::STUDENT)
-            ->where('approval_status', ApprovalStatus::APPROVED)
-            ->with('user')
-            ->get()
+        // Get only students assigned to this mentor in the programs they teach
+        $students = $this->enrollmentRepository->getStudentsForMentor($mentor, $mentorPrograms->all())
             ->pluck('user')
             ->unique('id')
             ->map(function ($student) {
@@ -133,14 +134,13 @@ class MeetingController extends Controller
             ->where('approval_status', ApprovalStatus::APPROVED)
             ->pluck('program_id');
 
-        $validStudents = Enrollment::whereIn('program_id', $mentorPrograms)
+        $validStudents = $this->enrollmentRepository->getStudentsForMentor($mentor, $mentorPrograms->all())
             ->whereIn('user_id', $validated['student_ids'])
-            ->where('enrollment_type', EnrollmentType::STUDENT)
-            ->where('approval_status', ApprovalStatus::APPROVED)
-            ->pluck('user_id');
+            ->pluck('user_id')
+            ->unique();
 
         if ($validStudents->count() !== count($validated['student_ids'])) {
-            return back()->withErrors(['student_ids' => 'One or more selected students are not enrolled in programs you teach.']);
+            return back()->withErrors(['student_ids' => 'One or more selected students are not assigned to your mentorship.']);
         }
 
         // Set max_participants based on meeting type and actual participants

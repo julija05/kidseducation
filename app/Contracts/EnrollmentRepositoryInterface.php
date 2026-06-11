@@ -48,10 +48,37 @@ interface EnrollmentRepositoryInterface
     public function countStudentsInProgram(int $programId): int;
 
     /**
+     * Count students assigned to a mentor in a program
+     *
+     * @param int $programId
+     * @param User $mentor
+     * @return int
+     */
+    public function countStudentsForMentorInProgram(int $programId, User $mentor): int;
+
+    /**
      * Get average progress for program
      *
      * @param int $programId
      * @return float
      */
     public function getAverageProgress(int $programId): float;
+
+    /**
+     * Get average progress for students assigned to a mentor in a program
+     *
+     * @param int $programId
+     * @param User $mentor
+     * @return float
+     */
+    public function getAverageProgressForMentorInProgram(int $programId, User $mentor): float;
+
+    /**
+     * Get students assigned to a mentor across programs
+     *
+     * @param User $mentor
+     * @param array<int> $programIds
+     * @return Collection<Enrollment>
+     */
+    public function getStudentsForMentor(User $mentor, array $programIds = []): Collection;
 }

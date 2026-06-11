@@ -40,13 +40,13 @@ class MentorDashboardController extends Controller
 
         // Get mentor's enrollments with programs and student counts using repository
         $enrollments = $this->enrollmentRepository->getActiveEnrollments($user, EnrollmentType::MENTOR)
-            ->map(function ($enrollment) {
+            ->map(function ($enrollment) use ($user) {
                 return [
                     'id' => $enrollment->id,
                     'program' => $enrollment->program,
                     'enrolled_at' => $enrollment->enrolled_at,
-                    'students_count' => $this->enrollmentRepository->countStudentsInProgram($enrollment->program_id),
-                    'average_progress' => $this->enrollmentRepository->getAverageProgress($enrollment->program_id),
+                    'students_count' => $this->enrollmentRepository->countStudentsForMentorInProgram($enrollment->program_id, $user),
+                    'average_progress' => $this->enrollmentRepository->getAverageProgressForMentorInProgram($enrollment->program_id, $user),
                 ];
             });
 
@@ -61,7 +61,7 @@ class MentorDashboardController extends Controller
 
         // Get all students across all programs the mentor teaches using repository
         $programIds = $enrollments->pluck('program.id')->toArray();
-        $allStudents = $this->enrollmentRepository->getStudentsAcrossPrograms($programIds)
+        $allStudents = $this->enrollmentRepository->getStudentsForMentor($user, $programIds)
             ->map(function ($enrollment) {
                 return [
                     'id' => $enrollment->user->id,
@@ -116,6 +116,7 @@ class MentorDashboardController extends Controller
             'referralCode' => $referralCode,
             'referredStudentsCount' => $referredStudentsCount,
             'upcomingMeetings' => $upcomingMeetings,
+            'canUseAbacus' => $user->canUseAbacusSimulator(),
         ]);
     }
 
