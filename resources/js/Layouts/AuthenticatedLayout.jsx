@@ -50,6 +50,16 @@ function AuthenticatedLayoutContentSimple({
         if (hasAdminRole) {
             return "admin.dashboard";
         }
+
+        const hasMentorRole = auth.user.roles?.includes('mentor');
+        if (hasMentorRole) {
+            return "mentor.dashboard";
+        }
+
+        const hasParentRole = auth.user.roles?.includes('parent');
+        if (hasParentRole) {
+            return "parent.dashboard";
+        }
         
         // Default to student dashboard
         return "dashboard";

@@ -20,6 +20,16 @@ trait CreatesRoles
         if (! Role::where('name', 'admin')->where('guard_name', 'web')->exists()) {
             Role::create(['name' => 'admin', 'guard_name' => 'web']);
         }
+
+        // Create mentor role if it doesn't exist
+        if (! Role::where('name', 'mentor')->where('guard_name', 'web')->exists()) {
+            Role::create(['name' => 'mentor', 'guard_name' => 'web']);
+        }
+
+        // Create parent role if it doesn't exist
+        if (! Role::where('name', 'parent')->where('guard_name', 'web')->exists()) {
+            Role::create(['name' => 'parent', 'guard_name' => 'web']);
+        }
     }
 
     /**

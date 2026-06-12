@@ -18,6 +18,7 @@ class RoleSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
         $mentorRole = Role::firstOrCreate(['name' => 'mentor', 'guard_name' => 'web']);
+        $parentRole = Role::firstOrCreate(['name' => 'parent', 'guard_name' => 'web']);
 
         // Create permissions (you can add more as needed)
         $permissions = [

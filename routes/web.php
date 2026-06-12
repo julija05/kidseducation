@@ -36,12 +36,14 @@ use App\Http\Controllers\LessonController;
 use App\Http\Controllers\LessonResourceController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\Student\EnrollmentController;
 use App\Http\Controllers\Student\QuizController;
 use App\Http\Controllers\Student\ReviewController;
 use App\Http\Controllers\TestEmailController;
+use App\Support\RoleRedirect;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -80,10 +82,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/lesson-resources/{lessonResource}/mark-viewed', [LessonResourceController::class, 'markAsViewed'])->name('lesson-resources.mark-viewed');
 });
 
+Route::middleware(['auth', 'verified', 'check.user.status'])->get('/dashboard', function (Request $request, DashboardController $controller) {
+    $dashboardRoute = RoleRedirect::routeNameFor($request->user());
+
+    if ($dashboardRoute !== 'dashboard') {
+        return redirect()->route($dashboardRoute);
+    }
+
+    return $controller->index($request);
+})->name('dashboard');
+
 // Student dashboard
 Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
     Route::post('/programs/{program:slug}/enroll', [EnrollmentController::class, 'store'])->name('programs.enroll');
     Route::post('/enrollments/{enrollment}/cancel', [EnrollmentController::class, 'cancel'])->name('enrollments.cancel');
 
@@ -132,6 +142,12 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
         Route::post('/{participant}/confirm', [\App\Http\Controllers\Student\StudentMeetingController::class, 'confirm'])->name('confirm');
         Route::post('/{participant}/decline', [\App\Http\Controllers\Student\StudentMeetingController::class, 'decline'])->name('decline');
     });
+});
+
+// Parent routes
+Route::middleware(['auth', 'verified', 'role:parent', 'check.user.status'])->prefix('parent')->name('parent.')->group(function () {
+    Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/children/{child}', [ParentDashboardController::class, 'showChild'])->name('children.show');
 });
 
 // Mentor routes

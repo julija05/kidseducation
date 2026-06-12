@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\MentorRegisteredUserController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\ParentRegisteredUserController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -24,6 +25,12 @@ Route::middleware('guest')->group(function () {
         ->name('mentor.register');
 
     Route::post('mentor/register', [MentorRegisteredUserController::class, 'store']);
+
+    // Parent registration
+    Route::get('parent/register', [ParentRegisteredUserController::class, 'create'])
+        ->name('parent.register');
+
+    Route::post('parent/register', [ParentRegisteredUserController::class, 'store']);
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

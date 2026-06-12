@@ -95,6 +95,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ClassSchedule::class, 'student_id');
     }
 
+    public function children(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'parent_child', 'parent_id', 'child_id')
+            ->withTimestamps();
+    }
+
+    public function parents(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'parent_child', 'child_id', 'parent_id')
+            ->withTimestamps();
+    }
+
     public function teachingClasses(): HasMany
     {
         return $this->hasMany(ClassSchedule::class, 'admin_id');
@@ -118,6 +130,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isMentor(): bool
     {
         return $this->hasRole('mentor');
+    }
+
+    public function isParent(): bool
+    {
+        return $this->hasRole('parent');
     }
 
     public function getActiveProgram()

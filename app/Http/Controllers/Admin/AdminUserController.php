@@ -117,6 +117,7 @@ class AdminUserController extends Controller
             'blocked' => User::blocked()->count(),
             'suspended' => User::suspended()->count(),
             'students' => User::role('student')->count(),
+            'parents' => User::role('parent')->count(),
             'admins' => User::role('admin')->count(),
         ];
 

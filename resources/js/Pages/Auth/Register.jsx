@@ -21,10 +21,15 @@ import {
 import registerIllustration from "../../../assets/kid-no-bg.png";
 import { useTranslation } from "@/hooks/useTranslation";
 
-export default function Register({ auth }) {
+export default function Register({
+    auth,
+    accountType = "student",
+    registrationRoute = "register",
+}) {
     const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const isParentRegistration = accountType === "parent";
 
     const { data, setData, post, processing, errors, reset } = useForm({
         first_name: "",
@@ -40,7 +45,7 @@ export default function Register({ auth }) {
         console.log("Registration data:", data);
         console.log("Current errors:", errors);
 
-        post(route("register"), {
+        post(route(registrationRoute), {
             onFinish: () => reset("password", "password_confirmation"),
             onError: (errors) => {
                 console.log("Registration errors received:", errors);
@@ -53,7 +58,7 @@ export default function Register({ auth }) {
 
     return (
         <>
-            <Head title="Join Abacoding - Register" />
+            <Head title={isParentRegistration ? "Parent Registration" : "Join Abacoding - Register"} />
             <NavBar auth={auth} />
 
             <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden px-4 py-12">
@@ -178,10 +183,12 @@ export default function Register({ auth }) {
                             className="text-center mb-8"
                         >
                             <h2 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-                                {t("auth.register.title")}
+                                {isParentRegistration ? "Create a parent account" : t("auth.register.title")}
                             </h2>
                             <p className="text-md text-gray-600 mb-2">
-                                {t("auth.register.subtitle")}
+                                {isParentRegistration
+                                    ? "Track your child's learning progress from your own dashboard."
+                                    : t("auth.register.subtitle")}
                             </p>
                             <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-auto"></div>
                         </motion.div>
@@ -480,7 +487,9 @@ export default function Register({ auth }) {
                                     ) : (
                                         <>
                                             <UserPlus className="w-5 h-5" />
-                                            {t("auth.register.create_account")}
+                                            {isParentRegistration
+                                                ? "Create parent account"
+                                                : t("auth.register.create_account")}
                                         </>
                                     )}
                                 </PrimaryButton>

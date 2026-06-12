@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
@@ -37,6 +39,27 @@ class RegistrationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_parent_users_can_register(): void
+    {
+        Role::where('name', 'parent')->where('guard_name', 'web')->delete();
+
+        $response = $this->post('/parent/register', [
+            'first_name' => 'Parent',
+            'last_name' => 'User',
+            'email' => 'parent@example.com',
+            'password' => 'StrongPass123!',
+            'password_confirmation' => 'StrongPass123!',
+        ]);
+
+        $parent = User::where('email', 'parent@example.com')->first();
+
+        $this->assertNotNull($parent);
+        $this->assertAuthenticatedAs($parent);
+        $this->assertTrue($parent->hasRole('parent'));
+        $this->assertDatabaseHas('roles', ['name' => 'parent', 'guard_name' => 'web']);
+        $response->assertRedirect(route('parent.dashboard', absolute: false));
     }
 
     public function test_registration_requires_strong_password(): void

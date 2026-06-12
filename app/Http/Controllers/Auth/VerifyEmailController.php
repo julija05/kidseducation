@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\RoleRedirect;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,12 +36,7 @@ class VerifyEmailController extends Controller
                 Auth::login($user);
             }
 
-            // Check if this is a demo account
-            if ($user->isDemoAccount()) {
-                return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
-            }
-
-            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+            return $this->redirectAfterVerification($request, $user);
         }
 
         // Mark as verified
@@ -53,11 +49,17 @@ class VerifyEmailController extends Controller
             Auth::login($user);
         }
 
-        // Check if this is a demo account
-        if ($user->isDemoAccount()) {
-            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        return $this->redirectAfterVerification($request, $user);
+    }
+
+    private function redirectAfterVerification(Request $request, User $user): RedirectResponse
+    {
+        $routeName = RoleRedirect::routeNameFor($user);
+
+        if ($routeName !== 'dashboard') {
+            $request->session()->forget('url.intended');
         }
 
-        return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        return redirect()->route($routeName, ['verified' => 1]);
     }
 }
