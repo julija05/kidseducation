@@ -16,6 +16,7 @@ class ParentDashboardController extends Controller
 
         return Inertia::render('Parent/Dashboard', [
             'children' => $this->childrenFor($parent),
+            'childProfiles' => $this->childProfilesFor($parent),
         ]);
     }
 
@@ -76,6 +77,32 @@ class ParentDashboardController extends Controller
                     ] : null,
                 ];
             })->values(),
+        ];
+    }
+
+    private function childProfilesFor(User $parent)
+    {
+        if (! Schema::hasTable('child_profiles')) {
+            return collect();
+        }
+
+        return $parent->childProfiles()
+            ->latest()
+            ->get()
+            ->map(fn ($profile) => $this->formatChildProfile($profile))
+            ->values();
+    }
+
+    private function formatChildProfile($profile): array
+    {
+        return [
+            'id' => $profile->id,
+            'child_name' => $profile->child_name,
+            'age' => $profile->age,
+            'grade_class' => $profile->grade_class,
+            'status' => $profile->status,
+            'notes' => $profile->notes,
+            'created_at' => $profile->created_at,
         ];
     }
 }

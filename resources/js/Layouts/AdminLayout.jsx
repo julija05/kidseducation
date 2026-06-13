@@ -70,6 +70,11 @@ export default function AdminLayout({ children }) {
             href: route("admin.enrollments.index"),
             icon: Users
         },
+        {
+            name: "Child Profiles",
+            href: route("admin.child-profiles.index"),
+            icon: Users
+        },
         { 
             name: "User Management", 
             href: route("admin.users.index"), 

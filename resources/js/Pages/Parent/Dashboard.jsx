@@ -4,6 +4,7 @@ import {
     ArrowRight,
     BookOpen,
     GraduationCap,
+    Plus,
     TrendingUp,
     Users,
 } from "lucide-react";
@@ -17,7 +18,7 @@ const averageProgress = (children) => {
     );
 };
 
-export default function Dashboard({ children = [] }) {
+export default function Dashboard({ children = [], childProfiles = [] }) {
     const totalEnrollments = children.reduce((sum, child) => sum + (child.enrollments?.length || 0), 0);
     const progress = averageProgress(children);
 
@@ -37,13 +38,66 @@ export default function Dashboard({ children = [] }) {
                                 View the students linked to your parent account and follow their program progress.
                             </p>
                         </div>
+                        <Link
+                            href={route("parent.child-profiles.create")}
+                            className="inline-flex w-fit items-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add child profile
+                        </Link>
                     </div>
 
                     <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                        <Metric icon={Users} label="Linked children" value={children.length} />
+                        <Metric icon={Users} label="Child profiles" value={childProfiles.length} />
                         <Metric icon={BookOpen} label="Program enrollments" value={totalEnrollments} tone="blue" />
                         <Metric icon={TrendingUp} label="Average progress" value={`${progress}%`} tone="emerald" />
                     </div>
+                </section>
+
+                <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-slate-950">Child profiles</h2>
+                            <p className="mt-1 text-sm text-slate-600">Profiles do not require a separate child login.</p>
+                        </div>
+                        <Link
+                            href={route("parent.child-profiles.create")}
+                            className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+                        >
+                            <Plus className="h-4 w-4" />
+                            New profile
+                        </Link>
+                    </div>
+
+                    {childProfiles.length ? (
+                        <div className="divide-y divide-slate-200">
+                            {childProfiles.map((profile) => (
+                                <div
+                                    key={profile.id}
+                                    className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_120px_140px_120px]"
+                                >
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-slate-950">{profile.child_name}</p>
+                                        <p className="mt-1 line-clamp-1 text-sm text-slate-600">
+                                            {profile.notes || "No notes added."}
+                                        </p>
+                                    </div>
+                                    <ChildStat icon={Users} label="Age" value={profile.age ?? "-"} />
+                                    <ChildStat icon={BookOpen} label="Grade/Class" value={profile.grade_class || "-"} />
+                                    <div className="flex items-center">
+                                        <StatusBadge status={profile.status} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="px-5 py-10 text-center">
+                            <h3 className="text-base font-semibold text-slate-950">No child profiles yet</h3>
+                            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+                                Add a child profile so the admin team can review and manage the child record.
+                            </p>
+                        </div>
+                    )}
                 </section>
 
                 <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -132,5 +186,20 @@ function ChildStat({ icon: Icon, label, value }) {
                 <p className="text-sm font-semibold text-slate-950">{value}</p>
             </div>
         </div>
+    );
+}
+
+function StatusBadge({ status }) {
+    const tones = {
+        pending: "bg-amber-50 text-amber-700 ring-amber-200",
+        approved: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+        rejected: "bg-red-50 text-red-700 ring-red-200",
+        waitlist: "bg-blue-50 text-blue-700 ring-blue-200",
+    };
+
+    return (
+        <span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold capitalize ring-1 ${tones[status] || tones.pending}`}>
+            {status}
+        </span>
     );
 }

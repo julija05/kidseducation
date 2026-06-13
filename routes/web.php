@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminArticleController;
+use App\Http\Controllers\Admin\AdminChildProfileController;
 use App\Http\Controllers\Admin\AdminChatController;
 use App\Http\Controllers\Admin\AdminClassScheduleController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\LessonResourceController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ParentDashboardController;
+use App\Http\Controllers\ParentChildProfileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\Student\EnrollmentController;
@@ -148,6 +150,8 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 Route::middleware(['auth', 'verified', 'role:parent', 'check.user.status'])->prefix('parent')->name('parent.')->group(function () {
     Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
     Route::get('/children/{child}', [ParentDashboardController::class, 'showChild'])->name('children.show');
+    Route::get('/child-profiles/create', [ParentChildProfileController::class, 'create'])->name('child-profiles.create');
+    Route::post('/child-profiles', [ParentChildProfileController::class, 'store'])->name('child-profiles.store');
 });
 
 // Mentor routes
@@ -273,6 +277,7 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::resource('programs', AdminProgramController::class);
     Route::resource('news', AdminNewsController::class);
     Route::resource('articles', AdminArticleController::class);
+    Route::resource('child-profiles', AdminChildProfileController::class)->only(['index', 'show']);
 
     // Program Lesson Management Routes
     Route::prefix('programs/{program}/lessons')->name('programs.lessons.')->group(function () {
