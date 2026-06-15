@@ -39,6 +39,7 @@ class LessonController extends Controller
         ]);
         
         $user = Auth::user();
+        $this->denyParentAccess($user);
 
         // Check if user is suspended - deny access to lessons
         if ($user->isSuspended()) {
@@ -155,6 +156,7 @@ class LessonController extends Controller
     public function start(Request $request, Lesson $lesson)
     {
         $user = $request->user();
+        $this->denyParentAccess($user);
 
         // PRIORITY 1: Check for regular enrollment first (trumps demo access)
         if ($this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
@@ -208,6 +210,7 @@ class LessonController extends Controller
         ]);
 
         $user = $request->user();
+        $this->denyParentAccess($user);
 
         if (! $this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
             return response()->json(['error' => 'Not enrolled or approved in this program'], 403);
@@ -257,6 +260,7 @@ class LessonController extends Controller
         ]);
 
         $user = $request->user();
+        $this->denyParentAccess($user);
 
         // PRIORITY 1: Check for regular enrollment first (trumps demo access)
         if ($this->enrollmentRepository->userHasActiveApprovedEnrollment($user, $lesson->program_id)) {
@@ -373,5 +377,12 @@ class LessonController extends Controller
         ]);
 
         return $shouldPrompt;
+    }
+
+    private function denyParentAccess($user): void
+    {
+        if ($user?->hasRole('parent')) {
+            abort(403);
+        }
     }
 }

@@ -19,6 +19,7 @@ class LessonResourceController extends Controller
     public function download(LessonResource $lessonResource)
     {
         $user = Auth::user();
+        $this->denyParentAccess($user);
 
         // Validate access
         $this->fileService->validateAccess($lessonResource, $user);
@@ -50,6 +51,7 @@ class LessonResourceController extends Controller
     public function preview(LessonResource $lessonResource)
     {
         $user = Auth::user();
+        $this->denyParentAccess($user);
 
         // Validate access
         $this->fileService->validateAccess($lessonResource, $user);
@@ -60,6 +62,7 @@ class LessonResourceController extends Controller
     public function serve(LessonResource $lessonResource, Request $request)
     {
         $user = Auth::user();
+        $this->denyParentAccess($user);
 
         // Validate access
         $this->fileService->validateAccess($lessonResource, $user);
@@ -72,6 +75,7 @@ class LessonResourceController extends Controller
     public function stream(LessonResource $lessonResource)
     {
         $user = Auth::user();
+        $this->denyParentAccess($user);
 
         // Validate access
         $this->fileService->validateAccess($lessonResource, $user);
@@ -82,6 +86,7 @@ class LessonResourceController extends Controller
     public function markAsViewed(Request $request, LessonResource $lessonResource)
     {
         $user = Auth::user();
+        $this->denyParentAccess($user);
 
         $result = $this->resourceService->markResourceAsViewed($lessonResource, $user);
 
@@ -119,5 +124,12 @@ class LessonResourceController extends Controller
         }
 
         return 'attachment';
+    }
+
+    private function denyParentAccess($user): void
+    {
+        if ($user?->hasRole('parent')) {
+            abort(403);
+        }
     }
 }

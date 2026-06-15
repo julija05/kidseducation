@@ -68,8 +68,7 @@ Route::post('/debug/language-preference', function (Request $request) {
     return back()->with('success', 'Debug route hit successfully');
 })->middleware('auth');
 
-// Individual lesson routes - accessible by both students and demo users
-// Temporarily disable ALL middleware for debugging
+// Individual lesson routes - accessible by students, mentors, and demo users.
 Route::middleware(['auth'])->group(function () {
     Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
     Route::post('/lessons/{lesson}/start', [LessonController::class, 'start'])->name('lessons.start');
@@ -147,7 +146,7 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 });
 
 // Parent routes
-Route::middleware(['auth', 'role:parent', 'check.user.status'])->prefix('parent')->name('parent.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:parent', 'check.user.status'])->prefix('parent')->name('parent.')->group(function () {
     Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
     Route::get('/children/{child}', [ParentDashboardController::class, 'showChild'])->name('children.show');
     Route::get('/child-profiles/create', [ParentChildProfileController::class, 'create'])->name('child-profiles.create');

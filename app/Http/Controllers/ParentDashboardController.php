@@ -170,7 +170,7 @@ class ParentDashboardController extends Controller
             'next_live_class' => $this->formatSchedule($nextClass),
             'homework_status' => $this->homeworkStatusFrom($sessionData),
             'progress' => $activeEnrollment['progress'] ?? 0,
-            'latest_mentor_note' => $latestCompletedClass?->session_notes,
+            'latest_mentor_note' => $this->parentVisibleMentorNoteFrom($sessionData),
             'latest_weekly_report' => $this->weeklyReportFrom($sessionData),
             'rejection_note' => $applicationStatus === 'rejected'
                 ? ($profile['enrollment']['rejection_reason'] ?? null)
@@ -279,6 +279,14 @@ class ParentDashboardController extends Controller
         return $sessionData['weekly_report']
             ?? $sessionData['report']
             ?? $sessionData['weeklyReport']
+            ?? null;
+    }
+
+    private function parentVisibleMentorNoteFrom(array $sessionData): ?string
+    {
+        return $sessionData['parent_note']
+            ?? $sessionData['mentor_note_for_parent']
+            ?? $sessionData['public_mentor_note']
             ?? null;
     }
 }
