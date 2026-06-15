@@ -13,8 +13,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
@@ -36,16 +36,6 @@ class ParentChildProfileController extends Controller
     {
         $validated = $request->validate([
             'child_name' => ['required', 'string', 'max:191'],
-            'child_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'child_password' => [
-                'required',
-                'confirmed',
-                Password::min(8)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols(),
-            ],
             'program_id' => [
                 'required',
                 Rule::exists('programs', 'id')->where(fn ($query) => $query
@@ -62,13 +52,16 @@ class ParentChildProfileController extends Controller
             $parent = $request->user();
             $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
             [$firstName, $lastName] = $this->splitName($validated['child_name']);
+            $username = $this->generateUniqueChildUsername($validated['child_name']);
+            $password = $this->generateChildPassword();
 
             $child = User::create([
                 'name' => $validated['child_name'],
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'email' => $validated['child_email'],
-                'password' => Hash::make($validated['child_password']),
+                'email' => "{$username}@children.abacoding.local",
+                'username' => $username,
+                'password' => Hash::make($password),
                 'language_preference' => $parent->language_preference ?? app()->getLocale(),
                 'language_selected' => true,
             ]);
@@ -92,6 +85,8 @@ class ParentChildProfileController extends Controller
                 'program_id' => $validated['program_id'],
                 'enrollment_id' => $enrollment->id,
                 'child_name' => $validated['child_name'],
+                'child_username' => $username,
+                'child_generated_password' => $password,
                 'age' => $validated['age'] ?? null,
                 'grade_class' => $validated['grade_class'] ?? null,
                 'status' => ChildProfile::STATUS_PENDING,
@@ -107,12 +102,14 @@ class ParentChildProfileController extends Controller
     {
         abort_unless($childProfile->parent_user_id === $request->user()->id, 404);
 
-        $childProfile->load(['program:id,name,description,price', 'enrollment:id,approval_status,status']);
+        $childProfile->load(['child:id,username', 'program:id,name,description,price', 'enrollment:id,approval_status,status']);
 
         return Inertia::render('Parent/ChildProfiles/Pending', [
             'childProfile' => [
                 'id' => $childProfile->id,
                 'child_name' => $childProfile->child_name,
+                'child_username' => $childProfile->child_username ?: $childProfile->child?->username,
+                'child_generated_password' => $childProfile->child_generated_password,
                 'status' => $childProfile->status,
                 'program' => $childProfile->program,
                 'enrollment' => $childProfile->enrollment,
@@ -125,5 +122,23 @@ class ParentChildProfileController extends Controller
         $parts = preg_split('/\s+/', trim($name), 2);
 
         return [$parts[0], $parts[1] ?? ''];
+    }
+
+    private function generateUniqueChildUsername(string $childName): string
+    {
+        $base = Str::slug($childName, '');
+        $base = $base !== '' ? Str::lower($base) : 'student';
+        $base = Str::limit($base, 32, '');
+
+        do {
+            $username = $base.random_int(1000, 9999);
+        } while (User::where('username', $username)->exists());
+
+        return $username;
+    }
+
+    private function generateChildPassword(): string
+    {
+        return 'Kid-'.Str::upper(Str::random(4)).'-'.random_int(1000, 9999);
     }
 }

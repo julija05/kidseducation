@@ -39,6 +39,55 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
+    public function test_users_can_authenticate_with_username(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'child1234',
+        ]);
+        $user->assignRole('student');
+
+        $response = $this->post('/login', [
+            'email' => 'child1234',
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_learners_can_authenticate_with_generated_username(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'learner5678',
+        ]);
+        $user->assignRole('student');
+
+        $response = $this->post('/login', [
+            'email' => 'learner5678',
+            'password' => 'password',
+            'login_as' => 'learner',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_learner_login_rejects_non_student_accounts(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'parent5678',
+        ]);
+        $user->assignRole('parent');
+
+        $this->post('/login', [
+            'email' => 'parent5678',
+            'password' => 'password',
+            'login_as' => 'learner',
+        ]);
+
+        $this->assertGuest();
+    }
+
     public function test_parent_users_are_redirected_to_parent_dashboard_after_login(): void
     {
         $user = User::factory()->create();

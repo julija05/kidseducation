@@ -7,9 +7,6 @@ import { ArrowLeft, Lock, Save } from "lucide-react";
 export default function Create({ programs = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         child_name: "",
-        child_email: "",
-        child_password: "",
-        child_password_confirmation: "",
         program_id: programs[0]?.id || "",
         age: "",
         grade_class: "",
@@ -38,7 +35,7 @@ export default function Create({ programs = [] }) {
                     <div className="border-b border-slate-200 px-5 py-4">
                         <h1 className="text-xl font-semibold text-slate-950">Register child</h1>
                         <p className="mt-1 text-sm text-slate-600">
-                            Create the child application and login. Access starts after admin approval.
+                            Create the child application. Login details will be generated automatically.
                         </p>
                     </div>
 
@@ -73,46 +70,6 @@ export default function Create({ programs = [] }) {
                                 required
                             />
                             <InputError message={errors.child_name} className="mt-2" />
-                        </div>
-
-                        <div>
-                            <InputLabel htmlFor="child_email" value="Child login email" />
-                            <input
-                                id="child_email"
-                                type="email"
-                                value={data.child_email}
-                                onChange={(event) => setData("child_email", event.target.value)}
-                                className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500"
-                                required
-                            />
-                            <InputError message={errors.child_email} className="mt-2" />
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <InputLabel htmlFor="child_password" value="Child password" />
-                                <input
-                                    id="child_password"
-                                    type="password"
-                                    value={data.child_password}
-                                    onChange={(event) => setData("child_password", event.target.value)}
-                                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500"
-                                    required
-                                />
-                                <InputError message={errors.child_password} className="mt-2" />
-                            </div>
-
-                            <div>
-                                <InputLabel htmlFor="child_password_confirmation" value="Confirm child password" />
-                                <input
-                                    id="child_password_confirmation"
-                                    type="password"
-                                    value={data.child_password_confirmation}
-                                    onChange={(event) => setData("child_password_confirmation", event.target.value)}
-                                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500"
-                                    required
-                                />
-                            </div>
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2">

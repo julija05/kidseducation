@@ -81,6 +81,10 @@ export default function Dashboard({ children = [], childProfiles = [] }) {
                                         <p className="mt-1 line-clamp-1 text-sm text-slate-600">
                                             {profile.program?.name || "No program selected"}
                                         </p>
+                                        <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                                            <Credential label="Username" value={profile.child_username} />
+                                            <Credential label="Password" value={profile.child_generated_password} />
+                                        </div>
                                     </div>
                                     <ChildStat icon={Users} label="Age" value={profile.age ?? "-"} />
                                     <ChildStat icon={BookOpen} label="Grade/Class" value={profile.grade_class || "-"} />
@@ -115,7 +119,7 @@ export default function Dashboard({ children = [], childProfiles = [] }) {
                                 >
                                     <div className="min-w-0">
                                         <p className="font-semibold text-slate-950">{child.name}</p>
-                                        <p className="mt-1 truncate text-sm text-slate-600">{child.email}</p>
+                                        <p className="mt-1 truncate text-sm text-slate-600">{child.username || child.email}</p>
                                     </div>
                                     <ChildStat
                                         icon={BookOpen}
@@ -150,6 +154,17 @@ export default function Dashboard({ children = [], childProfiles = [] }) {
                 </section>
             </div>
         </ParentLayout>
+    );
+}
+
+function Credential({ label, value }) {
+    return (
+        <div className="min-w-0">
+            <span className="text-xs font-medium text-slate-500">{label}</span>
+            <span className="mt-0.5 block truncate rounded border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-900">
+                {value || "-"}
+            </span>
+        </div>
     );
 }
 

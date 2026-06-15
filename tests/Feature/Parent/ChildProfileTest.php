@@ -35,19 +35,18 @@ class ChildProfileTest extends TestCase
 
         $response = $this->actingAs($parent)->post('/parent/child-profiles', [
             'child_name' => 'Ada Student',
-            'child_email' => 'ada.student@example.com',
-            'child_password' => 'StrongPass123!',
-            'child_password_confirmation' => 'StrongPass123!',
             'program_id' => $program->id,
             'age' => 9,
             'grade_class' => '3A',
             'notes' => 'Interested in math.',
         ]);
 
-        $child = User::where('email', 'ada.student@example.com')->first();
+        $child = User::where('name', 'Ada Student')->first();
 
         $this->assertNotNull($child);
         $this->assertTrue($child->hasRole('student'));
+        $this->assertNotNull($child->username);
+        $this->assertStringEndsWith('@children.abacoding.local', $child->email);
         $this->assertTrue($parent->children()->whereKey($child->id)->exists());
 
         $this->assertDatabaseHas('child_profiles', [
@@ -55,6 +54,7 @@ class ChildProfileTest extends TestCase
             'child_user_id' => $child->id,
             'program_id' => $program->id,
             'child_name' => 'Ada Student',
+            'child_username' => $child->username,
             'age' => 9,
             'grade_class' => '3A',
             'status' => 'pending',
@@ -69,6 +69,7 @@ class ChildProfileTest extends TestCase
         $this->assertSame(ApprovalStatus::PENDING, $enrollment->approval_status);
 
         $profile = ChildProfile::where('child_user_id', $child->id)->first();
+        $this->assertNotEmpty($profile->child_generated_password);
         $response->assertRedirect(route('parent.child-profiles.pending', $profile, absolute: false));
     }
 
@@ -95,6 +96,8 @@ class ChildProfileTest extends TestCase
             'program_id' => $program->id,
             'enrollment_id' => $enrollment->id,
             'child_name' => 'Ada Student',
+            'child_username' => 'adastudent1234',
+            'child_generated_password' => 'Kid-ABCD-1234',
             'status' => ChildProfile::STATUS_PENDING,
         ]);
 
@@ -105,6 +108,8 @@ class ChildProfileTest extends TestCase
             ->component('Parent/ChildProfiles/Pending')
             ->where('childProfile.id', $profile->id)
             ->where('childProfile.child_name', 'Ada Student')
+            ->where('childProfile.child_username', 'adastudent1234')
+            ->where('childProfile.child_generated_password', 'Kid-ABCD-1234')
             ->where('childProfile.enrollment.approval_status', ApprovalStatus::PENDING)
         );
     }

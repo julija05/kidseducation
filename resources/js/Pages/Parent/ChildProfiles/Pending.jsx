@@ -30,6 +30,14 @@ export default function Pending({ childProfile }) {
                         </div>
                     </div>
 
+                    <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-left">
+                        <p className="text-sm font-semibold text-slate-950">Child login details</p>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                            <Credential label="Username" value={childProfile.child_username} />
+                            <Credential label="Password" value={childProfile.child_generated_password} />
+                        </div>
+                    </div>
+
                     <div className="mt-6 flex justify-center">
                         <Link
                             href={route("parent.dashboard")}
@@ -42,5 +50,16 @@ export default function Pending({ childProfile }) {
                 </section>
             </div>
         </ParentLayout>
+    );
+}
+
+function Credential({ label, value }) {
+    return (
+        <div>
+            <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
+            <p className="mt-1 rounded-md border border-slate-200 bg-white px-3 py-2 font-mono text-sm text-slate-950">
+                {value || "-"}
+            </p>
+        </div>
     );
 }

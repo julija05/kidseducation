@@ -134,7 +134,7 @@ export default function PendingEnrollments({ enrollments, highlight_user_id, ava
                                                 </p>
                                                 <p className="text-sm text-gray-500 flex items-center">
                                                     <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
-                                                    <span className="truncate">{enrollment.user.email}</span>
+                                                    <span className="truncate">{enrollment.user.username || enrollment.user.email}</span>
                                                 </p>
                                                 {enrollment.user.parents?.length > 0 && (
                                                     <p className="mt-1 text-xs text-gray-500">
@@ -269,7 +269,7 @@ export default function PendingEnrollments({ enrollments, highlight_user_id, ava
                                                             </div>
                                                             <div className="text-sm text-gray-500 flex items-center">
                                                                 <Mail className="h-3 w-3 mr-1" />
-                                                                {enrollment.user.email}
+                                                                {enrollment.user.username || enrollment.user.email}
                                                             </div>
                                                             {enrollment.user.parents?.length > 0 && (
                                                                 <div className="text-xs text-gray-500">

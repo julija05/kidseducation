@@ -61,6 +61,7 @@ class ParentDashboardController extends Controller
             'first_name' => $child->first_name,
             'last_name' => $child->last_name,
             'email' => $child->email,
+            'username' => $child->username,
             'status' => $child->status,
             'enrollments' => $child->enrollments->map(function ($enrollment) {
                 return [
@@ -87,7 +88,7 @@ class ParentDashboardController extends Controller
         }
 
         return $parent->childProfiles()
-            ->with(['program:id,name,slug', 'enrollment:id,approval_status,status'])
+            ->with(['child:id,username', 'program:id,name,slug', 'enrollment:id,approval_status,status'])
             ->latest()
             ->get()
             ->map(fn ($profile) => $this->formatChildProfile($profile))
@@ -99,6 +100,8 @@ class ParentDashboardController extends Controller
         return [
             'id' => $profile->id,
             'child_name' => $profile->child_name,
+            'child_username' => $profile->child_username ?: $profile->child?->username,
+            'child_generated_password' => $profile->child_generated_password,
             'age' => $profile->age,
             'grade_class' => $profile->grade_class,
             'status' => $profile->status,

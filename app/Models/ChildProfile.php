@@ -29,6 +29,8 @@ class ChildProfile extends Model
         'program_id',
         'enrollment_id',
         'child_name',
+        'child_username',
+        'child_generated_password',
         'age',
         'grade_class',
         'status',
@@ -39,6 +41,7 @@ class ChildProfile extends Model
     {
         return [
             'age' => 'integer',
+            'child_generated_password' => 'encrypted',
         ];
     }
 

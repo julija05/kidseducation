@@ -9,7 +9,7 @@ import TextInput from "@/Components/TextInput";
 import NavBar from "@/Components/NavBar";
 import loginIllustration from "../../../assets/kid-no-bg.png";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Mail, Lock, Eye, EyeOff, LogIn, Sparkles } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, Sparkles, UserRound, Users } from "lucide-react";
 
 export default function Login({ status, canResetPassword, auth }) {
     const { t } = useTranslation();
@@ -17,6 +17,7 @@ export default function Login({ status, canResetPassword, auth }) {
         email: "",
         password: "",
         remember: false,
+        login_as: "account",
     });
 
     const [showPassword, setShowPassword] = useState(false);
@@ -209,22 +210,53 @@ export default function Login({ status, canResetPassword, auth }) {
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.6, delay: 0.4 }}
                         >
+                            <div className="grid grid-cols-2 rounded-xl border border-gray-200 bg-gray-50 p-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setData("login_as", "account")}
+                                    className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                                        data.login_as === "account"
+                                            ? "bg-white text-gray-950 shadow-sm"
+                                            : "text-gray-600 hover:text-gray-950"
+                                    }`}
+                                >
+                                    <Users className="h-4 w-4" />
+                                    Parent / Mentor
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setData("login_as", "learner")}
+                                    className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                                        data.login_as === "learner"
+                                            ? "bg-white text-gray-950 shadow-sm"
+                                            : "text-gray-600 hover:text-gray-950"
+                                    }`}
+                                >
+                                    <UserRound className="h-4 w-4" />
+                                    Learner
+                                </button>
+                            </div>
+
                             <div>
                                 <InputLabel
                                     htmlFor="email"
-                                    value={t("auth.login.email")}
+                                    value={data.login_as === "learner" ? "Learner username" : "Email or username"}
                                 />
                                 <div className="relative mt-1">
-                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                                    {data.login_as === "learner" ? (
+                                        <UserRound className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                                    ) : (
+                                        <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 z-10" />
+                                    )}
                                     <TextInput
                                         id="email"
-                                        type="email"
+                                        type="text"
                                         name="email"
                                         value={data.email}
                                         className="pl-10 block w-full transition-all duration-200 focus:ring-2 focus:ring-pink-300 focus:border-pink-400"
                                         autoComplete="username"
                                         isFocused={true}
-                                        placeholder="Enter your email address"
+                                        placeholder={data.login_as === "learner" ? "Enter learner username" : "Enter your email or username"}
                                         onChange={(e) =>
                                             setData("email", e.target.value)
                                         }
@@ -293,7 +325,7 @@ export default function Login({ status, canResetPassword, auth }) {
                                         </span>
                                     </label>
 
-                                    {canResetPassword && (
+                                    {canResetPassword && data.login_as !== "learner" && (
                                         <Link
                                             href={route("password.request")}
                                             className="text-sm text-pink-500 hover:text-pink-600 font-medium hover:underline transition-colors duration-200"
@@ -320,7 +352,7 @@ export default function Login({ status, canResetPassword, auth }) {
                                     ) : (
                                         <>
                                             <LogIn className="w-5 h-5" />
-                                            {t("auth.login.login_button")}
+                                            {data.login_as === "learner" ? "Log in as learner" : t("auth.login.login_button")}
                                         </>
                                     )}
                                 </PrimaryButton>

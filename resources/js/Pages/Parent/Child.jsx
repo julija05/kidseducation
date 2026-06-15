@@ -33,7 +33,7 @@ export default function Child({ child }) {
                         <div>
                             <p className="text-sm font-medium text-slate-500">Student profile</p>
                             <h1 className="mt-1 text-2xl font-semibold text-slate-950 sm:text-3xl">{child.name}</h1>
-                            <p className="mt-2 text-sm text-slate-600">{child.email}</p>
+                            <p className="mt-2 text-sm text-slate-600">{child.username || child.email}</p>
                         </div>
                         <span className="inline-flex w-fit items-center rounded-md bg-slate-100 px-3 py-1 text-sm font-semibold capitalize text-slate-700">
                             {child.status || "active"}
