@@ -5,6 +5,7 @@ namespace Tests\Feature\Parent;
 use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
+use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\Program;
 use App\Models\User;
@@ -58,8 +59,62 @@ class ParentDashboardTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Parent/Dashboard')
             ->has('children', 1)
+            ->has('childCards', 1)
             ->where('children.0.id', $this->child->id)
             ->where('children.0.enrollments.0.progress', 55)
+            ->where('childCards.0.child_id', $this->child->id)
+            ->where('childCards.0.progress', 55)
+        );
+    }
+
+    public function test_parent_dashboard_child_card_shows_status_program_class_and_notes(): void
+    {
+        $program = Program::factory()->create([
+            'name' => 'Mental Math',
+            'is_active' => true,
+        ]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+            'progress' => 72,
+        ]);
+
+        $nextClass = ClassSchedule::factory()->upcoming()->create([
+            'student_id' => null,
+            'program_id' => $program->id,
+            'title' => 'Group A',
+            'is_group_class' => true,
+            'max_students' => 5,
+        ]);
+        $nextClass->students()->attach($this->child->id);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'session_notes' => 'Strong focus during class.',
+            'session_data' => [
+                'homework_status' => 'Assigned',
+                'weekly_report' => 'Completed all practice tasks.',
+            ],
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->has('childCards', 1)
+            ->where('childCards.0.child_id', $this->child->id)
+            ->where('childCards.0.application_status', ApprovalStatus::APPROVED)
+            ->where('childCards.0.current_program.name', 'Mental Math')
+            ->where('childCards.0.group_name', 'Group A')
+            ->where('childCards.0.homework_status', 'Assigned')
+            ->where('childCards.0.progress', 72)
+            ->where('childCards.0.latest_mentor_note', 'Strong focus during class.')
+            ->where('childCards.0.latest_weekly_report', 'Completed all practice tasks.')
         );
     }
 

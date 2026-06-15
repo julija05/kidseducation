@@ -1,26 +1,46 @@
 import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link } from "@inertiajs/react";
 import {
-    ArrowRight,
+    BarChart3,
     BookOpen,
-    GraduationCap,
+    CalendarClock,
+    ClipboardCheck,
+    FileText,
+    MessageSquareText,
     Plus,
-    TrendingUp,
     Users,
 } from "lucide-react";
 
-const averageProgress = (children) => {
-    const enrollments = children.flatMap((child) => child.enrollments || []);
-    if (!enrollments.length) return 0;
+const statusTone = (status) => {
+    const tones = {
+        pending: "bg-amber-50 text-amber-700 ring-amber-200",
+        approved: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+        active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+        rejected: "bg-red-50 text-red-700 ring-red-200",
+        waitlist: "bg-blue-50 text-blue-700 ring-blue-200",
+    };
 
-    return Math.round(
-        enrollments.reduce((sum, enrollment) => sum + (enrollment.progress || 0), 0) / enrollments.length
-    );
+    return tones[status] || "bg-slate-50 text-slate-700 ring-slate-200";
 };
 
-export default function Dashboard({ children = [], childProfiles = [] }) {
-    const totalEnrollments = children.reduce((sum, child) => sum + (child.enrollments?.length || 0), 0);
-    const progress = averageProgress(children);
+const statusLabel = (status) => {
+    const labels = {
+        pending: "Waiting for approval",
+        approved: "Approved",
+        active: "Active",
+        rejected: "Rejected",
+        waitlist: "Waitlist",
+    };
+
+    return labels[status] || status || "Waiting for approval";
+};
+
+const display = (value) => value || "Not available yet";
+
+export default function Dashboard({ childCards = [], children = [], childProfiles = [] }) {
+    const averageProgress = childCards.length
+        ? Math.round(childCards.reduce((sum, child) => sum + (child.progress || 0), 0) / childCards.length)
+        : 0;
 
     return (
         <ParentLayout>
@@ -30,12 +50,12 @@ export default function Dashboard({ children = [], childProfiles = [] }) {
                 <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Parent workspace</p>
+                            <p className="text-sm font-medium text-slate-500">Parent dashboard</p>
                             <h1 className="mt-1 text-2xl font-semibold text-slate-950 sm:text-3xl">
-                                Children and progress
+                                Children overview
                             </h1>
                             <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                                View the students linked to your parent account and follow their program progress.
+                                Track each child application, program access, live classes, homework, and mentor updates.
                             </p>
                         </div>
                         <Link
@@ -43,117 +63,122 @@ export default function Dashboard({ children = [], childProfiles = [] }) {
                             className="inline-flex w-fit items-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
                         >
                             <Plus className="h-4 w-4" />
-                            Add child profile
+                            Register child
                         </Link>
                     </div>
 
                     <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                        <Metric icon={Users} label="Child profiles" value={childProfiles.length} />
-                        <Metric icon={BookOpen} label="Program enrollments" value={totalEnrollments} tone="blue" />
-                        <Metric icon={TrendingUp} label="Average progress" value={`${progress}%`} tone="emerald" />
+                        <Metric icon={Users} label="Children" value={childCards.length || children.length || childProfiles.length} />
+                        <Metric icon={BookOpen} label="Applications" value={childProfiles.length} tone="blue" />
+                        <Metric icon={BarChart3} label="Average progress" value={`${averageProgress}%`} tone="emerald" />
                     </div>
                 </section>
 
-                <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                    <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-lg font-semibold text-slate-950">Child profiles</h2>
-                            <p className="mt-1 text-sm text-slate-600">Child applications wait here until an admin approves access.</p>
+                {childCards.length ? (
+                    <section className="grid gap-4 xl:grid-cols-2">
+                        {childCards.map((child) => (
+                            <ChildCard key={`${child.id}-${child.child_id || "profile"}`} child={child} />
+                        ))}
+                    </section>
+                ) : (
+                    <section className="rounded-lg border border-slate-200 bg-white px-5 py-12 text-center shadow-sm">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                            <Users className="h-6 w-6" />
                         </div>
-                        <Link
-                            href={route("parent.child-profiles.create")}
-                            className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
-                        >
-                            <Plus className="h-4 w-4" />
-                            New profile
-                        </Link>
-                    </div>
-
-                    {childProfiles.length ? (
-                        <div className="divide-y divide-slate-200">
-                            {childProfiles.map((profile) => (
-                                <div
-                                    key={profile.id}
-                                    className="grid gap-4 px-5 py-4 md:grid-cols-[1fr_120px_140px_120px]"
-                                >
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-slate-950">{profile.child_name}</p>
-                                        <p className="mt-1 line-clamp-1 text-sm text-slate-600">
-                                            {profile.program?.name || "No program selected"}
-                                        </p>
-                                        <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-                                            <Credential label="Username" value={profile.child_username} />
-                                            <Credential label="Password" value={profile.child_generated_password} />
-                                        </div>
-                                    </div>
-                                    <ChildStat icon={Users} label="Age" value={profile.age ?? "-"} />
-                                    <ChildStat icon={BookOpen} label="Grade/Class" value={profile.grade_class || "-"} />
-                                    <div className="flex items-center">
-                                        <StatusBadge status={profile.status} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="px-5 py-10 text-center">
-                            <h3 className="text-base font-semibold text-slate-950">No child profiles yet</h3>
-                            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
-                                Add a child profile so the admin team can review and manage the child record.
-                            </p>
-                        </div>
-                    )}
-                </section>
-
-                <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                    <div className="border-b border-slate-200 px-5 py-4">
-                        <h2 className="text-lg font-semibold text-slate-950">My children</h2>
-                    </div>
-
-                    {children.length ? (
-                        <div className="divide-y divide-slate-200">
-                            {children.map((child) => (
-                                <Link
-                                    key={child.id}
-                                    href={route("parent.children.show", child.id)}
-                                    className="grid gap-4 px-5 py-4 transition hover:bg-slate-50 md:grid-cols-[1fr_160px_160px_80px]"
-                                >
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-slate-950">{child.name}</p>
-                                        <p className="mt-1 truncate text-sm text-slate-600">{child.username || child.email}</p>
-                                    </div>
-                                    <ChildStat
-                                        icon={BookOpen}
-                                        label="Programs"
-                                        value={child.enrollments?.length || 0}
-                                    />
-                                    <ChildStat
-                                        icon={TrendingUp}
-                                        label="Progress"
-                                        value={`${averageProgress([child])}%`}
-                                    />
-                                    <div className="flex items-center justify-start md:justify-end">
-                                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900">
-                                            Open
-                                            <ArrowRight className="h-4 w-4" />
-                                        </span>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="px-5 py-12 text-center">
-                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
-                                <GraduationCap className="h-6 w-6" />
-                            </div>
-                            <h3 className="mt-4 text-base font-semibold text-slate-950">No linked children yet</h3>
-                            <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
-                                Once an administrator links a student to your parent account, that child will appear here.
-                            </p>
-                        </div>
-                    )}
-                </section>
+                        <h2 className="mt-4 text-base font-semibold text-slate-950">No children registered yet</h2>
+                        <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+                            Register a child to create their learner account and start the approval process.
+                        </p>
+                    </section>
+                )}
             </div>
         </ParentLayout>
+    );
+}
+
+function ChildCard({ child }) {
+    return (
+        <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-500">Child</p>
+                    <h2 className="mt-1 truncate text-xl font-semibold text-slate-950">{child.name}</h2>
+                    {child.username && (
+                        <p className="mt-1 font-mono text-xs text-slate-500">{child.username}</p>
+                    )}
+                </div>
+                <span className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-semibold capitalize ring-1 ${statusTone(child.application_status)}`}>
+                    {statusLabel(child.application_status)}
+                </span>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <InfoItem icon={BookOpen} label="Current program" value={child.current_program?.name} />
+                <InfoItem icon={Users} label="Group name" value={child.group_name} />
+                <InfoItem icon={CalendarClock} label="Next live class" value={child.next_live_class?.formatted_time} />
+                <InfoItem icon={ClipboardCheck} label="Homework status" value={child.homework_status} />
+            </div>
+
+            <div className="mt-5">
+                <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-medium text-slate-600">Progress</span>
+                    <span className="text-sm font-semibold text-slate-950">{Math.round(child.progress || 0)}%</span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                        className="h-full rounded-full bg-emerald-500"
+                        style={{ width: `${Math.min(Math.max(child.progress || 0, 0), 100)}%` }}
+                    />
+                </div>
+            </div>
+
+            <div className="mt-5 grid gap-3">
+                <TextBlock icon={MessageSquareText} label="Latest mentor note" value={child.latest_mentor_note} />
+                <TextBlock icon={FileText} label="Latest weekly report" value={child.latest_weekly_report} />
+            </div>
+
+            {(child.generated_password || child.username) && (
+                <div className="mt-5 grid gap-2 border-t border-slate-200 pt-4 sm:grid-cols-2">
+                    <Credential label="Username" value={child.username} />
+                    <Credential label="Password" value={child.generated_password} />
+                </div>
+            )}
+
+            {child.detail_url_child_id && (
+                <div className="mt-5 border-t border-slate-200 pt-4">
+                    <Link
+                        href={route("parent.children.show", child.detail_url_child_id)}
+                        className="inline-flex text-sm font-semibold text-slate-900 hover:text-slate-700"
+                    >
+                        Open child details
+                    </Link>
+                </div>
+            )}
+        </article>
+    );
+}
+
+function InfoItem({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+            </div>
+            <p className="mt-1 text-sm font-semibold text-slate-950">{display(value)}</p>
+        </div>
+    );
+}
+
+function TextBlock({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+            </div>
+            <p className="mt-1 line-clamp-3 text-sm leading-5 text-slate-700">{display(value)}</p>
+        </div>
     );
 }
 
@@ -162,7 +187,7 @@ function Credential({ label, value }) {
         <div className="min-w-0">
             <span className="text-xs font-medium text-slate-500">{label}</span>
             <span className="mt-0.5 block truncate rounded border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs text-slate-900">
-                {value || "-"}
+                {display(value)}
             </span>
         </div>
     );
@@ -187,34 +212,5 @@ function Metric({ icon: Icon, label, value, tone = "slate" }) {
                 </span>
             </div>
         </div>
-    );
-}
-
-function ChildStat({ icon: Icon, label, value }) {
-    return (
-        <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-100 text-slate-600">
-                <Icon className="h-4 w-4" />
-            </span>
-            <div>
-                <p className="text-xs font-medium text-slate-500">{label}</p>
-                <p className="text-sm font-semibold text-slate-950">{value}</p>
-            </div>
-        </div>
-    );
-}
-
-function StatusBadge({ status }) {
-    const tones = {
-        pending: "bg-amber-50 text-amber-700 ring-amber-200",
-        approved: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-        rejected: "bg-red-50 text-red-700 ring-red-200",
-        waitlist: "bg-blue-50 text-blue-700 ring-blue-200",
-    };
-
-    return (
-        <span className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold capitalize ring-1 ${tones[status] || tones.pending}`}>
-            {status}
-        </span>
     );
 }
