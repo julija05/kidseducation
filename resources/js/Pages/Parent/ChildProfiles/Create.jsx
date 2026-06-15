@@ -4,13 +4,13 @@ import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { ArrowLeft, Lock, Save } from "lucide-react";
 
-export default function Create({ programs = [] }) {
+export default function Create({ programs = [], initialValues = null, reregisteredFrom = null }) {
     const { data, setData, post, processing, errors } = useForm({
-        child_name: "",
-        program_id: programs[0]?.id || "",
-        age: "",
-        grade_class: "",
-        notes: "",
+        child_name: initialValues?.child_name || "",
+        program_id: initialValues?.program_id || programs[0]?.id || "",
+        age: initialValues?.age || "",
+        grade_class: initialValues?.grade_class || "",
+        notes: initialValues?.notes || "",
     });
 
     const submit = (event) => {
@@ -35,7 +35,9 @@ export default function Create({ programs = [] }) {
                     <div className="border-b border-slate-200 px-5 py-4">
                         <h1 className="text-xl font-semibold text-slate-950">Register child</h1>
                         <p className="mt-1 text-sm text-slate-600">
-                            Create the child application. Login details will be generated automatically.
+                            {reregisteredFrom
+                                ? `Submit a new application for ${reregisteredFrom.child_name}. Login details will be generated again.`
+                                : "Create the child application. Login details will be generated automatically."}
                         </p>
                     </div>
 

@@ -5,6 +5,7 @@ namespace Tests\Feature\Parent;
 use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
+use App\Models\ChildProfile;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\Program;
@@ -115,6 +116,39 @@ class ParentDashboardTest extends TestCase
             ->where('childCards.0.progress', 72)
             ->where('childCards.0.latest_mentor_note', 'Strong focus during class.')
             ->where('childCards.0.latest_weekly_report', 'Completed all practice tasks.')
+        );
+    }
+
+    public function test_parent_dashboard_child_card_shows_rejection_note(): void
+    {
+        $program = Program::factory()->create([
+            'is_active' => true,
+        ]);
+        $enrollment = Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::REJECTED,
+            'status' => EnrollmentStatus::CANCELLED,
+            'rejection_reason' => 'Please choose a different group.',
+        ]);
+
+        ChildProfile::factory()->create([
+            'parent_user_id' => $this->parent->id,
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_id' => $enrollment->id,
+            'status' => ChildProfile::STATUS_REJECTED,
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->has('childCards', 1)
+            ->where('childCards.0.application_status', ApprovalStatus::REJECTED)
+            ->where('childCards.0.rejection_note', 'Please choose a different group.')
         );
     }
 

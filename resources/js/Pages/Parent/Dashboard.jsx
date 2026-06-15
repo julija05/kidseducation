@@ -1,6 +1,7 @@
 import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link } from "@inertiajs/react";
 import {
+    AlertTriangle,
     BarChart3,
     BookOpen,
     CalendarClock,
@@ -8,6 +9,7 @@ import {
     FileText,
     MessageSquareText,
     Plus,
+    RefreshCcw,
     Users,
 } from "lucide-react";
 
@@ -133,6 +135,9 @@ function ChildCard({ child }) {
             </div>
 
             <div className="mt-5 grid gap-3">
+                {child.rejection_note && (
+                    <RejectionNotice value={child.rejection_note} />
+                )}
                 <TextBlock icon={MessageSquareText} label="Latest mentor note" value={child.latest_mentor_note} />
                 <TextBlock icon={FileText} label="Latest weekly report" value={child.latest_weekly_report} />
             </div>
@@ -145,7 +150,7 @@ function ChildCard({ child }) {
             )}
 
             {child.detail_url_child_id && (
-                <div className="mt-5 border-t border-slate-200 pt-4">
+                <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-200 pt-4">
                     <Link
                         href={route("parent.children.show", child.detail_url_child_id)}
                         className="inline-flex text-sm font-semibold text-slate-900 hover:text-slate-700"
@@ -154,7 +159,35 @@ function ChildCard({ child }) {
                     </Link>
                 </div>
             )}
+
+            {child.reregister_profile_id && (
+                <div className="mt-5 border-t border-slate-200 pt-4">
+                    <Link
+                        href={route("parent.child-profiles.create", { reregister: child.reregister_profile_id })}
+                        className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                        <RefreshCcw className="h-4 w-4" />
+                        Register again
+                    </Link>
+                </div>
+            )}
         </article>
+    );
+}
+
+function RejectionNotice({ value }) {
+    return (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 shadow-sm ring-1 ring-red-100">
+            <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-100 text-red-700">
+                    <AlertTriangle className="h-4 w-4" />
+                </span>
+                <div>
+                    <p className="text-sm font-semibold text-red-900">Rejection note</p>
+                    <p className="mt-1 line-clamp-4 text-sm leading-6 text-red-800">{value}</p>
+                </div>
+            </div>
+        </div>
     );
 }
 

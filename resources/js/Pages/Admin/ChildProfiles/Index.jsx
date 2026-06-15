@@ -13,6 +13,17 @@ const statusTone = (status) => {
     return tones[status] || tones.pending;
 };
 
+const statusLabel = (status) => {
+    const labels = {
+        pending: "Pending review",
+        approved: "Approved",
+        rejected: "Rejected",
+        waitlist: "Waitlist",
+    };
+
+    return labels[status] || status;
+};
+
 export default function Index({ childProfiles, filters = {}, statuses = [] }) {
     const submitSearch = (event) => {
         event.preventDefault();
@@ -37,10 +48,10 @@ export default function Index({ childProfiles, filters = {}, statuses = [] }) {
                 <div>
                     <h1 className="flex items-center text-2xl font-bold text-gray-900 sm:text-3xl">
                         <Users className="mr-3 h-7 w-7 text-blue-600" />
-                        Child Profiles
+                        Child Applications
                     </h1>
                     <p className="mt-2 text-sm text-gray-600">
-                        Review child profiles submitted by parent accounts.
+                        Review child applications submitted by parent accounts.
                     </p>
                 </div>
 
@@ -94,6 +105,7 @@ export default function Index({ childProfiles, filters = {}, statuses = [] }) {
                                         <TableHead>Child</TableHead>
                                         <TableHead>Age</TableHead>
                                         <TableHead>Grade/Class</TableHead>
+                                        <TableHead>Program</TableHead>
                                         <TableHead>Parent</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead>Created</TableHead>
@@ -111,13 +123,16 @@ export default function Index({ childProfiles, filters = {}, statuses = [] }) {
                                             </td>
                                             <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">{profile.age ?? "-"}</td>
                                             <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">{profile.grade_class || "-"}</td>
+                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+                                                {profile.program?.name || "-"}
+                                            </td>
                                             <td className="whitespace-nowrap px-6 py-4">
                                                 <div className="text-sm font-medium text-gray-900">{profile.parent?.name || "Unknown"}</div>
                                                 <div className="text-sm text-gray-500">{profile.parent?.email || "-"}</div>
                                             </td>
                                             <td className="whitespace-nowrap px-6 py-4">
                                                 <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${statusTone(profile.status)}`}>
-                                                    {profile.status}
+                                                    {statusLabel(profile.status)}
                                                 </span>
                                             </td>
                                             <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
@@ -140,7 +155,7 @@ export default function Index({ childProfiles, filters = {}, statuses = [] }) {
                     ) : (
                         <div className="px-6 py-12 text-center">
                             <h2 className="text-base font-semibold text-gray-900">No child profiles found</h2>
-                            <p className="mt-2 text-sm text-gray-600">Profiles submitted by parents will appear here.</p>
+                            <p className="mt-2 text-sm text-gray-600">Applications submitted by parents will appear here.</p>
                         </div>
                     )}
                 </section>

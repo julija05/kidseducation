@@ -114,6 +114,76 @@ class ChildProfileTest extends TestCase
         );
     }
 
+    public function test_parent_sees_rejected_application_and_can_reregister_from_it(): void
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $program = Program::factory()->create([
+            'is_active' => true,
+            'approval_status' => ApprovalStatus::APPROVED,
+        ]);
+        $child = User::factory()->create();
+        $child->assignRole('student');
+        $enrollment = Enrollment::factory()->create([
+            'user_id' => $child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::REJECTED,
+            'status' => EnrollmentStatus::CANCELLED,
+            'rejection_reason' => 'Please choose another group.',
+        ]);
+        $profile = ChildProfile::factory()->create([
+            'parent_user_id' => $parent->id,
+            'child_user_id' => $child->id,
+            'program_id' => $program->id,
+            'enrollment_id' => $enrollment->id,
+            'child_name' => 'Ada Student',
+            'age' => 9,
+            'grade_class' => '3A',
+            'notes' => 'Needs afternoon classes.',
+            'status' => ChildProfile::STATUS_REJECTED,
+        ]);
+
+        $this->actingAs($parent)
+            ->get("/parent/child-profiles/{$profile->id}/pending")
+            ->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Parent/ChildProfiles/Pending')
+                ->where('childProfile.status', ChildProfile::STATUS_REJECTED)
+                ->where('childProfile.rejection_reason', 'Please choose another group.')
+            );
+
+        $this->actingAs($parent)
+            ->get("/parent/child-profiles/create?reregister={$profile->id}")
+            ->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Parent/ChildProfiles/Create')
+                ->where('initialValues.child_name', 'Ada Student')
+                ->where('initialValues.program_id', $program->id)
+                ->where('initialValues.age', 9)
+                ->where('initialValues.grade_class', '3A')
+                ->where('initialValues.notes', 'Needs afternoon classes.')
+                ->where('reregisteredFrom.id', $profile->id)
+            );
+    }
+
+    public function test_parent_cannot_reregister_from_someone_elses_rejected_application(): void
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $otherParent = User::factory()->create();
+        $otherParent->assignRole('parent');
+
+        $profile = ChildProfile::factory()->create([
+            'parent_user_id' => $otherParent->id,
+            'status' => ChildProfile::STATUS_REJECTED,
+        ]);
+
+        $this->actingAs($parent)
+            ->get("/parent/child-profiles/create?reregister={$profile->id}")
+            ->assertNotFound();
+    }
+
     public function test_parent_dashboard_shows_own_child_profiles_only(): void
     {
         $parent = User::factory()->create();

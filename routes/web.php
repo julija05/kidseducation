@@ -278,6 +278,8 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::resource('programs', AdminProgramController::class);
     Route::resource('news', AdminNewsController::class);
     Route::resource('articles', AdminArticleController::class);
+    Route::post('/child-profiles/{childProfile}/approve', [AdminChildProfileController::class, 'approve'])->name('child-profiles.approve');
+    Route::post('/child-profiles/{childProfile}/reject', [AdminChildProfileController::class, 'reject'])->name('child-profiles.reject');
     Route::resource('child-profiles', AdminChildProfileController::class)->only(['index', 'show']);
 
     // Program Lesson Management Routes

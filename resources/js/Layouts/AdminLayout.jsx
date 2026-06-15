@@ -71,7 +71,7 @@ export default function AdminLayout({ children }) {
             icon: Users
         },
         {
-            name: "Child Profiles",
+            name: "Child Applications",
             href: route("admin.child-profiles.index"),
             icon: Users
         },

@@ -93,7 +93,7 @@ class ParentDashboardController extends Controller
         }
 
         return $parent->childProfiles()
-            ->with(['child:id,username', 'program:id,name,slug', 'enrollment:id,approval_status,status'])
+            ->with(['child:id,username', 'program:id,name,slug', 'enrollment:id,approval_status,status,rejection_reason'])
             ->latest()
             ->get()
             ->map(fn ($profile) => $this->formatChildProfile($profile))
@@ -122,6 +122,7 @@ class ParentDashboardController extends Controller
                 'id' => $profile->enrollment->id,
                 'status' => $profile->enrollment->status,
                 'approval_status' => $profile->enrollment->approval_status,
+                'rejection_reason' => $profile->enrollment->rejection_reason,
             ] : null,
         ];
     }
@@ -171,7 +172,11 @@ class ParentDashboardController extends Controller
             'progress' => $activeEnrollment['progress'] ?? 0,
             'latest_mentor_note' => $latestCompletedClass?->session_notes,
             'latest_weekly_report' => $this->weeklyReportFrom($sessionData),
+            'rejection_note' => $applicationStatus === 'rejected'
+                ? ($profile['enrollment']['rejection_reason'] ?? null)
+                : null,
             'detail_url_child_id' => $child['id'] ?? null,
+            'reregister_profile_id' => $applicationStatus === 'rejected' ? ($profile['id'] ?? null) : null,
         ];
     }
 

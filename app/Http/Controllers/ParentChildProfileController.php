@@ -21,14 +21,35 @@ use Spatie\Permission\Models\Role;
 
 class ParentChildProfileController extends Controller
 {
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $reregisterProfile = null;
+
+        if ($request->filled('reregister')) {
+            $reregisterProfile = $request->user()
+                ->childProfiles()
+                ->whereKey($request->integer('reregister'))
+                ->where('status', ChildProfile::STATUS_REJECTED)
+                ->firstOrFail();
+        }
+
         return Inertia::render('Parent/ChildProfiles/Create', [
             'programs' => Program::query()
                 ->where('is_active', true)
                 ->where('approval_status', ApprovalStatus::APPROVED)
                 ->orderBy('name')
                 ->get(['id', 'name', 'description', 'price']),
+            'initialValues' => $reregisterProfile ? [
+                'child_name' => $reregisterProfile->child_name,
+                'program_id' => $reregisterProfile->program_id,
+                'age' => $reregisterProfile->age,
+                'grade_class' => $reregisterProfile->grade_class,
+                'notes' => $reregisterProfile->notes,
+            ] : null,
+            'reregisteredFrom' => $reregisterProfile ? [
+                'id' => $reregisterProfile->id,
+                'child_name' => $reregisterProfile->child_name,
+            ] : null,
         ]);
     }
 
@@ -102,7 +123,7 @@ class ParentChildProfileController extends Controller
     {
         abort_unless($childProfile->parent_user_id === $request->user()->id, 404);
 
-        $childProfile->load(['child:id,username', 'program:id,name,description,price', 'enrollment:id,approval_status,status']);
+        $childProfile->load(['child:id,username', 'program:id,name,description,price', 'enrollment:id,approval_status,status,rejection_reason']);
 
         return Inertia::render('Parent/ChildProfiles/Pending', [
             'childProfile' => [
@@ -113,6 +134,7 @@ class ParentChildProfileController extends Controller
                 'status' => $childProfile->status,
                 'program' => $childProfile->program,
                 'enrollment' => $childProfile->enrollment,
+                'rejection_reason' => $childProfile->enrollment?->rejection_reason,
             ],
         ]);
     }
