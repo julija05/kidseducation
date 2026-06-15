@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\ChildProfile;
 use App\Models\Enrollment;
 use App\Models\Program;
 use App\Models\User;
@@ -93,6 +94,35 @@ class EnrollmentManagementTest extends TestCase
         $this->assertEquals($this->admin->id, $enrollment->approved_by);
     }
 
+    public function test_admin_approval_marks_child_application_approved(): void
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $parent->children()->attach($this->student->id);
+
+        $enrollment = Enrollment::factory()->create([
+            'user_id' => $this->student->id,
+            'program_id' => $this->program->id,
+            'status' => 'paused',
+            'approval_status' => 'pending',
+        ]);
+
+        $profile = ChildProfile::factory()->create([
+            'parent_user_id' => $parent->id,
+            'child_user_id' => $this->student->id,
+            'program_id' => $this->program->id,
+            'enrollment_id' => $enrollment->id,
+            'status' => ChildProfile::STATUS_PENDING,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post("/admin/enrollments/{$enrollment->id}/approve")
+            ->assertRedirect();
+
+        $profile->refresh();
+        $this->assertSame(ChildProfile::STATUS_APPROVED, $profile->status);
+    }
+
     public function test_admin_can_reject_enrollment(): void
     {
         $enrollment = Enrollment::factory()->create([
@@ -118,6 +148,35 @@ class EnrollmentManagementTest extends TestCase
         $this->assertEquals($rejectionReason, $enrollment->rejection_reason);
         $this->assertNotNull($enrollment->rejected_at);
         $this->assertEquals($this->admin->id, $enrollment->rejected_by);
+    }
+
+    public function test_admin_rejection_marks_child_application_rejected(): void
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $parent->children()->attach($this->student->id);
+
+        $enrollment = Enrollment::factory()->create([
+            'user_id' => $this->student->id,
+            'program_id' => $this->program->id,
+            'status' => 'paused',
+            'approval_status' => 'pending',
+        ]);
+
+        $profile = ChildProfile::factory()->create([
+            'parent_user_id' => $parent->id,
+            'child_user_id' => $this->student->id,
+            'program_id' => $this->program->id,
+            'enrollment_id' => $enrollment->id,
+            'status' => ChildProfile::STATUS_PENDING,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post("/admin/enrollments/{$enrollment->id}/reject")
+            ->assertRedirect();
+
+        $profile->refresh();
+        $this->assertSame(ChildProfile::STATUS_REJECTED, $profile->status);
     }
 
     public function test_admin_cannot_approve_already_processed_enrollment(): void
@@ -278,6 +337,38 @@ class EnrollmentManagementTest extends TestCase
             ->has('enrollments.0.program')
             ->where('enrollments.0.user.id', $this->student->id)
             ->where('enrollments.0.program.id', $this->program->id)
+        );
+    }
+
+    public function test_pending_enrollment_includes_parent_for_child_application(): void
+    {
+        $parent = User::factory()->create([
+            'name' => 'Parent User',
+            'email' => 'parent.user@example.com',
+        ]);
+        $parent->assignRole('parent');
+        $parent->children()->attach($this->student->id);
+
+        $enrollment = Enrollment::factory()->create([
+            'user_id' => $this->student->id,
+            'program_id' => $this->program->id,
+            'status' => 'paused',
+            'approval_status' => 'pending',
+        ]);
+
+        ChildProfile::factory()->create([
+            'parent_user_id' => $parent->id,
+            'child_user_id' => $this->student->id,
+            'program_id' => $this->program->id,
+            'enrollment_id' => $enrollment->id,
+            'status' => ChildProfile::STATUS_PENDING,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get('/admin/enrollments/pending');
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('enrollments.0.user.parents.0.id', $parent->id)
+            ->where('enrollments.0.user.parents.0.email', 'parent.user@example.com')
         );
     }
 }

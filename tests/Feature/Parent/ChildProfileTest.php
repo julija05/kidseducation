@@ -2,7 +2,12 @@
 
 namespace Tests\Feature\Parent;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
+use App\Constants\EnrollmentType;
 use App\Models\ChildProfile;
+use App\Models\Enrollment;
+use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,22 +24,36 @@ class ChildProfileTest extends TestCase
         $this->createRoles();
     }
 
-    public function test_parent_can_create_child_profile_without_child_login(): void
+    public function test_parent_can_create_child_application_with_child_login_and_pending_enrollment(): void
     {
         $parent = User::factory()->create();
         $parent->assignRole('parent');
+        $program = Program::factory()->create([
+            'is_active' => true,
+            'approval_status' => ApprovalStatus::APPROVED,
+        ]);
 
         $response = $this->actingAs($parent)->post('/parent/child-profiles', [
             'child_name' => 'Ada Student',
+            'child_email' => 'ada.student@example.com',
+            'child_password' => 'StrongPass123!',
+            'child_password_confirmation' => 'StrongPass123!',
+            'program_id' => $program->id,
             'age' => 9,
             'grade_class' => '3A',
             'notes' => 'Interested in math.',
         ]);
 
-        $response->assertRedirect(route('parent.dashboard', absolute: false));
+        $child = User::where('email', 'ada.student@example.com')->first();
+
+        $this->assertNotNull($child);
+        $this->assertTrue($child->hasRole('student'));
+        $this->assertTrue($parent->children()->whereKey($child->id)->exists());
 
         $this->assertDatabaseHas('child_profiles', [
             'parent_user_id' => $parent->id,
+            'child_user_id' => $child->id,
+            'program_id' => $program->id,
             'child_name' => 'Ada Student',
             'age' => 9,
             'grade_class' => '3A',
@@ -42,9 +61,52 @@ class ChildProfileTest extends TestCase
             'notes' => 'Interested in math.',
         ]);
 
-        $this->assertDatabaseMissing('users', [
-            'name' => 'Ada Student',
+        $enrollment = Enrollment::where('user_id', $child->id)->where('program_id', $program->id)->first();
+
+        $this->assertNotNull($enrollment);
+        $this->assertSame(EnrollmentType::STUDENT, $enrollment->enrollment_type);
+        $this->assertSame(EnrollmentStatus::PAUSED, $enrollment->status);
+        $this->assertSame(ApprovalStatus::PENDING, $enrollment->approval_status);
+
+        $profile = ChildProfile::where('child_user_id', $child->id)->first();
+        $response->assertRedirect(route('parent.child-profiles.pending', $profile, absolute: false));
+    }
+
+    public function test_parent_sees_waiting_for_approval_screen_for_own_child_application(): void
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $program = Program::factory()->create([
+            'is_active' => true,
+            'approval_status' => ApprovalStatus::APPROVED,
         ]);
+        $child = User::factory()->create();
+        $child->assignRole('student');
+        $enrollment = Enrollment::factory()->create([
+            'user_id' => $child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::PENDING,
+            'status' => EnrollmentStatus::PAUSED,
+        ]);
+        $profile = ChildProfile::factory()->create([
+            'parent_user_id' => $parent->id,
+            'child_user_id' => $child->id,
+            'program_id' => $program->id,
+            'enrollment_id' => $enrollment->id,
+            'child_name' => 'Ada Student',
+            'status' => ChildProfile::STATUS_PENDING,
+        ]);
+
+        $response = $this->actingAs($parent)->get("/parent/child-profiles/{$profile->id}/pending");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/ChildProfiles/Pending')
+            ->where('childProfile.id', $profile->id)
+            ->where('childProfile.child_name', 'Ada Student')
+            ->where('childProfile.enrollment.approval_status', ApprovalStatus::PENDING)
+        );
     }
 
     public function test_parent_dashboard_shows_own_child_profiles_only(): void

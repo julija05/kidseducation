@@ -14,7 +14,6 @@ import {
     UserPlus,
     LayoutDashboard,
     GraduationCap,
-    Users,
 } from "lucide-react";
 import LanguageSelector from "./LanguageSelector";
 import { useTranslation } from "../hooks/useTranslation";
@@ -118,11 +117,6 @@ const NavBar = React.memo(() => {
                   href: routeWithLocale("mentor.register"),
                   label: t("nav.register_as_mentor"),
                   icon: GraduationCap,
-              },
-              {
-                  href: routeWithLocale("parent.register"),
-                  label: "Register as parent",
-                  icon: Users,
               },
           ];
 

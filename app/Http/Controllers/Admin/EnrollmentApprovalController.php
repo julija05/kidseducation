@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\EnrollmentApprovedMail;
+use App\Models\ChildProfile;
 use App\Models\Enrollment;
 use App\Models\User;
 use App\Services\NotificationService;
@@ -19,7 +20,7 @@ class EnrollmentApprovalController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Enrollment::with(['user', 'program', 'assignedMentor'])
+        $query = Enrollment::with(['user.parents:id,name,email', 'program', 'assignedMentor'])
             ->where('approval_status', 'pending');
 
         // Check if we need to highlight a specific user
@@ -128,6 +129,10 @@ class EnrollmentApprovalController extends Controller
                 'approved_by' => auth()->id(),
             ]);
 
+            ChildProfile::where('enrollment_id', $enrollment->id)->update([
+                'status' => ChildProfile::STATUS_APPROVED,
+            ]);
+
             // Clear demo account status when enrollment is approved
             // This allows former demo users to access all resources with their approved enrollment
             if ($enrollment->user->is_demo_account) {
@@ -188,6 +193,10 @@ class EnrollmentApprovalController extends Controller
                 'rejection_reason' => $request->rejection_reason,
                 'rejected_at' => now(),
                 'rejected_by' => auth()->id(),
+            ]);
+
+            ChildProfile::where('enrollment_id', $enrollment->id)->update([
+                'status' => ChildProfile::STATUS_REJECTED,
             ]);
 
             if (! $updated) {

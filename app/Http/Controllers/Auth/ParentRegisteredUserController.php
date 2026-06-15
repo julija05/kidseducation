@@ -21,7 +21,7 @@ class ParentRegisteredUserController extends Controller
     {
         return Inertia::render('Auth/Register', [
             'accountType' => 'parent',
-            'registrationRoute' => 'parent.register',
+            'registrationRoute' => 'register',
         ]);
     }
 

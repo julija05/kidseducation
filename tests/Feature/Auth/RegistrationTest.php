@@ -4,7 +4,6 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
 
@@ -37,29 +36,17 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'StrongPass123!',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
-    }
+        $parent = User::where('email', 'test@example.com')->first();
 
-    public function test_parent_users_can_register(): void
-    {
-        Role::where('name', 'parent')->where('guard_name', 'web')->delete();
-
-        $response = $this->post('/parent/register', [
-            'first_name' => 'Parent',
-            'last_name' => 'User',
-            'email' => 'parent@example.com',
-            'password' => 'StrongPass123!',
-            'password_confirmation' => 'StrongPass123!',
-        ]);
-
-        $parent = User::where('email', 'parent@example.com')->first();
-
-        $this->assertNotNull($parent);
         $this->assertAuthenticatedAs($parent);
         $this->assertTrue($parent->hasRole('parent'));
-        $this->assertDatabaseHas('roles', ['name' => 'parent', 'guard_name' => 'web']);
         $response->assertRedirect(route('parent.dashboard', absolute: false));
+    }
+
+    public function test_legacy_parent_register_url_redirects_to_main_registration(): void
+    {
+        $this->get('/parent/register')
+            ->assertRedirect(route('register', absolute: false));
     }
 
     public function test_registration_requires_strong_password(): void

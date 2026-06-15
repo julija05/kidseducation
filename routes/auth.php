@@ -9,16 +9,15 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\ParentRegisteredUserController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    // Student registration
-    Route::get('register', [RegisteredUserController::class, 'create'])
+    // Parent registration
+    Route::get('register', [ParentRegisteredUserController::class, 'create'])
         ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::post('register', [ParentRegisteredUserController::class, 'store']);
 
     // Mentor registration (separate from student registration)
     Route::get('mentor/register', [MentorRegisteredUserController::class, 'create'])
@@ -26,8 +25,8 @@ Route::middleware('guest')->group(function () {
 
     Route::post('mentor/register', [MentorRegisteredUserController::class, 'store']);
 
-    // Parent registration
-    Route::get('parent/register', [ParentRegisteredUserController::class, 'create'])
+    // Backward-compatible parent registration URL
+    Route::get('parent/register', fn () => redirect()->route('register'))
         ->name('parent.register');
 
     Route::post('parent/register', [ParentRegisteredUserController::class, 'store']);

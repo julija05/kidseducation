@@ -89,16 +89,16 @@ export default function PendingEnrollments({ enrollments, highlight_user_id, ava
 
     return (
         <AdminLayout>
-            <Head title="Pending Enrollments" />
+            <Head title="Pending Applications" />
 
             <div className="space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div className="mb-4 sm:mb-8">
                     <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-                        Pending Enrollments
+                        Pending Applications
                     </h1>
                     <p className="mt-2 text-sm sm:text-base text-gray-600">
-                        Review and approve student enrollment requests
+                        Review and approve child and student enrollment applications
                     </p>
                 </div>
 
@@ -136,6 +136,11 @@ export default function PendingEnrollments({ enrollments, highlight_user_id, ava
                                                     <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
                                                     <span className="truncate">{enrollment.user.email}</span>
                                                 </p>
+                                                {enrollment.user.parents?.length > 0 && (
+                                                    <p className="mt-1 text-xs text-gray-500">
+                                                        Parent: {enrollment.user.parents[0].name}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
 
@@ -266,6 +271,11 @@ export default function PendingEnrollments({ enrollments, highlight_user_id, ava
                                                                 <Mail className="h-3 w-3 mr-1" />
                                                                 {enrollment.user.email}
                                                             </div>
+                                                            {enrollment.user.parents?.length > 0 && (
+                                                                <div className="text-xs text-gray-500">
+                                                                    Parent: {enrollment.user.parents[0].name} ({enrollment.user.parents[0].email})
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </td>

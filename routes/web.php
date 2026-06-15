@@ -147,11 +147,12 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 });
 
 // Parent routes
-Route::middleware(['auth', 'verified', 'role:parent', 'check.user.status'])->prefix('parent')->name('parent.')->group(function () {
+Route::middleware(['auth', 'role:parent', 'check.user.status'])->prefix('parent')->name('parent.')->group(function () {
     Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
     Route::get('/children/{child}', [ParentDashboardController::class, 'showChild'])->name('children.show');
     Route::get('/child-profiles/create', [ParentChildProfileController::class, 'create'])->name('child-profiles.create');
     Route::post('/child-profiles', [ParentChildProfileController::class, 'store'])->name('child-profiles.store');
+    Route::get('/child-profiles/{childProfile}/pending', [ParentChildProfileController::class, 'pending'])->name('child-profiles.pending');
 });
 
 // Mentor routes

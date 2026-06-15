@@ -2,11 +2,15 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Lock, Save } from "lucide-react";
 
-export default function Create() {
+export default function Create({ programs = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         child_name: "",
+        child_email: "",
+        child_password: "",
+        child_password_confirmation: "",
+        program_id: programs[0]?.id || "",
         age: "",
         grade_class: "",
         notes: "",
@@ -32,13 +36,32 @@ export default function Create() {
 
                 <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
                     <div className="border-b border-slate-200 px-5 py-4">
-                        <h1 className="text-xl font-semibold text-slate-950">Add child profile</h1>
+                        <h1 className="text-xl font-semibold text-slate-950">Register child</h1>
                         <p className="mt-1 text-sm text-slate-600">
-                            This creates a child record linked to your parent account without creating a child login.
+                            Create the child application and login. Access starts after admin approval.
                         </p>
                     </div>
 
                     <form onSubmit={submit} className="space-y-5 p-5">
+                        <div>
+                            <InputLabel htmlFor="program_id" value="Program" />
+                            <select
+                                id="program_id"
+                                value={data.program_id}
+                                onChange={(event) => setData("program_id", event.target.value)}
+                                className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500"
+                                required
+                            >
+                                <option value="" disabled>Select a program</option>
+                                {programs.map((program) => (
+                                    <option key={program.id} value={program.id}>
+                                        {program.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <InputError message={errors.program_id} className="mt-2" />
+                        </div>
+
                         <div>
                             <InputLabel htmlFor="child_name" value="Child name" />
                             <input
@@ -50,6 +73,46 @@ export default function Create() {
                                 required
                             />
                             <InputError message={errors.child_name} className="mt-2" />
+                        </div>
+
+                        <div>
+                            <InputLabel htmlFor="child_email" value="Child login email" />
+                            <input
+                                id="child_email"
+                                type="email"
+                                value={data.child_email}
+                                onChange={(event) => setData("child_email", event.target.value)}
+                                className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500"
+                                required
+                            />
+                            <InputError message={errors.child_email} className="mt-2" />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <InputLabel htmlFor="child_password" value="Child password" />
+                                <input
+                                    id="child_password"
+                                    type="password"
+                                    value={data.child_password}
+                                    onChange={(event) => setData("child_password", event.target.value)}
+                                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500"
+                                    required
+                                />
+                                <InputError message={errors.child_password} className="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel htmlFor="child_password_confirmation" value="Confirm child password" />
+                                <input
+                                    id="child_password_confirmation"
+                                    type="password"
+                                    value={data.child_password_confirmation}
+                                    onChange={(event) => setData("child_password_confirmation", event.target.value)}
+                                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500"
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2">
@@ -101,11 +164,11 @@ export default function Create() {
                             </Link>
                             <button
                                 type="submit"
-                                disabled={processing}
+                                disabled={processing || programs.length === 0}
                                 className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
                             >
-                                <Save className="h-4 w-4" />
-                                Save profile
+                                {programs.length === 0 ? <Lock className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                                Submit application
                             </button>
                         </div>
                     </form>

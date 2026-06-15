@@ -25,6 +25,9 @@ class ChildProfile extends Model
 
     protected $fillable = [
         'parent_user_id',
+        'child_user_id',
+        'program_id',
+        'enrollment_id',
         'child_name',
         'age',
         'grade_class',
@@ -42,5 +45,20 @@ class ChildProfile extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_user_id');
+    }
+
+    public function child(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'child_user_id');
+    }
+
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(Enrollment::class);
     }
 }

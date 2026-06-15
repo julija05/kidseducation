@@ -58,7 +58,7 @@ export default function Dashboard({ children = [], childProfiles = [] }) {
                     <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h2 className="text-lg font-semibold text-slate-950">Child profiles</h2>
-                            <p className="mt-1 text-sm text-slate-600">Profiles do not require a separate child login.</p>
+                            <p className="mt-1 text-sm text-slate-600">Child applications wait here until an admin approves access.</p>
                         </div>
                         <Link
                             href={route("parent.child-profiles.create")}
@@ -79,7 +79,7 @@ export default function Dashboard({ children = [], childProfiles = [] }) {
                                     <div className="min-w-0">
                                         <p className="font-semibold text-slate-950">{profile.child_name}</p>
                                         <p className="mt-1 line-clamp-1 text-sm text-slate-600">
-                                            {profile.notes || "No notes added."}
+                                            {profile.program?.name || "No program selected"}
                                         </p>
                                     </div>
                                     <ChildStat icon={Users} label="Age" value={profile.age ?? "-"} />

@@ -87,6 +87,7 @@ class ParentDashboardController extends Controller
         }
 
         return $parent->childProfiles()
+            ->with(['program:id,name,slug', 'enrollment:id,approval_status,status'])
             ->latest()
             ->get()
             ->map(fn ($profile) => $this->formatChildProfile($profile))
@@ -103,6 +104,16 @@ class ParentDashboardController extends Controller
             'status' => $profile->status,
             'notes' => $profile->notes,
             'created_at' => $profile->created_at,
+            'program' => $profile->program ? [
+                'id' => $profile->program->id,
+                'name' => $profile->program->name,
+                'slug' => $profile->program->slug,
+            ] : null,
+            'enrollment' => $profile->enrollment ? [
+                'id' => $profile->enrollment->id,
+                'status' => $profile->enrollment->status,
+                'approval_status' => $profile->enrollment->approval_status,
+            ] : null,
         ];
     }
 }
