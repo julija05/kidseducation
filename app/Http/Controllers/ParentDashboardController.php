@@ -27,20 +27,33 @@ class ParentDashboardController extends Controller
 
     public function showChild(Request $request, User $child): Response
     {
-        if (! Schema::hasTable('parent_child')) {
-            abort(404);
-        }
-
         $parent = $request->user();
-        $child = $parent->children()
-            ->whereKey($child->id)
-            ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
-            ->with(['enrollments.program'])
-            ->firstOrFail();
+        $child = $this->authorizedChildFor($parent, $child)
+            ->load(['enrollments.program']);
 
         return Inertia::render('Parent/Child', [
             'child' => $this->formatChild($child),
         ]);
+    }
+
+    public function showChildLearningDashboard(Request $request, User $child, DashboardController $dashboard)
+    {
+        $parent = $request->user();
+        $child = $this->authorizedChildFor($parent, $child);
+
+        return $dashboard->renderParentChildDashboard($child, $parent);
+    }
+
+    private function authorizedChildFor(User $parent, User $child): User
+    {
+        if (! Schema::hasTable('parent_child')) {
+            abort(404);
+        }
+
+        return $parent->children()
+            ->whereKey($child->id)
+            ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+            ->firstOrFail();
     }
 
     private function childrenFor(User $parent)
@@ -176,6 +189,7 @@ class ParentDashboardController extends Controller
                 ? ($profile['enrollment']['rejection_reason'] ?? null)
                 : null,
             'detail_url_child_id' => $child['id'] ?? null,
+            'learning_dashboard_child_id' => $child['id'] ?? null,
             'reregister_profile_id' => $applicationStatus === 'rejected' ? ($profile['id'] ?? null) : null,
         ];
     }

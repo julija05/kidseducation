@@ -5,6 +5,7 @@ import {
     BookOpen,
     CheckCircle2,
     Clock,
+    GraduationCap,
     TrendingUp,
 } from "lucide-react";
 
@@ -35,9 +36,18 @@ export default function Child({ child }) {
                             <h1 className="mt-1 text-2xl font-semibold text-slate-950 sm:text-3xl">{child.name}</h1>
                             <p className="mt-2 text-sm text-slate-600">{child.username || child.email}</p>
                         </div>
-                        <span className="inline-flex w-fit items-center rounded-md bg-slate-100 px-3 py-1 text-sm font-semibold capitalize text-slate-700">
-                            {child.status || "active"}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Link
+                                href={route("parent.children.learning-dashboard", child.id)}
+                                className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                            >
+                                <GraduationCap className="h-4 w-4" />
+                                Learning dashboard
+                            </Link>
+                            <span className="inline-flex w-fit items-center rounded-md bg-slate-100 px-3 py-1 text-sm font-semibold capitalize text-slate-700">
+                                {child.status || "active"}
+                            </span>
+                        </div>
                     </div>
                 </section>
 

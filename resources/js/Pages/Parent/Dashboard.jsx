@@ -6,6 +6,7 @@ import {
     BookOpen,
     CalendarClock,
     ClipboardCheck,
+    GraduationCap,
     FileText,
     MessageSquareText,
     Plus,
@@ -151,9 +152,18 @@ function ChildCard({ child }) {
 
             {child.detail_url_child_id && (
                 <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-200 pt-4">
+                    {child.learning_dashboard_child_id && (
+                        <Link
+                            href={route("parent.children.learning-dashboard", child.learning_dashboard_child_id)}
+                            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            <GraduationCap className="h-4 w-4" />
+                            Learning dashboard
+                        </Link>
+                    )}
                     <Link
                         href={route("parent.children.show", child.detail_url_child_id)}
-                        className="inline-flex text-sm font-semibold text-slate-900 hover:text-slate-700"
+                        className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                         Open child details
                     </Link>

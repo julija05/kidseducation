@@ -27,9 +27,41 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        return $this->renderForUser($user);
+    }
+
+    public function renderParentChildDashboard(User $child, User $parent)
+    {
+        return $this->renderForUser($child, [
+            'parentView' => [
+                'child' => [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'username' => $child->username,
+                ],
+                'backUrl' => route('parent.dashboard'),
+                'backRoute' => 'parent.dashboard',
+                'detailsUrl' => route('parent.children.show', $child),
+            ],
+            'availablePrograms' => [],
+            'notifications' => [],
+            'unreadNotificationCount' => 0,
+            'showLanguageSelector' => false,
+            'canReview' => false,
+            'userReview' => null,
+            'shouldPromptReview' => false,
+            'userDemoAccess' => null,
+            'pendingProgramId' => null,
+        ]);
+    }
+
+    public function renderForUser(User $user, array $context = [])
+    {
+        $isParentView = isset($context['parentView']);
+
         // Check if user is suspended - show suspended dashboard
         if ($user->isSuspended()) {
-            return $this->renderSuspendedDashboard($user);
+            return $this->renderSuspendedDashboard($user, $context);
         }
 
         // DEBUG: Log dashboard access attempt
@@ -45,7 +77,7 @@ class DashboardController extends Controller
         // IMPORTANT: Only redirect to demo if user has NO enrollments at all (pending or approved) AND demo is active
         // Users with pending enrollments should see dashboard with option to return to demo
         // Expired demo users should see the regular dashboard with programs panel and expired demo buttons
-        if ($user->isDemoAccount() && ! $user->enrollments()->exists() && $user->hasDemoAccess()) {
+        if (! $isParentView && $user->isDemoAccount() && ! $user->enrollments()->exists() && $user->hasDemoAccess()) {
             \Log::info('Redirecting demo account to demo dashboard - no enrollments and active demo', [
                 'user_id' => $user->id,
                 'demo_program_slug' => $user->demo_program_slug,
@@ -57,7 +89,7 @@ class DashboardController extends Controller
         }
 
         // Log when demo user has enrollments (should NOT redirect to demo)
-        if ($user->isDemoAccount() && $user->enrollments()->exists()) {
+        if (! $isParentView && $user->isDemoAccount() && $user->enrollments()->exists()) {
             \Log::info('Demo user with enrollments - staying on regular dashboard', [
                 'user_id' => $user->id,
                 'demo_program_slug' => $user->demo_program_slug,
@@ -66,6 +98,9 @@ class DashboardController extends Controller
                 'approved_enrollments' => $user->enrollments()->where('approval_status', 'approved')->count(),
             ]);
         }
+
+        // Get student-specific data before choosing the dashboard state.
+        $studentData = $this->getStudentData($user);
 
         // Get approved enrollment if exists (active or completed - students should always see their program dashboard)
         // Exclude blocked access enrollments
@@ -89,12 +124,12 @@ class DashboardController extends Controller
             ->whereIn('status', ['active', 'completed'])
             ->where('approval_status', 'approved')
             ->where('access_blocked', false)
-            ->orderByRaw("FIELD(status, 'active', 'completed')")
+            ->orderByRaw("CASE status WHEN 'active' THEN 0 WHEN 'completed' THEN 1 ELSE 2 END")
             ->first();
         
         // If we found an enrollment but it has no program, show a message that the program was removed
         if ($approvedEnrollment && !$approvedEnrollment->program) {
-            return $this->createView('Dashboard', [
+            return $this->createView('Dashboard', $this->withDashboardContext([
                 'enrollmentStatus' => 'program_removed',
                 'message' => 'Your enrolled program has been temporarily removed. Please contact support.',
                 'availablePrograms' => collect([]),
@@ -103,7 +138,7 @@ class DashboardController extends Controller
                 'nextClass' => $studentData['nextScheduledClass'] ?? null,
                 'notifications' => $studentData['notifications'] ?? [],
                 'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
-            ]);
+            ], $context));
         }
 
         // Check if user has approved enrollment but access is blocked
@@ -126,31 +161,33 @@ class DashboardController extends Controller
             ->where('approval_status', 'pending')
             ->get();
 
-        // Get student-specific data
-        $studentData = $this->getStudentData($user);
-
         // If user has blocked access, show blocked message
         if ($blockedEnrollment) {
-            return $this->renderBlockedDashboard($user, $blockedEnrollment, $studentData);
+            return $this->renderBlockedDashboard($user, $blockedEnrollment, $studentData, $context);
         }
 
         // If user has an approved enrollment
         if ($approvedEnrollment) {
-            return $this->renderApprovedDashboard($user, $approvedEnrollment, $studentData);
+            return $this->renderApprovedDashboard($user, $approvedEnrollment, $studentData, $context);
         }
 
         // If user has pending enrollments
         if ($pendingEnrollments->isNotEmpty()) {
-            return $this->renderPendingDashboard($user, $pendingEnrollments, $studentData, $completedEnrollments);
+            return $this->renderPendingDashboard($user, $pendingEnrollments, $studentData, $completedEnrollments, $context);
         }
 
         // If user has completed enrollments but no active ones - show main dashboard with certificate functionality
         if ($completedEnrollments->isNotEmpty()) {
-            return $this->renderCompletedDashboard($user, $completedEnrollments, $request, $studentData);
+            return $this->renderCompletedDashboard($user, $completedEnrollments, $studentData, $context);
         }
 
         // No enrollments - show available programs
-        return $this->renderProgramSelection($user, $request, $studentData);
+        return $this->renderProgramSelection($user, $studentData, $context);
+    }
+
+    private function withDashboardContext(array $props, array $context = []): array
+    {
+        return array_merge($props, $context);
     }
 
     private function getStudentData($user)
@@ -278,7 +315,7 @@ class DashboardController extends Controller
         }
     }
 
-    private function renderApprovedDashboard($user, $enrollment, $studentData = [])
+    private function renderApprovedDashboard($user, $enrollment, $studentData = [], array $context = [])
     {
         // Format enrollment data for dashboard with resources
         $enrolledProgramData = $this->enrollmentService->formatEnrollmentForDashboard($enrollment);
@@ -331,7 +368,7 @@ class DashboardController extends Controller
         // Always show available programs for navigation purposes
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
-        return $this->createView('Dashboard', [
+        return $this->createView('Dashboard', $this->withDashboardContext([
             'enrolledProgram' => $enrolledProgramData,
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
             'pendingEnrollments' => [],
@@ -366,10 +403,10 @@ class DashboardController extends Controller
                 'description' => $program->description,
                 'translated_description' => $program->translated_description,
             ],
-        ]);
+        ], $context));
     }
 
-    private function renderPendingDashboard($user, $pendingEnrollments, $studentData = [], $completedEnrollments = [])
+    private function renderPendingDashboard($user, $pendingEnrollments, $studentData = [], $completedEnrollments = [], array $context = [])
     {
         $formattedPending = $pendingEnrollments->filter(function ($enrollment) {
             return $enrollment->program !== null; // Filter out enrollments with null programs
@@ -415,7 +452,7 @@ class DashboardController extends Controller
             ];
         });
 
-        return $this->createView('Dashboard', [
+        return $this->createView('Dashboard', $this->withDashboardContext([
             'enrolledProgram' => null,
             'pendingEnrollments' => $formattedPending,
             'availablePrograms' => $availablePrograms,
@@ -425,20 +462,20 @@ class DashboardController extends Controller
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
             'userDemoAccess' => $this->getUserDemoAccessForPendingEnrollments($user),
-        ]);
+        ], $context));
     }
 
-    private function renderProgramSelection($user, $request, $studentData = [])
+    private function renderProgramSelection($user, $studentData = [], array $context = [])
     {
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
         // Check if user was redirected from registration with a program intent
-        $pendingProgramId = session('pending_enrollment_program_id');
-        if ($pendingProgramId) {
+        $pendingProgramId = isset($context['parentView']) ? null : session('pending_enrollment_program_id');
+        if (! isset($context['parentView']) && $pendingProgramId) {
             session()->forget('pending_enrollment_program_id');
         }
 
-        return $this->createView('Dashboard', [
+        return $this->createView('Dashboard', $this->withDashboardContext([
             'enrolledProgram' => null,
             'pendingEnrollments' => [],
             'availablePrograms' => $availablePrograms,
@@ -448,10 +485,10 @@ class DashboardController extends Controller
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
             'userDemoAccess' => $this->getUserDemoAccessForDashboard($user),
-        ]);
+        ], $context));
     }
 
-    private function renderCompletedDashboard($user, $completedEnrollments, $request, $studentData = [])
+    private function renderCompletedDashboard($user, $completedEnrollments, $studentData = [], array $context = [])
     {
         // Format completed enrollments for certificate functionality
         $formattedCompleted = $completedEnrollments->filter(function ($enrollment) {
@@ -479,12 +516,12 @@ class DashboardController extends Controller
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
         // Check for pending program enrollment from session
-        $pendingProgramId = session('pending_enrollment_program_id');
-        if ($pendingProgramId) {
+        $pendingProgramId = isset($context['parentView']) ? null : session('pending_enrollment_program_id');
+        if (! isset($context['parentView']) && $pendingProgramId) {
             session()->forget('pending_enrollment_program_id');
         }
 
-        return $this->createView('Dashboard', [
+        return $this->createView('Dashboard', $this->withDashboardContext([
             'enrolledProgram' => null,
             'pendingEnrollments' => [],
             'availablePrograms' => $availablePrograms,
@@ -495,7 +532,7 @@ class DashboardController extends Controller
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
             'userDemoAccess' => $this->getUserDemoAccessForDashboard($user),
-        ]);
+        ], $context));
     }
 
     public function startLesson(Request $request, $lessonId)
@@ -807,9 +844,9 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function renderBlockedDashboard($user, $blockedEnrollment, $studentData = [])
+    private function renderBlockedDashboard($user, $blockedEnrollment, $studentData = [], array $context = [])
     {
-        return $this->createView('Dashboard', [
+        return $this->createView('Dashboard', $this->withDashboardContext([
             'enrollmentStatus' => 'blocked',
             'blockedEnrollment' => [
                 'id' => $blockedEnrollment->id,
@@ -826,10 +863,10 @@ class DashboardController extends Controller
             'unreadNotificationCount' => $studentData['unreadNotificationCount'] ?? 0,
             'showLanguageSelector' => ! $user->language_selected,
             'userDemoAccess' => $this->getUserDemoAccessForDashboard($user),
-        ]);
+        ], $context));
     }
 
-    private function renderSuspendedDashboard($user)
+    private function renderSuspendedDashboard($user, array $context = [])
     {
         // Get student data (notifications, scheduled classes) even for suspended users
         $studentData = $this->getStudentData($user);
@@ -844,7 +881,7 @@ class DashboardController extends Controller
         // Get available programs but they won't be able to enroll
         $availablePrograms = $this->enrollmentService->getAvailablePrograms($user);
 
-        return $this->createView('Dashboard', [
+        return $this->createView('Dashboard', $this->withDashboardContext([
             'userStatus' => 'suspended',
             'enrolledProgram' => null,
             'currentEnrollment' => $currentEnrollment && $currentEnrollment->program ? [
@@ -867,6 +904,6 @@ class DashboardController extends Controller
                 'message' => 'Your account has been temporarily suspended. Please contact the administrator to resolve this issue.',
                 'contact_email' => 'admin@abacoding.com',
             ],
-        ]);
+        ], $context));
     }
 }

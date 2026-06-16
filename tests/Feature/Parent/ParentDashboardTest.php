@@ -198,9 +198,85 @@ class ParentDashboardTest extends TestCase
         );
     }
 
+    public function test_parent_can_open_linked_child_learning_dashboard(): void
+    {
+        $program = Program::factory()->create(['is_active' => true]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+            'progress' => 42,
+        ]);
+
+        $response = $this->actingAs($this->parent)->get("/parent/children/{$this->child->id}/learning-dashboard");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->where('parentView.child.id', $this->child->id)
+            ->where('parentView.child.name', $this->child->name)
+            ->where('parentView.backRoute', 'parent.dashboard')
+            ->where('enrolledProgram.id', $program->id)
+            ->where('enrolledProgram.progress', 42.0)
+            ->where('availablePrograms', [])
+            ->where('notifications', [])
+            ->where('unreadNotificationCount', 0)
+        );
+    }
+
+    public function test_parent_child_learning_dashboard_uses_selected_child_content_only(): void
+    {
+        $selectedProgram = Program::factory()->create([
+            'name' => 'Selected Program',
+            'is_active' => true,
+        ]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $selectedProgram->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        $secondChild = User::factory()->create();
+        $secondChild->assignRole('student');
+        $this->parent->children()->attach($secondChild->id);
+
+        $otherProgram = Program::factory()->create([
+            'name' => 'Other Program',
+            'is_active' => true,
+        ]);
+        Enrollment::factory()->create([
+            'user_id' => $secondChild->id,
+            'program_id' => $otherProgram->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        $response = $this->actingAs($this->parent)->get("/parent/children/{$this->child->id}/learning-dashboard");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->where('parentView.child.id', $this->child->id)
+            ->where('enrolledProgram.id', $selectedProgram->id)
+            ->where('enrolledProgram.name', 'Selected Program')
+        );
+    }
+
     public function test_parent_cannot_open_unlinked_child(): void
     {
         $response = $this->actingAs($this->parent)->get("/parent/children/{$this->otherChild->id}");
+
+        $response->assertNotFound();
+    }
+
+    public function test_parent_cannot_open_unlinked_child_learning_dashboard(): void
+    {
+        $response = $this->actingAs($this->parent)->get("/parent/children/{$this->otherChild->id}/learning-dashboard");
 
         $response->assertNotFound();
     }

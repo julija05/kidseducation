@@ -971,13 +971,14 @@
     ]
   },
   "resources/js/Pages/Dashboard.jsx": {
-    "file": "assets/Dashboard-iVIQaGPX.js",
+    "file": "assets/Dashboard-JL4dxITy.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Dashboard.jsx",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-C7-hz-5y.js",
       "_student-VayXWzSA.js",
+      "_ParentLayout-DNMaw__7.js",
       "_vendor-inertia-B8ipwdfx.js",
       "_admin-CqXM8pYH.js",
       "_StarRating-D4uQ0L-h.js",
@@ -1615,7 +1616,7 @@
     ]
   },
   "resources/js/Pages/Parent/Child.jsx": {
-    "file": "assets/Child-BcVx6BZk.js",
+    "file": "assets/Child-CVRgZv5q.js",
     "name": "Child",
     "src": "resources/js/Pages/Parent/Child.jsx",
     "isDynamicEntry": true,
@@ -1664,7 +1665,7 @@
     ]
   },
   "resources/js/Pages/Parent/Dashboard.jsx": {
-    "file": "assets/Dashboard-D5_BelUP.js",
+    "file": "assets/Dashboard-C6n0YxIN.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Parent/Dashboard.jsx",
     "isDynamicEntry": true,
@@ -1814,7 +1815,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-DjUn8HBA.js",
+    "file": "assets/app-DHHQ2Smk.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,

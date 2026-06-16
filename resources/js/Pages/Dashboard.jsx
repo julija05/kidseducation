@@ -1,9 +1,10 @@
 // resources/js/Pages/Dashboard.jsx - Clean Version
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, usePage, router } from "@inertiajs/react";
+import ParentLayout from "@/Layouts/ParentLayout";
+import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket } from "lucide-react";
+import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket, ArrowLeft, UserRound } from "lucide-react";
 import ReviewSection from "@/Components/ReviewSection";
 import ReviewPromptModal from "@/Components/ReviewPromptModal";
 import StudentNavBar from "@/Components/StudentNavBar";
@@ -42,10 +43,13 @@ export default function Dashboard() {
         userStatus,
         suspensionMessage,
         currentEnrollment,
+        parentView,
     } = props;
 
     const student = props.auth.user;
-    const [showLanguageModal, setShowLanguageModal] = useState(showLanguageSelector || false);
+    const isParentView = Boolean(parentView);
+    const DashboardLayout = isParentView ? ParentLayout : AuthenticatedLayout;
+    const [showLanguageModal, setShowLanguageModal] = useState(!isParentView && (showLanguageSelector || false));
     const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
     const [showReviewPrompt, setShowReviewPrompt] = useState(shouldPromptReview || false);
     const [showCertificateModal, setShowCertificateModal] = useState(false);
@@ -65,6 +69,10 @@ export default function Dashboard() {
 
     // Check for program completion and show certificate modal
     useEffect(() => {
+        if (isParentView) {
+            return;
+        }
+
         if (enrolledProgram && enrolledProgram.progress >= 100 && enrolledProgram.approvalStatus === "approved") {
             // Only show certificate modal once per session
             const certificateShown = sessionStorage.getItem(`certificate_shown_${enrolledProgram.id}`);
@@ -74,12 +82,16 @@ export default function Dashboard() {
                 sessionStorage.setItem(`certificate_shown_${enrolledProgram.id}`, 'true');
             }
         }
-    }, [enrolledProgram]);
+    }, [enrolledProgram, isParentView]);
 
 
     // Check if user came from program registration
     // If there's a pending program, redirect to the program page for enrollment
     useEffect(() => {
+        if (isParentView) {
+            return;
+        }
+
         if (pendingProgramId && availablePrograms) {
             const program = availablePrograms.find(
                 (p) => p.id === pendingProgramId
@@ -89,14 +101,22 @@ export default function Dashboard() {
                 router.visit(route("programs.show", program.slug));
             }
         }
-    }, [pendingProgramId, availablePrograms]);
+    }, [pendingProgramId, availablePrograms, isParentView]);
 
     const handleStartLesson = (lessonId) => {
+        if (isParentView) {
+            return;
+        }
+
         // Navigate to the lesson page
         router.visit(route("lessons.show", lessonId));
     };
 
     const handleReviewLesson = (lessonId) => {
+        if (isParentView) {
+            return;
+        }
+
         // Navigate to the lesson page for review
         router.visit(route("lessons.show", lessonId));
     };
@@ -110,7 +130,7 @@ export default function Dashboard() {
     // If user is suspended, show suspended dashboard
     if (userStatus === 'suspended' && suspensionMessage) {
         return (
-            <AuthenticatedLayout>
+            <DashboardLayout>
                 <Head title={t('nav.dashboard')} />
                 
                 {/* First Time Language Selector */}
@@ -127,6 +147,8 @@ export default function Dashboard() {
                     </div>
                     
                     <div className="relative z-5 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <ParentViewBanner parentView={parentView} />
+
                         {/* Suspension Alert */}
                         <div className="bg-red-50/90 backdrop-blur-lg border border-red-200 rounded-3xl p-8 shadow-xl mb-8">
                             <div className="text-center">
@@ -215,7 +237,7 @@ export default function Dashboard() {
                         )}
                     </div>
                 </div>
-            </AuthenticatedLayout>
+            </DashboardLayout>
         );
     }
 
@@ -225,8 +247,8 @@ export default function Dashboard() {
             iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
 
         return (
-            <AuthenticatedLayout
-                programConfig={enrolledProgram.theme}
+            <DashboardLayout
+                {...(!isParentView ? { programConfig: enrolledProgram.theme } : {})}
             >
                 <Head title={`${enrolledProgram.translated_name || enrolledProgram.name} Dashboard`} />
 
@@ -245,6 +267,8 @@ export default function Dashboard() {
                     </div>
                     
                     <div className="relative z-5 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                    <ParentViewBanner parentView={parentView} />
+
                     {/* Email Verification Success Message */}
                     {showVerificationSuccess && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm">
@@ -326,6 +350,7 @@ export default function Dashboard() {
                                 program={enrolledProgram}
                                 onStartLesson={handleStartLesson}
                                 onReviewLesson={handleReviewLesson}
+                                readOnly={isParentView}
                             />
                         </div>
 
@@ -341,7 +366,7 @@ export default function Dashboard() {
                         )}
 
                         {/* Modern Review Section */}
-                        {program && (
+                        {!isParentView && program && (
                             <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
                                 <ReviewSection
                                     enrolledProgram={enrolledProgram}
@@ -355,7 +380,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Review Prompt Modal */}
-                {program && (
+                {!isParentView && program && (
                     <ReviewPromptModal
                         program={program}
                         isOpen={showReviewPrompt}
@@ -364,7 +389,7 @@ export default function Dashboard() {
                 )}
 
                 {/* Certificate Modal */}
-                {certificateProgram && (
+                {!isParentView && certificateProgram && (
                     <CertificateModal
                         isOpen={showCertificateModal}
                         onClose={() => setShowCertificateModal(false)}
@@ -373,13 +398,13 @@ export default function Dashboard() {
                         onGenerate={handleCertificateGenerated}
                     />
                 )}
-            </AuthenticatedLayout>
+            </DashboardLayout>
         );
     }
 
     // Show both pending enrollments AND available programs
     return (
-        <AuthenticatedLayout>
+        <DashboardLayout>
             <Head title={t('nav.dashboard')} />
             
             {/* First Time Language Selector */}
@@ -397,6 +422,8 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="relative z-5 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                    <ParentViewBanner parentView={parentView} />
+
                     {/* Modern Welcome Message for New Users */}
                     {flash?.welcome && (
                         <div className="bg-white/80 backdrop-blur-lg border border-white/50 rounded-3xl p-8 shadow-xl">
@@ -476,16 +503,63 @@ export default function Dashboard() {
                     )}
 
                     {/* Modern Program List */}
-                    <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
-                        <ProgramList
-                            programs={availablePrograms || []}
-                            userEnrollments={pendingEnrollments || []}
-                            userDemoAccess={props.userDemoAccess || null}
-                        />
-                    </div>
+                    {(!isParentView || (availablePrograms && availablePrograms.length > 0)) && (
+                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                            <ProgramList
+                                programs={availablePrograms || []}
+                                userEnrollments={pendingEnrollments || []}
+                                userDemoAccess={props.userDemoAccess || null}
+                            />
+                        </div>
+                    )}
 
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </DashboardLayout>
+    );
+}
+
+function ParentViewBanner({ parentView }) {
+    if (!parentView) {
+        return null;
+    }
+
+    return (
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
+                        <UserRound className="h-5 w-5" />
+                    </span>
+                    <div>
+                        <p className="text-sm font-medium text-slate-500">Viewing child dashboard</p>
+                        <h1 className="text-lg font-semibold text-slate-950">
+                            {parentView.child?.name || "Selected child"}
+                        </h1>
+                        {parentView.child?.username && (
+                            <p className="font-mono text-xs text-slate-500">{parentView.child.username}</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    <Link
+                        href={parentView.backUrl || route("parent.dashboard")}
+                        className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                        <ArrowLeft className="h-4 w-4" />
+                        Parent dashboard
+                    </Link>
+                    {parentView.detailsUrl && (
+                        <Link
+                            href={parentView.detailsUrl}
+                            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            Child details
+                        </Link>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }

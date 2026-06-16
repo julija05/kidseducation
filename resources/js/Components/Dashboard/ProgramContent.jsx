@@ -34,6 +34,7 @@ export default function ProgramContent({
     program,
     onStartLesson,
     onReviewLesson,
+    readOnly = false,
 }) {
     const { t } = useTranslation();
     // Temporarily disable theme system
@@ -111,6 +112,10 @@ export default function ProgramContent({
     };
 
     const handleResourceClick = (resource) => {
+        if (readOnly) {
+            return;
+        }
+
         if (processingResources.has(resource.id)) {
             return; // Prevent multiple clicks
         }
@@ -211,6 +216,15 @@ export default function ProgramContent({
             };
         }
 
+        if (readOnly) {
+            return {
+                text: "View only",
+                className: "bg-slate-100 text-slate-500 cursor-not-allowed",
+                onClick: () => {},
+                disabled: true,
+            };
+        }
+
         switch (lesson.status) {
             case "completed":
                 const reviewButtonId = getButtonId("review");
@@ -273,6 +287,10 @@ export default function ProgramContent({
     };
 
     const handleLessonClick = (lesson, action) => {
+        if (readOnly) {
+            return;
+        }
+
         const buttonId = `${lesson.id}-${action}`;
         
         if (processingButtons.has(buttonId)) {
