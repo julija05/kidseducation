@@ -170,6 +170,7 @@ class ParentDashboardController extends Controller
         $nextClass = $childId ? $this->nextLiveClassFor($childId) : null;
         $latestCompletedClass = $childId ? $this->latestCompletedClassFor($childId) : null;
         $sessionData = $latestCompletedClass?->session_data ?? [];
+        $homework = $this->homeworkFrom($sessionData);
 
         return [
             'id' => $profile['id'] ?? $childId,
@@ -181,7 +182,8 @@ class ParentDashboardController extends Controller
             'current_program' => $program,
             'group_name' => $this->groupNameFor($nextClass),
             'next_live_class' => $this->formatSchedule($nextClass),
-            'homework_status' => $this->homeworkStatusFrom($sessionData),
+            'homework_status' => $homework['status'] ?? $this->homeworkStatusFrom($sessionData),
+            'homework' => $homework,
             'progress' => $activeEnrollment['progress'] ?? 0,
             'latest_mentor_note' => $this->parentVisibleMentorNoteFrom($sessionData),
             'latest_weekly_report' => $this->weeklyReportFrom($sessionData),
@@ -295,6 +297,106 @@ class ParentDashboardController extends Controller
         return $sessionData['homework_status']
             ?? $sessionData['homework']['status']
             ?? (isset($sessionData['homework_assigned']) ? ($sessionData['homework_assigned'] ? 'Assigned' : 'Not assigned') : null);
+    }
+
+    private function homeworkFrom(array $sessionData): ?array
+    {
+        $homework = data_get($sessionData, 'homework', []);
+        $current = data_get($homework, 'current')
+            ?? data_get($homework, 'title')
+            ?? data_get($homework, 'assignment')
+            ?? data_get($homework, 'description')
+            ?? data_get($sessionData, 'current_homework')
+            ?? data_get($sessionData, 'homework_title')
+            ?? data_get($sessionData, 'homework_description')
+            ?? data_get($sessionData, 'homework_assignment');
+
+        $estimatedPracticeTime = data_get($homework, 'estimated_practice_time')
+            ?? data_get($homework, 'estimatedPracticeTime')
+            ?? data_get($homework, 'practice_time')
+            ?? data_get($homework, 'practiceTime')
+            ?? data_get($sessionData, 'estimated_practice_time')
+            ?? data_get($sessionData, 'practice_time')
+            ?? data_get($sessionData, 'homework_estimated_practice_time');
+
+        $dueDate = data_get($homework, 'due_date')
+            ?? data_get($homework, 'dueDate')
+            ?? data_get($sessionData, 'homework_due_date')
+            ?? data_get($sessionData, 'due_date');
+
+        $completed = $this->nullableBoolean(
+            data_get($homework, 'completed')
+                ?? data_get($homework, 'is_completed')
+                ?? data_get($homework, 'isCompleted')
+                ?? data_get($sessionData, 'homework_completed')
+                ?? data_get($sessionData, 'homework_is_completed')
+        );
+
+        $status = $this->homeworkStatusFrom($sessionData);
+        if (! $status && $completed !== null) {
+            $status = $completed ? 'Completed' : 'Not completed';
+        }
+
+        $needsHelp = $this->nullableBoolean(
+            data_get($homework, 'needs_help')
+                ?? data_get($homework, 'needsHelp')
+                ?? data_get($homework, 'help_requested')
+                ?? data_get($homework, 'helpRequested')
+                ?? data_get($sessionData, 'homework_needs_help')
+                ?? data_get($sessionData, 'needs_help')
+                ?? data_get($sessionData, 'help_requested')
+        );
+
+        if (! $current && ! $estimatedPracticeTime && ! $dueDate && ! $status && $needsHelp === null) {
+            return null;
+        }
+
+        return [
+            'current' => $current,
+            'estimated_practice_time' => $this->formatPracticeTime($estimatedPracticeTime),
+            'due_date' => $dueDate,
+            'status' => $status,
+            'is_completed' => $completed,
+            'needs_help' => $needsHelp ?? false,
+        ];
+    }
+
+    private function nullableBoolean($value): ?bool
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (bool) $value;
+        }
+
+        if (is_string($value)) {
+            return match (strtolower(trim($value))) {
+                '1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'needs_help', 'requested' => true,
+                '0', 'false', 'no', 'n', 'not_completed', 'not completed', 'incomplete', 'pending' => false,
+                default => null,
+            };
+        }
+
+        return null;
+    }
+
+    private function formatPracticeTime($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return ((int) $value).' min';
+        }
+
+        return (string) $value;
     }
 
     private function weeklyReportFrom(array $sessionData): ?string

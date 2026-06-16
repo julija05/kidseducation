@@ -122,10 +122,10 @@ function ChildCard({ child }) {
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <InfoItem icon={BookOpen} label="Current program" value={child.current_program?.name} />
                 <InfoItem icon={Users} label="Group name" value={child.group_name} />
-                <InfoItem icon={ClipboardCheck} label="Homework status" value={child.homework_status} />
             </div>
 
             <NextClassPanel nextClass={child.next_live_class} />
+            <HomeworkPanel homework={child.homework} fallbackStatus={child.homework_status} />
 
             <div className="mt-5">
                 <div className="flex items-center justify-between gap-3">
@@ -187,6 +187,64 @@ function ChildCard({ child }) {
                 </div>
             )}
         </article>
+    );
+}
+
+function HomeworkPanel({ homework, fallbackStatus }) {
+    if (!homework) {
+        return (
+            <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <ClipboardCheck className="h-4 w-4" />
+                    Current homework
+                </div>
+                <p className="mt-2 text-sm text-slate-500">{display(fallbackStatus)}</p>
+            </div>
+        );
+    }
+
+    const completed = homework.is_completed === true;
+    const notCompleted = homework.is_completed === false;
+    const statusLabel = homework.status || (completed ? "Completed" : notCompleted ? "Not completed" : null);
+    const statusClass = completed
+        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+        : notCompleted
+            ? "bg-amber-50 text-amber-700 ring-amber-200"
+            : "bg-slate-50 text-slate-700 ring-slate-200";
+
+    return (
+        <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                        <ClipboardCheck className="h-4 w-4" />
+                        Current homework
+                    </div>
+                    <h3 className="mt-2 text-base font-semibold text-slate-950">
+                        {display(homework.current)}
+                    </h3>
+                </div>
+
+                {statusLabel && (
+                    <span className={`inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass}`}>
+                        {completed ? <CheckCircle2 className="h-3.5 w-3.5" /> : <ClipboardCheck className="h-3.5 w-3.5" />}
+                        {statusLabel}
+                    </span>
+                )}
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <ClassMeta icon={Clock} label="Practice time" value={homework.estimated_practice_time} />
+                <ClassMeta icon={CalendarClock} label="Due date" value={homework.due_date} />
+                <ClassMeta icon={AlertTriangle} label="Needs help" value={homework.needs_help ? "Yes" : "No"} />
+            </div>
+
+            {homework.needs_help && (
+                <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-800">
+                    This child requested help with the current homework.
+                </div>
+            )}
+        </div>
     );
 }
 

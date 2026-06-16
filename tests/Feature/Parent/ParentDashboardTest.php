@@ -197,6 +197,47 @@ class ParentDashboardTest extends TestCase
         );
     }
 
+    public function test_parent_dashboard_shows_current_homework_completion_and_help_status(): void
+    {
+        $program = Program::factory()->create(['is_active' => true]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'session_data' => [
+                'homework' => [
+                    'current' => 'Practice multiplication worksheet',
+                    'estimated_practice_time' => 25,
+                    'due_date' => '2026-06-20',
+                    'completed' => false,
+                    'needs_help' => true,
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->has('childCards', 1)
+            ->where('childCards.0.homework.current', 'Practice multiplication worksheet')
+            ->where('childCards.0.homework.estimated_practice_time', '25 min')
+            ->where('childCards.0.homework.due_date', '2026-06-20')
+            ->where('childCards.0.homework.status', 'Not completed')
+            ->where('childCards.0.homework.is_completed', false)
+            ->where('childCards.0.homework.needs_help', true)
+            ->where('childCards.0.homework_status', 'Not completed')
+        );
+    }
+
     public function test_parent_dashboard_does_not_expose_private_mentor_session_notes(): void
     {
         $program = Program::factory()->create([
