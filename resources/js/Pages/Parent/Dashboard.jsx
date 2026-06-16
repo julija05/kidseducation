@@ -5,9 +5,13 @@ import {
     BarChart3,
     BookOpen,
     CalendarClock,
+    CheckCircle2,
     ClipboardCheck,
+    Clock,
+    ExternalLink,
     GraduationCap,
     FileText,
+    ListChecks,
     MessageSquareText,
     Plus,
     RefreshCcw,
@@ -118,9 +122,10 @@ function ChildCard({ child }) {
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <InfoItem icon={BookOpen} label="Current program" value={child.current_program?.name} />
                 <InfoItem icon={Users} label="Group name" value={child.group_name} />
-                <InfoItem icon={CalendarClock} label="Next live class" value={child.next_live_class?.formatted_time} />
                 <InfoItem icon={ClipboardCheck} label="Homework status" value={child.homework_status} />
             </div>
+
+            <NextClassPanel nextClass={child.next_live_class} />
 
             <div className="mt-5">
                 <div className="flex items-center justify-between gap-3">
@@ -182,6 +187,91 @@ function ChildCard({ child }) {
                 </div>
             )}
         </article>
+    );
+}
+
+function NextClassPanel({ nextClass }) {
+    if (!nextClass) {
+        return (
+            <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <CalendarClock className="h-4 w-4" />
+                    Next live class
+                </div>
+                <p className="mt-2 text-sm text-slate-500">No upcoming class scheduled yet.</p>
+            </div>
+        );
+    }
+
+    const checklist = nextClass.preparation_checklist || [];
+
+    return (
+        <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50/60 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
+                        <CalendarClock className="h-4 w-4" />
+                        Next live class
+                    </div>
+                    <h3 className="mt-2 text-base font-semibold text-slate-950">
+                        {display(nextClass.topic || nextClass.title)}
+                    </h3>
+                    {nextClass.description && (
+                        <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600">{nextClass.description}</p>
+                    )}
+                </div>
+
+                {nextClass.meeting_link && (
+                    <a
+                        href={nextClass.meeting_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-fit items-center gap-2 rounded-md bg-blue-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
+                    >
+                        <ExternalLink className="h-4 w-4" />
+                        Join class
+                    </a>
+                )}
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <ClassMeta icon={CalendarClock} label="Date" value={nextClass.date} />
+                <ClassMeta icon={Clock} label="Time" value={nextClass.time} />
+                <ClassMeta icon={Users} label="Group" value={nextClass.group} />
+            </div>
+
+            <div className="mt-4 rounded-md border border-blue-100 bg-white p-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <ListChecks className="h-3.5 w-3.5" />
+                    Preparation checklist
+                </div>
+
+                {checklist.length ? (
+                    <ul className="mt-3 space-y-2">
+                        {checklist.map((item, index) => (
+                            <li key={`${item}-${index}`} className="flex items-start gap-2 text-sm text-slate-700">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                                <span>{item}</span>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="mt-2 text-sm text-slate-500">No preparation items added yet.</p>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function ClassMeta({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-md border border-blue-100 bg-white p-3">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+            </div>
+            <p className="mt-1 text-sm font-semibold text-slate-950">{display(value)}</p>
+        </div>
     );
 }
 

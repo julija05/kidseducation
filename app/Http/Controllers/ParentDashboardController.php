@@ -221,7 +221,7 @@ class ParentDashboardController extends Controller
             return null;
         }
 
-        return ClassSchedule::with(['program:id,name,slug'])
+        return ClassSchedule::with(['program:id,name,slug', 'lesson:id,title,title_translations,program_id,level'])
             ->where(function ($query) use ($childId) {
                 $query->where('student_id', $childId);
 
@@ -264,11 +264,20 @@ class ParentDashboardController extends Controller
         return [
             'id' => $schedule->id,
             'title' => $schedule->title,
+            'topic' => $schedule->lesson?->translated_title
+                ?? $schedule->lesson?->title
+                ?? $schedule->description
+                ?? $schedule->title,
+            'description' => $schedule->description,
             'scheduled_at' => $schedule->scheduled_at,
+            'date' => $schedule->scheduled_at->format('M d, Y'),
+            'time' => $schedule->scheduled_at->format('g:i A'),
             'formatted_time' => $schedule->getFormattedScheduledTime(),
             'duration' => $schedule->getFormattedDuration(),
             'is_group_class' => $schedule->is_group_class,
+            'group' => $this->groupNameFor($schedule),
             'meeting_link' => $schedule->meeting_link,
+            'preparation_checklist' => $this->preparationChecklistFrom($schedule),
         ];
     }
 
@@ -302,5 +311,70 @@ class ParentDashboardController extends Controller
             ?? $sessionData['mentor_note_for_parent']
             ?? $sessionData['public_mentor_note']
             ?? null;
+    }
+
+    private function preparationChecklistFrom(ClassSchedule $schedule): array
+    {
+        $sessionData = $schedule->session_data ?? [];
+        $candidates = [
+            data_get($sessionData, 'preparation_checklist'),
+            data_get($sessionData, 'preparationChecklist'),
+            data_get($sessionData, 'preparation_items'),
+            data_get($sessionData, 'preparationItems'),
+            data_get($sessionData, 'preparation.checklist'),
+            data_get($sessionData, 'preparation.items'),
+            data_get($sessionData, 'materials_to_prepare'),
+            data_get($sessionData, 'materials'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            $items = $this->normalizeChecklistItems($candidate);
+
+            if ($items !== []) {
+                return $items;
+            }
+        }
+
+        return [];
+    }
+
+    private function normalizeChecklistItems($value): array
+    {
+        if (! $value) {
+            return [];
+        }
+
+        if (is_string($value)) {
+            $value = preg_split('/\r\n|\r|\n|,/', $value);
+        }
+
+        if ($value instanceof Collection) {
+            $value = $value->all();
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return collect($value)
+            ->map(function ($item) {
+                if (is_string($item)) {
+                    return $item;
+                }
+
+                if (is_array($item)) {
+                    return $item['label']
+                        ?? $item['text']
+                        ?? $item['title']
+                        ?? $item['name']
+                        ?? null;
+                }
+
+                return null;
+            })
+            ->filter(fn ($item) => is_string($item) && trim($item) !== '')
+            ->map(fn ($item) => trim($item))
+            ->values()
+            ->all();
     }
 }

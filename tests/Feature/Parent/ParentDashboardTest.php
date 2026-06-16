@@ -89,8 +89,17 @@ class ParentDashboardTest extends TestCase
             'student_id' => null,
             'program_id' => $program->id,
             'title' => 'Group A',
+            'description' => 'Fractions practice',
+            'scheduled_at' => now()->addDays(2)->setTime(15, 30),
+            'meeting_link' => 'https://example.test/live/group-a',
             'is_group_class' => true,
             'max_students' => 5,
+            'session_data' => [
+                'preparation_checklist' => [
+                    'Bring notebook',
+                    'Complete warm-up worksheet',
+                ],
+            ],
         ]);
         $nextClass->students()->attach($this->child->id);
 
@@ -115,10 +124,76 @@ class ParentDashboardTest extends TestCase
             ->where('childCards.0.application_status', ApprovalStatus::APPROVED)
             ->where('childCards.0.current_program.name', 'Mental Math')
             ->where('childCards.0.group_name', 'Group A')
+            ->where('childCards.0.next_live_class.date', $nextClass->scheduled_at->format('M d, Y'))
+            ->where('childCards.0.next_live_class.time', '3:30 PM')
+            ->where('childCards.0.next_live_class.topic', 'Fractions practice')
+            ->where('childCards.0.next_live_class.group', 'Group A')
+            ->where('childCards.0.next_live_class.meeting_link', 'https://example.test/live/group-a')
+            ->where('childCards.0.next_live_class.preparation_checklist.0', 'Bring notebook')
+            ->where('childCards.0.next_live_class.preparation_checklist.1', 'Complete warm-up worksheet')
             ->where('childCards.0.homework_status', 'Assigned')
             ->where('childCards.0.progress', 72)
             ->where('childCards.0.latest_mentor_note', 'Strong focus during class.')
             ->where('childCards.0.latest_weekly_report', 'Completed all practice tasks.')
+        );
+    }
+
+    public function test_parent_dashboard_shows_next_live_class_for_every_linked_child(): void
+    {
+        $this->child->update(['name' => 'Amy Learner']);
+
+        $secondChild = User::factory()->create(['name' => 'Zoe Learner']);
+        $secondChild->assignRole('student');
+        $this->parent->children()->attach($secondChild->id);
+
+        $program = Program::factory()->create(['is_active' => true]);
+
+        foreach ([$this->child, $secondChild] as $child) {
+            Enrollment::factory()->create([
+                'user_id' => $child->id,
+                'program_id' => $program->id,
+                'enrollment_type' => EnrollmentType::STUDENT,
+                'approval_status' => ApprovalStatus::APPROVED,
+                'status' => EnrollmentStatus::ACTIVE,
+            ]);
+        }
+
+        ClassSchedule::factory()->upcoming()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'title' => 'Amy math class',
+            'scheduled_at' => now()->addDay()->setTime(10, 0),
+            'meeting_link' => 'https://example.test/live/amy',
+            'session_data' => [
+                'preparation_checklist' => ['Practice flash cards'],
+            ],
+        ]);
+
+        ClassSchedule::factory()->upcoming()->create([
+            'student_id' => $secondChild->id,
+            'program_id' => $program->id,
+            'title' => 'Zoe coding class',
+            'scheduled_at' => now()->addDays(3)->setTime(12, 15),
+            'meeting_link' => 'https://example.test/live/zoe',
+            'session_data' => [
+                'preparation_checklist' => ['Open Scratch project'],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->has('childCards', 2)
+            ->where('childCards.0.name', 'Amy Learner')
+            ->where('childCards.0.next_live_class.topic', 'Amy math class')
+            ->where('childCards.0.next_live_class.meeting_link', 'https://example.test/live/amy')
+            ->where('childCards.0.next_live_class.preparation_checklist.0', 'Practice flash cards')
+            ->where('childCards.1.name', 'Zoe Learner')
+            ->where('childCards.1.next_live_class.topic', 'Zoe coding class')
+            ->where('childCards.1.next_live_class.meeting_link', 'https://example.test/live/zoe')
+            ->where('childCards.1.next_live_class.preparation_checklist.0', 'Open Scratch project')
         );
     }
 
