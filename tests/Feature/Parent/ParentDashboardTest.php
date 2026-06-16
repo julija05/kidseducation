@@ -270,6 +270,110 @@ class ParentDashboardTest extends TestCase
         );
     }
 
+    public function test_parent_dashboard_shows_latest_parent_visible_mentor_note_only(): void
+    {
+        $program = Program::factory()->create(['is_active' => true]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'scheduled_at' => now()->subDays(4),
+            'completed_at' => now()->subDays(4),
+            'session_notes' => 'Older private note.',
+            'session_data' => [
+                'parent_note' => 'Older parent-visible note.',
+            ],
+        ]);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'scheduled_at' => now()->subDay(),
+            'completed_at' => now()->subDay(),
+            'session_notes' => 'Newest private note.',
+            'session_data' => [
+                'mentor_notes' => [
+                    [
+                        'note' => 'Hidden structured note.',
+                        'visible_to_parent' => false,
+                    ],
+                    [
+                        'note' => 'Newest parent-visible note.',
+                        'visible_to_parent' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertDontSee('Newest private note.');
+        $response->assertDontSee('Older private note.');
+        $response->assertDontSee('Hidden structured note.');
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->has('childCards', 1)
+            ->where('childCards.0.latest_mentor_note', 'Newest parent-visible note.')
+        );
+    }
+
+    public function test_parent_child_detail_shows_parent_visible_mentor_note_history(): void
+    {
+        $program = Program::factory()->create(['is_active' => true]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'title' => 'Older class',
+            'scheduled_at' => now()->subDays(6),
+            'completed_at' => now()->subDays(6),
+            'session_notes' => 'Older private internal note.',
+            'session_data' => [
+                'public_mentor_note' => 'Older parent note.',
+            ],
+        ]);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'title' => 'Latest class',
+            'scheduled_at' => now()->subDays(2),
+            'completed_at' => now()->subDays(2),
+            'session_notes' => 'Latest private internal note.',
+            'session_data' => [
+                'mentor_note_for_parent' => 'Latest parent note.',
+            ],
+        ]);
+
+        $response = $this->actingAs($this->parent)->get("/parent/children/{$this->child->id}");
+
+        $response->assertStatus(200);
+        $response->assertDontSee('Older private internal note.');
+        $response->assertDontSee('Latest private internal note.');
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Child')
+            ->where('child.parent_visible_mentor_notes.0.note', 'Latest parent note.')
+            ->where('child.parent_visible_mentor_notes.0.class_title', 'Latest class')
+            ->where('child.parent_visible_mentor_notes.1.note', 'Older parent note.')
+            ->where('child.parent_visible_mentor_notes.1.class_title', 'Older class')
+        );
+    }
+
     public function test_parent_dashboard_child_card_shows_rejection_note(): void
     {
         $program = Program::factory()->create([

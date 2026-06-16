@@ -81,6 +81,7 @@ class ParentDashboardController extends Controller
             'email' => $child->email,
             'username' => $child->username,
             'status' => $child->status,
+            'parent_visible_mentor_notes' => $this->parentVisibleMentorNotesFor($child->id),
             'enrollments' => $child->enrollments->map(function ($enrollment) {
                 return [
                     'id' => $enrollment->id,
@@ -171,6 +172,7 @@ class ParentDashboardController extends Controller
         $latestCompletedClass = $childId ? $this->latestCompletedClassFor($childId) : null;
         $sessionData = $latestCompletedClass?->session_data ?? [];
         $homework = $this->homeworkFrom($sessionData);
+        $latestParentVisibleNote = $childId ? $this->parentVisibleMentorNotesFor($childId)->first() : null;
 
         return [
             'id' => $profile['id'] ?? $childId,
@@ -185,7 +187,7 @@ class ParentDashboardController extends Controller
             'homework_status' => $homework['status'] ?? $this->homeworkStatusFrom($sessionData),
             'homework' => $homework,
             'progress' => $activeEnrollment['progress'] ?? 0,
-            'latest_mentor_note' => $this->parentVisibleMentorNoteFrom($sessionData),
+            'latest_mentor_note' => $latestParentVisibleNote['note'] ?? null,
             'latest_weekly_report' => $this->weeklyReportFrom($sessionData),
             'rejection_note' => $applicationStatus === 'rejected'
                 ? ($profile['enrollment']['rejection_reason'] ?? null)
@@ -255,6 +257,33 @@ class ParentDashboardController extends Controller
             ->orderByDesc('completed_at')
             ->orderByDesc('scheduled_at')
             ->first();
+    }
+
+    private function completedClassesFor(int $childId): Collection
+    {
+        if (! Schema::hasTable('class_schedules')) {
+            return collect();
+        }
+
+        return ClassSchedule::with(['program:id,name,slug'])
+            ->where(function ($query) use ($childId) {
+                $query->where('student_id', $childId);
+
+                if (Schema::hasTable('class_schedule_students')) {
+                    $query->orWhereHas('students', fn ($studentQuery) => $studentQuery->where('users.id', $childId));
+                }
+            })
+            ->where('status', 'completed')
+            ->orderByDesc('completed_at')
+            ->orderByDesc('scheduled_at')
+            ->get();
+    }
+
+    private function parentVisibleMentorNotesFor(int $childId): Collection
+    {
+        return $this->completedClassesFor($childId)
+            ->flatMap(fn (ClassSchedule $schedule) => $this->parentVisibleMentorNotesFromSchedule($schedule))
+            ->values();
     }
 
     private function formatSchedule(?ClassSchedule $schedule): ?array
@@ -409,10 +438,77 @@ class ParentDashboardController extends Controller
 
     private function parentVisibleMentorNoteFrom(array $sessionData): ?string
     {
-        return $sessionData['parent_note']
-            ?? $sessionData['mentor_note_for_parent']
-            ?? $sessionData['public_mentor_note']
+        return data_get($sessionData, 'parent_note')
+            ?? data_get($sessionData, 'mentor_note_for_parent')
+            ?? data_get($sessionData, 'public_mentor_note')
+            ?? data_get($sessionData, 'parent_visible_mentor_note')
+            ?? data_get($sessionData, 'parent_visible_note')
             ?? null;
+    }
+
+    private function parentVisibleMentorNotesFromSchedule(ClassSchedule $schedule): array
+    {
+        $sessionData = $schedule->session_data ?? [];
+        $notes = collect([
+            $this->parentVisibleMentorNoteFrom($sessionData),
+        ]);
+
+        $structuredNotes = collect([
+            data_get($sessionData, 'mentor_notes'),
+            data_get($sessionData, 'mentorNotes'),
+            data_get($sessionData, 'notes'),
+        ])
+            ->flatMap(fn ($value) => $this->normalizeStructuredParentVisibleNotes($value));
+
+        return $notes
+            ->merge($structuredNotes)
+            ->filter(fn ($note) => is_string($note) && trim($note) !== '')
+            ->map(fn ($note) => [
+                'id' => $schedule->id.'-'.md5($note),
+                'note' => trim($note),
+                'class_title' => $schedule->title,
+                'program_name' => $schedule->program?->name,
+                'date' => ($schedule->completed_at ?? $schedule->scheduled_at)?->format('M d, Y'),
+                'completed_at' => $schedule->completed_at,
+            ])
+            ->values()
+            ->all();
+    }
+
+    private function normalizeStructuredParentVisibleNotes($value): array
+    {
+        if (! $value) {
+            return [];
+        }
+
+        if ($value instanceof Collection) {
+            $value = $value->all();
+        }
+
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $items = array_is_list($value) ? $value : [$value];
+
+        return collect($items)
+            ->filter(fn ($item) => is_array($item))
+            ->filter(fn ($item) => $this->nullableBoolean(
+                $item['parent_visible']
+                    ?? $item['visible_to_parent']
+                    ?? $item['is_parent_visible']
+                    ?? $item['show_to_parent']
+                    ?? false
+            ) === true)
+            ->map(fn ($item) => $item['note']
+                ?? $item['text']
+                ?? $item['content']
+                ?? $item['message']
+                ?? null)
+            ->filter(fn ($note) => is_string($note) && trim($note) !== '')
+            ->map(fn ($note) => trim($note))
+            ->values()
+            ->all();
     }
 
     private function preparationChecklistFrom(ClassSchedule $schedule): array

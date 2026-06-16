@@ -3,9 +3,11 @@ import { Head, Link } from "@inertiajs/react";
 import {
     ArrowLeft,
     BookOpen,
+    CalendarClock,
     CheckCircle2,
     Clock,
     GraduationCap,
+    MessageSquareText,
     TrendingUp,
 } from "lucide-react";
 
@@ -104,6 +106,48 @@ export default function Child({ child }) {
                         <div className="px-5 py-12 text-center">
                             <h3 className="text-base font-semibold text-slate-950">No enrollments yet</h3>
                             <p className="mt-2 text-sm text-slate-600">This student does not have any program enrollments.</p>
+                        </div>
+                    )}
+                </section>
+
+                <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-200 px-5 py-4">
+                        <h2 className="text-lg font-semibold text-slate-950">Mentor notes for parents</h2>
+                    </div>
+
+                    {child.parent_visible_mentor_notes?.length ? (
+                        <div className="divide-y divide-slate-200">
+                            {child.parent_visible_mentor_notes.map((note) => (
+                                <div key={note.id} className="px-5 py-4">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="flex gap-3">
+                                            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-700">
+                                                <MessageSquareText className="h-4 w-4" />
+                                            </span>
+                                            <div>
+                                                <p className="whitespace-pre-wrap text-sm leading-6 text-slate-800">{note.note}</p>
+                                                <div className="mt-2 flex flex-wrap gap-2 text-xs font-medium text-slate-500">
+                                                    {note.class_title && <span>{note.class_title}</span>}
+                                                    {note.program_name && <span>{note.program_name}</span>}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {note.date && (
+                                            <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                                <CalendarClock className="h-3.5 w-3.5" />
+                                                {note.date}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="px-5 py-12 text-center">
+                            <MessageSquareText className="mx-auto h-8 w-8 text-slate-400" />
+                            <h3 className="mt-3 text-base font-semibold text-slate-950">No parent-visible notes yet</h3>
+                            <p className="mt-2 text-sm text-slate-600">Mentor notes marked for parents will appear here.</p>
                         </div>
                     )}
                 </section>
