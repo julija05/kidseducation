@@ -12,6 +12,7 @@ use App\Models\Lesson;
 use App\Models\LessonResource;
 use App\Models\Program;
 use App\Models\User;
+use App\Models\WeeklyLearningReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Tests\Traits\CreatesRoles;
@@ -135,6 +136,58 @@ class ParentDashboardTest extends TestCase
             ->where('childCards.0.progress', 72)
             ->where('childCards.0.latest_mentor_note', 'Strong focus during class.')
             ->where('childCards.0.latest_weekly_report', 'Completed all practice tasks.')
+        );
+    }
+
+    public function test_parent_dashboard_shows_latest_weekly_learning_report(): void
+    {
+        $program = Program::factory()->create([
+            'name' => 'Mental Math',
+            'is_active' => true,
+        ]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'week_number' => 23,
+            'what_we_learned' => 'Older addition strategies.',
+            'what_to_practice' => 'Older worksheet.',
+            'next_focus' => 'Older next topic.',
+            'published_at' => now()->subWeek(),
+        ]);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'week_number' => 24,
+            'week_start_date' => '2026-06-08',
+            'week_end_date' => '2026-06-14',
+            'what_we_learned' => 'Two-digit addition with regrouping.',
+            'what_to_practice' => 'Complete 10 mental math drills.',
+            'next_focus' => 'Subtraction with regrouping.',
+            'individual_child_note' => 'Ada asked thoughtful questions.',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->where('childCards.0.latest_weekly_learning_report.week_number', 24)
+            ->where('childCards.0.latest_weekly_learning_report.program.name', 'Mental Math')
+            ->where('childCards.0.latest_weekly_learning_report.week_range', 'Jun 08 - Jun 14, 2026')
+            ->where('childCards.0.latest_weekly_learning_report.what_we_learned', 'Two-digit addition with regrouping.')
+            ->where('childCards.0.latest_weekly_learning_report.what_to_practice', 'Complete 10 mental math drills.')
+            ->where('childCards.0.latest_weekly_learning_report.next_focus', 'Subtraction with regrouping.')
+            ->where('childCards.0.latest_weekly_learning_report.individual_child_note', 'Ada asked thoughtful questions.')
         );
     }
 
@@ -371,6 +424,122 @@ class ParentDashboardTest extends TestCase
             ->where('child.parent_visible_mentor_notes.0.class_title', 'Latest class')
             ->where('child.parent_visible_mentor_notes.1.note', 'Older parent note.')
             ->where('child.parent_visible_mentor_notes.1.class_title', 'Older class')
+        );
+    }
+
+    public function test_parent_child_detail_shows_previous_weekly_learning_reports(): void
+    {
+        $program = Program::factory()->create([
+            'name' => 'Coding Basics',
+            'is_active' => true,
+        ]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'week_number' => 22,
+            'what_we_learned' => 'Loops and repeated actions.',
+            'what_to_practice' => 'Build a loop animation.',
+            'next_focus' => 'Events and keyboard controls.',
+            'published_at' => now()->subWeeks(2),
+        ]);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'week_number' => 23,
+            'what_we_learned' => 'Events and keyboard controls.',
+            'what_to_practice' => 'Finish the maze controls.',
+            'next_focus' => 'Variables.',
+            'published_at' => now()->subWeek(),
+        ]);
+
+        $response = $this->actingAs($this->parent)->get("/parent/children/{$this->child->id}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Child')
+            ->has('child.weekly_reports', 2)
+            ->where('child.weekly_reports.0.week_number', 23)
+            ->where('child.weekly_reports.0.what_we_learned', 'Events and keyboard controls.')
+            ->where('child.weekly_reports.0.what_to_practice', 'Finish the maze controls.')
+            ->where('child.weekly_reports.0.next_focus', 'Variables.')
+            ->where('child.weekly_reports.1.week_number', 22)
+            ->where('child.weekly_reports.1.what_we_learned', 'Loops and repeated actions.')
+        );
+    }
+
+    public function test_parent_only_sees_weekly_reports_for_their_child_or_child_group(): void
+    {
+        $program = Program::factory()->create(['is_active' => true]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        $groupClass = ClassSchedule::factory()->completed()->create([
+            'student_id' => null,
+            'program_id' => $program->id,
+            'title' => 'Group A',
+            'is_group_class' => true,
+        ]);
+        $groupClass->students()->attach($this->child->id);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => null,
+            'class_schedule_id' => $groupClass->id,
+            'program_id' => $program->id,
+            'week_number' => 25,
+            'group_name' => 'Group A',
+            'what_we_learned' => 'Group report for linked child.',
+            'what_to_practice' => 'Practice group worksheet.',
+            'next_focus' => 'Group next focus.',
+            'published_at' => now(),
+        ]);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => $this->otherChild->id,
+            'class_schedule_id' => $groupClass->id,
+            'program_id' => $program->id,
+            'week_number' => 25,
+            'what_we_learned' => 'Other child individual report.',
+            'what_to_practice' => 'Private practice for other child.',
+            'next_focus' => 'Private focus for other child.',
+            'individual_child_note' => 'This note belongs to another child.',
+            'published_at' => now(),
+        ]);
+
+        WeeklyLearningReport::factory()->unpublished()->create([
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'week_number' => 26,
+            'what_we_learned' => 'Draft report.',
+            'what_to_practice' => 'Draft practice.',
+            'next_focus' => 'Draft focus.',
+        ]);
+
+        $response = $this->actingAs($this->parent)->get("/parent/children/{$this->child->id}");
+
+        $response->assertStatus(200);
+        $response->assertDontSee('Other child individual report.');
+        $response->assertDontSee('This note belongs to another child.');
+        $response->assertDontSee('Draft report.');
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Child')
+            ->has('child.weekly_reports', 1)
+            ->where('child.weekly_reports.0.week_number', 25)
+            ->where('child.weekly_reports.0.group_name', 'Group A')
+            ->where('child.weekly_reports.0.what_we_learned', 'Group report for linked child.')
         );
     }
 

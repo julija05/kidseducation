@@ -145,7 +145,10 @@ function ChildCard({ child }) {
                     <RejectionNotice value={child.rejection_note} />
                 )}
                 <TextBlock icon={MessageSquareText} label="Latest mentor note" value={child.latest_mentor_note} />
-                <TextBlock icon={FileText} label="Latest weekly report" value={child.latest_weekly_report} />
+                <WeeklyReportSummary
+                    report={child.latest_weekly_learning_report}
+                    legacyReport={child.latest_weekly_report}
+                />
             </div>
 
             {(child.generated_password || child.username) && (
@@ -370,6 +373,48 @@ function TextBlock({ icon: Icon, label, value }) {
             </div>
             <p className="mt-1 line-clamp-3 text-sm leading-5 text-slate-700">{display(value)}</p>
         </div>
+    );
+}
+
+function WeeklyReportSummary({ report, legacyReport }) {
+    if (!report) {
+        return <TextBlock icon={FileText} label="Latest weekly report" value={legacyReport} />;
+    }
+
+    return (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                    <FileText className="h-3.5 w-3.5" />
+                    Latest weekly report
+                </div>
+                <span className="inline-flex w-fit rounded-md bg-white px-2 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                    Week {report.week_number}
+                </span>
+            </div>
+            <p className="mt-2 text-sm font-semibold text-slate-950">
+                {report.program?.name || report.group_name || report.week_range || "Weekly update"}
+            </p>
+            <div className="mt-3 grid gap-2 text-sm leading-5 text-slate-700">
+                <ReportLine label="Learned" value={report.what_we_learned} />
+                <ReportLine label="Practice" value={report.what_to_practice} />
+                <ReportLine label="Next" value={report.next_focus} />
+            </div>
+            {report.individual_child_note && (
+                <p className="mt-3 rounded-md border border-blue-100 bg-white p-2 text-sm leading-5 text-slate-700">
+                    {report.individual_child_note}
+                </p>
+            )}
+        </div>
+    );
+}
+
+function ReportLine({ label, value }) {
+    return (
+        <p className="line-clamp-2">
+            <span className="font-semibold text-slate-900">{label}: </span>
+            {display(value)}
+        </p>
     );
 }
 

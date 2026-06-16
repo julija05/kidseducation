@@ -6,8 +6,11 @@ import {
     CalendarClock,
     CheckCircle2,
     Clock,
+    FileText,
     GraduationCap,
+    ListChecks,
     MessageSquareText,
+    Target,
     TrendingUp,
 } from "lucide-react";
 
@@ -111,6 +114,34 @@ export default function Child({ child }) {
                 </section>
 
                 <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-slate-950">Weekly learning reports</h2>
+                            <p className="mt-1 text-sm text-slate-600">Latest and previous parent updates from class weeks.</p>
+                        </div>
+                        {child.weekly_reports?.length > 0 && (
+                            <span className="inline-flex w-fit rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                {child.weekly_reports.length} reports
+                            </span>
+                        )}
+                    </div>
+
+                    {child.weekly_reports?.length ? (
+                        <div className="divide-y divide-slate-200">
+                            {child.weekly_reports.map((report, index) => (
+                                <WeeklyReport key={report.id} report={report} isLatest={index === 0} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="px-5 py-12 text-center">
+                            <FileText className="mx-auto h-8 w-8 text-slate-400" />
+                            <h3 className="mt-3 text-base font-semibold text-slate-950">No weekly reports yet</h3>
+                            <p className="mt-2 text-sm text-slate-600">Published weekly reports for this child or group will appear here.</p>
+                        </div>
+                    )}
+                </section>
+
+                <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
                     <div className="border-b border-slate-200 px-5 py-4">
                         <h2 className="text-lg font-semibold text-slate-950">Mentor notes for parents</h2>
                     </div>
@@ -153,6 +184,70 @@ export default function Child({ child }) {
                 </section>
             </div>
         </ParentLayout>
+    );
+}
+
+function WeeklyReport({ report, isLatest }) {
+    return (
+        <article className="px-5 py-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
+                            <FileText className="h-3.5 w-3.5" />
+                            Week {report.week_number}
+                        </span>
+                        {isLatest && (
+                            <span className="inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                                Latest
+                            </span>
+                        )}
+                        {report.group_name && (
+                            <span className="inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                {report.group_name}
+                            </span>
+                        )}
+                    </div>
+                    <h3 className="mt-3 text-base font-semibold text-slate-950">
+                        {report.program?.name || report.class_title || "Weekly report"}
+                    </h3>
+                    <div className="mt-1 flex flex-wrap gap-2 text-xs font-medium text-slate-500">
+                        {report.week_range && <span>{report.week_range}</span>}
+                        {report.published_at && <span>Published {report.published_at}</span>}
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 lg:grid-cols-3">
+                <ReportPanel icon={BookOpen} label="What we learned" value={report.what_we_learned} />
+                <ReportPanel icon={ListChecks} label="What to practice" value={report.what_to_practice} />
+                <ReportPanel icon={Target} label="Next focus" value={report.next_focus} />
+            </div>
+
+            {report.individual_child_note && (
+                <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
+                        <MessageSquareText className="h-4 w-4" />
+                        Individual child note
+                    </div>
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-800">
+                        {report.individual_child_note}
+                    </p>
+                </div>
+            )}
+        </article>
+    );
+}
+
+function ReportPanel({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+            </div>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-800">{value}</p>
+        </div>
     );
 }
 

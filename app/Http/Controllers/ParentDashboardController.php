@@ -6,6 +6,7 @@ use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Models\ClassSchedule;
 use App\Models\User;
+use App\Models\WeeklyLearningReport;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -82,6 +83,7 @@ class ParentDashboardController extends Controller
             'username' => $child->username,
             'status' => $child->status,
             'parent_visible_mentor_notes' => $this->parentVisibleMentorNotesFor($child->id),
+            'weekly_reports' => $this->weeklyReportsFor($child)->map(fn (WeeklyLearningReport $report) => $this->formatWeeklyReport($report, $child->id))->values(),
             'enrollments' => $child->enrollments->map(function ($enrollment) {
                 return [
                     'id' => $enrollment->id,
@@ -173,6 +175,7 @@ class ParentDashboardController extends Controller
         $sessionData = $latestCompletedClass?->session_data ?? [];
         $homework = $this->homeworkFrom($sessionData);
         $latestParentVisibleNote = $childId ? $this->parentVisibleMentorNotesFor($childId)->first() : null;
+        $latestWeeklyLearningReport = $childId ? $this->latestWeeklyReportFor($childId) : null;
 
         return [
             'id' => $profile['id'] ?? $childId,
@@ -188,6 +191,9 @@ class ParentDashboardController extends Controller
             'homework' => $homework,
             'progress' => $activeEnrollment['progress'] ?? 0,
             'latest_mentor_note' => $latestParentVisibleNote['note'] ?? null,
+            'latest_weekly_learning_report' => $latestWeeklyLearningReport
+                ? $this->formatWeeklyReport($latestWeeklyLearningReport, $childId)
+                : null,
             'latest_weekly_report' => $this->weeklyReportFrom($sessionData),
             'rejection_note' => $applicationStatus === 'rejected'
                 ? ($profile['enrollment']['rejection_reason'] ?? null)
@@ -434,6 +440,96 @@ class ParentDashboardController extends Controller
             ?? $sessionData['report']
             ?? $sessionData['weeklyReport']
             ?? null;
+    }
+
+    private function latestWeeklyReportFor(int $childId): ?WeeklyLearningReport
+    {
+        return $this->weeklyReportsQueryFor($childId)?->first();
+    }
+
+    private function weeklyReportsFor(User $child): Collection
+    {
+        $query = $this->weeklyReportsQueryFor($child->id);
+
+        if (! $query) {
+            return collect();
+        }
+
+        return $query->get();
+    }
+
+    private function weeklyReportsQueryFor(int $childId)
+    {
+        if (! Schema::hasTable('weekly_learning_reports')) {
+            return null;
+        }
+
+        return WeeklyLearningReport::with(['program:id,name,slug', 'classSchedule:id,title,program_id,scheduled_at,is_group_class,student_id', 'classSchedule.program:id,name,slug'])
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->where(function ($query) use ($childId) {
+                $query->where('child_user_id', $childId);
+
+                if (Schema::hasTable('class_schedules')) {
+                    $query->orWhere(function ($groupQuery) use ($childId) {
+                        $groupQuery
+                            ->whereNull('child_user_id')
+                            ->whereHas('classSchedule', function ($scheduleQuery) use ($childId) {
+                                $scheduleQuery->where('student_id', $childId);
+
+                                if (Schema::hasTable('class_schedule_students')) {
+                                    $scheduleQuery->orWhereHas('students', fn ($studentQuery) => $studentQuery->where('users.id', $childId));
+                                }
+                            });
+                    });
+                }
+            })
+            ->orderByDesc('published_at')
+            ->orderByDesc('week_start_date')
+            ->orderByDesc('id');
+    }
+
+    private function formatWeeklyReport(WeeklyLearningReport $report, int $childId): array
+    {
+        $program = $report->program ?? $report->classSchedule?->program;
+        $isChildSpecific = $report->child_user_id !== null && (int) $report->child_user_id === $childId;
+
+        return [
+            'id' => $report->id,
+            'week_number' => $report->week_number,
+            'week_start_date' => $report->week_start_date?->toDateString(),
+            'week_end_date' => $report->week_end_date?->toDateString(),
+            'week_range' => $this->formatWeekRange($report),
+            'group_name' => $report->group_name ?: ($report->classSchedule?->is_group_class ? $report->classSchedule?->title : null),
+            'what_we_learned' => $report->what_we_learned,
+            'what_to_practice' => $report->what_to_practice,
+            'next_focus' => $report->next_focus,
+            'individual_child_note' => $isChildSpecific ? $report->individual_child_note : null,
+            'published_at' => $report->published_at?->format('M d, Y'),
+            'program' => $program ? [
+                'id' => $program->id,
+                'name' => $program->name,
+                'slug' => $program->slug,
+            ] : null,
+            'class_title' => $report->classSchedule?->title,
+        ];
+    }
+
+    private function formatWeekRange(WeeklyLearningReport $report): ?string
+    {
+        if (! $report->week_start_date && ! $report->week_end_date) {
+            return null;
+        }
+
+        if (! $report->week_start_date) {
+            return $report->week_end_date->format('M d, Y');
+        }
+
+        if (! $report->week_end_date) {
+            return $report->week_start_date->format('M d, Y');
+        }
+
+        return $report->week_start_date->format('M d').' - '.$report->week_end_date->format('M d, Y');
     }
 
     private function parentVisibleMentorNoteFrom(array $sessionData): ?string
