@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Use raw SQL to modify the enum column to include new types
         // This matches the validation in MentorProposalController
         DB::statement("ALTER TABLE lesson_resources MODIFY COLUMN type ENUM('video', 'document', 'link', 'download', 'interactive', 'quiz', 'youtube', 'pdf', 'word', 'other') NOT NULL");
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Revert back to original enum values
         DB::statement("ALTER TABLE lesson_resources MODIFY COLUMN type ENUM('video', 'document', 'link', 'download', 'interactive', 'quiz') NOT NULL");
     }

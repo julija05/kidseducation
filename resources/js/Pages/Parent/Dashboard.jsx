@@ -104,6 +104,8 @@ export default function Dashboard({ childCards = [], children = [], childProfile
 }
 
 function ChildCard({ child }) {
+    const canShowLearningDetails = child.has_active_program === true;
+
     return (
         <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -121,37 +123,50 @@ function ChildCard({ child }) {
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <InfoItem icon={BookOpen} label="Current program" value={child.current_program?.name} />
-                <InfoItem icon={Users} label="Group name" value={child.group_name} />
-            </div>
-
-            <NextClassPanel nextClass={child.next_live_class} />
-            <HomeworkPanel homework={child.homework} fallbackStatus={child.homework_status} />
-
-            <div className="mt-5">
-                <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-medium text-slate-600">Progress</span>
-                    <span className="text-sm font-semibold text-slate-950">{Math.round(child.progress || 0)}%</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                        className="h-full rounded-full bg-emerald-500"
-                        style={{ width: `${Math.min(Math.max(child.progress || 0, 0), 100)}%` }}
-                    />
-                </div>
-            </div>
-
-            <div className="mt-5 grid gap-3">
-                {child.rejection_note && (
-                    <RejectionNotice value={child.rejection_note} />
+                {canShowLearningDetails && (
+                    <InfoItem icon={Users} label="Group name" value={child.group_name} />
                 )}
-                <TextBlock icon={MessageSquareText} label="Latest mentor note" value={child.latest_mentor_note} />
-                <WeeklyReportSummary
-                    report={child.latest_weekly_learning_report}
-                    legacyReport={child.latest_weekly_report}
-                />
             </div>
 
-            {(child.generated_password || child.username) && (
+            {canShowLearningDetails ? (
+                <>
+                    <NextClassPanel nextClass={child.next_live_class} />
+                    <HomeworkPanel homework={child.homework} fallbackStatus={child.homework_status} />
+
+                    <div className="mt-5">
+                        <div className="flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium text-slate-600">Progress</span>
+                            <span className="text-sm font-semibold text-slate-950">{Math.round(child.progress || 0)}%</span>
+                        </div>
+                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                            <div
+                                className="h-full rounded-full bg-emerald-500"
+                                style={{ width: `${Math.min(Math.max(child.progress || 0, 0), 100)}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-3">
+                        <TextBlock icon={MessageSquareText} label="Latest mentor note" value={child.latest_mentor_note} />
+                        <WeeklyReportSummary
+                            report={child.latest_weekly_learning_report}
+                            legacyReport={child.latest_weekly_report}
+                        />
+                    </div>
+                </>
+            ) : (
+                <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800">
+                    Learning details and child login are available after admin approval.
+                </div>
+            )}
+
+            {child.rejection_note && (
+                <div className="mt-5 grid gap-3">
+                    <RejectionNotice value={child.rejection_note} />
+                </div>
+            )}
+
+            {canShowLearningDetails && (child.generated_password || child.username) && (
                 <div className="mt-5 grid gap-2 border-t border-slate-200 pt-4 sm:grid-cols-2">
                     <Credential label="Username" value={child.username} />
                     <Credential label="Password" value={child.generated_password} />

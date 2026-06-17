@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Use raw SQL to modify the enum column to include new types
         // This matches the validation in MentorQuizController
         DB::statement("ALTER TABLE quizzes MODIFY COLUMN type ENUM('mental_arithmetic', 'multiple_choice', 'text_answer', 'true_false', 'mixed', 'practice', 'graded') NOT NULL");
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Revert back to original enum values
         DB::statement("ALTER TABLE quizzes MODIFY COLUMN type ENUM('mental_arithmetic', 'multiple_choice', 'text_answer', 'true_false', 'mixed') NOT NULL");
     }

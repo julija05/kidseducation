@@ -11,7 +11,9 @@ return new class extends Migration
     public function up(): void
     {
         // First, modify the enum to include 'draft' status
-        DB::statement("ALTER TABLE chat_conversations MODIFY COLUMN status ENUM('draft', 'waiting', 'active', 'closed') DEFAULT 'draft'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE chat_conversations MODIFY COLUMN status ENUM('draft', 'waiting', 'active', 'closed') DEFAULT 'draft'");
+        }
 
         // Update existing conversations with no messages to 'draft' status
         DB::statement("
@@ -35,6 +37,8 @@ return new class extends Migration
         DB::statement("UPDATE chat_conversations SET status = 'waiting' WHERE status = 'draft'");
 
         // Revert the enum to original values
-        DB::statement("ALTER TABLE chat_conversations MODIFY COLUMN status ENUM('waiting', 'active', 'closed') DEFAULT 'waiting'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE chat_conversations MODIFY COLUMN status ENUM('waiting', 'active', 'closed') DEFAULT 'waiting'");
+        }
     }
 };

@@ -191,6 +191,84 @@ class ParentDashboardTest extends TestCase
         );
     }
 
+    public function test_parent_dashboard_hides_learning_details_and_child_login_until_admin_approval(): void
+    {
+        $program = Program::factory()->create([
+            'name' => 'Mental Math',
+            'is_active' => true,
+        ]);
+        $enrollment = Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::PENDING,
+            'status' => EnrollmentStatus::PAUSED,
+            'progress' => 65,
+        ]);
+        ChildProfile::factory()->create([
+            'parent_user_id' => $this->parent->id,
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_id' => $enrollment->id,
+            'child_username' => 'hidden-child-login',
+            'child_generated_password' => 'Kid-HIDE-1234',
+            'status' => ChildProfile::STATUS_PENDING,
+        ]);
+
+        ClassSchedule::factory()->upcoming()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'title' => 'Hidden live class',
+        ]);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'session_data' => [
+                'homework' => [
+                    'current' => 'Hidden homework',
+                    'completed' => false,
+                ],
+                'parent_note' => 'Hidden parent note.',
+                'weekly_report' => 'Hidden legacy report.',
+            ],
+        ]);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'week_number' => 24,
+            'what_we_learned' => 'Hidden weekly report.',
+            'what_to_practice' => 'Hidden practice.',
+            'next_focus' => 'Hidden next focus.',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertDontSee('hidden-child-login');
+        $response->assertDontSee('Kid-HIDE-1234');
+        $response->assertDontSee('Hidden live class');
+        $response->assertDontSee('Hidden homework');
+        $response->assertDontSee('Hidden weekly report.');
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->where('childCards.0.has_active_program', false)
+            ->where('childCards.0.username', null)
+            ->where('childCards.0.generated_password', null)
+            ->where('childCards.0.next_live_class', null)
+            ->where('childCards.0.homework', null)
+            ->where('childCards.0.homework_status', null)
+            ->where('childCards.0.progress', 0)
+            ->where('childCards.0.latest_mentor_note', null)
+            ->where('childCards.0.latest_weekly_learning_report', null)
+            ->where('childCards.0.latest_weekly_report', null)
+            ->where('childCards.0.learning_dashboard_child_id', null)
+            ->where('childCards.0.current_program.name', 'Mental Math')
+        );
+    }
+
     public function test_parent_dashboard_shows_next_live_class_for_every_linked_child(): void
     {
         $this->child->update(['name' => 'Amy Learner']);
@@ -215,6 +293,7 @@ class ParentDashboardTest extends TestCase
             'student_id' => $this->child->id,
             'program_id' => $program->id,
             'title' => 'Amy math class',
+            'description' => null,
             'scheduled_at' => now()->addDay()->setTime(10, 0),
             'meeting_link' => 'https://example.test/live/amy',
             'session_data' => [
@@ -226,6 +305,7 @@ class ParentDashboardTest extends TestCase
             'student_id' => $secondChild->id,
             'program_id' => $program->id,
             'title' => 'Zoe coding class',
+            'description' => null,
             'scheduled_at' => now()->addDays(3)->setTime(12, 15),
             'meeting_link' => 'https://example.test/live/zoe',
             'session_data' => [
@@ -587,6 +667,69 @@ class ParentDashboardTest extends TestCase
         );
     }
 
+    public function test_parent_child_detail_hides_login_dashboard_reports_and_notes_until_admin_approval(): void
+    {
+        $this->child->update([
+            'username' => 'hidden-child-detail-login',
+            'email' => 'hidden-child-detail-login@children.abacoding.local',
+        ]);
+
+        $program = Program::factory()->create([
+            'name' => 'Mental Math',
+            'is_active' => true,
+        ]);
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::PENDING,
+            'status' => EnrollmentStatus::PAUSED,
+            'progress' => 74,
+            'quiz_points' => 33,
+            'highest_unlocked_level' => 4,
+        ]);
+
+        ClassSchedule::factory()->completed()->create([
+            'student_id' => $this->child->id,
+            'program_id' => $program->id,
+            'title' => 'Hidden detail class',
+            'session_data' => [
+                'parent_note' => 'Hidden detail mentor note.',
+            ],
+        ]);
+
+        WeeklyLearningReport::factory()->create([
+            'child_user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'week_number' => 27,
+            'what_we_learned' => 'Hidden detail weekly report.',
+            'what_to_practice' => 'Hidden detail practice.',
+            'next_focus' => 'Hidden detail focus.',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->parent)->get("/parent/children/{$this->child->id}");
+
+        $response->assertStatus(200);
+        $response->assertDontSee('hidden-child-detail-login');
+        $response->assertDontSee('Hidden detail mentor note.');
+        $response->assertDontSee('Hidden detail weekly report.');
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Child')
+            ->where('child.id', $this->child->id)
+            ->where('child.has_active_program', false)
+            ->where('child.username', null)
+            ->where('child.email', null)
+            ->where('child.parent_visible_mentor_notes', [])
+            ->where('child.weekly_reports', [])
+            ->where('child.enrollments.0.has_learning_access', false)
+            ->where('child.enrollments.0.progress', 0)
+            ->where('child.enrollments.0.quiz_points', 0)
+            ->where('child.enrollments.0.highest_unlocked_level', 1)
+            ->where('child.enrollments.0.program.name', 'Mental Math')
+        );
+    }
+
     public function test_parent_can_open_linked_child_learning_dashboard(): void
     {
         $program = Program::factory()->create(['is_active' => true]);
@@ -608,7 +751,7 @@ class ParentDashboardTest extends TestCase
             ->where('parentView.child.name', $this->child->name)
             ->where('parentView.backRoute', 'parent.dashboard')
             ->where('enrolledProgram.id', $program->id)
-            ->where('enrolledProgram.progress', 42.0)
+            ->where('enrolledProgram.progress', 42)
             ->where('availablePrograms', [])
             ->where('notifications', [])
             ->where('unreadNotificationCount', 0)
@@ -721,11 +864,11 @@ class ParentDashboardTest extends TestCase
         ]);
 
         $this->actingAs($this->parent)
-            ->get("/admin/programs/{$program->id}/edit")
+            ->get("/admin/programs/{$program->slug}/edit")
             ->assertForbidden();
 
         $this->actingAs($this->parent)
-            ->get("/admin/programs/{$program->id}/lessons/{$lesson->id}/edit")
+            ->get("/admin/programs/{$program->slug}/lessons/{$lesson->id}/edit")
             ->assertForbidden();
 
         $this->actingAs($this->parent)

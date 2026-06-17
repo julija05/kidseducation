@@ -74,24 +74,34 @@ class ParentDashboardController extends Controller
 
     private function formatChild(User $child): array
     {
+        $activeEnrollment = $this->activeEnrollmentFrom($child->enrollments);
+        $hasActiveProgram = $this->hasActiveApprovedProgram($this->formatEnrollmentForAccessGate($activeEnrollment));
+
         return [
             'id' => $child->id,
             'name' => $child->name,
             'first_name' => $child->first_name,
             'last_name' => $child->last_name,
-            'email' => $child->email,
-            'username' => $child->username,
+            'email' => $hasActiveProgram ? $child->email : null,
+            'username' => $hasActiveProgram ? $child->username : null,
             'status' => $child->status,
-            'parent_visible_mentor_notes' => $this->parentVisibleMentorNotesFor($child->id),
-            'weekly_reports' => $this->weeklyReportsFor($child)->map(fn (WeeklyLearningReport $report) => $this->formatWeeklyReport($report, $child->id))->values(),
+            'has_active_program' => $hasActiveProgram,
+            'parent_visible_mentor_notes' => $hasActiveProgram ? $this->parentVisibleMentorNotesFor($child->id) : collect(),
+            'weekly_reports' => $hasActiveProgram
+                ? $this->weeklyReportsFor($child)->map(fn (WeeklyLearningReport $report) => $this->formatWeeklyReport($report, $child->id))->values()
+                : collect(),
             'enrollments' => $child->enrollments->map(function ($enrollment) {
+                $hasLearningAccess = $this->hasActiveApprovedProgram($this->formatEnrollmentForAccessGate($enrollment));
+
                 return [
                     'id' => $enrollment->id,
                     'status' => $enrollment->status,
                     'approval_status' => $enrollment->approval_status,
-                    'progress' => $enrollment->progress,
-                    'quiz_points' => $enrollment->quiz_points,
-                    'highest_unlocked_level' => $enrollment->highest_unlocked_level,
+                    'access_blocked' => $enrollment->access_blocked,
+                    'has_learning_access' => $hasLearningAccess,
+                    'progress' => $hasLearningAccess ? $enrollment->progress : 0,
+                    'quiz_points' => $hasLearningAccess ? $enrollment->quiz_points : 0,
+                    'highest_unlocked_level' => $hasLearningAccess ? $enrollment->highest_unlocked_level : 1,
                     'program' => $enrollment->program ? [
                         'id' => $enrollment->program->id,
                         'name' => $enrollment->program->name,
@@ -109,7 +119,7 @@ class ParentDashboardController extends Controller
         }
 
         return $parent->childProfiles()
-            ->with(['child:id,username', 'program:id,name,slug', 'enrollment:id,approval_status,status,rejection_reason'])
+            ->with(['child:id,username', 'program:id,name,slug', 'enrollment:id,approval_status,status,access_blocked,rejection_reason'])
             ->latest()
             ->get()
             ->map(fn ($profile) => $this->formatChildProfile($profile))
@@ -118,12 +128,21 @@ class ParentDashboardController extends Controller
 
     private function formatChildProfile($profile): array
     {
+        $hasActiveProgram = $this->hasActiveApprovedProgram($profile->enrollment ? [
+            'approval_status' => $profile->enrollment->approval_status,
+            'status' => $profile->enrollment->status,
+            'access_blocked' => $profile->enrollment->access_blocked,
+            'program' => $profile->program ? [
+                'id' => $profile->program->id,
+            ] : null,
+        ] : null);
+
         return [
             'id' => $profile->id,
             'child_user_id' => $profile->child_user_id,
             'child_name' => $profile->child_name,
-            'child_username' => $profile->child_username ?: $profile->child?->username,
-            'child_generated_password' => $profile->child_generated_password,
+            'child_username' => $hasActiveProgram ? ($profile->child_username ?: $profile->child?->username) : null,
+            'child_generated_password' => $hasActiveProgram ? $profile->child_generated_password : null,
             'age' => $profile->age,
             'grade_class' => $profile->grade_class,
             'status' => $profile->status,
@@ -138,6 +157,7 @@ class ParentDashboardController extends Controller
                 'id' => $profile->enrollment->id,
                 'status' => $profile->enrollment->status,
                 'approval_status' => $profile->enrollment->approval_status,
+                'access_blocked' => $profile->enrollment->access_blocked,
                 'rejection_reason' => $profile->enrollment->rejection_reason,
             ] : null,
         ];
@@ -170,37 +190,71 @@ class ParentDashboardController extends Controller
         $activeEnrollment = $this->activeEnrollmentFrom($child['enrollments'] ?? collect());
         $applicationStatus = $profile['enrollment']['approval_status'] ?? $activeEnrollment['approval_status'] ?? $profile['status'] ?? 'pending';
         $program = $activeEnrollment['program'] ?? $profile['program'] ?? null;
-        $nextClass = $childId ? $this->nextLiveClassFor($childId) : null;
-        $latestCompletedClass = $childId ? $this->latestCompletedClassFor($childId) : null;
+        $hasActiveProgram = $this->hasActiveApprovedProgram($this->formatEnrollmentForAccessGate($activeEnrollment));
+        $nextClass = $hasActiveProgram && $childId ? $this->nextLiveClassFor($childId) : null;
+        $latestCompletedClass = $hasActiveProgram && $childId ? $this->latestCompletedClassFor($childId) : null;
         $sessionData = $latestCompletedClass?->session_data ?? [];
-        $homework = $this->homeworkFrom($sessionData);
-        $latestParentVisibleNote = $childId ? $this->parentVisibleMentorNotesFor($childId)->first() : null;
-        $latestWeeklyLearningReport = $childId ? $this->latestWeeklyReportFor($childId) : null;
+        $homework = $hasActiveProgram ? $this->homeworkFrom($sessionData) : null;
+        $latestParentVisibleNote = $hasActiveProgram && $childId ? $this->parentVisibleMentorNotesFor($childId)->first() : null;
+        $latestWeeklyLearningReport = $hasActiveProgram && $childId ? $this->latestWeeklyReportFor($childId) : null;
 
         return [
             'id' => $profile['id'] ?? $childId,
             'child_id' => $childId,
             'name' => $child['name'] ?? $profile['child_name'] ?? 'Child',
-            'username' => $child['username'] ?? $profile['child_username'] ?? null,
-            'generated_password' => $profile['child_generated_password'] ?? null,
+            'username' => $hasActiveProgram ? ($child['username'] ?? $profile['child_username'] ?? null) : null,
+            'generated_password' => $hasActiveProgram ? ($profile['child_generated_password'] ?? null) : null,
             'application_status' => $applicationStatus,
+            'has_active_program' => $hasActiveProgram,
             'current_program' => $program,
-            'group_name' => $this->groupNameFor($nextClass),
-            'next_live_class' => $this->formatSchedule($nextClass),
-            'homework_status' => $homework['status'] ?? $this->homeworkStatusFrom($sessionData),
+            'group_name' => $hasActiveProgram ? $this->groupNameFor($nextClass) : null,
+            'next_live_class' => $hasActiveProgram ? $this->formatSchedule($nextClass) : null,
+            'homework_status' => $hasActiveProgram ? ($homework['status'] ?? $this->homeworkStatusFrom($sessionData)) : null,
             'homework' => $homework,
-            'progress' => $activeEnrollment['progress'] ?? 0,
+            'progress' => $hasActiveProgram ? ($activeEnrollment['progress'] ?? 0) : 0,
             'latest_mentor_note' => $latestParentVisibleNote['note'] ?? null,
             'latest_weekly_learning_report' => $latestWeeklyLearningReport
                 ? $this->formatWeeklyReport($latestWeeklyLearningReport, $childId)
                 : null,
-            'latest_weekly_report' => $this->weeklyReportFrom($sessionData),
+            'latest_weekly_report' => $hasActiveProgram ? $this->weeklyReportFrom($sessionData) : null,
             'rejection_note' => $applicationStatus === 'rejected'
                 ? ($profile['enrollment']['rejection_reason'] ?? null)
                 : null,
             'detail_url_child_id' => $child['id'] ?? null,
-            'learning_dashboard_child_id' => $child['id'] ?? null,
+            'learning_dashboard_child_id' => $hasActiveProgram ? ($child['id'] ?? null) : null,
             'reregister_profile_id' => $applicationStatus === 'rejected' ? ($profile['id'] ?? null) : null,
+        ];
+    }
+
+    private function hasActiveApprovedProgram(?array $enrollment): bool
+    {
+        if (! $enrollment) {
+            return false;
+        }
+
+        return ($enrollment['approval_status'] ?? null) === ApprovalStatus::APPROVED
+            && ($enrollment['status'] ?? null) === EnrollmentStatus::ACTIVE
+            && ! ($enrollment['access_blocked'] ?? false)
+            && ! empty($enrollment['program']);
+    }
+
+    private function formatEnrollmentForAccessGate($enrollment): ?array
+    {
+        if (! $enrollment) {
+            return null;
+        }
+
+        if (is_array($enrollment)) {
+            return $enrollment;
+        }
+
+        return [
+            'approval_status' => $enrollment->approval_status,
+            'status' => $enrollment->status,
+            'access_blocked' => $enrollment->access_blocked,
+            'program' => $enrollment->program ? [
+                'id' => $enrollment->program->id,
+            ] : null,
         ];
     }
 
@@ -208,21 +262,49 @@ class ParentDashboardController extends Controller
     {
         $collection = $enrollments instanceof Collection ? $enrollments : collect($enrollments);
 
-        return $collection
+        $enrollment = $collection
             ->sortByDesc(function ($enrollment) {
                 $score = 0;
 
-                if ($enrollment['approval_status'] === ApprovalStatus::APPROVED) {
+                if (data_get($enrollment, 'approval_status') === ApprovalStatus::APPROVED) {
                     $score += 2;
                 }
 
-                if ($enrollment['status'] === EnrollmentStatus::ACTIVE) {
+                if (data_get($enrollment, 'status') === EnrollmentStatus::ACTIVE) {
                     $score += 1;
                 }
 
                 return $score;
             })
             ->first();
+
+        return $this->formatEnrollmentForCard($enrollment);
+    }
+
+    private function formatEnrollmentForCard($enrollment): ?array
+    {
+        if (! $enrollment) {
+            return null;
+        }
+
+        if (is_array($enrollment)) {
+            return $enrollment;
+        }
+
+        return [
+            'id' => $enrollment->id,
+            'status' => $enrollment->status,
+            'approval_status' => $enrollment->approval_status,
+            'access_blocked' => $enrollment->access_blocked,
+            'progress' => $enrollment->progress,
+            'quiz_points' => $enrollment->quiz_points,
+            'highest_unlocked_level' => $enrollment->highest_unlocked_level,
+            'program' => $enrollment->program ? [
+                'id' => $enrollment->program->id,
+                'name' => $enrollment->program->name,
+                'slug' => $enrollment->program->slug,
+            ] : null,
+        ];
     }
 
     private function nextLiveClassFor(int $childId): ?ClassSchedule
