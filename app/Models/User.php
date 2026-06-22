@@ -118,6 +118,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ClassSchedule::class, 'admin_id');
     }
 
+    public function mentoringGroups(): HasMany
+    {
+        return $this->hasMany(LearningGroup::class, 'mentor_id');
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

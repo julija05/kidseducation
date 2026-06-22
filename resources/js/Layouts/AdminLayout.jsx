@@ -61,6 +61,11 @@ export default function AdminLayout({ children }) {
             icon: Calendar
         },
         {
+            name: "Learning Groups",
+            href: route("admin.learning-groups.index"),
+            icon: Users
+        },
+        {
             name: "Mentor Proposals",
             href: route("admin.proposals.index"),
             icon: Layers

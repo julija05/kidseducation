@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class LearningGroup extends Model
+{
+    use HasFactory;
+
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_COMPLETED = 'completed';
+
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public const STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_ACTIVE,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
+    protected $fillable = [
+        'name',
+        'program_id',
+        'mentor_id',
+        'start_date',
+        'end_date',
+        'status',
+        'max_students',
+        'description',
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'max_students' => 'integer',
+    ];
+
+    protected $attributes = [
+        'status' => self::STATUS_DRAFT,
+        'max_students' => 10,
+    ];
+
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    public function mentor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mentor_id');
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    public function scopeInactive(Builder $query): Builder
+    {
+        return $query->where('status', '!=', self::STATUS_ACTIVE);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+}

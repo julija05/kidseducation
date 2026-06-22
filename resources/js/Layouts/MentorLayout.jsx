@@ -50,6 +50,12 @@ export default function MentorLayout({ children }) {
             active: url.startsWith("/mentor/meetings"),
         },
         {
+            label: "Groups",
+            href: route("mentor.learning-groups.index"),
+            icon: Users,
+            active: url.startsWith("/mentor/learning-groups"),
+        },
+        {
             label: "Programs",
             href: route("mentor.proposals.programs.my-programs"),
             icon: BookOpen,

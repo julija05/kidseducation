@@ -91,6 +91,11 @@ class Program extends Model
         return $this->hasMany(Lesson::class);
     }
 
+    public function learningGroups(): HasMany
+    {
+        return $this->hasMany(LearningGroup::class);
+    }
+
     public function reviews(): MorphMany
     {
         return $this->morphMany(Review::class, 'reviewable');

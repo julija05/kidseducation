@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminClassScheduleController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminLessonResourceController;
+use App\Http\Controllers\Admin\AdminLearningGroupController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Admin\EnrollmentApprovalController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Mentor\MentorDashboardController;
+use App\Http\Controllers\Mentor\LearningGroupController as MentorLearningGroupController;
 use App\Http\Controllers\Mentor\MentorProgramController;
 use App\Http\Controllers\Mentor\MentorProposalController;
 use App\Http\Controllers\MentorInviteController;
@@ -228,6 +230,12 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         Route::post('/{meeting}/complete', [\App\Http\Controllers\Mentor\MeetingController::class, 'complete'])->name('complete');
         Route::delete('/{meeting}', [\App\Http\Controllers\Mentor\MeetingController::class, 'destroy'])->name('destroy');
     });
+
+    Route::prefix('learning-groups')->name('learning-groups.')->group(function () {
+        Route::get('/', [MentorLearningGroupController::class, 'index'])->name('index');
+        Route::get('/create', [MentorLearningGroupController::class, 'create'])->name('create');
+        Route::post('/', [MentorLearningGroupController::class, 'store'])->name('store');
+    });
 });
 
 // Profile routes (shared)
@@ -276,6 +284,7 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
 
     // Program Routes
     Route::resource('programs', AdminProgramController::class);
+    Route::resource('learning-groups', AdminLearningGroupController::class)->only(['index', 'create', 'store']);
     Route::resource('news', AdminNewsController::class);
     Route::resource('articles', AdminArticleController::class);
     Route::post('/child-profiles/{childProfile}/approve', [AdminChildProfileController::class, 'approve'])->name('child-profiles.approve');
