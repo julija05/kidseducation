@@ -235,6 +235,8 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         Route::get('/', [MentorLearningGroupController::class, 'index'])->name('index');
         Route::get('/create', [MentorLearningGroupController::class, 'create'])->name('create');
         Route::post('/', [MentorLearningGroupController::class, 'store'])->name('store');
+        Route::post('/{learningGroup}/students', [MentorLearningGroupController::class, 'addStudent'])->name('students.store');
+        Route::delete('/{learningGroup}/students/{student}', [MentorLearningGroupController::class, 'removeStudent'])->name('students.destroy');
     });
 });
 
@@ -285,6 +287,8 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     // Program Routes
     Route::resource('programs', AdminProgramController::class);
     Route::resource('learning-groups', AdminLearningGroupController::class)->only(['index', 'create', 'store']);
+    Route::post('/learning-groups/{learningGroup}/students', [AdminLearningGroupController::class, 'addStudent'])->name('learning-groups.students.store');
+    Route::delete('/learning-groups/{learningGroup}/students/{student}', [AdminLearningGroupController::class, 'removeStudent'])->name('learning-groups.students.destroy');
     Route::resource('news', AdminNewsController::class);
     Route::resource('articles', AdminArticleController::class);
     Route::post('/child-profiles/{childProfile}/approve', [AdminChildProfileController::class, 'approve'])->name('child-profiles.approve');

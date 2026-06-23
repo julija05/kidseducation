@@ -1,3 +1,4 @@
+import GroupStudentsManager from "@/Components/LearningGroups/GroupStudentsManager";
 import MentorLayout from "@/Layouts/MentorLayout";
 import { Head, Link } from "@inertiajs/react";
 import { CalendarDays, Plus, Users } from "lucide-react";
@@ -63,6 +64,14 @@ export default function Index({ groups }) {
                                         <Users className="h-4 w-4 text-slate-400" />
                                         <span>{group.max_students} students max</span>
                                     </div>
+                                </div>
+
+                                <div className="mt-5 border-t border-slate-200 pt-4">
+                                    <GroupStudentsManager
+                                        group={group}
+                                        storeRoute={(groupId) => route("mentor.learning-groups.students.store", groupId)}
+                                        destroyRoute={(groupId, studentId) => route("mentor.learning-groups.students.destroy", [groupId, studentId])}
+                                    />
                                 </div>
                             </div>
                         ))}

@@ -123,6 +123,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(LearningGroup::class, 'mentor_id');
     }
 
+    public function learningGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(LearningGroup::class, 'learning_group_student', 'student_id', 'learning_group_id')
+            ->withTimestamps();
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

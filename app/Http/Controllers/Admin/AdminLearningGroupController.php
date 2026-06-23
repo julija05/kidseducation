@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
+use App\Constants\EnrollmentType;
 use App\Http\Controllers\Controller;
+use App\Models\Enrollment;
 use App\Models\LearningGroup;
 use App\Models\Program;
 use App\Models\User;
@@ -14,7 +18,8 @@ class AdminLearningGroupController extends Controller
 {
     public function index(Request $request)
     {
-        $query = LearningGroup::with(['program:id,name', 'mentor:id,name,email'])
+        $query = LearningGroup::with(['program:id,name', 'mentor:id,name,email', 'students:id,name,email'])
+            ->withCount('students')
             ->latest('start_date');
 
         if ($request->filled('status') && $request->status !== 'all') {
@@ -47,6 +52,15 @@ class AdminLearningGroupController extends Controller
                 'is_active' => $group->isActive(),
                 'max_students' => $group->max_students,
                 'description' => $group->description,
+                'students_count' => $group->students_count,
+                'students' => $group->students->map(fn (User $student) => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'email' => $student->email,
+                ])->values(),
+                'available_students' => $this->approvedStudentsForProgram($group->program_id)
+                    ->whereNotIn('id', $group->students->pluck('id'))
+                    ->values(),
             ]);
 
         return $this->createView('Admin/LearningGroups/Index', [
@@ -92,5 +106,60 @@ class AdminLearningGroupController extends Controller
         return redirect()
             ->route('admin.learning-groups.index')
             ->with('success', 'Learning group created successfully.');
+    }
+
+    public function addStudent(Request $request, LearningGroup $learningGroup): RedirectResponse
+    {
+        $validated = $request->validate([
+            'student_id' => ['required', 'exists:users,id'],
+        ]);
+
+        $studentId = (int) $validated['student_id'];
+
+        if (! $this->isApprovedStudentForGroup($learningGroup, $studentId)) {
+            return back()->withErrors(['student_id' => 'Select an approved student for this group program.']);
+        }
+
+        if ($learningGroup->students()->whereKey($studentId)->exists()) {
+            return back()->withErrors(['student_id' => 'This student is already in the group.']);
+        }
+
+        if ($learningGroup->students()->count() >= $learningGroup->max_students) {
+            return back()->withErrors(['student_id' => 'This group has reached its maximum student capacity.']);
+        }
+
+        $learningGroup->students()->attach($studentId);
+
+        return back()->with('success', 'Student added to group.');
+    }
+
+    public function removeStudent(LearningGroup $learningGroup, User $student): RedirectResponse
+    {
+        $learningGroup->students()->detach($student->id);
+
+        return back()->with('success', 'Student removed from group.');
+    }
+
+    private function approvedStudentsForProgram(int $programId)
+    {
+        return User::role('student')
+            ->whereHas('enrollments', function ($query) use ($programId) {
+                $query->where('program_id', $programId)
+                    ->where('enrollment_type', EnrollmentType::STUDENT)
+                    ->where('approval_status', ApprovalStatus::APPROVED)
+                    ->where('status', EnrollmentStatus::ACTIVE);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+    }
+
+    private function isApprovedStudentForGroup(LearningGroup $learningGroup, int $studentId): bool
+    {
+        return Enrollment::where('user_id', $studentId)
+            ->where('program_id', $learningGroup->program_id)
+            ->where('enrollment_type', EnrollmentType::STUDENT)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->where('status', EnrollmentStatus::ACTIVE)
+            ->exists();
     }
 }

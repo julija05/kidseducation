@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class LearningGroup extends Model
 {
@@ -56,6 +57,12 @@ class LearningGroup extends Model
     public function mentor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'mentor_id');
+    }
+
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'learning_group_student', 'learning_group_id', 'student_id')
+            ->withTimestamps();
     }
 
     public function scopeActive(Builder $query): Builder

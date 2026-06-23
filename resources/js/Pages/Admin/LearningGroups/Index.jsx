@@ -1,3 +1,4 @@
+import GroupStudentsManager from "@/Components/LearningGroups/GroupStudentsManager";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, router } from "@inertiajs/react";
 import { CalendarDays, Filter, Plus, Search, Users } from "lucide-react";
@@ -106,6 +107,7 @@ export default function Index({ groups, statuses, filters }) {
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Mentor</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Dates</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Capacity</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Students</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
                                     </tr>
                                 </thead>
@@ -130,6 +132,14 @@ export default function Index({ groups, statuses, filters }) {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-700">{group.max_students}</td>
+                                            <td className="min-w-[18rem] px-6 py-4">
+                                                <GroupStudentsManager
+                                                    group={group}
+                                                    storeRoute={(groupId) => route("admin.learning-groups.students.store", groupId)}
+                                                    destroyRoute={(groupId, studentId) => route("admin.learning-groups.students.destroy", [groupId, studentId])}
+                                                    compact
+                                                />
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[group.status] || statusStyles.draft}`}>
                                                     {label(group.status)}

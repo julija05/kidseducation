@@ -151,4 +151,132 @@ class LearningGroupTest extends TestCase
         $this->assertEquals(2, $program->learningGroups()->count());
         $this->assertEquals(2, $mentor->mentoringGroups()->count());
     }
+
+    public function test_admin_can_add_and_remove_approved_student_from_group(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+        $student = $this->approvedStudentForProgram($program);
+
+        $group = LearningGroup::create([
+            'name' => 'Group With Students',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+
+        $response = $this->actingAs($admin)->post("/admin/learning-groups/{$group->id}/students", [
+            'student_id' => $student->id,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('learning_group_student', [
+            'learning_group_id' => $group->id,
+            'student_id' => $student->id,
+        ]);
+        $this->assertEquals(1, $group->fresh()->students()->count());
+
+        $response = $this->actingAs($admin)->delete("/admin/learning-groups/{$group->id}/students/{$student->id}");
+
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('learning_group_student', [
+            'learning_group_id' => $group->id,
+            'student_id' => $student->id,
+        ]);
+    }
+
+    public function test_student_cannot_be_duplicated_in_same_group(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+        $student = $this->approvedStudentForProgram($program);
+
+        $group = LearningGroup::create([
+            'name' => 'Unique Students Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+
+        $group->students()->attach($student->id);
+
+        $response = $this->actingAs($admin)->post("/admin/learning-groups/{$group->id}/students", [
+            'student_id' => $student->id,
+        ]);
+
+        $response->assertSessionHasErrors('student_id');
+        $this->assertEquals(1, $group->fresh()->students()->whereKey($student->id)->count());
+    }
+
+    public function test_mentor_can_manage_students_only_for_own_group(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $otherMentor = User::factory()->create();
+        $otherMentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+        $student = $this->approvedStudentForProgram($program);
+
+        $group = LearningGroup::create([
+            'name' => 'Mentor Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+
+        $response = $this->actingAs($mentor)->post("/mentor/learning-groups/{$group->id}/students", [
+            'student_id' => $student->id,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('learning_group_student', [
+            'learning_group_id' => $group->id,
+            'student_id' => $student->id,
+        ]);
+
+        $response = $this->actingAs($otherMentor)->delete("/mentor/learning-groups/{$group->id}/students/{$student->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('learning_group_student', [
+            'learning_group_id' => $group->id,
+            'student_id' => $student->id,
+        ]);
+    }
+
+    private function approvedStudentForProgram(Program $program): User
+    {
+        $student = User::factory()->create();
+        $student->assignRole('student');
+
+        Enrollment::factory()->create([
+            'user_id' => $student->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        return $student;
+    }
 }
