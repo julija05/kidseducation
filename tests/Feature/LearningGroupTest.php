@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
+use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\LearningGroup;
+use App\Models\Lesson;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -262,6 +264,171 @@ class LearningGroupTest extends TestCase
             'learning_group_id' => $group->id,
             'student_id' => $student->id,
         ]);
+    }
+
+    public function test_mentor_can_open_group_dashboard_with_class_and_overview_data(): void
+    {
+        $mentor = User::factory()->create(['name' => 'Grace Mentor']);
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create([
+            'name' => 'Mental Math',
+            'is_active' => true,
+        ]);
+
+        $lesson = Lesson::factory()->create([
+            'program_id' => $program->id,
+            'title' => 'Two digit addition',
+            'level' => 2,
+            'is_active' => true,
+        ]);
+
+        $firstStudent = $this->approvedStudentForProgram($program);
+        $firstStudent->update(['name' => 'Ada Learner']);
+        $secondStudent = $this->approvedStudentForProgram($program);
+        $secondStudent->update(['name' => 'Ben Learner']);
+
+        $group = LearningGroup::create([
+            'name' => 'Saturday Math Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach([$firstStudent->id, $secondStudent->id]);
+
+        $nextClass = ClassSchedule::factory()->confirmed()->create([
+            'student_id' => null,
+            'admin_id' => $mentor->id,
+            'program_id' => $program->id,
+            'lesson_id' => $lesson->id,
+            'title' => 'Saturday Math Group',
+            'description' => 'Addition strategies',
+            'scheduled_at' => now()->addDays(2)->setTime(15, 30),
+            'meeting_link' => 'https://example.test/live/saturday',
+            'is_group_class' => true,
+            'max_students' => 10,
+        ]);
+        $nextClass->students()->attach([$firstStudent->id, $secondStudent->id]);
+
+        $completedClass = ClassSchedule::factory()->completed()->create([
+            'student_id' => null,
+            'admin_id' => $mentor->id,
+            'program_id' => $program->id,
+            'title' => 'Saturday Math Group',
+            'is_group_class' => true,
+            'max_students' => 10,
+            'session_data' => [
+                'homework' => [
+                    'current' => 'Practice addition worksheet',
+                    'completed' => false,
+                    'needs_help' => true,
+                ],
+                'attendance' => [
+                    $firstStudent->id => 'attended',
+                    $secondStudent->id => 'missed',
+                ],
+                'help_requests' => [
+                    [
+                        'student_id' => $firstStudent->id,
+                        'message' => 'Needs help with carrying.',
+                    ],
+                ],
+            ],
+        ]);
+        $completedClass->students()->attach([$firstStudent->id, $secondStudent->id]);
+
+        $response = $this->actingAs($mentor)->get("/mentor/learning-groups/{$group->id}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Mentor/LearningGroups/Show')
+            ->where('group.name', 'Saturday Math Group')
+            ->where('group.program.name', 'Mental Math')
+            ->where('group.mentor.name', 'Grace Mentor')
+            ->has('group.students', 2)
+            ->where('group.students.0.name', 'Ada Learner')
+            ->where('group.students.1.name', 'Ben Learner')
+            ->where('group.next_live_class.date', $nextClass->scheduled_at->format('M d, Y'))
+            ->where('group.next_live_class.time', '3:30 PM')
+            ->where('group.next_live_class.meeting_link', 'https://example.test/live/saturday')
+            ->where('group.current_lesson.title', 'Two digit addition')
+            ->where('group.homework_summary.assigned_count', 1)
+            ->where('group.homework_summary.not_completed_count', 1)
+            ->where('group.homework_summary.needs_help_count', 1)
+            ->where('group.homework_summary.latest.current', 'Practice addition worksheet')
+            ->where('group.attendance_summary.classes_completed', 1)
+            ->where('group.attendance_summary.attended_count', 1)
+            ->where('group.attendance_summary.missed_count', 1)
+            ->where('group.attendance_summary.attendance_rate', 50)
+            ->where('group.help_requests.0.student_name', 'Ada Learner')
+            ->where('group.help_requests.0.message', 'Needs help with carrying.')
+        );
+    }
+
+    public function test_mentor_cannot_open_another_mentor_group_dashboard(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $otherMentor = User::factory()->create();
+        $otherMentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+
+        $group = LearningGroup::create([
+            'name' => 'Private Group',
+            'program_id' => $program->id,
+            'mentor_id' => $otherMentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+
+        $response = $this->actingAs($mentor)->get("/mentor/learning-groups/{$group->id}");
+
+        $response->assertForbidden();
+    }
+
+    public function test_admin_can_open_group_dashboard(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $mentor = User::factory()->create(['name' => 'Admin Visible Mentor']);
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create([
+            'name' => 'Coding Basics',
+            'is_active' => true,
+        ]);
+
+        $student = $this->approvedStudentForProgram($program);
+
+        $group = LearningGroup::create([
+            'name' => 'Coding Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($student->id);
+
+        $response = $this->actingAs($admin)->get("/admin/learning-groups/{$group->id}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/LearningGroups/Show')
+            ->where('group.name', 'Coding Group')
+            ->where('group.program.name', 'Coding Basics')
+            ->where('group.mentor.name', 'Admin Visible Mentor')
+            ->has('group.students', 1)
+        );
     }
 
     private function approvedStudentForProgram(Program $program): User

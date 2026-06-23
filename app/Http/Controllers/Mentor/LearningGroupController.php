@@ -10,6 +10,7 @@ use App\Models\Enrollment;
 use App\Models\LearningGroup;
 use App\Models\Program;
 use App\Models\User;
+use App\Services\LearningGroupDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -57,6 +58,15 @@ class LearningGroupController extends Controller
         return $this->createView('Mentor/LearningGroups/Create', [
             'programs' => $this->mentorPrograms(),
             'statuses' => LearningGroup::STATUSES,
+        ]);
+    }
+
+    public function show(LearningGroup $learningGroup, LearningGroupDashboardService $dashboardService)
+    {
+        $this->authorizeMentorGroup($learningGroup);
+
+        return $this->createView('Mentor/LearningGroups/Show', [
+            'group' => $dashboardService->dashboardFor($learningGroup),
         ]);
     }
 

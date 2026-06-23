@@ -10,6 +10,7 @@ use App\Models\Enrollment;
 use App\Models\LearningGroup;
 use App\Models\Program;
 use App\Models\User;
+use App\Services\LearningGroupDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -79,6 +80,13 @@ class AdminLearningGroupController extends Controller
             'programs' => Program::orderBy('name')->get(['id', 'name']),
             'mentors' => User::role('mentor')->orderBy('name')->get(['id', 'name', 'email']),
             'statuses' => LearningGroup::STATUSES,
+        ]);
+    }
+
+    public function show(LearningGroup $learningGroup, LearningGroupDashboardService $dashboardService)
+    {
+        return $this->createView('Admin/LearningGroups/Show', [
+            'group' => $dashboardService->dashboardFor($learningGroup),
         ]);
     }
 

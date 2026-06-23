@@ -1,7 +1,7 @@
 import GroupStudentsManager from "@/Components/LearningGroups/GroupStudentsManager";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, Link, router } from "@inertiajs/react";
-import { CalendarDays, Filter, Plus, Search, Users } from "lucide-react";
+import { CalendarDays, Filter, LayoutDashboard, Plus, Search, Users } from "lucide-react";
 import { useState } from "react";
 
 const statusStyles = {
@@ -109,13 +109,19 @@ export default function Index({ groups, statuses, filters }) {
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Capacity</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Students</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Dashboard</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 bg-white">
                                     {groups.data.map((group) => (
                                         <tr key={group.id}>
                                             <td className="px-6 py-4">
-                                                <div className="font-semibold text-gray-900">{group.name}</div>
+                                                <Link
+                                                    href={route("admin.learning-groups.show", group.id)}
+                                                    className="font-semibold text-gray-900 hover:text-blue-700"
+                                                >
+                                                    {group.name}
+                                                </Link>
                                                 {group.description && (
                                                     <div className="mt-1 max-w-xs truncate text-sm text-gray-500">{group.description}</div>
                                                 )}
@@ -144,6 +150,15 @@ export default function Index({ groups, statuses, filters }) {
                                                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[group.status] || statusStyles.draft}`}>
                                                     {label(group.status)}
                                                 </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <Link
+                                                    href={route("admin.learning-groups.show", group.id)}
+                                                    className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                                >
+                                                    <LayoutDashboard className="h-4 w-4" />
+                                                    Open
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))}
