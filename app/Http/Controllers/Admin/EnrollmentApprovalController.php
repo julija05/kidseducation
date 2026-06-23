@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\EnrollmentApprovedMail;
 use App\Models\ChildProfile;
 use App\Models\Enrollment;
+use App\Models\LearningGroup;
 use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -64,21 +65,39 @@ class EnrollmentApprovalController extends Controller
      */
     public function all(Request $request)
     {
-        $query = Enrollment::with(['user', 'program', 'assignedMentor']);
+        $query = Enrollment::with([
+            'user.learningGroups' => fn ($groupQuery) => $groupQuery
+                ->select('learning_groups.id', 'learning_groups.name')
+                ->active()
+                ->orderBy('learning_groups.name'),
+            'program',
+            'assignedMentor',
+        ]);
 
         // Filter by status if provided
         if ($request->has('status') && $request->status !== 'all') {
             $query->where('approval_status', $request->status);
         }
 
+        if ($request->filled('group_id') && $request->group_id !== 'all') {
+            $query->where('enrollment_type', 'student')
+                ->whereHas('user.learningGroups', function ($groupQuery) use ($request) {
+                    $groupQuery->where('learning_groups.id', $request->group_id);
+                });
+        }
+
         // Search functionality
         if ($request->has('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            })->orWhereHas('program', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+            $query->where(function ($searchQuery) use ($search) {
+                $searchQuery->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })->orWhereHas('program', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })->orWhereHas('user.learningGroups', function ($q) use ($search) {
+                    $q->where('learning_groups.name', 'like', "%{$search}%");
+                });
             });
         }
 
@@ -102,10 +121,20 @@ class EnrollmentApprovalController extends Controller
                 ];
             });
 
+        $groupOptions = LearningGroup::active()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (LearningGroup $group) => [
+                'id' => $group->id,
+                'name' => $group->name,
+            ]);
+
         return $this->createView('Admin/Enrollments/Index', [
             'enrollments' => $enrollments,
             'currentStatus' => $request->status ?? 'all',
             'searchTerm' => $request->search ?? '',
+            'groupFilter' => $request->group_id ?? 'all',
+            'groupOptions' => $groupOptions,
             'availableMentors' => $availableMentors,
         ]);
     }

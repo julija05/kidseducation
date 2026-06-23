@@ -9,6 +9,7 @@ use App\Contracts\EnrollmentRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Mail\AdminEnrollmentNotification;
 use App\Models\Enrollment;
+use App\Models\LearningGroup;
 use App\Models\Meeting;
 use App\Models\Program;
 use App\Services\LearningGroupDashboardService;
@@ -63,8 +64,24 @@ class MentorDashboardController extends Controller
 
         // Get all students across all programs the mentor teaches using repository
         $programIds = $enrollments->pluck('program.id')->toArray();
+        $activeStudentGroups = LearningGroup::with('students:id')
+            ->where('mentor_id', $user->id)
+            ->active()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $groupsByStudent = $activeStudentGroups
+            ->flatMap(fn (LearningGroup $group) => $group->students->map(fn ($student) => [
+                'student_id' => $student->id,
+                'group' => [
+                    'id' => $group->id,
+                    'name' => $group->name,
+                ],
+            ]))
+            ->groupBy('student_id')
+            ->map(fn ($items) => $items->pluck('group')->values());
+
         $allStudents = $this->enrollmentRepository->getStudentsForMentor($user, $programIds)
-            ->map(function ($enrollment) {
+            ->map(function ($enrollment) use ($groupsByStudent) {
                 return [
                     'id' => $enrollment->user->id,
                     'name' => $enrollment->user->name,
@@ -76,6 +93,7 @@ class MentorDashboardController extends Controller
                     'enrolled_at' => $enrollment->enrolled_at,
                     'quiz_points' => $enrollment->quiz_points,
                     'highest_unlocked_level' => $enrollment->highest_unlocked_level,
+                    'groups' => $groupsByStudent->get($enrollment->user->id, collect())->values(),
                 ];
             })
             ->unique('id')
@@ -116,6 +134,10 @@ class MentorDashboardController extends Controller
             'enrollments' => $enrollments,
             'pendingEnrollments' => $pendingEnrollments,
             'allStudents' => $allStudents,
+            'studentGroupOptions' => $activeStudentGroups->map(fn (LearningGroup $group) => [
+                'id' => $group->id,
+                'name' => $group->name,
+            ])->values(),
             'invitationUrl' => $invitationUrl,
             'referralCode' => $referralCode,
             'referredStudentsCount' => $referredStudentsCount,

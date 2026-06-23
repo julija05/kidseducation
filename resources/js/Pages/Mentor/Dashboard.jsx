@@ -41,6 +41,7 @@ export default function Dashboard({
     enrollments = [],
     pendingEnrollments = [],
     allStudents = [],
+    studentGroupOptions = [],
     invitationUrl,
     referralCode,
     referredStudentsCount = 0,
@@ -50,6 +51,7 @@ export default function Dashboard({
 }) {
     const [copied, setCopied] = useState(false);
     const [studentSearch, setStudentSearch] = useState("");
+    const [studentGroupFilter, setStudentGroupFilter] = useState("all");
     const [showAbacus, setShowAbacus] = useState(false);
 
     const totalStudents = enrollments.reduce((sum, enrollment) => sum + (enrollment.students_count || 0), 0);
@@ -59,14 +61,16 @@ export default function Dashboard({
 
     const filteredStudents = useMemo(() => {
         const query = studentSearch.trim().toLowerCase();
-        if (!query) return allStudents;
 
         return allStudents.filter((student) =>
-            student.name?.toLowerCase().includes(query) ||
-            student.email?.toLowerCase().includes(query) ||
-            student.program_name?.toLowerCase().includes(query)
+            (studentGroupFilter === "all" || student.groups?.some((group) => String(group.id) === String(studentGroupFilter))) &&
+            (!query ||
+                student.name?.toLowerCase().includes(query) ||
+                student.email?.toLowerCase().includes(query) ||
+                student.program_name?.toLowerCase().includes(query) ||
+                student.groups?.some((group) => group.name?.toLowerCase().includes(query)))
         );
-    }, [allStudents, studentSearch]);
+    }, [allStudents, studentSearch, studentGroupFilter]);
 
     const nextMeeting = upcomingMeetings[0] || null;
 
@@ -310,15 +314,29 @@ export default function Dashboard({
                             title="My students"
                             subtitle="Students are filtered to your mentorship assignments."
                             action={
-                                <div className="relative w-full sm:w-72">
-                                    <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                                    <input
-                                        type="search"
-                                        value={studentSearch}
-                                        onChange={(event) => setStudentSearch(event.target.value)}
-                                        placeholder="Search students"
-                                        className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-slate-500 focus:ring-slate-500"
-                                    />
+                                <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[220px_220px]">
+                                    <select
+                                        value={studentGroupFilter}
+                                        onChange={(event) => setStudentGroupFilter(event.target.value)}
+                                        className="rounded-md border border-slate-300 py-2 pl-3 pr-8 text-sm focus:border-slate-500 focus:ring-slate-500"
+                                    >
+                                        <option value="all">All groups</option>
+                                        {studentGroupOptions.map((group) => (
+                                            <option key={group.id} value={group.id}>
+                                                {group.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="relative">
+                                        <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                        <input
+                                            type="search"
+                                            value={studentSearch}
+                                            onChange={(event) => setStudentSearch(event.target.value)}
+                                            placeholder="Search students"
+                                            className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-slate-500 focus:ring-slate-500"
+                                        />
+                                    </div>
                                 </div>
                             }
                         >
@@ -345,6 +363,7 @@ export default function Dashboard({
                                                             <div>
                                                                 <p className="font-medium text-slate-950">{student.name}</p>
                                                                 <p className="text-xs text-slate-500">{student.email}</p>
+                                                                <GroupChips groups={student.groups || []} />
                                                             </div>
                                                         </div>
                                                     </td>
@@ -579,6 +598,27 @@ function InfoPill({ label, value }) {
         <div className="rounded-md border border-slate-200 bg-white p-3">
             <p className="text-xs font-medium text-slate-500">{label}</p>
             <p className="mt-1 truncate font-semibold text-slate-950">{value}</p>
+        </div>
+    );
+}
+
+function GroupChips({ groups }) {
+    if (!groups.length) {
+        return (
+            <p className="mt-1 text-xs text-slate-400">No active group</p>
+        );
+    }
+
+    return (
+        <div className="mt-1 flex max-w-60 flex-wrap gap-1">
+            {groups.map((group) => (
+                <span
+                    key={group.id}
+                    className="inline-flex max-w-full rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700"
+                >
+                    <span className="truncate">{group.name}</span>
+                </span>
+            ))}
         </div>
     );
 }

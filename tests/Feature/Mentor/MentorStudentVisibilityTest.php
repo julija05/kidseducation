@@ -154,6 +154,9 @@ class MentorStudentVisibilityTest extends TestCase
             ->where('activeGroups.0.next_live_class.topic', 'Live abacus practice')
             ->where('activeGroups.0.next_live_class.date', $nextClass->scheduled_at->format('M d, Y'))
             ->where('activeGroups.0.next_live_class.time', '2:15 PM')
+            ->has('studentGroupOptions', 1)
+            ->where('studentGroupOptions.0.id', $activeGroup->id)
+            ->where('allStudents.0.groups.0.name', 'Active Mentor Group')
         );
     }
 

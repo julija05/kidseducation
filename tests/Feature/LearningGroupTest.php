@@ -93,7 +93,7 @@ class LearningGroupTest extends TestCase
         ]);
     }
 
-    public function test_mentor_can_create_learning_group_for_any_existing_program(): void
+    public function test_mentor_cannot_create_learning_group_for_unapproved_program(): void
     {
         $mentor = User::factory()->create();
         $mentor->assignRole('mentor');
@@ -109,9 +109,9 @@ class LearningGroupTest extends TestCase
             'max_students' => 8,
         ]);
 
-        $response->assertRedirect('/mentor/learning-groups');
+        $response->assertSessionHasErrors('program_id');
 
-        $this->assertDatabaseHas('learning_groups', [
+        $this->assertDatabaseMissing('learning_groups', [
             'name' => 'Open Program Group',
             'program_id' => $program->id,
             'mentor_id' => $mentor->id,
@@ -236,6 +236,9 @@ class LearningGroupTest extends TestCase
 
         $program = Program::factory()->create(['is_active' => true]);
         $student = $this->approvedStudentForProgram($program);
+        Enrollment::where('user_id', $student->id)
+            ->where('program_id', $program->id)
+            ->update(['assigned_mentor_id' => $mentor->id]);
 
         $group = LearningGroup::create([
             'name' => 'Mentor Group',
@@ -264,6 +267,91 @@ class LearningGroupTest extends TestCase
             'learning_group_id' => $group->id,
             'student_id' => $student->id,
         ]);
+    }
+
+    public function test_mentor_cannot_add_student_assigned_to_another_mentor(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $otherMentor = User::factory()->create();
+        $otherMentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+
+        Enrollment::factory()->create([
+            'user_id' => $mentor->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::MENTOR,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        $student = $this->approvedStudentForProgram($program);
+        Enrollment::where('user_id', $student->id)
+            ->where('program_id', $program->id)
+            ->update(['assigned_mentor_id' => $otherMentor->id]);
+
+        $group = LearningGroup::create([
+            'name' => 'Mentor Restricted Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+
+        $response = $this->actingAs($mentor)->post("/mentor/learning-groups/{$group->id}/students", [
+            'student_id' => $student->id,
+        ]);
+
+        $response->assertSessionHasErrors('student_id');
+        $this->assertDatabaseMissing('learning_group_student', [
+            'learning_group_id' => $group->id,
+            'student_id' => $student->id,
+        ]);
+    }
+
+    public function test_mentor_create_page_only_lists_approved_active_programs(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $approvedProgram = Program::factory()->create([
+            'name' => 'Approved Program',
+            'is_active' => true,
+        ]);
+        $unapprovedProgram = Program::factory()->create([
+            'name' => 'Unapproved Program',
+            'is_active' => true,
+        ]);
+
+        Enrollment::factory()->create([
+            'user_id' => $mentor->id,
+            'program_id' => $approvedProgram->id,
+            'enrollment_type' => EnrollmentType::MENTOR,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        Enrollment::factory()->create([
+            'user_id' => $mentor->id,
+            'program_id' => $unapprovedProgram->id,
+            'enrollment_type' => EnrollmentType::MENTOR,
+            'approval_status' => ApprovalStatus::PENDING,
+            'status' => EnrollmentStatus::PAUSED,
+        ]);
+
+        $response = $this->actingAs($mentor)->get('/mentor/learning-groups/create');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Mentor/LearningGroups/Create')
+            ->has('programs', 1)
+            ->where('programs.0.id', $approvedProgram->id)
+            ->where('programs.0.name', 'Approved Program')
+        );
     }
 
     public function test_mentor_can_open_group_dashboard_with_class_and_overview_data(): void

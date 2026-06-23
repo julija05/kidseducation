@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\ChildProfile;
 use App\Models\Enrollment;
+use App\Models\LearningGroup;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -69,6 +70,58 @@ class EnrollmentManagementTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('Admin/Enrollments/Index')
             ->has('enrollments')
+        );
+    }
+
+    public function test_admin_can_filter_student_enrollments_by_group(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $firstStudent = User::factory()->create(['name' => 'Ada Group Student']);
+        $firstStudent->assignRole('student');
+
+        $secondStudent = User::factory()->create(['name' => 'Ben Other Student']);
+        $secondStudent->assignRole('student');
+
+        $firstEnrollment = Enrollment::factory()->create([
+            'user_id' => $firstStudent->id,
+            'program_id' => $this->program->id,
+            'enrollment_type' => 'student',
+            'status' => 'active',
+            'approval_status' => 'approved',
+        ]);
+
+        Enrollment::factory()->create([
+            'user_id' => $secondStudent->id,
+            'program_id' => $this->program->id,
+            'enrollment_type' => 'student',
+            'status' => 'active',
+            'approval_status' => 'approved',
+        ]);
+
+        $group = LearningGroup::create([
+            'name' => 'Saturday Group',
+            'program_id' => $this->program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($firstStudent->id);
+
+        $response = $this->actingAs($this->admin)->get("/admin/enrollments?group_id={$group->id}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/Enrollments/Index')
+            ->where('groupFilter', (string) $group->id)
+            ->has('groupOptions', 1)
+            ->has('enrollments.data', 1)
+            ->where('enrollments.data.0.id', $firstEnrollment->id)
+            ->where('enrollments.data.0.user.name', 'Ada Group Student')
+            ->where('enrollments.data.0.user.learning_groups.0.name', 'Saturday Group')
         );
     }
 

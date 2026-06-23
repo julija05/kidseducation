@@ -43,7 +43,7 @@ class LearningGroupController extends Controller
                     'name' => $student->name,
                     'email' => $student->email,
                 ])->values(),
-                'available_students' => $this->approvedStudentsForProgram($group->program_id)
+                'available_students' => $this->approvedStudentsForProgram($group->program_id, $mentor->id)
                     ->whereNotIn('id', $group->students->pluck('id'))
                     ->values(),
             ]);
@@ -82,6 +82,12 @@ class LearningGroupController extends Controller
             'description' => ['nullable', 'string', 'max:5000'],
         ]);
 
+        if (! $this->mentorCanTeachProgram((int) $validated['program_id'], Auth::id())) {
+            return back()
+                ->withErrors(['program_id' => 'Select an approved program assigned to your mentor account.'])
+                ->withInput();
+        }
+
         LearningGroup::create([
             ...$validated,
             'mentor_id' => Auth::id(),
@@ -102,8 +108,8 @@ class LearningGroupController extends Controller
 
         $studentId = (int) $validated['student_id'];
 
-        if (! $this->isApprovedStudentForGroup($learningGroup, $studentId)) {
-            return back()->withErrors(['student_id' => 'Select an approved student for this group program.']);
+        if (! $this->isApprovedStudentForGroup($learningGroup, $studentId, Auth::id())) {
+            return back()->withErrors(['student_id' => 'Select an approved student assigned to your mentorship for this group program.']);
         }
 
         if ($learningGroup->students()->whereKey($studentId)->exists()) {
@@ -130,28 +136,59 @@ class LearningGroupController extends Controller
 
     private function mentorPrograms()
     {
-        return Program::orderBy('name')
+        $programIds = Enrollment::where('user_id', Auth::id())
+            ->where('enrollment_type', EnrollmentType::MENTOR)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->where('status', EnrollmentStatus::ACTIVE)
+            ->pluck('program_id');
+
+        return Program::whereIn('id', $programIds)
+            ->orderBy('name')
             ->get(['id', 'name']);
     }
 
-    private function approvedStudentsForProgram(int $programId)
+    private function approvedStudentsForProgram(int $programId, int $mentorId)
     {
         return User::role('student')
-            ->whereHas('enrollments', function ($query) use ($programId) {
+            ->whereHas('enrollments', function ($query) use ($programId, $mentorId) {
                 $query->where('program_id', $programId)
                     ->where('enrollment_type', EnrollmentType::STUDENT)
                     ->where('approval_status', ApprovalStatus::APPROVED)
-                    ->where('status', EnrollmentStatus::ACTIVE);
+                    ->where('status', EnrollmentStatus::ACTIVE)
+                    ->where(function ($assignmentQuery) use ($mentorId) {
+                        $assignmentQuery->where('assigned_mentor_id', $mentorId)
+                            ->orWhere(function ($referralQuery) use ($mentorId) {
+                                $referralQuery->whereNull('assigned_mentor_id')
+                                    ->where('referred_by_mentor_id', $mentorId);
+                            });
+                    });
             })
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
     }
 
-    private function isApprovedStudentForGroup(LearningGroup $learningGroup, int $studentId): bool
+    private function isApprovedStudentForGroup(LearningGroup $learningGroup, int $studentId, int $mentorId): bool
     {
         return Enrollment::where('user_id', $studentId)
             ->where('program_id', $learningGroup->program_id)
             ->where('enrollment_type', EnrollmentType::STUDENT)
+            ->where('approval_status', ApprovalStatus::APPROVED)
+            ->where('status', EnrollmentStatus::ACTIVE)
+            ->where(function ($assignmentQuery) use ($mentorId) {
+                $assignmentQuery->where('assigned_mentor_id', $mentorId)
+                    ->orWhere(function ($referralQuery) use ($mentorId) {
+                        $referralQuery->whereNull('assigned_mentor_id')
+                            ->where('referred_by_mentor_id', $mentorId);
+                    });
+            })
+            ->exists();
+    }
+
+    private function mentorCanTeachProgram(int $programId, int $mentorId): bool
+    {
+        return Enrollment::where('user_id', $mentorId)
+            ->where('program_id', $programId)
+            ->where('enrollment_type', EnrollmentType::MENTOR)
             ->where('approval_status', ApprovalStatus::APPROVED)
             ->where('status', EnrollmentStatus::ACTIVE)
             ->exists();

@@ -25,6 +25,8 @@ export default function AllEnrollments({
     enrollments,
     currentStatus,
     searchTerm,
+    groupFilter = "all",
+    groupOptions = [],
     availableMentors,
 }) {
     const [selectedEnrollment, setSelectedEnrollment] = useState(null);
@@ -38,6 +40,7 @@ export default function AllEnrollments({
         router.get(route("admin.enrollments.index"), {
             search,
             status: currentStatus,
+            group_id: groupFilter,
         });
     };
 
@@ -45,6 +48,15 @@ export default function AllEnrollments({
         router.get(route("admin.enrollments.index"), {
             status,
             search: searchTerm,
+            group_id: groupFilter,
+        });
+    };
+
+    const handleGroupFilter = (groupId) => {
+        router.get(route("admin.enrollments.index"), {
+            status: currentStatus,
+            search: searchTerm,
+            group_id: groupId,
         });
     };
 
@@ -246,6 +258,22 @@ export default function AllEnrollments({
                             Rejected
                         </button>
                     </div>
+
+                    <div className="max-w-sm">
+                        <label className="mb-1 block text-sm font-medium text-gray-700">Group</label>
+                        <select
+                            value={groupFilter || "all"}
+                            onChange={(event) => handleGroupFilter(event.target.value)}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-3 text-base focus:border-blue-500 focus:ring-blue-500 sm:py-2 sm:text-sm"
+                        >
+                            <option value="all">All groups</option>
+                            {groupOptions.map((group) => (
+                                <option key={group.id} value={group.id}>
+                                    {group.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 {/* Enrollments List - Mobile First Design */}
@@ -278,6 +306,7 @@ export default function AllEnrollments({
                                                 <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
                                                 <span className="truncate">{enrollment.user?.email || 'No email'}</span>
                                             </p>
+                                            <GroupBadges groups={enrollment.user?.learning_groups || []} />
                                         </div>
                                     </div>
 
@@ -417,6 +446,7 @@ export default function AllEnrollments({
                                                                 <Mail className="h-3 w-3 mr-1" />
                                                                 {enrollment.user?.email || 'No email'}
                                                             </div>
+                                                            <GroupBadges groups={enrollment.user?.learning_groups || []} />
                                                         </div>
                                                     </div>
                                                 </td>
@@ -615,5 +645,26 @@ export default function AllEnrollments({
                 )}
             </div>
         </AdminLayout>
+    );
+}
+
+function GroupBadges({ groups }) {
+    if (!groups.length) {
+        return (
+            <p className="mt-1 text-xs text-gray-400">No active group</p>
+        );
+    }
+
+    return (
+        <div className="mt-1 flex max-w-xs flex-wrap gap-1">
+            {groups.map((group) => (
+                <span
+                    key={group.id}
+                    className="inline-flex max-w-full rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700"
+                >
+                    <span className="truncate">{group.name}</span>
+                </span>
+            ))}
+        </div>
     );
 }
