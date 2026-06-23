@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LearningGroup extends Model
 {
@@ -63,6 +64,11 @@ class LearningGroup extends Model
     {
         return $this->belongsToMany(User::class, 'learning_group_student', 'learning_group_id', 'student_id')
             ->withTimestamps();
+    }
+
+    public function homeworkAssignments(): HasMany
+    {
+        return $this->hasMany(HomeworkAssignment::class);
     }
 
     public function scopeActive(Builder $query): Builder

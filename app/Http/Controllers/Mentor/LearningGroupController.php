@@ -6,8 +6,11 @@ use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
 use App\Http\Controllers\Controller;
+use App\Models\ClassSchedule;
 use App\Models\Enrollment;
+use App\Models\HomeworkAssignment;
 use App\Models\LearningGroup;
+use App\Models\Lesson;
 use App\Models\Program;
 use App\Models\User;
 use App\Services\LearningGroupDashboardService;
@@ -67,6 +70,11 @@ class LearningGroupController extends Controller
 
         return $this->createView('Mentor/LearningGroups/Show', [
             'group' => $dashboardService->dashboardFor($learningGroup),
+            'homeworkOptions' => [
+                'lessons' => $this->lessonOptionsForGroup($learningGroup),
+                'liveSessions' => $this->liveSessionOptionsForGroup($learningGroup),
+                'statuses' => HomeworkAssignment::STATUSES,
+            ],
         ]);
     }
 
@@ -134,6 +142,41 @@ class LearningGroupController extends Controller
         return back()->with('success', 'Student removed from group.');
     }
 
+    public function storeHomework(Request $request, LearningGroup $learningGroup): RedirectResponse
+    {
+        $this->authorizeMentorGroup($learningGroup);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:191'],
+            'instructions' => ['required', 'string', 'max:10000'],
+            'lesson_id' => ['required', 'exists:lessons,id'],
+            'live_session_id' => ['nullable', 'exists:class_schedules,id'],
+            'due_date' => ['nullable', 'date'],
+            'estimated_practice_minutes' => ['required', 'integer', 'min:1', 'max:600'],
+            'status' => ['required', Rule::in(HomeworkAssignment::STATUSES)],
+        ]);
+
+        if (! $this->lessonBelongsToGroupProgram((int) $validated['lesson_id'], $learningGroup)) {
+            return back()
+                ->withErrors(['lesson_id' => 'Select a lesson from this group program.'])
+                ->withInput();
+        }
+
+        if (! empty($validated['live_session_id']) && ! $this->liveSessionBelongsToGroup((int) $validated['live_session_id'], $learningGroup)) {
+            return back()
+                ->withErrors(['live_session_id' => 'Select a live session for this group.'])
+                ->withInput();
+        }
+
+        HomeworkAssignment::create([
+            ...$validated,
+            'learning_group_id' => $learningGroup->id,
+            'created_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Homework assignment created successfully.');
+    }
+
     private function mentorPrograms()
     {
         $programIds = Enrollment::where('user_id', Auth::id())
@@ -191,6 +234,80 @@ class LearningGroupController extends Controller
             ->where('enrollment_type', EnrollmentType::MENTOR)
             ->where('approval_status', ApprovalStatus::APPROVED)
             ->where('status', EnrollmentStatus::ACTIVE)
+            ->exists();
+    }
+
+    private function lessonOptionsForGroup(LearningGroup $learningGroup)
+    {
+        return Lesson::where('program_id', $learningGroup->program_id)
+            ->where('is_active', true)
+            ->orderBy('level')
+            ->orderBy('order_in_level')
+            ->get(['id', 'title', 'level'])
+            ->map(fn (Lesson $lesson) => [
+                'id' => $lesson->id,
+                'title' => $lesson->translated_title ?? $lesson->title,
+                'level' => $lesson->level,
+            ])
+            ->values();
+    }
+
+    private function liveSessionOptionsForGroup(LearningGroup $learningGroup)
+    {
+        $studentIds = $learningGroup->students()->pluck('users.id');
+
+        return ClassSchedule::with('lesson:id,title,program_id,level')
+            ->where('program_id', $learningGroup->program_id)
+            ->where(function ($query) use ($learningGroup, $studentIds) {
+                $query->where(function ($titleQuery) use ($learningGroup) {
+                    $titleQuery->where('is_group_class', true)
+                        ->where('title', $learningGroup->name);
+                });
+
+                if ($studentIds->isNotEmpty()) {
+                    $query->orWhereIn('student_id', $studentIds)
+                        ->orWhereHas('students', fn ($studentQuery) => $studentQuery->whereIn('users.id', $studentIds));
+                }
+            })
+            ->orderByDesc('scheduled_at')
+            ->limit(30)
+            ->get(['id', 'title', 'lesson_id', 'program_id', 'scheduled_at', 'status'])
+            ->map(fn (ClassSchedule $schedule) => [
+                'id' => $schedule->id,
+                'title' => $schedule->title,
+                'lesson_title' => $schedule->lesson?->translated_title ?? $schedule->lesson?->title,
+                'scheduled_at' => $schedule->scheduled_at?->toISOString(),
+                'date' => $schedule->scheduled_at?->format('M d, Y'),
+                'time' => $schedule->scheduled_at?->format('g:i A'),
+                'status' => $schedule->status,
+            ])
+            ->values();
+    }
+
+    private function lessonBelongsToGroupProgram(int $lessonId, LearningGroup $learningGroup): bool
+    {
+        return Lesson::whereKey($lessonId)
+            ->where('program_id', $learningGroup->program_id)
+            ->exists();
+    }
+
+    private function liveSessionBelongsToGroup(int $liveSessionId, LearningGroup $learningGroup): bool
+    {
+        $studentIds = $learningGroup->students()->pluck('users.id');
+
+        return ClassSchedule::whereKey($liveSessionId)
+            ->where('program_id', $learningGroup->program_id)
+            ->where(function ($query) use ($learningGroup, $studentIds) {
+                $query->where(function ($titleQuery) use ($learningGroup) {
+                    $titleQuery->where('is_group_class', true)
+                        ->where('title', $learningGroup->name);
+                });
+
+                if ($studentIds->isNotEmpty()) {
+                    $query->orWhereIn('student_id', $studentIds)
+                        ->orWhereHas('students', fn ($studentQuery) => $studentQuery->whereIn('users.id', $studentIds));
+                }
+            })
             ->exists();
     }
 

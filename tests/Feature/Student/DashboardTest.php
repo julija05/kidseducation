@@ -3,6 +3,9 @@
 namespace Tests\Feature\Student;
 
 use App\Models\Enrollment;
+use App\Models\HomeworkAssignment;
+use App\Models\LearningGroup;
+use App\Models\Lesson;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -155,6 +158,61 @@ class DashboardTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page->has('enrolledProgram')
             ->where('enrolledProgram.id', $program->id) // Fixed: program data is directly in enrolledProgram, not nested
+        );
+    }
+
+    public function test_dashboard_shows_homework_assigned_to_students_group(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+        $lesson = Lesson::factory()->create([
+            'program_id' => $program->id,
+            'title' => 'Place value',
+            'is_active' => true,
+        ]);
+
+        Enrollment::factory()->create([
+            'user_id' => $this->student->id,
+            'program_id' => $program->id,
+            'status' => 'active',
+            'approval_status' => 'approved',
+        ]);
+
+        $group = LearningGroup::create([
+            'name' => 'Student Homework Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($this->student->id);
+
+        HomeworkAssignment::create([
+            'title' => 'Place value drills',
+            'instructions' => 'Finish the worksheet before class.',
+            'learning_group_id' => $group->id,
+            'lesson_id' => $lesson->id,
+            'due_date' => '2026-06-30',
+            'estimated_practice_minutes' => 25,
+            'status' => HomeworkAssignment::STATUS_ASSIGNED,
+            'created_by' => $mentor->id,
+        ]);
+
+        $response = $this->actingAs($this->student)->get('/dashboard');
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Dashboard')
+            ->has('homeworkAssignments', 1)
+            ->where('homeworkAssignments.0.title', 'Place value drills')
+            ->where('homeworkAssignments.0.instructions', 'Finish the worksheet before class.')
+            ->where('homeworkAssignments.0.group.name', 'Student Homework Group')
+            ->where('homeworkAssignments.0.lesson.title', 'Place value')
+            ->where('homeworkAssignments.0.due_date', '2026-06-30')
+            ->where('homeworkAssignments.0.estimated_practice_time', '25 min')
         );
     }
 

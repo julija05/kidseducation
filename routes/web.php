@@ -236,6 +236,7 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         Route::get('/create', [MentorLearningGroupController::class, 'create'])->name('create');
         Route::post('/', [MentorLearningGroupController::class, 'store'])->name('store');
         Route::get('/{learningGroup}', [MentorLearningGroupController::class, 'show'])->name('show');
+        Route::post('/{learningGroup}/homework', [MentorLearningGroupController::class, 'storeHomework'])->name('homework.store');
         Route::post('/{learningGroup}/students', [MentorLearningGroupController::class, 'addStudent'])->name('students.store');
         Route::delete('/{learningGroup}/students/{student}', [MentorLearningGroupController::class, 'removeStudent'])->name('students.destroy');
     });

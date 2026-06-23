@@ -226,6 +226,9 @@ function HomeworkPanel({ homework, fallbackStatus }) {
                     <h3 className="mt-2 text-base font-semibold text-slate-950">
                         {display(homework.current)}
                     </h3>
+                    {homework.instructions && (
+                        <p className="mt-1 text-sm leading-5 text-slate-600">{homework.instructions}</p>
+                    )}
                 </div>
 
                 {statusLabel && (
@@ -241,6 +244,14 @@ function HomeworkPanel({ homework, fallbackStatus }) {
                 <ClassMeta icon={CalendarClock} label="Due date" value={homework.due_date} />
                 <ClassMeta icon={AlertTriangle} label="Needs help" value={homework.needs_help ? "Yes" : "No"} />
             </div>
+
+            {(homework.group || homework.lesson || homework.live_session) && (
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                    <ClassMeta icon={Users} label="Group" value={homework.group?.name} />
+                    <ClassMeta icon={BookOpen} label="Lesson" value={homework.lesson?.title} />
+                    <ClassMeta icon={CalendarClock} label="Live session" value={homework.live_session?.date} />
+                </div>
+            )}
 
             {homework.needs_help && (
                 <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-800">

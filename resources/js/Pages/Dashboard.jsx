@@ -4,7 +4,7 @@ import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket, ArrowLeft, UserRound } from "lucide-react";
+import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket, ArrowLeft, UserRound, ClipboardCheck, Clock, Users } from "lucide-react";
 import ReviewSection from "@/Components/ReviewSection";
 import ReviewPromptModal from "@/Components/ReviewPromptModal";
 import StudentNavBar from "@/Components/StudentNavBar";
@@ -31,6 +31,7 @@ export default function Dashboard() {
         availablePrograms,
         completedEnrollments,
         nextClass,
+        homeworkAssignments,
         pendingProgramId,
         notifications,
         unreadNotificationCount,
@@ -308,6 +309,8 @@ export default function Dashboard() {
                             <NextClassCard nextClass={nextClass} />
                         </div>
 
+                        <HomeworkAssignmentsPanel assignments={homeworkAssignments || []} />
+
                         {/* Program Completion Celebration - Show when program is completed */}
                         {enrolledProgram?.status === 'completed' && (
                             <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 backdrop-blur-lg rounded-3xl shadow-xl border border-green-200/50 p-8">
@@ -560,6 +563,67 @@ function ParentViewBanner({ parentView }) {
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+function HomeworkAssignmentsPanel({ assignments }) {
+    return (
+        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <p className="text-sm font-medium text-slate-500">Group practice</p>
+                    <h2 className="mt-1 text-2xl font-bold text-slate-950">Homework assignments</h2>
+                </div>
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                    <ClipboardCheck className="h-5 w-5" />
+                </span>
+            </div>
+
+            {assignments.length ? (
+                <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                    {assignments.slice(0, 4).map((assignment) => (
+                        <article key={assignment.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-950">{assignment.title}</h3>
+                                    <p className="mt-1 text-sm text-slate-600">{assignment.instructions}</p>
+                                </div>
+                                <span className="inline-flex w-fit rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200">
+                                    {assignment.status}
+                                </span>
+                            </div>
+
+                            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                <HomeworkMeta icon={Users} label="Group" value={assignment.group?.name} />
+                                <HomeworkMeta icon={BookOpen} label="Lesson" value={assignment.lesson?.title} />
+                                <HomeworkMeta icon={Clock} label="Practice" value={assignment.estimated_practice_time} />
+                            </div>
+
+                            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                <HomeworkMeta icon={Calendar} label="Due date" value={assignment.due_date} />
+                                <HomeworkMeta icon={Calendar} label="Live session" value={assignment.live_session?.date} />
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            ) : (
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                    No homework assigned yet.
+                </div>
+            )}
+        </div>
+    );
+}
+
+function HomeworkMeta({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+            </div>
+            <p className="mt-1 text-sm font-semibold text-slate-800">{value || "Not set"}</p>
         </div>
     );
 }

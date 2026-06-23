@@ -7,6 +7,7 @@ use App\Constants\EnrollmentStatus;
 use App\Models\ClassSchedule;
 use App\Models\User;
 use App\Models\WeeklyLearningReport;
+use App\Services\HomeworkAssignmentDashboardService;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,10 @@ use Inertia\Response;
 
 class ParentDashboardController extends Controller
 {
+    public function __construct(
+        private HomeworkAssignmentDashboardService $homeworkAssignmentDashboardService
+    ) {}
+
     public function index(Request $request): Response
     {
         $parent = $request->user();
@@ -173,7 +178,8 @@ class ParentDashboardController extends Controller
         $nextClass = $childId ? $this->nextLiveClassFor($childId) : null;
         $latestCompletedClass = $childId ? $this->latestCompletedClassFor($childId) : null;
         $sessionData = $latestCompletedClass?->session_data ?? [];
-        $homework = $this->homeworkFrom($sessionData);
+        $assignedHomework = $childId ? $this->homeworkAssignmentForChild($childId) : null;
+        $homework = $assignedHomework ? $this->homeworkFromAssignment($assignedHomework) : $this->homeworkFrom($sessionData);
         $latestParentVisibleNote = $childId ? $this->parentVisibleMentorNotesFor($childId)->first() : null;
         $latestWeeklyLearningReport = $childId ? $this->latestWeeklyReportFor($childId) : null;
 
@@ -189,6 +195,7 @@ class ParentDashboardController extends Controller
             'next_live_class' => $this->formatSchedule($nextClass),
             'homework_status' => $homework['status'] ?? $this->homeworkStatusFrom($sessionData),
             'homework' => $homework,
+            'homework_assignments' => $assignedHomework ? [$assignedHomework] : [],
             'progress' => $activeEnrollment['progress'] ?? 0,
             'latest_mentor_note' => $latestParentVisibleNote['note'] ?? null,
             'latest_weekly_learning_report' => $latestWeeklyLearningReport
@@ -394,6 +401,43 @@ class ParentDashboardController extends Controller
             'is_completed' => $completed,
             'needs_help' => $needsHelp ?? false,
         ];
+    }
+
+    private function homeworkFromAssignment(array $assignment): array
+    {
+        return [
+            'id' => $assignment['id'],
+            'current' => $assignment['title'],
+            'instructions' => $assignment['instructions'],
+            'estimated_practice_time' => $assignment['estimated_practice_time'],
+            'due_date' => $assignment['due_date'],
+            'status' => $this->homeworkStatusLabel($assignment['status']),
+            'is_completed' => false,
+            'needs_help' => false,
+            'group' => $assignment['group'] ?? null,
+            'lesson' => $assignment['lesson'] ?? null,
+            'live_session' => $assignment['live_session'] ?? null,
+        ];
+    }
+
+    private function homeworkAssignmentForChild(int $childId): ?array
+    {
+        $child = User::find($childId);
+
+        if (! $child) {
+            return null;
+        }
+
+        return $this->homeworkAssignmentDashboardService->latestForStudent($child);
+    }
+
+    private function homeworkStatusLabel(?string $status): ?string
+    {
+        if (! $status) {
+            return null;
+        }
+
+        return ucfirst(str_replace('_', ' ', $status));
     }
 
     private function nullableBoolean($value): ?bool

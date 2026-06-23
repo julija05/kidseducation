@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link, useForm } from "@inertiajs/react";
 import {
     AlertCircle,
     ArrowLeft,
@@ -31,7 +31,7 @@ const label = (value) => {
 
 const display = (value, fallback = "Not available") => value || fallback;
 
-export default function GroupDashboard({ group, backHref, backLabel = "Groups", theme = "mentor" }) {
+export default function GroupDashboard({ group, homeworkOptions, backHref, backLabel = "Groups", theme = "mentor" }) {
     const primaryButton = theme === "admin"
         ? "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         : "bg-slate-900 hover:bg-slate-800 focus:ring-slate-900";
@@ -185,6 +185,14 @@ export default function GroupDashboard({ group, backHref, backLabel = "Groups", 
                 </section>
             </div>
 
+            {homeworkOptions && (
+                <HomeworkAssignmentForm
+                    group={group}
+                    options={homeworkOptions}
+                    primaryButton={primaryButton}
+                />
+            )}
+
             <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                     <div>
@@ -231,6 +239,154 @@ export default function GroupDashboard({ group, backHref, backLabel = "Groups", 
                 )}
             </section>
         </div>
+    );
+}
+
+function HomeworkAssignmentForm({ group, options, primaryButton }) {
+    const lessons = options.lessons || [];
+    const liveSessions = options.liveSessions || [];
+    const statuses = options.statuses || ["assigned"];
+    const defaultStatus = statuses.includes("assigned") ? "assigned" : statuses[0] || "assigned";
+    const { data, setData, post, processing, errors, reset } = useForm({
+        title: "",
+        instructions: "",
+        lesson_id: lessons[0]?.id || "",
+        live_session_id: "",
+        due_date: "",
+        estimated_practice_minutes: 15,
+        status: defaultStatus,
+    });
+
+    const submit = (event) => {
+        event.preventDefault();
+
+        post(route("mentor.learning-groups.homework.store", group.id), {
+            preserveScroll: true,
+            onSuccess: () => reset("title", "instructions", "live_session_id", "due_date", "estimated_practice_minutes"),
+        });
+    };
+
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-lg font-bold text-slate-950">Create homework</h2>
+                    <p className="mt-1 text-sm text-slate-500">Assign practice to this group for a lesson or live class.</p>
+                </div>
+                <CheckCircle2 className="h-5 w-5 text-slate-400" />
+            </div>
+
+            <form onSubmit={submit} className="mt-5 grid gap-4">
+                <div className="grid gap-4 lg:grid-cols-2">
+                    <FormField label="Title" error={errors.title}>
+                        <input
+                            type="text"
+                            value={data.title}
+                            onChange={(event) => setData("title", event.target.value)}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                            placeholder="Practice addition worksheet"
+                        />
+                    </FormField>
+
+                    <FormField label="Lesson" error={errors.lesson_id}>
+                        <select
+                            value={data.lesson_id}
+                            onChange={(event) => setData("lesson_id", event.target.value)}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        >
+                            <option value="">Select lesson</option>
+                            {lessons.map((lesson) => (
+                                <option key={lesson.id} value={lesson.id}>
+                                    {lesson.level ? `Level ${lesson.level} - ` : ""}{lesson.title}
+                                </option>
+                            ))}
+                        </select>
+                    </FormField>
+                </div>
+
+                <FormField label="Instructions" error={errors.instructions}>
+                    <textarea
+                        value={data.instructions}
+                        onChange={(event) => setData("instructions", event.target.value)}
+                        rows={4}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        placeholder="Complete the exercises before the next class."
+                    />
+                </FormField>
+
+                <div className="grid gap-4 lg:grid-cols-4">
+                    <FormField label="Live session" error={errors.live_session_id}>
+                        <select
+                            value={data.live_session_id}
+                            onChange={(event) => setData("live_session_id", event.target.value)}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        >
+                            <option value="">No linked session</option>
+                            {liveSessions.map((session) => (
+                                <option key={session.id} value={session.id}>
+                                    {session.date || "Unscheduled"} - {session.title}
+                                </option>
+                            ))}
+                        </select>
+                    </FormField>
+
+                    <FormField label="Due date" error={errors.due_date}>
+                        <input
+                            type="date"
+                            value={data.due_date}
+                            onChange={(event) => setData("due_date", event.target.value)}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        />
+                    </FormField>
+
+                    <FormField label="Practice minutes" error={errors.estimated_practice_minutes}>
+                        <input
+                            type="number"
+                            min="1"
+                            max="600"
+                            value={data.estimated_practice_minutes}
+                            onChange={(event) => setData("estimated_practice_minutes", event.target.value)}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        />
+                    </FormField>
+
+                    <FormField label="Status" error={errors.status}>
+                        <select
+                            value={data.status}
+                            onChange={(event) => setData("status", event.target.value)}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm capitalize focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        >
+                            {statuses.map((status) => (
+                                <option key={status} value={status}>
+                                    {label(status)}
+                                </option>
+                            ))}
+                        </select>
+                    </FormField>
+                </div>
+
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        disabled={processing || lessons.length === 0}
+                        className={`inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${primaryButton}`}
+                    >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Create homework
+                    </button>
+                </div>
+            </form>
+        </section>
+    );
+}
+
+function FormField({ label: fieldLabel, error, children }) {
+    return (
+        <label className="block">
+            <span className="text-xs font-semibold uppercase text-slate-500">{fieldLabel}</span>
+            <span className="mt-1 block">{children}</span>
+            {error && <span className="mt-1 block text-xs font-semibold text-red-600">{error}</span>}
+        </label>
     );
 }
 

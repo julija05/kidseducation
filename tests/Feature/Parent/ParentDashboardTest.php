@@ -8,6 +8,8 @@ use App\Constants\EnrollmentType;
 use App\Models\ChildProfile;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
+use App\Models\HomeworkAssignment;
+use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\LessonResource;
 use App\Models\Program;
@@ -288,6 +290,68 @@ class ParentDashboardTest extends TestCase
             ->where('childCards.0.homework.is_completed', false)
             ->where('childCards.0.homework.needs_help', true)
             ->where('childCards.0.homework_status', 'Not completed')
+        );
+    }
+
+    public function test_parent_dashboard_shows_homework_assigned_to_child_group(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create([
+            'name' => 'Mental Math',
+            'is_active' => true,
+        ]);
+        $lesson = Lesson::factory()->create([
+            'program_id' => $program->id,
+            'title' => 'Multiplication facts',
+            'is_active' => true,
+        ]);
+
+        Enrollment::factory()->create([
+            'user_id' => $this->child->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        $group = LearningGroup::create([
+            'name' => 'Parent Visible Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($this->child->id);
+
+        HomeworkAssignment::create([
+            'title' => 'Multiplication practice',
+            'instructions' => 'Practice the 6 times table.',
+            'learning_group_id' => $group->id,
+            'lesson_id' => $lesson->id,
+            'due_date' => '2026-06-30',
+            'estimated_practice_minutes' => 30,
+            'status' => HomeworkAssignment::STATUS_ASSIGNED,
+            'created_by' => $mentor->id,
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Parent/Dashboard')
+            ->has('childCards', 1)
+            ->where('childCards.0.homework.current', 'Multiplication practice')
+            ->where('childCards.0.homework.instructions', 'Practice the 6 times table.')
+            ->where('childCards.0.homework.estimated_practice_time', '30 min')
+            ->where('childCards.0.homework.due_date', '2026-06-30')
+            ->where('childCards.0.homework.status', 'Assigned')
+            ->where('childCards.0.homework.group.name', 'Parent Visible Group')
+            ->where('childCards.0.homework.lesson.title', 'Multiplication facts')
+            ->where('childCards.0.homework_assignments.0.title', 'Multiplication practice')
         );
     }
 

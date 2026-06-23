@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ClassSchedule;
+use App\Models\HomeworkAssignment;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\User;
@@ -52,6 +53,8 @@ class LearningGroupDashboardService
             'mentor:id,name,email',
             'students:id,name,email',
             'students.enrollments:id,user_id,program_id,status,approval_status,progress',
+            'homeworkAssignments.lesson:id,title,program_id,level',
+            'homeworkAssignments.liveSession:id,title,scheduled_at,status',
         ]);
 
         $studentIds = $learningGroup->students->pluck('id')->values();
@@ -95,7 +98,7 @@ class LearningGroupDashboardService
                 ->values(),
             'next_live_class' => $this->formatSchedule($upcomingClass),
             'current_lesson' => $currentLesson,
-            'homework_summary' => $this->homeworkSummary($completedClasses),
+            'homework_summary' => $this->homeworkSummary($completedClasses, $learningGroup->homeworkAssignments),
             'attendance_summary' => $this->attendanceSummary($completedClasses, $learningGroup->students),
             'help_requests' => $this->helpRequests($completedClasses, $learningGroup->students),
         ];
@@ -199,7 +202,7 @@ class LearningGroupDashboardService
         ];
     }
 
-    private function homeworkSummary(Collection $completedClasses): array
+    private function homeworkSummary(Collection $completedClasses, Collection $homeworkAssignments): array
     {
         $homeworkItems = $completedClasses
             ->map(fn (ClassSchedule $schedule) => [
@@ -209,21 +212,38 @@ class LearningGroupDashboardService
             ->filter(fn (array $item) => $item['homework'] !== null)
             ->values();
 
+        $assignmentItems = $homeworkAssignments
+            ->sortByDesc('created_at')
+            ->map(fn (HomeworkAssignment $assignment) => [
+                'current' => $assignment->title,
+                'instructions' => $assignment->instructions,
+                'estimated_practice_time' => $this->formatPracticeTime($assignment->estimated_practice_minutes),
+                'due_date' => $assignment->due_date?->toDateString(),
+                'status' => ucfirst(str_replace('_', ' ', $assignment->status)),
+                'is_completed' => false,
+                'needs_help' => false,
+                'class_title' => $assignment->liveSession?->title ?? 'Assigned homework',
+                'class_date' => $assignment->liveSession?->scheduled_at?->format('M d, Y') ?? $assignment->created_at?->format('M d, Y'),
+                'lesson_title' => $assignment->lesson?->translated_title ?? $assignment->lesson?->title,
+            ])
+            ->values();
+
         $completed = $homeworkItems->filter(fn (array $item) => $item['homework']['is_completed'] === true)->count();
         $notCompleted = $homeworkItems->filter(fn (array $item) => $item['homework']['is_completed'] === false)->count();
         $needsHelp = $homeworkItems->filter(fn (array $item) => $item['homework']['needs_help'] === true)->count();
-        $latest = $homeworkItems->first();
+        $latest = $assignmentItems->first();
+        $legacyLatest = $homeworkItems->first();
 
         return [
-            'assigned_count' => $homeworkItems->count(),
+            'assigned_count' => $homeworkItems->count() + $assignmentItems->count(),
             'completed_count' => $completed,
-            'not_completed_count' => $notCompleted,
+            'not_completed_count' => $notCompleted + $assignmentItems->count(),
             'needs_help_count' => $needsHelp,
-            'latest' => $latest ? [
-                ...$latest['homework'],
-                'class_title' => $latest['schedule']->title,
-                'class_date' => ($latest['schedule']->completed_at ?? $latest['schedule']->scheduled_at)?->format('M d, Y'),
-            ] : null,
+            'latest' => $latest ?: ($legacyLatest ? [
+                ...$legacyLatest['homework'],
+                'class_title' => $legacyLatest['schedule']->title,
+                'class_date' => ($legacyLatest['schedule']->completed_at ?? $legacyLatest['schedule']->scheduled_at)?->format('M d, Y'),
+            ] : null),
         ];
     }
 

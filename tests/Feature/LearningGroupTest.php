@@ -7,6 +7,7 @@ use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
+use App\Models\HomeworkAssignment;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\Program;
@@ -454,6 +455,108 @@ class LearningGroupTest extends TestCase
             ->where('group.help_requests.0.student_name', 'Ada Learner')
             ->where('group.help_requests.0.message', 'Needs help with carrying.')
         );
+    }
+
+    public function test_mentor_can_create_homework_for_own_group_lesson_and_live_session(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+        $lesson = Lesson::factory()->create([
+            'program_id' => $program->id,
+            'title' => 'Adding tens',
+            'is_active' => true,
+        ]);
+        $student = $this->approvedStudentForProgram($program);
+
+        $group = LearningGroup::create([
+            'name' => 'Homework Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($student->id);
+
+        $liveSession = ClassSchedule::factory()->confirmed()->create([
+            'student_id' => null,
+            'admin_id' => $mentor->id,
+            'program_id' => $program->id,
+            'lesson_id' => $lesson->id,
+            'title' => 'Homework Group',
+            'is_group_class' => true,
+            'max_students' => 10,
+        ]);
+        $liveSession->students()->attach($student->id);
+
+        $response = $this->actingAs($mentor)->post("/mentor/learning-groups/{$group->id}/homework", [
+            'title' => 'Practice adding tens',
+            'instructions' => 'Complete problems 1 through 10.',
+            'lesson_id' => $lesson->id,
+            'live_session_id' => $liveSession->id,
+            'due_date' => '2026-06-30',
+            'estimated_practice_minutes' => 20,
+            'status' => HomeworkAssignment::STATUS_ASSIGNED,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('homework_assignments', [
+            'title' => 'Practice adding tens',
+            'learning_group_id' => $group->id,
+            'lesson_id' => $lesson->id,
+            'live_session_id' => $liveSession->id,
+            'due_date' => '2026-06-30',
+            'estimated_practice_minutes' => 20,
+            'status' => HomeworkAssignment::STATUS_ASSIGNED,
+            'created_by' => $mentor->id,
+        ]);
+    }
+
+    public function test_mentor_cannot_create_homework_with_lesson_or_session_outside_group(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+        $otherProgram = Program::factory()->create(['is_active' => true]);
+        $lesson = Lesson::factory()->create(['program_id' => $otherProgram->id]);
+        $student = $this->approvedStudentForProgram($program);
+
+        $group = LearningGroup::create([
+            'name' => 'Restricted Homework Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($student->id);
+
+        $otherSession = ClassSchedule::factory()->confirmed()->create([
+            'program_id' => $otherProgram->id,
+            'lesson_id' => $lesson->id,
+            'title' => 'Other Group',
+            'is_group_class' => true,
+        ]);
+
+        $response = $this->actingAs($mentor)->post("/mentor/learning-groups/{$group->id}/homework", [
+            'title' => 'Invalid homework',
+            'instructions' => 'This should not be assigned.',
+            'lesson_id' => $lesson->id,
+            'live_session_id' => $otherSession->id,
+            'estimated_practice_minutes' => 15,
+            'status' => HomeworkAssignment::STATUS_ASSIGNED,
+        ]);
+
+        $response->assertSessionHasErrors('lesson_id');
+        $this->assertDatabaseMissing('homework_assignments', [
+            'title' => 'Invalid homework',
+            'learning_group_id' => $group->id,
+        ]);
     }
 
     public function test_mentor_cannot_open_another_mentor_group_dashboard(): void

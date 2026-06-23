@@ -6,6 +6,7 @@ use App\Models\ClassSchedule;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Services\EnrollmentService;
+use App\Services\HomeworkAssignmentDashboardService;
 use App\Services\LessonService;
 use App\Services\NotificationService;
 use App\Services\ProgramService;
@@ -20,7 +21,8 @@ class DashboardController extends Controller
         private LessonService $lessonService,
         private ResourceService $resourceService,
         private NotificationService $notificationService,
-        private ProgramService $programService
+        private ProgramService $programService,
+        private HomeworkAssignmentDashboardService $homeworkAssignmentDashboardService
     ) {}
 
     public function index(Request $request)
@@ -371,6 +373,7 @@ class DashboardController extends Controller
         return $this->createView('Dashboard', $this->withDashboardContext([
             'enrolledProgram' => $enrolledProgramData,
             'nextClass' => $studentData['nextScheduledClass'] ?? null,
+            'homeworkAssignments' => $this->homeworkAssignmentDashboardService->forStudent($user),
             'pendingEnrollments' => [],
             'availablePrograms' => $availablePrograms,
             'currentEnrollment' => [
