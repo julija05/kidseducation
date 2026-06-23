@@ -5,7 +5,9 @@ namespace Tests\Feature\Mentor;
 use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
+use App\Models\ClassSchedule;
 use App\Models\Enrollment;
+use App\Models\LearningGroup;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,6 +91,69 @@ class MentorStudentVisibilityTest extends TestCase
             ->where('allStudents.0.id', $this->assignedStudent->id)
             ->where('enrollments.0.students_count', 1)
             ->where('enrollments.0.average_progress', 40.0)
+        );
+    }
+
+    public function test_mentor_dashboard_shows_active_groups_with_next_class_and_student_count(): void
+    {
+        $activeGroup = LearningGroup::create([
+            'name' => 'Active Mentor Group',
+            'program_id' => $this->program->id,
+            'mentor_id' => $this->mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 8,
+        ]);
+        $activeGroup->students()->attach($this->assignedStudent->id);
+
+        $inactiveGroup = LearningGroup::create([
+            'name' => 'Inactive Mentor Group',
+            'program_id' => $this->program->id,
+            'mentor_id' => $this->mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_COMPLETED,
+            'max_students' => 8,
+        ]);
+        $inactiveGroup->students()->attach($this->assignedStudent->id);
+
+        $otherMentorGroup = LearningGroup::create([
+            'name' => 'Other Mentor Group',
+            'program_id' => $this->program->id,
+            'mentor_id' => $this->otherMentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 8,
+        ]);
+        $otherMentorGroup->students()->attach($this->otherStudent->id);
+
+        $nextClass = ClassSchedule::factory()->confirmed()->create([
+            'student_id' => null,
+            'admin_id' => $this->mentor->id,
+            'program_id' => $this->program->id,
+            'title' => 'Active Mentor Group',
+            'description' => 'Live abacus practice',
+            'scheduled_at' => now()->addDays(3)->setTime(14, 15),
+            'is_group_class' => true,
+            'max_students' => 8,
+        ]);
+        $nextClass->students()->attach($this->assignedStudent->id);
+
+        $response = $this->actingAs($this->mentor)->get('/mentor/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Mentor/Dashboard')
+            ->has('activeGroups', 1)
+            ->where('activeGroups.0.id', $activeGroup->id)
+            ->where('activeGroups.0.name', 'Active Mentor Group')
+            ->where('activeGroups.0.students_count', 1)
+            ->where('activeGroups.0.max_students', 8)
+            ->where('activeGroups.0.next_live_class.topic', 'Live abacus practice')
+            ->where('activeGroups.0.next_live_class.date', $nextClass->scheduled_at->format('M d, Y'))
+            ->where('activeGroups.0.next_live_class.time', '2:15 PM')
         );
     }
 

@@ -11,6 +11,7 @@ use App\Mail\AdminEnrollmentNotification;
 use App\Models\Enrollment;
 use App\Models\Meeting;
 use App\Models\Program;
+use App\Services\LearningGroupDashboardService;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,8 @@ use Inertia\Response;
 class MentorDashboardController extends Controller
 {
     public function __construct(
-        private EnrollmentRepositoryInterface $enrollmentRepository
+        private EnrollmentRepositoryInterface $enrollmentRepository,
+        private LearningGroupDashboardService $learningGroupDashboardService
     ) {}
 
     /**
@@ -101,6 +103,8 @@ class MentorDashboardController extends Controller
                 ];
             });
 
+        $activeGroups = $this->learningGroupDashboardService->activeGroupCardsForMentor($user);
+
         return Inertia::render('Mentor/Dashboard', [
             'user' => [
                 'id' => $user->id,
@@ -116,6 +120,7 @@ class MentorDashboardController extends Controller
             'referralCode' => $referralCode,
             'referredStudentsCount' => $referredStudentsCount,
             'upcomingMeetings' => $upcomingMeetings,
+            'activeGroups' => $activeGroups,
             'canUseAbacus' => $user->canUseAbacusSimulator(),
         ]);
     }

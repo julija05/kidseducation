@@ -45,6 +45,7 @@ export default function Dashboard({
     referralCode,
     referredStudentsCount = 0,
     upcomingMeetings = [],
+    activeGroups = [],
     canUseAbacus = false,
 }) {
     const [copied, setCopied] = useState(false);
@@ -133,9 +134,10 @@ export default function Dashboard({
                             </div>
                         </div>
 
-                        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                             <Metric icon={BookOpen} label="Teaching programs" value={enrollments.length} />
                             <Metric icon={Users} label="Assigned students" value={totalStudents} tone="blue" />
+                            <Metric icon={Users} label="Active groups" value={activeGroups.length} tone="emerald" />
                             <Metric icon={TrendingUp} label="Average progress" value={`${averageProgress}%`} tone="emerald" />
                             <Metric icon={Clock} label="Pending applications" value={pendingEnrollments.length} tone="amber" />
                         </div>
@@ -186,6 +188,77 @@ export default function Dashboard({
 
                 <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
                     <div className="space-y-6">
+                        <Panel
+                            title="Active groups"
+                            subtitle="Live teaching groups with their next scheduled class."
+                            action={
+                                <Link
+                                    href={route("mentor.learning-groups.index")}
+                                    className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                                >
+                                    <Users className="h-4 w-4" />
+                                    Manage groups
+                                </Link>
+                            }
+                        >
+                            {activeGroups.length ? (
+                                <div className="grid gap-4 p-5 xl:grid-cols-2">
+                                    {activeGroups.map((group) => (
+                                        <Link
+                                            key={group.id}
+                                            href={route("mentor.learning-groups.show", group.id)}
+                                            className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:bg-slate-50"
+                                        >
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="min-w-0">
+                                                    <p className="truncate font-semibold text-slate-950">{group.name}</p>
+                                                    <p className="mt-1 truncate text-sm text-slate-600">
+                                                        {group.program?.name || "No program assigned"}
+                                                    </p>
+                                                </div>
+                                                <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                                                    <Users className="h-3.5 w-3.5" />
+                                                    {group.students_count}/{group.max_students}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-4 rounded-md bg-slate-50 p-3">
+                                                <div className="flex items-start gap-2">
+                                                    <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-semibold uppercase text-slate-500">Next class</p>
+                                                        {group.next_live_class ? (
+                                                            <>
+                                                                <p className="mt-1 truncate text-sm font-semibold text-slate-950">
+                                                                    {group.next_live_class.topic}
+                                                                </p>
+                                                                <p className="mt-1 text-sm text-slate-600">
+                                                                    {group.next_live_class.date} at {group.next_live_class.time}
+                                                                </p>
+                                                            </>
+                                                        ) : (
+                                                            <p className="mt-1 text-sm text-slate-600">No upcoming class scheduled</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-slate-900">
+                                                Open group
+                                                <ArrowRight className="h-4 w-4" />
+                                            </span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyState
+                                    icon={Users}
+                                    title="No active groups"
+                                    text="Active learning groups will appear here after they are created and activated."
+                                />
+                            )}
+                        </Panel>
+
                         <Panel
                             title="Teaching programs"
                             subtitle="Open a program to manage lessons, resources, and assigned students."

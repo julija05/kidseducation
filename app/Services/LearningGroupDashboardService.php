@@ -12,6 +12,39 @@ use Illuminate\Support\Facades\Schema;
 
 class LearningGroupDashboardService
 {
+    public function activeGroupCardsForMentor(User $mentor): Collection
+    {
+        return LearningGroup::with(['program:id,name,slug', 'students:id,name,email'])
+            ->withCount('students')
+            ->where('mentor_id', $mentor->id)
+            ->active()
+            ->orderBy('name')
+            ->get()
+            ->map(function (LearningGroup $learningGroup) {
+                $studentIds = $learningGroup->students->pluck('id')->values();
+                $nextClass = $this->schedulesForGroup($learningGroup, $studentIds)
+                    ->with(['lesson:id,title,program_id,level', 'students:id,name,email'])
+                    ->where('scheduled_at', '>', now())
+                    ->whereIn('status', ['scheduled', 'confirmed'])
+                    ->orderBy('scheduled_at')
+                    ->first();
+
+                return [
+                    'id' => $learningGroup->id,
+                    'name' => $learningGroup->name,
+                    'program' => $learningGroup->program ? [
+                        'id' => $learningGroup->program->id,
+                        'name' => $learningGroup->program->name,
+                        'slug' => $learningGroup->program->slug,
+                    ] : null,
+                    'students_count' => $learningGroup->students_count,
+                    'max_students' => $learningGroup->max_students,
+                    'next_live_class' => $this->formatSchedule($nextClass),
+                ];
+            })
+            ->values();
+    }
+
     public function dashboardFor(LearningGroup $learningGroup): array
     {
         $learningGroup->loadMissing([
