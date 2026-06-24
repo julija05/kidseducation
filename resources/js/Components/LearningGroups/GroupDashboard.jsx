@@ -23,6 +23,12 @@ const statusStyles = {
     needs_help: "bg-amber-100 text-amber-800",
 };
 
+const statusBorderStyles = {
+    completed: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    needs_help: "border-amber-200 bg-amber-50 text-amber-900",
+    not_started: "border-slate-200 bg-slate-50 text-slate-800",
+};
+
 const label = (value) => {
     if (!value) {
         return "Not set";
@@ -195,7 +201,7 @@ export default function GroupDashboard({ group, homeworkOptions, backHref, backL
                 />
             )}
 
-            <HomeworkStatusTable assignments={homework.assignments || []} />
+            <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
 
             <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
@@ -246,13 +252,21 @@ export default function GroupDashboard({ group, homeworkOptions, backHref, backL
     );
 }
 
-function HomeworkStatusTable({ assignments }) {
+function HomeworkStatusTable({ assignments, summary }) {
+    const latestAssignment = assignments[0] || null;
+    const statuses = latestAssignment?.student_statuses || [];
+    const completed = statuses.filter((status) => status.status === "completed");
+    const needsHelp = statuses.filter((status) => status.status === "needs_help");
+    const notCompleted = statuses.filter((status) => status.status !== "completed");
+
     return (
         <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                 <div>
-                    <h2 className="text-lg font-bold text-slate-950">Homework status</h2>
-                    <p className="mt-1 text-sm text-slate-500">Current assignment status for each student.</p>
+                    <h2 className="text-lg font-bold text-slate-950">Homework completion</h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                        {latestAssignment ? latestAssignment.current : "Current assignment status for each student."}
+                    </p>
                 </div>
                 <CheckCircle2 className="h-5 w-5 text-slate-400" />
             </div>
@@ -262,45 +276,123 @@ function HomeworkStatusTable({ assignments }) {
                     <EmptyLine text="No assigned homework has student status yet." />
                 </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-200">
-                        <thead className="bg-slate-50">
-                            <tr>
-                                <TableHeader>Homework</TableHeader>
-                                <TableHeader>Student</TableHeader>
-                                <TableHeader>Status</TableHeader>
-                                <TableHeader>Updated</TableHeader>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 bg-white">
-                            {assignments.flatMap((assignment) => (
-                                (assignment.student_statuses || []).map((studentStatus) => (
-                                    <tr key={`${assignment.id}-${studentStatus.student_id}`}>
-                                        <td className="px-5 py-4 text-sm">
-                                            <p className="font-semibold text-slate-950">{assignment.current}</p>
-                                            <p className="mt-1 text-xs text-slate-500">{display(assignment.lesson_title, assignment.class_title)}</p>
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-slate-700">
-                                            <p className="font-semibold text-slate-950">{studentStatus.student_name}</p>
-                                            <p className="mt-1 text-xs text-slate-500">{studentStatus.student_email}</p>
-                                        </td>
-                                        <td className="px-5 py-4 text-sm">
-                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[studentStatus.status] || statusStyles.draft}`}>
-                                                {studentStatus.status_label}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-slate-600">
-                                            {studentStatus.completed_at || studentStatus.help_requested_at || "Not updated"}
-                                        </td>
-                                    </tr>
-                                ))
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="space-y-5 p-5">
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        <HomeworkCount label="Completed" value={latestAssignment?.completed_count ?? summary.completed_count ?? 0} tone="completed" />
+                        <HomeworkCount label="Not completed" value={latestAssignment?.not_completed_count ?? summary.not_completed_count ?? 0} tone="not_started" />
+                        <HomeworkCount label="Needs help" value={latestAssignment?.needs_help_count ?? summary.needs_help_count ?? 0} tone="needs_help" />
+                    </div>
+
+                    {latestAssignment && (
+                        <div className="grid gap-4 xl:grid-cols-3">
+                            <StudentStatusList title="Completed" students={completed} emptyText="No completed homework yet." tone="completed" />
+                            <StudentStatusList title="Needs help" students={needsHelp} emptyText="No help requests for this homework." tone="needs_help" />
+                            <StudentStatusList title="Not completed" students={notCompleted} emptyText="Everyone completed this homework." tone="not_started" />
+                        </div>
+                    )}
+
+                    <div className="overflow-x-auto rounded-lg border border-slate-200">
+                        <table className="min-w-full divide-y divide-slate-200">
+                            <thead className="bg-slate-50">
+                                <tr>
+                                    <TableHeader>Homework</TableHeader>
+                                    <TableHeader>Student</TableHeader>
+                                    <TableHeader>Status</TableHeader>
+                                    <TableHeader>Updated</TableHeader>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 bg-white">
+                                {assignments.flatMap((assignment) => (
+                                    (assignment.student_statuses || []).map((studentStatus) => (
+                                        <tr key={`${assignment.id}-${studentStatus.student_id}`}>
+                                            <td className="px-5 py-4 text-sm">
+                                                <p className="font-semibold text-slate-950">{assignment.current}</p>
+                                                <p className="mt-1 text-xs text-slate-500">{display(assignment.lesson_title, assignment.class_title)}</p>
+                                            </td>
+                                            <td className="px-5 py-4 text-sm text-slate-700">
+                                                <p className="font-semibold text-slate-950">{studentStatus.student_name}</p>
+                                                <p className="mt-1 text-xs text-slate-500">{studentStatus.student_email}</p>
+                                            </td>
+                                            <td className="px-5 py-4 text-sm">
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[studentStatus.status] || statusStyles.draft}`}>
+                                                    {studentStatus.status_label}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                                {formatStatusTime(studentStatus)}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </section>
     );
+}
+
+function HomeworkCount({ label: countLabel, value, tone }) {
+    return (
+        <div className={`rounded-lg border p-4 ${statusBorderStyles[tone] || statusBorderStyles.not_started}`}>
+            <p className="text-xs font-semibold uppercase">{countLabel}</p>
+            <p className="mt-2 text-3xl font-bold">{value}</p>
+        </div>
+    );
+}
+
+function StudentStatusList({ title, students, emptyText, tone }) {
+    return (
+        <div className={`rounded-lg border p-4 ${statusBorderStyles[tone] || statusBorderStyles.not_started}`}>
+            <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-bold">{title}</h3>
+                <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-semibold">{students.length}</span>
+            </div>
+            {students.length > 0 ? (
+                <ul className="mt-3 space-y-2">
+                    {students.map((student) => (
+                        <li key={student.student_id} className="rounded-md bg-white/70 px-3 py-2">
+                            <p className="text-sm font-semibold">{student.student_name}</p>
+                            <p className="mt-0.5 text-xs opacity-80">{formatStatusTime(student)}</p>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className="mt-3 text-sm opacity-80">{emptyText}</p>
+            )}
+        </div>
+    );
+}
+
+function formatStatusTime(studentStatus) {
+    if (studentStatus.completed_at) {
+        return `Completed ${formatDateTime(studentStatus.completed_at)}`;
+    }
+
+    if (studentStatus.help_requested_at) {
+        return `Requested help ${formatDateTime(studentStatus.help_requested_at)}`;
+    }
+
+    return "Not updated";
+}
+
+function formatDateTime(value) {
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    });
 }
 
 function HomeworkAssignmentForm({ group, options, primaryButton }) {
