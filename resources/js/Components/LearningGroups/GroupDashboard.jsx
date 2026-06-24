@@ -19,6 +19,8 @@ const statusStyles = {
     active: "bg-emerald-100 text-emerald-700",
     completed: "bg-blue-100 text-blue-700",
     cancelled: "bg-red-100 text-red-700",
+    not_started: "bg-slate-100 text-slate-700",
+    needs_help: "bg-amber-100 text-amber-800",
 };
 
 const label = (value) => {
@@ -193,6 +195,8 @@ export default function GroupDashboard({ group, homeworkOptions, backHref, backL
                 />
             )}
 
+            <HomeworkStatusTable assignments={homework.assignments || []} />
+
             <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                     <div>
@@ -239,6 +243,63 @@ export default function GroupDashboard({ group, homeworkOptions, backHref, backL
                 )}
             </section>
         </div>
+    );
+}
+
+function HomeworkStatusTable({ assignments }) {
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div>
+                    <h2 className="text-lg font-bold text-slate-950">Homework status</h2>
+                    <p className="mt-1 text-sm text-slate-500">Current assignment status for each student.</p>
+                </div>
+                <CheckCircle2 className="h-5 w-5 text-slate-400" />
+            </div>
+
+            {assignments.length === 0 ? (
+                <div className="px-5 py-10">
+                    <EmptyLine text="No assigned homework has student status yet." />
+                </div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50">
+                            <tr>
+                                <TableHeader>Homework</TableHeader>
+                                <TableHeader>Student</TableHeader>
+                                <TableHeader>Status</TableHeader>
+                                <TableHeader>Updated</TableHeader>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 bg-white">
+                            {assignments.flatMap((assignment) => (
+                                (assignment.student_statuses || []).map((studentStatus) => (
+                                    <tr key={`${assignment.id}-${studentStatus.student_id}`}>
+                                        <td className="px-5 py-4 text-sm">
+                                            <p className="font-semibold text-slate-950">{assignment.current}</p>
+                                            <p className="mt-1 text-xs text-slate-500">{display(assignment.lesson_title, assignment.class_title)}</p>
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-slate-700">
+                                            <p className="font-semibold text-slate-950">{studentStatus.student_name}</p>
+                                            <p className="mt-1 text-xs text-slate-500">{studentStatus.student_email}</p>
+                                        </td>
+                                        <td className="px-5 py-4 text-sm">
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[studentStatus.status] || statusStyles.draft}`}>
+                                                {studentStatus.status_label}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-slate-600">
+                                            {studentStatus.completed_at || studentStatus.help_requested_at || "Not updated"}
+                                        </td>
+                                    </tr>
+                                ))
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </section>
     );
 }
 

@@ -129,6 +129,11 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
+    public function homeworkAssignmentStatuses(): HasMany
+    {
+        return $this->hasMany(HomeworkAssignmentStatus::class, 'student_id');
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

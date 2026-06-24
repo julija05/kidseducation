@@ -103,6 +103,7 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
     // Dashboard lesson actions (AJAX endpoints)
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
+    Route::patch('/dashboard/homework/{homeworkAssignment}/status', [DashboardController::class, 'updateHomeworkStatus'])->name('dashboard.homework.status');
 
     // Student notification actions
     Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');

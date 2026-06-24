@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ClassSchedule;
 use App\Models\HomeworkAssignment;
+use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\User;
@@ -48,14 +49,20 @@ class LearningGroupDashboardService
 
     public function dashboardFor(LearningGroup $learningGroup): array
     {
-        $learningGroup->loadMissing([
+        $relations = [
             'program:id,name,slug',
             'mentor:id,name,email',
             'students:id,name,email',
             'students.enrollments:id,user_id,program_id,status,approval_status,progress',
             'homeworkAssignments.lesson:id,title,program_id,level',
             'homeworkAssignments.liveSession:id,title,scheduled_at,status',
-        ]);
+        ];
+
+        if (Schema::hasTable('homework_assignment_statuses')) {
+            $relations[] = 'homeworkAssignments.studentStatuses.student:id,name,email';
+        }
+
+        $learningGroup->loadMissing($relations);
 
         $studentIds = $learningGroup->students->pluck('id')->values();
         $upcomingClass = $this->schedulesForGroup($learningGroup, $studentIds)
@@ -98,9 +105,9 @@ class LearningGroupDashboardService
                 ->values(),
             'next_live_class' => $this->formatSchedule($upcomingClass),
             'current_lesson' => $currentLesson,
-            'homework_summary' => $this->homeworkSummary($completedClasses, $learningGroup->homeworkAssignments),
+            'homework_summary' => $this->homeworkSummary($completedClasses, $learningGroup->homeworkAssignments, $learningGroup->students),
             'attendance_summary' => $this->attendanceSummary($completedClasses, $learningGroup->students),
-            'help_requests' => $this->helpRequests($completedClasses, $learningGroup->students),
+            'help_requests' => $this->helpRequests($completedClasses, $learningGroup->students, $learningGroup->homeworkAssignments),
         ];
     }
 
@@ -202,7 +209,7 @@ class LearningGroupDashboardService
         ];
     }
 
-    private function homeworkSummary(Collection $completedClasses, Collection $homeworkAssignments): array
+    private function homeworkSummary(Collection $completedClasses, Collection $homeworkAssignments, Collection $groupStudents): array
     {
         $homeworkItems = $completedClasses
             ->map(fn (ClassSchedule $schedule) => [
@@ -214,36 +221,78 @@ class LearningGroupDashboardService
 
         $assignmentItems = $homeworkAssignments
             ->sortByDesc('created_at')
-            ->map(fn (HomeworkAssignment $assignment) => [
-                'current' => $assignment->title,
-                'instructions' => $assignment->instructions,
-                'estimated_practice_time' => $this->formatPracticeTime($assignment->estimated_practice_minutes),
-                'due_date' => $assignment->due_date?->toDateString(),
-                'status' => ucfirst(str_replace('_', ' ', $assignment->status)),
-                'is_completed' => false,
-                'needs_help' => false,
-                'class_title' => $assignment->liveSession?->title ?? 'Assigned homework',
-                'class_date' => $assignment->liveSession?->scheduled_at?->format('M d, Y') ?? $assignment->created_at?->format('M d, Y'),
-                'lesson_title' => $assignment->lesson?->translated_title ?? $assignment->lesson?->title,
-            ])
+            ->map(fn (HomeworkAssignment $assignment) => $this->homeworkAssignmentSummary($assignment, $groupStudents))
             ->values();
 
         $completed = $homeworkItems->filter(fn (array $item) => $item['homework']['is_completed'] === true)->count();
         $notCompleted = $homeworkItems->filter(fn (array $item) => $item['homework']['is_completed'] === false)->count();
         $needsHelp = $homeworkItems->filter(fn (array $item) => $item['homework']['needs_help'] === true)->count();
+        $assignmentCompleted = $assignmentItems->sum('completed_count');
+        $assignmentNotCompleted = $assignmentItems->sum('not_completed_count');
+        $assignmentNeedsHelp = $assignmentItems->sum('needs_help_count');
+        $assignmentStudentCount = $assignmentItems->sum('student_count');
         $latest = $assignmentItems->first();
         $legacyLatest = $homeworkItems->first();
 
         return [
-            'assigned_count' => $homeworkItems->count() + $assignmentItems->count(),
-            'completed_count' => $completed,
-            'not_completed_count' => $notCompleted + $assignmentItems->count(),
-            'needs_help_count' => $needsHelp,
+            'assigned_count' => $homeworkItems->count() + $assignmentStudentCount,
+            'completed_count' => $completed + $assignmentCompleted,
+            'not_completed_count' => $notCompleted + $assignmentNotCompleted,
+            'needs_help_count' => $needsHelp + $assignmentNeedsHelp,
+            'assignments' => $assignmentItems,
             'latest' => $latest ?: ($legacyLatest ? [
                 ...$legacyLatest['homework'],
                 'class_title' => $legacyLatest['schedule']->title,
                 'class_date' => ($legacyLatest['schedule']->completed_at ?? $legacyLatest['schedule']->scheduled_at)?->format('M d, Y'),
             ] : null),
+        ];
+    }
+
+    private function homeworkAssignmentSummary(HomeworkAssignment $assignment, Collection $groupStudents): array
+    {
+        $studentStatuses = $groupStudents
+            ->map(fn (User $student) => $this->studentHomeworkStatus($assignment, $student))
+            ->values();
+
+        return [
+            'id' => $assignment->id,
+            'current' => $assignment->title,
+            'instructions' => $assignment->instructions,
+            'estimated_practice_time' => $this->formatPracticeTime($assignment->estimated_practice_minutes),
+            'due_date' => $assignment->due_date?->toDateString(),
+            'status' => ucfirst(str_replace('_', ' ', $assignment->status)),
+            'is_completed' => $studentStatuses->isNotEmpty() && $studentStatuses->every(fn (array $status) => $status['status'] === HomeworkAssignmentStatus::STATUS_COMPLETED),
+            'needs_help' => $studentStatuses->contains(fn (array $status) => $status['status'] === HomeworkAssignmentStatus::STATUS_NEEDS_HELP),
+            'class_title' => $assignment->liveSession?->title ?? 'Assigned homework',
+            'class_date' => $assignment->liveSession?->scheduled_at?->format('M d, Y') ?? $assignment->created_at?->format('M d, Y'),
+            'lesson_title' => $assignment->lesson?->translated_title ?? $assignment->lesson?->title,
+            'student_count' => $studentStatuses->count(),
+            'completed_count' => $studentStatuses->where('status', HomeworkAssignmentStatus::STATUS_COMPLETED)->count(),
+            'not_completed_count' => $studentStatuses
+                ->whereIn('status', [HomeworkAssignmentStatus::STATUS_NOT_STARTED, HomeworkAssignmentStatus::STATUS_NEEDS_HELP])
+                ->count(),
+            'needs_help_count' => $studentStatuses->where('status', HomeworkAssignmentStatus::STATUS_NEEDS_HELP)->count(),
+            'student_statuses' => $studentStatuses,
+        ];
+    }
+
+    private function studentHomeworkStatus(HomeworkAssignment $assignment, User $student): array
+    {
+        $status = Schema::hasTable('homework_assignment_statuses') && $assignment->relationLoaded('studentStatuses')
+            ? $assignment->studentStatuses->firstWhere('student_id', $student->id)
+            : null;
+        $statusValue = $status?->status ?? HomeworkAssignmentStatus::STATUS_NOT_STARTED;
+
+        return [
+            'student_id' => $student->id,
+            'student_name' => $student->name,
+            'student_email' => $student->email,
+            'status' => $statusValue,
+            'status_label' => ucfirst(str_replace('_', ' ', $statusValue)),
+            'is_completed' => $statusValue === HomeworkAssignmentStatus::STATUS_COMPLETED,
+            'needs_help' => $statusValue === HomeworkAssignmentStatus::STATUS_NEEDS_HELP,
+            'completed_at' => $status?->completed_at?->toISOString(),
+            'help_requested_at' => $status?->help_requested_at?->toISOString(),
         ];
     }
 
@@ -459,11 +508,11 @@ class LearningGroupDashboardService
         };
     }
 
-    private function helpRequests(Collection $completedClasses, Collection $groupStudents): array
+    private function helpRequests(Collection $completedClasses, Collection $groupStudents, Collection $homeworkAssignments): array
     {
         $studentMap = $groupStudents->keyBy('id');
 
-        return $completedClasses
+        $legacyRequests = $completedClasses
             ->flatMap(function (ClassSchedule $schedule) use ($studentMap) {
                 $sessionData = $schedule->session_data ?? [];
                 $homework = $this->homeworkFrom($sessionData);
@@ -493,6 +542,31 @@ class LearningGroupDashboardService
 
                 return [];
             })
+            ->values();
+
+        $assignmentRequests = Schema::hasTable('homework_assignment_statuses') ? $homeworkAssignments
+            ->flatMap(function (HomeworkAssignment $assignment) use ($studentMap) {
+                if (! $assignment->relationLoaded('studentStatuses')) {
+                    return collect();
+                }
+
+                return $assignment->studentStatuses
+                    ->where('status', HomeworkAssignmentStatus::STATUS_NEEDS_HELP)
+                    ->map(function (HomeworkAssignmentStatus $status) use ($assignment, $studentMap) {
+                        return [
+                            'student_id' => $status->student_id,
+                            'student_name' => $studentMap->get($status->student_id)?->name ?? $status->student?->name,
+                            'class_title' => $assignment->liveSession?->title ?? 'Assigned homework',
+                            'class_date' => $assignment->liveSession?->scheduled_at?->format('M d, Y') ?? $assignment->created_at?->format('M d, Y'),
+                            'message' => $assignment->title,
+                            'status' => 'open',
+                        ];
+                    });
+            })
+            ->values() : collect();
+
+        return $assignmentRequests
+            ->concat($legacyRequests)
             ->take(10)
             ->values()
             ->all();

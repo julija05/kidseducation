@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\HomeworkAssignment;
+use App\Models\HomeworkAssignmentStatus;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
@@ -15,19 +16,25 @@ class HomeworkAssignmentDashboardService
             return collect();
         }
 
-        return HomeworkAssignment::with([
+        $relations = [
             'learningGroup:id,name,program_id,mentor_id',
             'learningGroup.program:id,name,slug',
             'lesson:id,title,program_id,level',
             'liveSession:id,title,scheduled_at,meeting_link,status',
-        ])
+        ];
+
+        if (Schema::hasTable('homework_assignment_statuses')) {
+            $relations['studentStatuses'] = fn ($query) => $query->where('student_id', $student->id);
+        }
+
+        return HomeworkAssignment::with($relations)
             ->visible()
             ->whereHas('learningGroup.students', fn ($query) => $query->where('users.id', $student->id))
             ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_date')
             ->latest('id')
             ->get()
-            ->map(fn (HomeworkAssignment $assignment) => $this->format($assignment))
+            ->map(fn (HomeworkAssignment $assignment) => $this->format($assignment, $student))
             ->values();
     }
 
@@ -36,13 +43,21 @@ class HomeworkAssignmentDashboardService
         return $this->forStudent($student)->first();
     }
 
-    public function format(HomeworkAssignment $assignment): array
+    public function format(HomeworkAssignment $assignment, ?User $student = null): array
     {
+        $studentStatus = $this->statusForStudent($assignment, $student);
+
         return [
             'id' => $assignment->id,
             'title' => $assignment->title,
             'instructions' => $assignment->instructions,
             'status' => $assignment->status,
+            'student_status' => $studentStatus['status'],
+            'student_status_label' => $this->statusLabel($studentStatus['status']),
+            'is_completed' => $studentStatus['status'] === HomeworkAssignmentStatus::STATUS_COMPLETED,
+            'needs_help' => $studentStatus['status'] === HomeworkAssignmentStatus::STATUS_NEEDS_HELP,
+            'completed_at' => $studentStatus['completed_at'],
+            'help_requested_at' => $studentStatus['help_requested_at'],
             'due_date' => $assignment->due_date?->toDateString(),
             'estimated_practice_time' => $this->formatPracticeTime($assignment->estimated_practice_minutes),
             'estimated_practice_minutes' => $assignment->estimated_practice_minutes,
@@ -70,6 +85,45 @@ class HomeworkAssignmentDashboardService
                 'status' => $assignment->liveSession->status,
             ] : null,
         ];
+    }
+
+    private function statusForStudent(HomeworkAssignment $assignment, ?User $student): array
+    {
+        if (! $student || ! Schema::hasTable('homework_assignment_statuses')) {
+            return $this->defaultStudentStatus();
+        }
+
+        $status = $assignment->relationLoaded('studentStatuses')
+            ? $assignment->studentStatuses->firstWhere('student_id', $student->id)
+            : $assignment->studentStatuses()->where('student_id', $student->id)->first();
+
+        if (! $status) {
+            return $this->defaultStudentStatus();
+        }
+
+        return [
+            'status' => $status->status,
+            'completed_at' => $status->completed_at?->toISOString(),
+            'help_requested_at' => $status->help_requested_at?->toISOString(),
+        ];
+    }
+
+    private function defaultStudentStatus(): array
+    {
+        return [
+            'status' => HomeworkAssignmentStatus::STATUS_NOT_STARTED,
+            'completed_at' => null,
+            'help_requested_at' => null,
+        ];
+    }
+
+    private function statusLabel(?string $status): ?string
+    {
+        if (! $status) {
+            return null;
+        }
+
+        return ucfirst(str_replace('_', ' ', $status));
     }
 
     private function formatPracticeTime(?int $minutes): ?string

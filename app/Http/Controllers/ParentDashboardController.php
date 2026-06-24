@@ -405,15 +405,18 @@ class ParentDashboardController extends Controller
 
     private function homeworkFromAssignment(array $assignment): array
     {
+        $studentStatus = $assignment['student_status'] ?? null;
+
         return [
             'id' => $assignment['id'],
             'current' => $assignment['title'],
             'instructions' => $assignment['instructions'],
             'estimated_practice_time' => $assignment['estimated_practice_time'],
             'due_date' => $assignment['due_date'],
-            'status' => $this->homeworkStatusLabel($assignment['status']),
-            'is_completed' => false,
-            'needs_help' => false,
+            'status' => $assignment['student_status_label'] ?? $this->homeworkStatusLabel($assignment['status']),
+            'student_status' => $studentStatus,
+            'is_completed' => $assignment['is_completed'] ?? false,
+            'needs_help' => $assignment['needs_help'] ?? false,
             'group' => $assignment['group'] ?? null,
             'lesson' => $assignment['lesson'] ?? null,
             'live_session' => $assignment['live_session'] ?? null,

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassSchedule;
+use App\Models\HomeworkAssignment;
+use App\Models\HomeworkAssignmentStatus;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Services\EnrollmentService;
@@ -11,8 +13,11 @@ use App\Services\LessonService;
 use App\Services\NotificationService;
 use App\Services\ProgramService;
 use App\Services\ResourceService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class DashboardController extends Controller
 {
@@ -55,6 +60,40 @@ class DashboardController extends Controller
             'userDemoAccess' => null,
             'pendingProgramId' => null,
         ]);
+    }
+
+    public function updateHomeworkStatus(Request $request, HomeworkAssignment $homeworkAssignment): RedirectResponse
+    {
+        $student = $request->user();
+
+        abort_unless($student->hasRole('student'), 403);
+        abort_unless($homeworkAssignment->learningGroup()->whereHas('students', fn ($query) => $query->where('users.id', $student->id))->exists(), 403);
+
+        if (! Schema::hasTable('homework_assignment_statuses')) {
+            return back()->withErrors([
+                'homework_status' => 'Homework status tracking is not ready yet. Please run the latest database migrations.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(HomeworkAssignmentStatus::STATUSES)],
+        ]);
+
+        $status = $validated['status'];
+
+        HomeworkAssignmentStatus::updateOrCreate(
+            [
+                'homework_assignment_id' => $homeworkAssignment->id,
+                'student_id' => $student->id,
+            ],
+            [
+                'status' => $status,
+                'completed_at' => $status === HomeworkAssignmentStatus::STATUS_COMPLETED ? now() : null,
+                'help_requested_at' => $status === HomeworkAssignmentStatus::STATUS_NEEDS_HELP ? now() : null,
+            ]
+        );
+
+        return back()->with('success', 'Homework status updated.');
     }
 
     public function renderForUser(User $user, array $context = [])

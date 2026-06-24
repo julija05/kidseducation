@@ -9,6 +9,7 @@ use App\Models\ChildProfile;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\HomeworkAssignment;
+use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\LessonResource;
@@ -327,7 +328,7 @@ class ParentDashboardTest extends TestCase
         ]);
         $group->students()->attach($this->child->id);
 
-        HomeworkAssignment::create([
+        $homework = HomeworkAssignment::create([
             'title' => 'Multiplication practice',
             'instructions' => 'Practice the 6 times table.',
             'learning_group_id' => $group->id,
@@ -336,6 +337,12 @@ class ParentDashboardTest extends TestCase
             'estimated_practice_minutes' => 30,
             'status' => HomeworkAssignment::STATUS_ASSIGNED,
             'created_by' => $mentor->id,
+        ]);
+        HomeworkAssignmentStatus::create([
+            'homework_assignment_id' => $homework->id,
+            'student_id' => $this->child->id,
+            'status' => HomeworkAssignmentStatus::STATUS_NEEDS_HELP,
+            'help_requested_at' => now(),
         ]);
 
         $response = $this->actingAs($this->parent)->get('/parent/dashboard');
@@ -348,7 +355,8 @@ class ParentDashboardTest extends TestCase
             ->where('childCards.0.homework.instructions', 'Practice the 6 times table.')
             ->where('childCards.0.homework.estimated_practice_time', '30 min')
             ->where('childCards.0.homework.due_date', '2026-06-30')
-            ->where('childCards.0.homework.status', 'Assigned')
+            ->where('childCards.0.homework.status', 'Needs help')
+            ->where('childCards.0.homework.needs_help', true)
             ->where('childCards.0.homework.group.name', 'Parent Visible Group')
             ->where('childCards.0.homework.lesson.title', 'Multiplication facts')
             ->where('childCards.0.homework_assignments.0.title', 'Multiplication practice')

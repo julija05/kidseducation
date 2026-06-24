@@ -2,8 +2,12 @@
 
 namespace Tests\Feature\Student;
 
+use App\Constants\ApprovalStatus;
+use App\Constants\EnrollmentStatus;
+use App\Constants\EnrollmentType;
 use App\Models\Enrollment;
 use App\Models\HomeworkAssignment;
+use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\Program;
@@ -49,6 +53,66 @@ class DashboardTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertRedirect(route('login'));
+    }
+
+    public function test_student_can_mark_homework_completed_and_needs_help(): void
+    {
+        $program = Program::factory()->create(['is_active' => true]);
+        $lesson = Lesson::factory()->create(['program_id' => $program->id]);
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        Enrollment::factory()->create([
+            'user_id' => $this->student->id,
+            'program_id' => $program->id,
+            'enrollment_type' => EnrollmentType::STUDENT,
+            'approval_status' => ApprovalStatus::APPROVED,
+            'status' => EnrollmentStatus::ACTIVE,
+        ]);
+
+        $group = LearningGroup::create([
+            'name' => 'Homework Status Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($this->student->id);
+
+        $homework = HomeworkAssignment::create([
+            'title' => 'Status practice',
+            'instructions' => 'Update your homework status.',
+            'learning_group_id' => $group->id,
+            'lesson_id' => $lesson->id,
+            'status' => HomeworkAssignment::STATUS_ASSIGNED,
+            'created_by' => $mentor->id,
+        ]);
+
+        $this->actingAs($this->student)
+            ->patch(route('dashboard.homework.status', $homework), [
+                'status' => HomeworkAssignmentStatus::STATUS_COMPLETED,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('homework_assignment_statuses', [
+            'homework_assignment_id' => $homework->id,
+            'student_id' => $this->student->id,
+            'status' => HomeworkAssignmentStatus::STATUS_COMPLETED,
+        ]);
+
+        $this->actingAs($this->student)
+            ->patch(route('dashboard.homework.status', $homework), [
+                'status' => HomeworkAssignmentStatus::STATUS_NEEDS_HELP,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('homework_assignment_statuses', [
+            'homework_assignment_id' => $homework->id,
+            'student_id' => $this->student->id,
+            'status' => HomeworkAssignmentStatus::STATUS_NEEDS_HELP,
+        ]);
     }
 
     public function test_admin_cannot_access_student_dashboard(): void

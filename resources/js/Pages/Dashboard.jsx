@@ -4,7 +4,7 @@ import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket, ArrowLeft, UserRound, ClipboardCheck, Clock, Users } from "lucide-react";
+import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket, ArrowLeft, UserRound, ClipboardCheck, Clock, Users, CheckCircle2, HelpCircle } from "lucide-react";
 import ReviewSection from "@/Components/ReviewSection";
 import ReviewPromptModal from "@/Components/ReviewPromptModal";
 import StudentNavBar from "@/Components/StudentNavBar";
@@ -309,7 +309,7 @@ export default function Dashboard() {
                             <NextClassCard nextClass={nextClass} />
                         </div>
 
-                        <HomeworkAssignmentsPanel assignments={homeworkAssignments || []} />
+                        <HomeworkAssignmentsPanel assignments={homeworkAssignments || []} canUpdate={!isParentView} />
 
                         {/* Program Completion Celebration - Show when program is completed */}
                         {enrolledProgram?.status === 'completed' && (
@@ -567,7 +567,13 @@ function ParentViewBanner({ parentView }) {
     );
 }
 
-function HomeworkAssignmentsPanel({ assignments }) {
+function HomeworkAssignmentsPanel({ assignments, canUpdate = true }) {
+    const updateHomeworkStatus = (assignment, status) => {
+        router.patch(route("dashboard.homework.status", assignment.id), { status }, {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
             <div className="flex items-center justify-between gap-3">
@@ -590,7 +596,7 @@ function HomeworkAssignmentsPanel({ assignments }) {
                                     <p className="mt-1 text-sm text-slate-600">{assignment.instructions}</p>
                                 </div>
                                 <span className="inline-flex w-fit rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200">
-                                    {assignment.status}
+                                    {assignment.student_status_label || assignment.status}
                                 </span>
                             </div>
 
@@ -604,6 +610,29 @@ function HomeworkAssignmentsPanel({ assignments }) {
                                 <HomeworkMeta icon={Calendar} label="Due date" value={assignment.due_date} />
                                 <HomeworkMeta icon={Calendar} label="Live session" value={assignment.live_session?.date} />
                             </div>
+
+                            {canUpdate && (
+                                <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => updateHomeworkStatus(assignment, "completed")}
+                                        disabled={assignment.student_status === "completed"}
+                                        className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        Completed
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => updateHomeworkStatus(assignment, "needs_help")}
+                                        disabled={assignment.student_status === "needs_help"}
+                                        className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        <HelpCircle className="h-4 w-4" />
+                                        I need help
+                                    </button>
+                                </div>
+                            )}
                         </article>
                     ))}
                 </div>

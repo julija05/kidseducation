@@ -8,6 +8,7 @@ use App\Constants\EnrollmentType;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\HomeworkAssignment;
+use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\Program;
@@ -513,6 +514,66 @@ class LearningGroupTest extends TestCase
             'status' => HomeworkAssignment::STATUS_ASSIGNED,
             'created_by' => $mentor->id,
         ]);
+    }
+
+    public function test_mentor_can_see_homework_status_per_student(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $program = Program::factory()->create(['is_active' => true]);
+        $lesson = Lesson::factory()->create(['program_id' => $program->id, 'is_active' => true]);
+        $firstStudent = $this->approvedStudentForProgram($program);
+        $firstStudent->update(['name' => 'Completed Student']);
+        $secondStudent = $this->approvedStudentForProgram($program);
+        $secondStudent->update(['name' => 'Help Student']);
+
+        $group = LearningGroup::create([
+            'name' => 'Status Visible Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach([$firstStudent->id, $secondStudent->id]);
+
+        $homework = HomeworkAssignment::create([
+            'title' => 'Per student practice',
+            'instructions' => 'Complete the worksheet.',
+            'learning_group_id' => $group->id,
+            'lesson_id' => $lesson->id,
+            'status' => HomeworkAssignment::STATUS_ASSIGNED,
+            'created_by' => $mentor->id,
+        ]);
+
+        HomeworkAssignmentStatus::create([
+            'homework_assignment_id' => $homework->id,
+            'student_id' => $firstStudent->id,
+            'status' => HomeworkAssignmentStatus::STATUS_COMPLETED,
+            'completed_at' => now(),
+        ]);
+        HomeworkAssignmentStatus::create([
+            'homework_assignment_id' => $homework->id,
+            'student_id' => $secondStudent->id,
+            'status' => HomeworkAssignmentStatus::STATUS_NEEDS_HELP,
+            'help_requested_at' => now(),
+        ]);
+
+        $response = $this->actingAs($mentor)->get("/mentor/learning-groups/{$group->id}");
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Mentor/LearningGroups/Show')
+            ->where('group.homework_summary.assigned_count', 2)
+            ->where('group.homework_summary.completed_count', 1)
+            ->where('group.homework_summary.needs_help_count', 1)
+            ->where('group.homework_summary.assignments.0.student_statuses.0.student_name', 'Completed Student')
+            ->where('group.homework_summary.assignments.0.student_statuses.0.status', HomeworkAssignmentStatus::STATUS_COMPLETED)
+            ->where('group.homework_summary.assignments.0.student_statuses.1.student_name', 'Help Student')
+            ->where('group.homework_summary.assignments.0.student_statuses.1.status', HomeworkAssignmentStatus::STATUS_NEEDS_HELP)
+        );
     }
 
     public function test_mentor_cannot_create_homework_with_lesson_or_session_outside_group(): void
