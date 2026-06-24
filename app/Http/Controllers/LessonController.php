@@ -7,6 +7,7 @@ use App\Repositories\Interfaces\EnrollmentRepositoryInterface;
 use App\Repositories\Interfaces\LessonProgressRepositoryInterface;
 use App\Repositories\Interfaces\LessonRepositoryInterface;
 use App\Services\EnrollmentService;
+use App\Services\HomeworkAssignmentDashboardService;
 use App\Services\LessonFormatterService;
 use App\Services\LessonService;
 use App\Services\ProgramService;
@@ -24,7 +25,8 @@ class LessonController extends Controller
         private EnrollmentRepositoryInterface $enrollmentRepository,
         private LessonRepositoryInterface $lessonRepository,
         private LessonProgressRepositoryInterface $progressRepository,
-        private ProgramService $programService
+        private ProgramService $programService,
+        private HomeworkAssignmentDashboardService $homeworkAssignmentDashboardService
     ) {}
 
     public function show(Lesson $lesson)
@@ -150,6 +152,7 @@ class LessonController extends Controller
             'nextLesson' => $this->formatterService->formatLessonSummary($nextLesson),
             'previousLesson' => $this->formatterService->formatLessonSummary($previousLesson),
             'enrollment' => $enrollment,
+            'homeworkAssignments' => $this->homeworkAssignmentDashboardService->forStudentLesson($user, $lesson),
         ]);
     }
 

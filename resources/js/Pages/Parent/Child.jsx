@@ -5,9 +5,11 @@ import {
     BookOpen,
     CalendarClock,
     CheckCircle2,
+    ClipboardCheck,
     Clock,
     FileText,
     GraduationCap,
+    HelpCircle,
     ListChecks,
     MessageSquareText,
     Target,
@@ -116,6 +118,34 @@ export default function Child({ child }) {
                 <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
                     <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
+                            <h2 className="text-lg font-semibold text-slate-950">Homework</h2>
+                            <p className="mt-1 text-sm text-slate-600">Homework attached to this child's lessons.</p>
+                        </div>
+                        {child.homework_assignments?.length > 0 && (
+                            <span className="inline-flex w-fit rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                {child.homework_assignments.length} assigned
+                            </span>
+                        )}
+                    </div>
+
+                    {child.homework_assignments?.length ? (
+                        <div className="divide-y divide-slate-200">
+                            {child.homework_assignments.map((homework) => (
+                                <HomeworkItem key={homework.id} homework={homework} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="px-5 py-12 text-center">
+                            <ClipboardCheck className="mx-auto h-8 w-8 text-slate-400" />
+                            <h3 className="mt-3 text-base font-semibold text-slate-950">No homework assigned yet</h3>
+                            <p className="mt-2 text-sm text-slate-600">Lesson homework for this child will appear here.</p>
+                        </div>
+                    )}
+                </section>
+
+                <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
                             <h2 className="text-lg font-semibold text-slate-950">Weekly learning reports</h2>
                             <p className="mt-1 text-sm text-slate-600">Latest and previous parent updates from class weeks.</p>
                         </div>
@@ -184,6 +214,43 @@ export default function Child({ child }) {
                 </section>
             </div>
         </ParentLayout>
+    );
+}
+
+function HomeworkItem({ homework }) {
+    const completed = homework.student_status === "completed";
+    const needsHelp = homework.student_status === "needs_help";
+    const statusClass = completed
+        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+        : needsHelp
+            ? "bg-amber-50 text-amber-800 ring-amber-200"
+            : "bg-slate-50 text-slate-700 ring-slate-200";
+
+    return (
+        <article className="px-5 py-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <ClipboardCheck className="h-4 w-4 text-slate-500" />
+                        <h3 className="font-semibold text-slate-950">{homework.title}</h3>
+                        <span className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass}`}>
+                            {needsHelp ? <HelpCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                            {homework.student_status_label || homework.status}
+                        </span>
+                    </div>
+                    <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{homework.instructions}</p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium text-slate-500">
+                        {homework.lesson?.title && <span>Lesson: {homework.lesson.title}</span>}
+                        {homework.group?.name && <span>Group: {homework.group.name}</span>}
+                    </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[280px]">
+                    <EnrollmentStat icon={Clock} label="Practice" value={homework.estimated_practice_time || "Not set"} />
+                    <EnrollmentStat icon={CalendarClock} label="Due date" value={homework.due_date || "Not set"} />
+                </div>
+            </div>
+        </article>
     );
 }
 

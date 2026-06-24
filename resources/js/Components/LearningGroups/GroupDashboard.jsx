@@ -424,7 +424,7 @@ function HomeworkAssignmentForm({ group, options, primaryButton }) {
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <h2 className="text-lg font-bold text-slate-950">Create homework</h2>
-                    <p className="mt-1 text-sm text-slate-500">Assign practice to this group for a lesson or live class.</p>
+                    <p className="mt-1 text-sm text-slate-500">Attach practice to a lesson so students and parents can see it in the right place.</p>
                 </div>
                 <CheckCircle2 className="h-5 w-5 text-slate-400" />
             </div>
@@ -441,7 +441,7 @@ function HomeworkAssignmentForm({ group, options, primaryButton }) {
                         />
                     </FormField>
 
-                    <FormField label="Lesson" error={errors.lesson_id}>
+                    <FormField label="Attach to lesson" error={errors.lesson_id}>
                         <select
                             value={data.lesson_id}
                             onChange={(event) => setData("lesson_id", event.target.value)}

@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\HomeworkAssignment;
 use App\Models\HomeworkAssignmentStatus;
+use App\Models\Lesson;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
@@ -16,20 +18,23 @@ class HomeworkAssignmentDashboardService
             return collect();
         }
 
-        $relations = [
-            'learningGroup:id,name,program_id,mentor_id',
-            'learningGroup.program:id,name,slug',
-            'lesson:id,title,program_id,level',
-            'liveSession:id,title,scheduled_at,meeting_link,status',
-        ];
+        return $this->baseStudentQuery($student)
+            ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('due_date')
+            ->latest('id')
+            ->get()
+            ->map(fn (HomeworkAssignment $assignment) => $this->format($assignment, $student))
+            ->values();
+    }
 
-        if (Schema::hasTable('homework_assignment_statuses')) {
-            $relations['studentStatuses'] = fn ($query) => $query->where('student_id', $student->id);
+    public function forStudentLesson(User $student, Lesson $lesson): Collection
+    {
+        if (! Schema::hasTable('homework_assignments') || ! Schema::hasTable('learning_group_student')) {
+            return collect();
         }
 
-        return HomeworkAssignment::with($relations)
-            ->visible()
-            ->whereHas('learningGroup.students', fn ($query) => $query->where('users.id', $student->id))
+        return $this->baseStudentQuery($student)
+            ->where('lesson_id', $lesson->id)
             ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_date')
             ->latest('id')
@@ -85,6 +90,24 @@ class HomeworkAssignmentDashboardService
                 'status' => $assignment->liveSession->status,
             ] : null,
         ];
+    }
+
+    private function baseStudentQuery(User $student): Builder
+    {
+        $relations = [
+            'learningGroup:id,name,program_id,mentor_id',
+            'learningGroup.program:id,name,slug',
+            'lesson:id,title,program_id,level',
+            'liveSession:id,title,scheduled_at,meeting_link,status',
+        ];
+
+        if (Schema::hasTable('homework_assignment_statuses')) {
+            $relations['studentStatuses'] = fn ($query) => $query->where('student_id', $student->id);
+        }
+
+        return HomeworkAssignment::with($relations)
+            ->visible()
+            ->whereHas('learningGroup.students', fn ($query) => $query->where('users.id', $student->id));
     }
 
     private function statusForStudent(HomeworkAssignment $assignment, ?User $student): array

@@ -8,8 +8,8 @@
       "_helpers-C7eNZCe5.js"
     ]
   },
-  "_GroupDashboard-CmmL93ha.js": {
-    "file": "assets/GroupDashboard-CmmL93ha.js",
+  "_GroupDashboard-CC2mW3Wr.js": {
+    "file": "assets/GroupDashboard-CC2mW3Wr.js",
     "name": "GroupDashboard",
     "imports": [
       "_vendor-ui-Bx4qHKMY.js",
@@ -450,13 +450,13 @@
     ]
   },
   "resources/js/Pages/Admin/LearningGroups/Show.jsx": {
-    "file": "assets/Show-BeqDkJ_l.js",
+    "file": "assets/Show-Dr06w9_T.js",
     "name": "Show",
     "src": "resources/js/Pages/Admin/LearningGroups/Show.jsx",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-Bx4qHKMY.js",
-      "_GroupDashboard-CmmL93ha.js",
+      "_GroupDashboard-CC2mW3Wr.js",
       "_admin-Djl7WTAG.js",
       "_vendor-inertia-B8ipwdfx.js",
       "_vendor-react-DYDc8crQ.js"
@@ -1054,7 +1054,7 @@
     ]
   },
   "resources/js/Pages/Dashboard/Lessons/Show.jsx": {
-    "file": "assets/Show-DoxpU0V6.js",
+    "file": "assets/Show-BeW0z3u6.js",
     "name": "Show",
     "src": "resources/js/Pages/Dashboard/Lessons/Show.jsx",
     "isDynamicEntry": true,
@@ -1411,13 +1411,13 @@
     ]
   },
   "resources/js/Pages/Mentor/LearningGroups/Show.jsx": {
-    "file": "assets/Show-CurWT4sr.js",
+    "file": "assets/Show-CmlJY4Tn.js",
     "name": "Show",
     "src": "resources/js/Pages/Mentor/LearningGroups/Show.jsx",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-Bx4qHKMY.js",
-      "_GroupDashboard-CmmL93ha.js",
+      "_GroupDashboard-CC2mW3Wr.js",
       "_MentorLayout-Dh_c12gw.js",
       "_vendor-inertia-B8ipwdfx.js",
       "_vendor-react-DYDc8crQ.js",
@@ -1730,7 +1730,7 @@
     ]
   },
   "resources/js/Pages/Parent/Child.jsx": {
-    "file": "assets/Child-B-E8YQz4.js",
+    "file": "assets/Child-GWoExIcA.js",
     "name": "Child",
     "src": "resources/js/Pages/Parent/Child.jsx",
     "isDynamicEntry": true,
@@ -1929,7 +1929,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-COcd8trp.js",
+    "file": "assets/app-BMLg4mlh.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -2062,7 +2062,7 @@
       "resources/js/Pages/Student/Reviews/Edit.jsx"
     ],
     "css": [
-      "assets/app-3HIt6y5P.css"
+      "assets/app-4c8UIeSF.css"
     ]
   }
 }

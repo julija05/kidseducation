@@ -88,6 +88,7 @@ class ParentDashboardController extends Controller
             'username' => $child->username,
             'status' => $child->status,
             'parent_visible_mentor_notes' => $this->parentVisibleMentorNotesFor($child->id),
+            'homework_assignments' => $this->homeworkAssignmentDashboardService->forStudent($child),
             'weekly_reports' => $this->weeklyReportsFor($child)->map(fn (WeeklyLearningReport $report) => $this->formatWeeklyReport($report, $child->id))->values(),
             'enrollments' => $child->enrollments->map(function ($enrollment) {
                 return [

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Calendar, CheckCircle2, ClipboardCheck, Clock, HelpCircle } from "lucide-react";
 import LessonHeader from "@/Components/Lessons/LessonHeader";
 import StudentNavBar from "@/Components/StudentNavBar";
 import StartLessonPrompt from "@/Components/Lessons/StartLessonPrompt";
@@ -19,6 +19,7 @@ export default function LessonShow({
     nextLesson,
     previousLesson,
     enrollment,
+    homeworkAssignments = [],
 }) {
     if (!lesson) {
         return (
@@ -145,6 +146,8 @@ export default function LessonShow({
                     hasResources={hasResources}
                 />
 
+                <LessonHomeworkPanel assignments={homeworkAssignments} />
+
                 {progress?.status === "not_started" ? (
                     <StartLessonPrompt
                         onStart={startLesson}
@@ -192,4 +195,102 @@ export default function LessonShow({
             />
         </AuthenticatedLayout>
     );
+}
+
+function LessonHomeworkPanel({ assignments }) {
+    const updateHomeworkStatus = (assignment, status) => {
+        router.patch(route("dashboard.homework.status", assignment.id), { status }, {
+            preserveScroll: true,
+        });
+    };
+
+    if (!assignments.length) {
+        return null;
+    }
+
+    return (
+        <section className="mb-8 rounded-2xl border border-emerald-200 bg-white/95 p-5 shadow-lg">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-2 rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold uppercase text-emerald-700 ring-1 ring-emerald-200">
+                            <ClipboardCheck className="h-3.5 w-3.5" />
+                            Lesson homework
+                        </span>
+                        {assignments.length > 1 && (
+                            <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                {assignments.length} assigned
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                        {assignments.map((assignment) => (
+                            <article key={assignment.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-bold text-slate-950">{assignment.title}</h2>
+                                        <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                                            {shortInstruction(assignment.instructions)}
+                                        </p>
+                                    </div>
+                                    <span className="inline-flex w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                                        {assignment.student_status_label || assignment.status}
+                                    </span>
+                                </div>
+
+                                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                    <HomeworkMeta icon={Clock} label="Practice time" value={assignment.estimated_practice_time} />
+                                    <HomeworkMeta icon={Calendar} label="Due date" value={assignment.due_date} />
+                                    <HomeworkMeta icon={BookOpen} label="Group" value={assignment.group?.name} />
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => updateHomeworkStatus(assignment, "completed")}
+                                        disabled={assignment.student_status === "completed"}
+                                        className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        Completed
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => updateHomeworkStatus(assignment, "needs_help")}
+                                        disabled={assignment.student_status === "needs_help"}
+                                        className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        <HelpCircle className="h-4 w-4" />
+                                        I need help
+                                    </button>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function HomeworkMeta({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-md border border-slate-200 bg-white px-3 py-2">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+            </div>
+            <p className="mt-1 text-sm font-semibold text-slate-800">{value || "Not set"}</p>
+        </div>
+    );
+}
+
+function shortInstruction(value) {
+    if (!value) {
+        return "No instructions added yet.";
+    }
+
+    const text = String(value).trim();
+    return text.length > 180 ? `${text.slice(0, 177)}...` : text;
 }
