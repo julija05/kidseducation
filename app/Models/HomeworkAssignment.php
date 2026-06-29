@@ -71,6 +71,11 @@ class HomeworkAssignment extends Model
         return $this->hasMany(HomeworkAssignmentStatus::class);
     }
 
+    public function practiceTasks(): HasMany
+    {
+        return $this->hasMany(HomeworkPracticeTask::class)->orderBy('order');
+    }
+
     public function scopeVisible(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ASSIGNED);

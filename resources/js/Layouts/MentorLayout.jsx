@@ -1,5 +1,6 @@
 import AbacusSimulator from "@/Components/AbacusSimulator";
 import Dropdown from "@/Components/Dropdown";
+import FlashMessage from "@/Components/FlashMessage";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import {
@@ -71,6 +72,8 @@ export default function MentorLayout({ children }) {
 
     return (
         <div className="min-h-screen bg-slate-100 text-slate-900">
+            <FlashMessage />
+
             <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 py-3">

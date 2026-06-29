@@ -203,6 +203,11 @@ function LessonHomeworkPanel({ assignments }) {
             preserveScroll: true,
         });
     };
+    const markPracticeTaskDone = (task) => {
+        router.patch(route("dashboard.homework.practice-tasks.done", task.id), {}, {
+            preserveScroll: true,
+        });
+    };
 
     if (!assignments.length) {
         return null;
@@ -245,6 +250,8 @@ function LessonHomeworkPanel({ assignments }) {
                                     <HomeworkMeta icon={BookOpen} label="Group" value={assignment.group?.name} />
                                 </div>
 
+                                <PracticeTaskList tasks={assignment.practice_tasks || []} onDone={markPracticeTaskDone} />
+
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     <button
                                         type="button"
@@ -271,6 +278,36 @@ function LessonHomeworkPanel({ assignments }) {
                 </div>
             </div>
         </section>
+    );
+}
+
+function PracticeTaskList({ tasks, onDone }) {
+    if (!tasks.length) {
+        return null;
+    }
+
+    return (
+        <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+            <p className="text-xs font-semibold uppercase text-slate-500">Practice tasks</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {tasks.map((task) => (
+                    <div key={task.id} className="flex items-center justify-between gap-3 rounded-md bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                        <span className={`text-sm font-medium ${task.is_done ? "text-slate-500 line-through" : "text-slate-900"}`}>
+                            {task.prompt}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => onDone(task)}
+                            disabled={task.is_done}
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Done
+                        </button>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }
 

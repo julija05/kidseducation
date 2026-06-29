@@ -503,7 +503,9 @@ class LearningGroupTest extends TestCase
             'status' => HomeworkAssignment::STATUS_ASSIGNED,
         ]);
 
-        $response->assertRedirect();
+        $response
+            ->assertRedirect()
+            ->assertSessionHas('success', 'Homework assignment created successfully.');
         $this->assertDatabaseHas('homework_assignments', [
             'title' => 'Practice adding tens',
             'learning_group_id' => $group->id,

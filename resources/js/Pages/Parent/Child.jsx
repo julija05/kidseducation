@@ -243,6 +243,7 @@ function HomeworkItem({ homework }) {
                         {homework.lesson?.title && <span>Lesson: {homework.lesson.title}</span>}
                         {homework.group?.name && <span>Group: {homework.group.name}</span>}
                     </div>
+                    <PracticeTasks tasks={homework.practice_tasks || []} />
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[280px]">
@@ -251,6 +252,26 @@ function HomeworkItem({ homework }) {
                 </div>
             </div>
         </article>
+    );
+}
+
+function PracticeTasks({ tasks }) {
+    if (!tasks.length) {
+        return null;
+    }
+
+    return (
+        <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-semibold uppercase text-slate-500">Practice tasks</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                {tasks.map((task) => (
+                    <div key={task.id} className="flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm ring-1 ring-slate-200">
+                        <CheckCircle2 className={`h-4 w-4 ${task.is_done ? "text-emerald-600" : "text-slate-300"}`} />
+                        <span className={task.is_done ? "text-slate-500 line-through" : "text-slate-800"}>{task.prompt}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }
 

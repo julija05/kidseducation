@@ -400,9 +400,10 @@ function HomeworkAssignmentForm({ group, options, primaryButton }) {
     const liveSessions = options.liveSessions || [];
     const statuses = options.statuses || ["assigned"];
     const defaultStatus = statuses.includes("assigned") ? "assigned" : statuses[0] || "assigned";
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, transform } = useForm({
         title: "",
         instructions: "",
+        practice_tasks_text: "",
         lesson_id: lessons[0]?.id || "",
         live_session_id: "",
         due_date: "",
@@ -413,9 +414,17 @@ function HomeworkAssignmentForm({ group, options, primaryButton }) {
     const submit = (event) => {
         event.preventDefault();
 
+        transform((formData) => ({
+            ...formData,
+            practice_tasks: formData.practice_tasks_text
+                .split("\n")
+                .map((task) => task.trim())
+                .filter(Boolean),
+        }));
+
         post(route("mentor.learning-groups.homework.store", group.id), {
             preserveScroll: true,
-            onSuccess: () => reset("title", "instructions", "live_session_id", "due_date", "estimated_practice_minutes"),
+            onSuccess: () => reset("title", "instructions", "practice_tasks_text", "live_session_id", "due_date", "estimated_practice_minutes"),
         });
     };
 
@@ -465,6 +474,17 @@ function HomeworkAssignmentForm({ group, options, primaryButton }) {
                         className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
                         placeholder="Complete the exercises before the next class."
                     />
+                </FormField>
+
+                <FormField label="Practice examples" error={errors.practice_tasks}>
+                    <textarea
+                        value={data.practice_tasks_text}
+                        onChange={(event) => setData("practice_tasks_text", event.target.value)}
+                        rows={5}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        placeholder={"Show number 7.\nShow number 14.\nSolve 2 + 3.\nSolve 8 - 4."}
+                    />
+                    <span className="mt-1 block text-xs text-slate-500">One simple task per line.</span>
                 </FormField>
 
                 <div className="grid gap-4 lg:grid-cols-4">

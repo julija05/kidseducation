@@ -63,6 +63,7 @@ class HomeworkAssignmentDashboardService
             'needs_help' => $studentStatus['status'] === HomeworkAssignmentStatus::STATUS_NEEDS_HELP,
             'completed_at' => $studentStatus['completed_at'],
             'help_requested_at' => $studentStatus['help_requested_at'],
+            'practice_tasks' => $this->formatPracticeTasks($assignment),
             'due_date' => $assignment->due_date?->toDateString(),
             'estimated_practice_time' => $this->formatPracticeTime($assignment->estimated_practice_minutes),
             'estimated_practice_minutes' => $assignment->estimated_practice_minutes,
@@ -101,13 +102,42 @@ class HomeworkAssignmentDashboardService
             'liveSession:id,title,scheduled_at,meeting_link,status',
         ];
 
+        if (Schema::hasTable('homework_practice_tasks')) {
+            $relations[] = 'practiceTasks';
+        }
+
         if (Schema::hasTable('homework_assignment_statuses')) {
             $relations['studentStatuses'] = fn ($query) => $query->where('student_id', $student->id);
+        }
+
+        if (Schema::hasTable('homework_practice_task_completions')) {
+            $relations['practiceTasks.completions'] = fn ($query) => $query->where('student_id', $student->id);
         }
 
         return HomeworkAssignment::with($relations)
             ->visible()
             ->whereHas('learningGroup.students', fn ($query) => $query->where('users.id', $student->id));
+    }
+
+    private function formatPracticeTasks(HomeworkAssignment $assignment): array
+    {
+        if (! $assignment->relationLoaded('practiceTasks')) {
+            return [];
+        }
+
+        return $assignment->practiceTasks
+            ->map(function ($task) {
+                $completion = $task->relationLoaded('completions') ? $task->completions->first() : null;
+
+                return [
+                    'id' => $task->id,
+                    'prompt' => $task->prompt,
+                    'is_done' => $completion !== null,
+                    'completed_at' => $completion?->completed_at?->toISOString(),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     private function statusForStudent(HomeworkAssignment $assignment, ?User $student): array

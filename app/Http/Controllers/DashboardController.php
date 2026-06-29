@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ClassSchedule;
 use App\Models\HomeworkAssignment;
 use App\Models\HomeworkAssignmentStatus;
+use App\Models\HomeworkPracticeTask;
+use App\Models\HomeworkPracticeTaskCompletion;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Services\EnrollmentService;
@@ -94,6 +96,33 @@ class DashboardController extends Controller
         );
 
         return back()->with('success', 'Homework status updated.');
+    }
+
+    public function markPracticeTaskDone(Request $request, HomeworkPracticeTask $homeworkPracticeTask): RedirectResponse
+    {
+        $student = $request->user();
+        $homeworkAssignment = $homeworkPracticeTask->homeworkAssignment;
+
+        abort_unless($student->hasRole('student'), 403);
+        abort_unless($homeworkAssignment?->learningGroup()->whereHas('students', fn ($query) => $query->where('users.id', $student->id))->exists(), 403);
+
+        if (! Schema::hasTable('homework_practice_task_completions')) {
+            return back()->withErrors([
+                'practice_task' => 'Practice task tracking is not ready yet. Please run the latest database migrations.',
+            ]);
+        }
+
+        HomeworkPracticeTaskCompletion::updateOrCreate(
+            [
+                'homework_practice_task_id' => $homeworkPracticeTask->id,
+                'student_id' => $student->id,
+            ],
+            [
+                'completed_at' => now(),
+            ]
+        );
+
+        return back()->with('success', 'Practice task marked done.');
     }
 
     public function renderForUser(User $user, array $context = [])

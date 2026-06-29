@@ -104,6 +104,7 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
     Route::post('/dashboard/lessons/{lesson}/start', [DashboardController::class, 'startLesson'])->name('dashboard.lessons.start');
     Route::post('/dashboard/lessons/{lesson}/complete', [DashboardController::class, 'completeLesson'])->name('dashboard.lessons.complete');
     Route::patch('/dashboard/homework/{homeworkAssignment}/status', [DashboardController::class, 'updateHomeworkStatus'])->name('dashboard.homework.status');
+    Route::patch('/dashboard/homework/practice-tasks/{homeworkPracticeTask}/done', [DashboardController::class, 'markPracticeTaskDone'])->name('dashboard.homework.practice-tasks.done');
 
     // Student notification actions
     Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');

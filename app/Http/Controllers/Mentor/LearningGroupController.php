@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\HomeworkAssignment;
+use App\Models\HomeworkPracticeTask;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\Program;
@@ -154,6 +155,8 @@ class LearningGroupController extends Controller
             'due_date' => ['nullable', 'date'],
             'estimated_practice_minutes' => ['required', 'integer', 'min:1', 'max:600'],
             'status' => ['required', Rule::in(HomeworkAssignment::STATUSES)],
+            'practice_tasks' => ['nullable', 'array', 'max:20'],
+            'practice_tasks.*' => ['nullable', 'string', 'max:191'],
         ]);
 
         if (! $this->lessonBelongsToGroupProgram((int) $validated['lesson_id'], $learningGroup)) {
@@ -168,11 +171,25 @@ class LearningGroupController extends Controller
                 ->withInput();
         }
 
-        HomeworkAssignment::create([
+        $practiceTasks = collect($validated['practice_tasks'] ?? [])
+            ->map(fn ($task) => trim((string) $task))
+            ->filter()
+            ->values();
+        unset($validated['practice_tasks']);
+
+        $homeworkAssignment = HomeworkAssignment::create([
             ...$validated,
             'learning_group_id' => $learningGroup->id,
             'created_by' => Auth::id(),
         ]);
+
+        $practiceTasks->each(function (string $task, int $index) use ($homeworkAssignment) {
+            HomeworkPracticeTask::create([
+                'homework_assignment_id' => $homeworkAssignment->id,
+                'prompt' => $task,
+                'order' => $index + 1,
+            ]);
+        });
 
         return back()->with('success', 'Homework assignment created successfully.');
     }
