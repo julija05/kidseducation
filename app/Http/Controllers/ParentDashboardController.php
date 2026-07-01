@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\WeeklyLearningReport;
 use App\Services\HomeworkAssignmentDashboardService;
 use App\Services\MeetingAttendanceService;
+use App\Services\StudentAttendanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
@@ -20,6 +21,7 @@ class ParentDashboardController extends Controller
     public function __construct(
         private HomeworkAssignmentDashboardService $homeworkAssignmentDashboardService,
         private MeetingAttendanceService $meetingAttendanceService,
+        private StudentAttendanceService $studentAttendanceService,
     ) {}
 
     public function index(Request $request): Response
@@ -83,6 +85,8 @@ class ParentDashboardController extends Controller
 
     private function formatChild(User $child): array
     {
+        $meetingAttendance = $this->meetingAttendanceService->forStudent($child);
+
         return [
             'id' => $child->id,
             'name' => $child->name,
@@ -93,7 +97,8 @@ class ParentDashboardController extends Controller
             'status' => $child->status,
             'parent_visible_mentor_notes' => $this->parentVisibleMentorNotesFor($child->id),
             'homework_assignments' => $this->homeworkAssignmentDashboardService->forStudent($child),
-            'meeting_attendance' => $this->meetingAttendanceService->forStudent($child),
+            'meeting_attendance' => $meetingAttendance,
+            'attendance' => $this->studentAttendanceService->forStudent($child, $meetingAttendance),
             'weekly_reports' => $this->weeklyReportsFor($child)->map(fn (WeeklyLearningReport $report) => $this->formatWeeklyReport($report, $child->id))->values(),
             'enrollments' => $child->enrollments->map(function ($enrollment) {
                 return [
@@ -208,6 +213,16 @@ class ParentDashboardController extends Controller
             'meeting_attendance' => $child['meeting_attendance'] ?? [
                 'attended_count' => 0,
                 'missed_count' => 0,
+                'total_records' => 0,
+                'attendance_rate' => null,
+                'recent_records' => [],
+            ],
+            'attendance' => $child['attendance'] ?? [
+                'attended_count' => 0,
+                'missed_count' => 0,
+                'late_count' => 0,
+                'caught_up_later_count' => 0,
+                'excused_count' => 0,
                 'total_records' => 0,
                 'attendance_rate' => null,
                 'recent_records' => [],

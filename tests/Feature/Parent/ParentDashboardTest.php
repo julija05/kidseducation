@@ -13,6 +13,7 @@ use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\LessonResource;
+use App\Models\LiveSessionAttendance;
 use App\Models\Meeting;
 use App\Models\MeetingParticipant;
 use App\Models\Program;
@@ -125,6 +126,63 @@ class ParentDashboardTest extends TestCase
             ->where('childCards.0.meeting_attendance.recent_records.0.meeting_title', 'Coding class')
             ->where('childCards.0.meeting_attendance.recent_records.0.status_label', 'Absent')
         );
+    }
+
+    public function test_parent_dashboard_shows_only_their_childs_live_session_attendance(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+        $statuses = [
+            LiveSessionAttendance::STATUS_PRESENT,
+            LiveSessionAttendance::STATUS_ABSENT,
+            LiveSessionAttendance::STATUS_LATE,
+            LiveSessionAttendance::STATUS_CAUGHT_UP_LATER,
+        ];
+
+        foreach ($statuses as $index => $status) {
+            $session = ClassSchedule::factory()->completed()->create([
+                'admin_id' => $mentor->id,
+                'student_id' => $this->child->id,
+                'title' => "Child class {$index}",
+                'scheduled_at' => now()->subDays(4 - $index),
+            ]);
+
+            LiveSessionAttendance::create([
+                'live_session_id' => $session->id,
+                'student_id' => $this->child->id,
+                'marked_by' => $mentor->id,
+                'status' => $status,
+                'marked_at' => now()->subDays(4 - $index),
+            ]);
+        }
+
+        $otherSession = ClassSchedule::factory()->completed()->create([
+            'admin_id' => $mentor->id,
+            'student_id' => $this->otherChild->id,
+            'title' => 'Private other child class',
+        ]);
+        LiveSessionAttendance::create([
+            'live_session_id' => $otherSession->id,
+            'student_id' => $this->otherChild->id,
+            'marked_by' => $mentor->id,
+            'status' => LiveSessionAttendance::STATUS_ABSENT,
+            'marked_at' => now(),
+        ]);
+
+        $this->actingAs($this->parent)
+            ->get('/parent/dashboard')
+            ->assertInertia(fn ($page) => $page
+                ->where('childCards.0.attendance.total_records', 4)
+                ->where('childCards.0.attendance.attended_count', 3)
+                ->where('childCards.0.attendance.missed_count', 1)
+                ->where('childCards.0.attendance.late_count', 1)
+                ->where('childCards.0.attendance.caught_up_later_count', 1)
+                ->where('childCards.0.attendance.attendance_rate', 75)
+                ->has('childCards.0.attendance.recent_records', 4)
+                ->where('childCards.0.attendance.recent_records', fn ($records) => collect($records)->every(
+                    fn (array $record) => $record['title'] !== 'Private other child class'
+                ))
+            );
     }
 
     public function test_parent_dashboard_child_card_shows_status_program_class_and_parent_safe_notes(): void

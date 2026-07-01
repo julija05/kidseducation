@@ -128,7 +128,7 @@ function ChildCard({ child }) {
 
             <NextClassPanel nextClass={child.next_live_class} />
             <HomeworkPanel homework={child.homework} fallbackStatus={child.homework_status} />
-            <AttendancePanel attendance={child.meeting_attendance} />
+            <AttendancePanel attendance={child.attendance} />
 
             <div className="mt-5">
                 <div className="flex items-center justify-between gap-3">
@@ -205,17 +205,18 @@ function AttendancePanel({ attendance }) {
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                     <UserCheck className="h-4 w-4 text-emerald-600" />
-                    Meeting attendance
+                    Class attendance
                 </div>
                 <span className="text-sm font-semibold text-slate-950">
                     {rate === null || rate === undefined ? "No records" : `${rate}%`}
                 </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-3 gap-2">
-                <AttendanceMetric label="Classes" value={attendance?.total_records || 0} />
-                <AttendanceMetric label="Present" value={attendance?.attended_count || 0} tone="emerald" />
-                <AttendanceMetric label="Absent" value={attendance?.missed_count || 0} tone="amber" />
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <AttendanceMetric label="Attended" value={attendance?.attended_count || 0} tone="emerald" />
+                <AttendanceMetric label="Missed" value={attendance?.missed_count || 0} tone="red" />
+                <AttendanceMetric label="Late" value={attendance?.late_count || 0} tone="amber" />
+                <AttendanceMetric label="Caught up" value={attendance?.caught_up_later_count || 0} tone="violet" />
             </div>
 
             {records.length > 0 && (
@@ -224,13 +225,13 @@ function AttendancePanel({ attendance }) {
                     {records.slice(0, 4).map((record) => (
                         <div key={record.id} className="flex items-center justify-between gap-3 text-sm">
                             <div className="min-w-0">
-                                <p className="truncate font-medium text-slate-800">{record.meeting_title}</p>
+                                <p className="truncate font-medium text-slate-800">{record.title}</p>
                                 <p className="text-xs text-slate-500">
                                     {record.date}{record.group_name ? ` · ${record.group_name}` : ""}
                                 </p>
                             </div>
-                            <span className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${record.status === "attended" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                                {record.status === "attended" ? <UserCheck className="h-3.5 w-3.5" /> : <UserX className="h-3.5 w-3.5" />}
+                            <span className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${attendanceStatusStyle(record.status)}`}>
+                                {record.status === "absent" ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
                                 {record.status_label}
                             </span>
                         </div>
@@ -246,6 +247,8 @@ function AttendanceMetric({ label, value, tone = "slate" }) {
         slate: "bg-white text-slate-900",
         emerald: "bg-emerald-50 text-emerald-800",
         amber: "bg-amber-50 text-amber-800",
+        red: "bg-red-50 text-red-800",
+        violet: "bg-violet-50 text-violet-800",
     };
 
     return (
@@ -254,6 +257,18 @@ function AttendanceMetric({ label, value, tone = "slate" }) {
             <p className="text-xs font-medium">{label}</p>
         </div>
     );
+}
+
+function attendanceStatusStyle(status) {
+    const styles = {
+        present: "bg-emerald-100 text-emerald-700",
+        absent: "bg-red-100 text-red-700",
+        late: "bg-amber-100 text-amber-700",
+        excused: "bg-blue-100 text-blue-700",
+        caught_up_later: "bg-violet-100 text-violet-700",
+    };
+
+    return styles[status] || "bg-slate-100 text-slate-700";
 }
 
 function HomeworkPanel({ homework, fallbackStatus }) {

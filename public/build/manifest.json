@@ -1779,7 +1779,7 @@
     ]
   },
   "resources/js/Pages/Parent/Dashboard.jsx": {
-    "file": "assets/Dashboard-CwnHTXmg.js",
+    "file": "assets/Dashboard-BFMe14AW.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Parent/Dashboard.jsx",
     "isDynamicEntry": true,
@@ -1929,7 +1929,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-DLYEbvpI.js",
+    "file": "assets/app-w8KzsBSw.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -2062,7 +2062,7 @@
       "resources/js/Pages/Student/Reviews/Edit.jsx"
     ],
     "css": [
-      "assets/app-BtH_zu4I.css"
+      "assets/app-UgKmMpJO.css"
     ]
   }
 }
