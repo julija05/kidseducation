@@ -35,6 +35,29 @@ const statusBorderStyles = {
     not_started: "border-slate-200 bg-slate-50 text-slate-800",
 };
 
+const attendanceButtonStyles = {
+    present: {
+        active: "border-emerald-600 bg-emerald-600 text-white",
+        idle: "border-emerald-200 bg-white text-emerald-800 hover:bg-emerald-50",
+    },
+    absent: {
+        active: "border-red-600 bg-red-600 text-white",
+        idle: "border-red-200 bg-white text-red-800 hover:bg-red-50",
+    },
+    late: {
+        active: "border-amber-500 bg-amber-500 text-white",
+        idle: "border-amber-200 bg-white text-amber-800 hover:bg-amber-50",
+    },
+    excused: {
+        active: "border-blue-600 bg-blue-600 text-white",
+        idle: "border-blue-200 bg-white text-blue-800 hover:bg-blue-50",
+    },
+    caught_up_later: {
+        active: "border-violet-600 bg-violet-600 text-white",
+        idle: "border-violet-200 bg-white text-violet-800 hover:bg-violet-50",
+    },
+};
+
 const label = (value) => {
     if (!value) {
         return "Not set";
@@ -297,6 +320,13 @@ function AttendanceForm({ group, options, primaryButton }) {
         )));
     };
 
+    const setAllStatuses = (status) => {
+        setData("attendance", data.attendance.map((attendance) => ({ ...attendance, status })));
+    };
+
+    const markedCount = data.attendance.filter((attendance) => attendance.status).length;
+    const unmarkedCount = data.attendance.length - markedCount;
+
     const submit = (event) => {
         event.preventDefault();
         if (!selectedSession) {
@@ -338,8 +368,32 @@ function AttendanceForm({ group, options, primaryButton }) {
                         </select>
                     </FormField>
 
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="text-sm font-semibold text-slate-700">
+                            {markedCount}/{data.attendance.length} students marked
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setAllStatuses("present")}
+                                className="inline-flex items-center gap-2 rounded-md border border-emerald-300 bg-white px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            >
+                                <CheckCircle2 className="h-4 w-4" />
+                                All present
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setAllStatuses("absent")}
+                                className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            >
+                                <AlertCircle className="h-4 w-4" />
+                                All absent
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="overflow-x-auto rounded-lg border border-slate-200">
-                        <table className="min-w-full divide-y divide-slate-200">
+                        <table className="min-w-[52rem] divide-y divide-slate-200">
                             <thead className="bg-slate-50">
                                 <tr>
                                     <TableHeader>Student</TableHeader>
@@ -356,17 +410,27 @@ function AttendanceForm({ group, options, primaryButton }) {
                                                 <p className="mt-1 text-xs text-slate-500">{student.email}</p>
                                             </td>
                                             <td className="px-5 py-4 text-sm">
-                                                <select
-                                                    required
-                                                    value={attendance?.status || ""}
-                                                    onChange={(event) => updateStatus(student.id, event.target.value)}
-                                                    className="w-full min-w-48 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
-                                                >
-                                                    <option value="">Select status</option>
-                                                    {statuses.map((status) => (
-                                                        <option key={status.value} value={status.value}>{status.label}</option>
-                                                    ))}
-                                                </select>
+                                                <div className="flex flex-wrap gap-2" role="group" aria-label={`Attendance for ${student.name}`}>
+                                                    {statuses.map((status) => {
+                                                        const isActive = attendance?.status === status.value;
+                                                        const styles = attendanceButtonStyles[status.value] || {
+                                                            active: "border-slate-700 bg-slate-700 text-white",
+                                                            idle: "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+                                                        };
+
+                                                        return (
+                                                            <button
+                                                                key={status.value}
+                                                                type="button"
+                                                                aria-pressed={isActive}
+                                                                onClick={() => updateStatus(student.id, status.value)}
+                                                                className={`min-h-9 rounded-md border px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-slate-400 ${isActive ? styles.active : styles.idle}`}
+                                                            >
+                                                                {status.label}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                                 {errors[`attendance.${index}.status`] && (
                                                     <p className="mt-1 text-xs font-semibold text-red-600">{errors[`attendance.${index}.status`]}</p>
                                                 )}
@@ -379,12 +443,17 @@ function AttendanceForm({ group, options, primaryButton }) {
                     </div>
 
                     {errors.attendance && <p className="text-sm font-semibold text-red-600">{errors.attendance}</p>}
+                    {unmarkedCount > 0 && (
+                        <p className="text-sm font-semibold text-amber-700">
+                            Mark {unmarkedCount} remaining {unmarkedCount === 1 ? "student" : "students"} before saving.
+                        </p>
+                    )}
 
                     <div className="flex items-center justify-end gap-3">
                         {recentlySuccessful && <span className="text-sm font-semibold text-emerald-700">Attendance saved.</span>}
                         <button
                             type="submit"
-                            disabled={processing || !selectedSession || data.attendance.length === 0}
+                            disabled={processing || !selectedSession || data.attendance.length === 0 || unmarkedCount > 0}
                             className={`inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${primaryButton}`}
                         >
                             <CheckCircle2 className="h-4 w-4" />

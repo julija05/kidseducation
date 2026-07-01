@@ -8,8 +8,8 @@
       "_helpers-C7eNZCe5.js"
     ]
   },
-  "_GroupDashboard-NK0pkz7y.js": {
-    "file": "assets/GroupDashboard-NK0pkz7y.js",
+  "_GroupDashboard-DTkKlDGA.js": {
+    "file": "assets/GroupDashboard-DTkKlDGA.js",
     "name": "GroupDashboard",
     "imports": [
       "_vendor-ui-BRKbRquM.js",
@@ -450,13 +450,13 @@
     ]
   },
   "resources/js/Pages/Admin/LearningGroups/Show.jsx": {
-    "file": "assets/Show-CPf-l3hs.js",
+    "file": "assets/Show-DIB30HLn.js",
     "name": "Show",
     "src": "resources/js/Pages/Admin/LearningGroups/Show.jsx",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BRKbRquM.js",
-      "_GroupDashboard-NK0pkz7y.js",
+      "_GroupDashboard-DTkKlDGA.js",
       "_admin-JWJuA18V.js",
       "_vendor-inertia-B8ipwdfx.js",
       "_vendor-react-DYDc8crQ.js"
@@ -1411,13 +1411,13 @@
     ]
   },
   "resources/js/Pages/Mentor/LearningGroups/Show.jsx": {
-    "file": "assets/Show-BXUb1c0m.js",
+    "file": "assets/Show-CMd-Qo2o.js",
     "name": "Show",
     "src": "resources/js/Pages/Mentor/LearningGroups/Show.jsx",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BRKbRquM.js",
-      "_GroupDashboard-NK0pkz7y.js",
+      "_GroupDashboard-DTkKlDGA.js",
       "_MentorLayout-6J0l2hmE.js",
       "_vendor-inertia-B8ipwdfx.js",
       "_vendor-react-DYDc8crQ.js",
@@ -1929,7 +1929,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-B9H86ciZ.js",
+    "file": "assets/app-DLYEbvpI.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -2062,7 +2062,7 @@
       "resources/js/Pages/Student/Reviews/Edit.jsx"
     ],
     "css": [
-      "assets/app-Dq_cZBZO.css"
+      "assets/app-BtH_zu4I.css"
     ]
   }
 }

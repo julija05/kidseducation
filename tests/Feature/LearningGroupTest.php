@@ -649,7 +649,8 @@ class LearningGroupTest extends TestCase
             'is_group_class' => true,
             'max_students' => 5,
         ]);
-        $liveSession->students()->attach($students->pluck('id'));
+        // Group attendance uses the current group roster even if the schedule pivot is stale.
+        $liveSession->students()->attach($students->take(4)->pluck('id'));
 
         $statuses = LiveSessionAttendance::STATUSES;
         $response = $this->actingAs($mentor)->post(
@@ -692,7 +693,11 @@ class LearningGroupTest extends TestCase
             ->get("/mentor/learning-groups/{$group->id}")
             ->assertInertia(fn ($page) => $page
                 ->where('attendanceOptions.liveSessions.0.id', $liveSession->id)
-                ->where('attendanceOptions.liveSessions.0.participants.0.attendance_status', LiveSessionAttendance::STATUS_LATE)
+                ->has('attendanceOptions.liveSessions.0.participants', 5)
+                ->where('attendanceOptions.liveSessions.0.participants', fn ($participants) => collect($participants)->contains(
+                    fn (array $participant) => $participant['id'] === $students->first()->id
+                        && $participant['attendance_status'] === LiveSessionAttendance::STATUS_LATE
+                ))
                 ->where('group.attendance_summary.student_history.0.student_id', $students->first()->id)
                 ->where('group.attendance_summary.student_history.0.records.0.status', LiveSessionAttendance::STATUS_LATE)
                 ->where('group.attendance_summary.student_history.0.records.0.class_id', $liveSession->id)

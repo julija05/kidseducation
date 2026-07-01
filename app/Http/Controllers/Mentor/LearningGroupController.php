@@ -404,6 +404,12 @@ class LearningGroupController extends Controller
 
     private function attendanceParticipantsFor(ClassSchedule $liveSession, LearningGroup $learningGroup)
     {
+        if ($liveSession->is_group_class) {
+            return $learningGroup->students()
+                ->orderBy('name')
+                ->get(['users.id', 'users.name', 'users.email']);
+        }
+
         $liveSession->loadMissing(['student:id,name,email', 'students:id,name,email']);
         $groupStudentIds = $learningGroup->students()->pluck('users.id');
 
