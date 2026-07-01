@@ -95,6 +95,11 @@ class ClassSchedule extends Model
         return $this->hasMany(HomeworkAssignment::class, 'live_session_id');
     }
 
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(LiveSessionAttendance::class, 'live_session_id');
+    }
+
     // Get all students (individual or group)
     public function getAllStudents()
     {

@@ -13,9 +13,9 @@ use App\Models\LearningGroup;
 use App\Models\Meeting;
 use App\Models\Program;
 use App\Services\LearningGroupDashboardService;
+use App\Services\MeetingAttendanceService;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -25,7 +25,8 @@ class MentorDashboardController extends Controller
 {
     public function __construct(
         private EnrollmentRepositoryInterface $enrollmentRepository,
-        private LearningGroupDashboardService $learningGroupDashboardService
+        private LearningGroupDashboardService $learningGroupDashboardService,
+        private MeetingAttendanceService $meetingAttendanceService,
     ) {}
 
     /**
@@ -79,9 +80,11 @@ class MentorDashboardController extends Controller
             ]))
             ->groupBy('student_id')
             ->map(fn ($items) => $items->pluck('group')->values());
+        $attendanceSummary = $this->meetingAttendanceService->forMentor($user);
+        $attendanceByStudent = collect($attendanceSummary['student_summaries'])->keyBy('student_id');
 
         $allStudents = $this->enrollmentRepository->getStudentsForMentor($user, $programIds)
-            ->map(function ($enrollment) use ($groupsByStudent) {
+            ->map(function ($enrollment) use ($groupsByStudent, $attendanceByStudent) {
                 return [
                     'id' => $enrollment->user->id,
                     'name' => $enrollment->user->name,
@@ -94,6 +97,12 @@ class MentorDashboardController extends Controller
                     'quiz_points' => $enrollment->quiz_points,
                     'highest_unlocked_level' => $enrollment->highest_unlocked_level,
                     'groups' => $groupsByStudent->get($enrollment->user->id, collect())->values(),
+                    'meeting_attendance' => $attendanceByStudent->get($enrollment->user->id, [
+                        'attended_count' => 0,
+                        'missed_count' => 0,
+                        'total_records' => 0,
+                        'attendance_rate' => null,
+                    ]),
                 ];
             })
             ->unique('id')
@@ -143,6 +152,7 @@ class MentorDashboardController extends Controller
             'referredStudentsCount' => $referredStudentsCount,
             'upcomingMeetings' => $upcomingMeetings,
             'activeGroups' => $activeGroups,
+            'attendanceSummary' => $attendanceSummary,
             'canUseAbacus' => $user->canUseAbacusSimulator(),
         ]);
     }
@@ -155,7 +165,7 @@ class MentorDashboardController extends Controller
         $user = auth()->user();
 
         // Verify user is a mentor
-        if (!$user->isMentor()) {
+        if (! $user->isMentor()) {
             return redirect()->route('mentor.dashboard')
                 ->with('error', 'Only mentors can apply to teach programs.');
         }
@@ -207,7 +217,7 @@ class MentorDashboardController extends Controller
             try {
                 Mail::send(new AdminEnrollmentNotification($enrollment));
             } catch (\Exception $e) {
-                Log::error('Failed to send admin notification for mentor application: ' . $e->getMessage());
+                Log::error('Failed to send admin notification for mentor application: '.$e->getMessage());
             }
 
             return redirect()->route('mentor.dashboard')

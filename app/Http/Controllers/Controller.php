@@ -69,8 +69,8 @@ abstract class Controller
         if (auth()->check() && auth()->user()->hasRole('student') && ! isset($values['notifications'])) {
             $user = auth()->user();
 
-            // Get student notifications (schedule-related)
-            $notifications = Notification::where('type', 'schedule')
+            // Get notifications addressed to this student.
+            $notifications = Notification::whereIn('type', ['schedule', 'lesson', 'meeting'])
                 ->whereJsonContains('data->student_id', (int) $user->id)
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
@@ -88,7 +88,7 @@ abstract class Controller
                 });
 
             // Get unread notification count
-            $unreadNotificationCount = Notification::where('type', 'schedule')
+            $unreadNotificationCount = Notification::whereIn('type', ['schedule', 'lesson', 'meeting'])
                 ->whereJsonContains('data->student_id', (int) $user->id)
                 ->unread()
                 ->count();

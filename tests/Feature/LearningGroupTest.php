@@ -11,6 +11,7 @@ use App\Models\HomeworkAssignment;
 use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
+use App\Models\LiveSessionAttendance;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -620,6 +621,141 @@ class LearningGroupTest extends TestCase
             'title' => 'Invalid homework',
             'learning_group_id' => $group->id,
         ]);
+    }
+
+    public function test_mentor_can_mark_and_update_each_students_attendance_for_a_live_session(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+        $program = Program::factory()->create(['is_active' => true]);
+        $students = collect(range(1, 5))->map(fn () => $this->approvedStudentForProgram($program));
+
+        $group = LearningGroup::create([
+            'name' => 'Attendance Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->subMonth()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach($students->pluck('id'));
+
+        $liveSession = ClassSchedule::factory()->completed()->create([
+            'student_id' => null,
+            'admin_id' => $mentor->id,
+            'program_id' => $program->id,
+            'title' => $group->name,
+            'is_group_class' => true,
+            'max_students' => 5,
+        ]);
+        $liveSession->students()->attach($students->pluck('id'));
+
+        $statuses = LiveSessionAttendance::STATUSES;
+        $response = $this->actingAs($mentor)->post(
+            "/mentor/learning-groups/{$group->id}/live-sessions/{$liveSession->id}/attendance",
+            ['attendance' => $students->values()->map(fn (User $student, int $index) => [
+                'student_id' => $student->id,
+                'status' => $statuses[$index],
+            ])->all()]
+        );
+
+        $response
+            ->assertRedirect()
+            ->assertSessionHas('success', 'Attendance saved successfully.');
+
+        foreach ($students->values() as $index => $student) {
+            $this->assertDatabaseHas('live_session_attendances', [
+                'live_session_id' => $liveSession->id,
+                'student_id' => $student->id,
+                'status' => $statuses[$index],
+                'marked_by' => $mentor->id,
+            ]);
+        }
+
+        $this->actingAs($mentor)->post(
+            "/mentor/learning-groups/{$group->id}/live-sessions/{$liveSession->id}/attendance",
+            ['attendance' => [[
+                'student_id' => $students->first()->id,
+                'status' => LiveSessionAttendance::STATUS_LATE,
+            ]]]
+        )->assertRedirect();
+
+        $this->assertDatabaseCount('live_session_attendances', 5);
+        $this->assertDatabaseHas('live_session_attendances', [
+            'live_session_id' => $liveSession->id,
+            'student_id' => $students->first()->id,
+            'status' => LiveSessionAttendance::STATUS_LATE,
+        ]);
+
+        $this->actingAs($mentor)
+            ->get("/mentor/learning-groups/{$group->id}")
+            ->assertInertia(fn ($page) => $page
+                ->where('attendanceOptions.liveSessions.0.id', $liveSession->id)
+                ->where('attendanceOptions.liveSessions.0.participants.0.attendance_status', LiveSessionAttendance::STATUS_LATE)
+                ->where('group.attendance_summary.student_history.0.student_id', $students->first()->id)
+                ->where('group.attendance_summary.student_history.0.records.0.status', LiveSessionAttendance::STATUS_LATE)
+                ->where('group.attendance_summary.student_history.0.records.0.class_id', $liveSession->id)
+            );
+    }
+
+    public function test_mentor_cannot_mark_attendance_for_another_group_or_nonparticipant(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+        $otherMentor = User::factory()->create();
+        $otherMentor->assignRole('mentor');
+        $program = Program::factory()->create(['is_active' => true]);
+        $student = $this->approvedStudentForProgram($program);
+        $nonparticipant = $this->approvedStudentForProgram($program);
+
+        $group = LearningGroup::create([
+            'name' => 'Protected Attendance Group',
+            'program_id' => $program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
+        ]);
+        $group->students()->attach([$student->id, $nonparticipant->id]);
+
+        $liveSession = ClassSchedule::factory()->completed()->create([
+            'student_id' => $student->id,
+            'admin_id' => $mentor->id,
+            'program_id' => $program->id,
+            'title' => 'Individual live session',
+            'is_group_class' => false,
+        ]);
+
+        $payload = ['attendance' => [[
+            'student_id' => $student->id,
+            'status' => LiveSessionAttendance::STATUS_PRESENT,
+        ]]];
+
+        $this->actingAs($otherMentor)
+            ->post("/mentor/learning-groups/{$group->id}/live-sessions/{$liveSession->id}/attendance", $payload)
+            ->assertForbidden();
+
+        $this->actingAs($mentor)
+            ->post("/mentor/learning-groups/{$group->id}/live-sessions/{$liveSession->id}/attendance", [
+                'attendance' => [[
+                    'student_id' => $nonparticipant->id,
+                    'status' => LiveSessionAttendance::STATUS_PRESENT,
+                ]],
+            ])
+            ->assertSessionHasErrors('attendance');
+
+        $this->actingAs($mentor)
+            ->post("/mentor/learning-groups/{$group->id}/live-sessions/{$liveSession->id}/attendance", [
+                'attendance' => [[
+                    'student_id' => $student->id,
+                    'status' => 'unknown',
+                ]],
+            ])
+            ->assertSessionHasErrors('attendance.0.status');
+
+        $this->assertDatabaseCount('live_session_attendances', 0);
     }
 
     public function test_mentor_cannot_open_another_mentor_group_dashboard(): void

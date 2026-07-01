@@ -1,4 +1,5 @@
 import { Link, useForm } from "@inertiajs/react";
+import { useState } from "react";
 import {
     AlertCircle,
     ArrowLeft,
@@ -21,6 +22,11 @@ const statusStyles = {
     cancelled: "bg-red-100 text-red-700",
     not_started: "bg-slate-100 text-slate-700",
     needs_help: "bg-amber-100 text-amber-800",
+    present: "bg-emerald-100 text-emerald-800",
+    absent: "bg-red-100 text-red-800",
+    late: "bg-amber-100 text-amber-800",
+    excused: "bg-blue-100 text-blue-800",
+    caught_up_later: "bg-violet-100 text-violet-800",
 };
 
 const statusBorderStyles = {
@@ -39,7 +45,7 @@ const label = (value) => {
 
 const display = (value, fallback = "Not available") => value || fallback;
 
-export default function GroupDashboard({ group, homeworkOptions, backHref, backLabel = "Groups", theme = "mentor" }) {
+export default function GroupDashboard({ group, homeworkOptions, attendanceOptions, backHref, backLabel = "Groups", theme = "mentor" }) {
     const primaryButton = theme === "admin"
         ? "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         : "bg-slate-900 hover:bg-slate-800 focus:ring-slate-900";
@@ -193,6 +199,16 @@ export default function GroupDashboard({ group, homeworkOptions, backHref, backL
                 </section>
             </div>
 
+            {attendanceOptions && (
+                <AttendanceForm
+                    group={group}
+                    options={attendanceOptions}
+                    primaryButton={primaryButton}
+                />
+            )}
+
+            <AttendanceHistory history={attendance.student_history || []} />
+
             {homeworkOptions && (
                 <HomeworkAssignmentForm
                     group={group}
@@ -249,6 +265,204 @@ export default function GroupDashboard({ group, homeworkOptions, backHref, backL
                 )}
             </section>
         </div>
+    );
+}
+
+function AttendanceForm({ group, options, primaryButton }) {
+    const sessions = options.liveSessions || [];
+    const statuses = options.statuses || [];
+    const firstSession = sessions[0] || null;
+    const [selectedSessionId, setSelectedSessionId] = useState(firstSession?.id || "");
+    const initialAttendance = (firstSession?.participants || []).map((student) => ({
+        student_id: student.id,
+        status: student.attendance_status || "",
+    }));
+    const { data, setData, post, processing, errors, recentlySuccessful } = useForm({
+        attendance: initialAttendance,
+    });
+    const selectedSession = sessions.find((session) => String(session.id) === String(selectedSessionId));
+
+    const selectSession = (sessionId) => {
+        const session = sessions.find((item) => String(item.id) === String(sessionId));
+        setSelectedSessionId(sessionId);
+        setData("attendance", (session?.participants || []).map((student) => ({
+            student_id: student.id,
+            status: student.attendance_status || "",
+        })));
+    };
+
+    const updateStatus = (studentId, status) => {
+        setData("attendance", data.attendance.map((attendance) => (
+            attendance.student_id === studentId ? { ...attendance, status } : attendance
+        )));
+    };
+
+    const submit = (event) => {
+        event.preventDefault();
+        if (!selectedSession) {
+            return;
+        }
+
+        post(route("mentor.learning-groups.attendance.store", [group.id, selectedSession.id]), {
+            preserveScroll: true,
+        });
+    };
+
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div>
+                    <h2 className="text-lg font-bold text-slate-950">Mark attendance</h2>
+                    <p className="mt-1 text-sm text-slate-500">Select a live session and record a status for each participating student.</p>
+                </div>
+                <UserCheck className="h-5 w-5 text-slate-400" />
+            </div>
+
+            {sessions.length === 0 ? (
+                <div className="px-5 py-6">
+                    <EmptyLine text="No live sessions with students were found for this group." />
+                </div>
+            ) : (
+                <form onSubmit={submit} className="space-y-5 p-5">
+                    <FormField label="Live session">
+                        <select
+                            value={selectedSessionId}
+                            onChange={(event) => selectSession(event.target.value)}
+                            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        >
+                            {sessions.map((session) => (
+                                <option key={session.id} value={session.id}>
+                                    {session.date} at {session.time} - {session.title} ({label(session.status)})
+                                </option>
+                            ))}
+                        </select>
+                    </FormField>
+
+                    <div className="overflow-x-auto rounded-lg border border-slate-200">
+                        <table className="min-w-full divide-y divide-slate-200">
+                            <thead className="bg-slate-50">
+                                <tr>
+                                    <TableHeader>Student</TableHeader>
+                                    <TableHeader>Attendance status</TableHeader>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 bg-white">
+                                {(selectedSession?.participants || []).map((student, index) => {
+                                    const attendance = data.attendance.find((item) => item.student_id === student.id);
+                                    return (
+                                        <tr key={student.id}>
+                                            <td className="px-5 py-4 text-sm">
+                                                <p className="font-semibold text-slate-950">{student.name}</p>
+                                                <p className="mt-1 text-xs text-slate-500">{student.email}</p>
+                                            </td>
+                                            <td className="px-5 py-4 text-sm">
+                                                <select
+                                                    required
+                                                    value={attendance?.status || ""}
+                                                    onChange={(event) => updateStatus(student.id, event.target.value)}
+                                                    className="w-full min-w-48 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                                                >
+                                                    <option value="">Select status</option>
+                                                    {statuses.map((status) => (
+                                                        <option key={status.value} value={status.value}>{status.label}</option>
+                                                    ))}
+                                                </select>
+                                                {errors[`attendance.${index}.status`] && (
+                                                    <p className="mt-1 text-xs font-semibold text-red-600">{errors[`attendance.${index}.status`]}</p>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {errors.attendance && <p className="text-sm font-semibold text-red-600">{errors.attendance}</p>}
+
+                    <div className="flex items-center justify-end gap-3">
+                        {recentlySuccessful && <span className="text-sm font-semibold text-emerald-700">Attendance saved.</span>}
+                        <button
+                            type="submit"
+                            disabled={processing || !selectedSession || data.attendance.length === 0}
+                            className={`inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${primaryButton}`}
+                        >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Save attendance
+                        </button>
+                    </div>
+                </form>
+            )}
+        </section>
+    );
+}
+
+function AttendanceHistory({ history }) {
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div>
+                    <h2 className="text-lg font-bold text-slate-950">Attendance history by student</h2>
+                    <p className="mt-1 text-sm text-slate-500">Recorded attendance across this group&apos;s live sessions.</p>
+                </div>
+                <Users className="h-5 w-5 text-slate-400" />
+            </div>
+
+            {history.length === 0 ? (
+                <div className="px-5 py-6">
+                    <EmptyLine text="No students are available for attendance history." />
+                </div>
+            ) : (
+                <div className="divide-y divide-slate-200">
+                    {history.map((student) => (
+                        <div key={student.student_id} className="p-5">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-950">{student.student_name}</h3>
+                                    <p className="mt-1 text-xs text-slate-500">{student.student_email}</p>
+                                </div>
+                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                    {student.records.length} {student.records.length === 1 ? "record" : "records"}
+                                </span>
+                            </div>
+
+                            {student.records.length === 0 ? (
+                                <p className="mt-3 text-sm text-slate-500">No attendance has been recorded yet.</p>
+                            ) : (
+                                <div className="mt-3 overflow-x-auto rounded-lg border border-slate-200">
+                                    <table className="min-w-full divide-y divide-slate-200">
+                                        <thead className="bg-slate-50">
+                                            <tr>
+                                                <TableHeader>Live session</TableHeader>
+                                                <TableHeader>Date</TableHeader>
+                                                <TableHeader>Status</TableHeader>
+                                                <TableHeader>Marked</TableHeader>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-200 bg-white">
+                                            {student.records.map((record) => (
+                                                <tr key={`${record.class_id}-${student.student_id}`}>
+                                                    <td className="px-5 py-3 text-sm font-semibold text-slate-950">{record.class_title}</td>
+                                                    <td className="px-5 py-3 text-sm text-slate-600">{record.class_date}</td>
+                                                    <td className="px-5 py-3 text-sm">
+                                                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[record.status] || statusStyles.draft}`}>
+                                                            {record.status_label || label(record.status)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-5 py-3 text-sm text-slate-600">
+                                                        {record.marked_at ? formatDateTime(record.marked_at) : "Legacy record"}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </section>
     );
 }
 

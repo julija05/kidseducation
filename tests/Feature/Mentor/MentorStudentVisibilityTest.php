@@ -8,6 +8,9 @@ use App\Constants\EnrollmentType;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\LearningGroup;
+use App\Models\Meeting;
+use App\Models\MeetingParticipant;
+use App\Models\Notification;
 use App\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -216,6 +219,156 @@ class MentorStudentVisibilityTest extends TestCase
         $this->assertDatabaseHas('meeting_participants', [
             'student_id' => $this->assignedStudent->id,
             'status' => 'invited',
+        ]);
+    }
+
+    public function test_mentor_can_schedule_a_meeting_for_every_student_in_owned_group(): void
+    {
+        $secondStudent = User::factory()->create();
+        $secondStudent->assignRole('student');
+
+        $group = $this->createGroup($this->mentor);
+        $group->students()->attach([$this->assignedStudent->id, $secondStudent->id]);
+
+        $response = $this->actingAs($this->mentor)->post('/mentor/meetings', [
+            'title' => 'Group arithmetic class',
+            'description' => 'Weekly group class',
+            'meeting_type' => 'group',
+            'learning_group_id' => $group->id,
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+            'duration_minutes' => 60,
+            'meeting_url' => 'https://example.test/classroom',
+        ]);
+
+        $response->assertRedirect('/mentor/meetings');
+
+        $meeting = Meeting::where('learning_group_id', $group->id)->firstOrFail();
+        $this->assertEqualsCanonicalizing(
+            [$this->assignedStudent->id, $secondStudent->id],
+            $meeting->participants()->pluck('student_id')->all()
+        );
+        $this->assertSame(2, $meeting->max_participants);
+
+        foreach ([$this->assignedStudent, $secondStudent] as $student) {
+            $notification = Notification::where('type', 'meeting')
+                ->whereJsonContains('data->student_id', $student->id)
+                ->first();
+
+            $this->assertNotNull($notification);
+            $this->assertSame($meeting->id, $notification->data['meeting_id']);
+            $this->assertSame($group->id, $notification->data['group_id']);
+        }
+    }
+
+    public function test_mentor_cannot_schedule_for_another_mentors_group(): void
+    {
+        $group = $this->createGroup($this->otherMentor);
+        $group->students()->attach($this->otherStudent->id);
+
+        $response = $this->actingAs($this->mentor)->post('/mentor/meetings', [
+            'title' => 'Unauthorized group class',
+            'meeting_type' => 'group',
+            'learning_group_id' => $group->id,
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+            'duration_minutes' => 60,
+        ]);
+
+        $response->assertSessionHasErrors('learning_group_id');
+        $this->assertDatabaseMissing('meetings', ['title' => 'Unauthorized group class']);
+    }
+
+    public function test_mentor_can_record_attendance_for_own_meeting(): void
+    {
+        $meeting = Meeting::create([
+            'mentor_id' => $this->mentor->id,
+            'title' => 'Attendance class',
+            'meeting_type' => 'individual',
+            'scheduled_at' => now()->subHour(),
+            'duration_minutes' => 30,
+            'max_participants' => 1,
+            'status' => 'scheduled',
+        ]);
+        $participant = MeetingParticipant::create([
+            'meeting_id' => $meeting->id,
+            'student_id' => $this->assignedStudent->id,
+            'status' => 'confirmed',
+        ]);
+
+        $response = $this->actingAs($this->mentor)->post("/mentor/meetings/{$meeting->id}/attendance", [
+            'attendance' => [[
+                'participant_id' => $participant->id,
+                'status' => 'attended',
+            ]],
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('meeting_participants', [
+            'id' => $participant->id,
+            'status' => 'attended',
+            'attendance_marked_by' => $this->mentor->id,
+        ]);
+        $this->assertNotNull($participant->fresh()->attendance_marked_at);
+
+        $this->actingAs($this->mentor)
+            ->get('/mentor/dashboard')
+            ->assertInertia(fn ($page) => $page
+                ->where('attendanceSummary.total_records', 1)
+                ->where('attendanceSummary.attended_count', 1)
+                ->where('attendanceSummary.missed_count', 0)
+                ->where('attendanceSummary.attendance_rate', 100)
+                ->where('attendanceSummary.recent_records.0.student_name', $this->assignedStudent->name)
+                ->where('allStudents.0.meeting_attendance.attendance_rate', 100)
+            );
+    }
+
+    public function test_group_meeting_attendance_is_included_in_the_mentor_group_dashboard(): void
+    {
+        $group = $this->createGroup($this->mentor);
+        $group->students()->attach($this->assignedStudent->id);
+
+        $meeting = Meeting::create([
+            'mentor_id' => $this->mentor->id,
+            'learning_group_id' => $group->id,
+            'title' => 'Group attendance class',
+            'meeting_type' => 'group',
+            'scheduled_at' => now()->subHour(),
+            'duration_minutes' => 45,
+            'max_participants' => 1,
+            'status' => 'completed',
+        ]);
+        $participant = MeetingParticipant::create([
+            'meeting_id' => $meeting->id,
+            'student_id' => $this->assignedStudent->id,
+            'status' => 'attended',
+            'attendance_marked_at' => now(),
+            'attendance_marked_by' => $this->mentor->id,
+        ]);
+
+        $this->actingAs($this->mentor)
+            ->get("/mentor/learning-groups/{$group->id}")
+            ->assertInertia(fn ($page) => $page
+                ->where('group.attendance_summary.classes_completed', 1)
+                ->where('group.attendance_summary.attendance_records', 1)
+                ->where('group.attendance_summary.attended_count', 1)
+                ->where('group.attendance_summary.missed_count', 0)
+                ->where('group.attendance_summary.attendance_rate', 100)
+                ->where('group.attendance_summary.student_history.0.student_id', $this->assignedStudent->id)
+                ->where('group.attendance_summary.student_history.0.records.0.class_id', "meeting-{$meeting->id}")
+                ->where('group.attendance_summary.student_history.0.records.0.class_title', 'Group attendance class')
+                ->where('group.attendance_summary.student_history.0.records.0.marked_by', $this->mentor->name)
+            );
+    }
+
+    private function createGroup(User $mentor): LearningGroup
+    {
+        return LearningGroup::create([
+            'name' => "{$mentor->name}'s group",
+            'program_id' => $this->program->id,
+            'mentor_id' => $mentor->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonth()->toDateString(),
+            'status' => LearningGroup::STATUS_ACTIVE,
+            'max_students' => 10,
         ]);
     }
 }

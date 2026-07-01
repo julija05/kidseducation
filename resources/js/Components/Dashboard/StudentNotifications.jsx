@@ -99,6 +99,8 @@ export default function StudentNotifications({ notifications = [], unreadCount =
             router.visit(route('lessons.show', notification.data.lesson_id));
         } else if (notification.type === 'schedule' && notification.data?.schedule_id) {
             // For schedule notifications, could navigate to a schedule view or show details
+        } else if (notification.type === 'meeting' && notification.data?.meeting_id) {
+            router.visit(route('meetings.index'));
         }
     };
 

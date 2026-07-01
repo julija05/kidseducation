@@ -15,6 +15,8 @@ import {
     Plus,
     Search,
     TrendingUp,
+    UserCheck,
+    UserX,
     Users,
 } from "lucide-react";
 
@@ -47,6 +49,7 @@ export default function Dashboard({
     referredStudentsCount = 0,
     upcomingMeetings = [],
     activeGroups = [],
+    attendanceSummary = {},
     canUseAbacus = false,
 }) {
     const [copied, setCopied] = useState(false);
@@ -192,6 +195,47 @@ export default function Dashboard({
 
                 <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
                     <div className="space-y-6">
+                        <Panel
+                            title="Attendance summary"
+                            subtitle="Attendance recorded from your scheduled class meetings."
+                            action={
+                                <Link
+                                    href={route("mentor.meetings.index")}
+                                    className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                                >
+                                    View meetings
+                                    <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            }
+                        >
+                            <div className="grid gap-3 p-5 sm:grid-cols-4">
+                                <AttendanceStat label="Attendance rate" value={attendanceSummary.attendance_rate == null ? "—" : `${attendanceSummary.attendance_rate}%`} />
+                                <AttendanceStat label="Records" value={attendanceSummary.total_records || 0} />
+                                <AttendanceStat label="Present" value={attendanceSummary.attended_count || 0} tone="emerald" />
+                                <AttendanceStat label="Absent" value={attendanceSummary.missed_count || 0} tone="amber" />
+                            </div>
+
+                            {attendanceSummary.recent_records?.length > 0 && (
+                                <div className="border-t border-slate-200 px-5 py-4">
+                                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Recent attendance</p>
+                                    <div className="grid gap-2 md:grid-cols-2">
+                                        {attendanceSummary.recent_records.slice(0, 6).map((record) => (
+                                            <div key={record.id} className="flex items-center justify-between gap-3 rounded-md bg-slate-50 p-3">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-semibold text-slate-900">{record.student_name}</p>
+                                                    <p className="truncate text-xs text-slate-500">{record.meeting_title} · {record.date}</p>
+                                                </div>
+                                                <span className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${record.status === "attended" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                                    {record.status === "attended" ? <UserCheck className="h-3.5 w-3.5" /> : <UserX className="h-3.5 w-3.5" />}
+                                                    {record.status_label}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </Panel>
+
                         <Panel
                             title="Active groups"
                             subtitle="Live teaching groups with their next scheduled class."
@@ -348,6 +392,7 @@ export default function Dashboard({
                                                 <TableHead>Student</TableHead>
                                                 <TableHead>Program</TableHead>
                                                 <TableHead>Progress</TableHead>
+                                                <TableHead>Attendance</TableHead>
                                                 <TableHead>Points</TableHead>
                                                 <TableHead>Level</TableHead>
                                             </tr>
@@ -380,6 +425,11 @@ export default function Dashboard({
                                                                 {Math.round(student.progress || 0)}%
                                                             </span>
                                                         </div>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
+                                                        {student.meeting_attendance?.attendance_rate == null
+                                                            ? "No records"
+                                                            : `${student.meeting_attendance.attendance_rate}% (${student.meeting_attendance.attended_count}/${student.meeting_attendance.total_records})`}
                                                     </td>
                                                     <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
                                                         {student.quiz_points || 0}
@@ -532,6 +582,21 @@ export default function Dashboard({
 
             <AbacusSimulator isOpen={showAbacus} onClose={() => setShowAbacus(false)} />
         </MentorLayout>
+    );
+}
+
+function AttendanceStat({ label, value, tone = "slate" }) {
+    const tones = {
+        slate: "bg-slate-50 text-slate-950",
+        emerald: "bg-emerald-50 text-emerald-800",
+        amber: "bg-amber-50 text-amber-800",
+    };
+
+    return (
+        <div className={`rounded-md p-3 ${tones[tone]}`}>
+            <p className="text-2xl font-semibold">{value}</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-wide opacity-70">{label}</p>
+        </div>
     );
 }
 

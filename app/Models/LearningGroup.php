@@ -71,6 +71,11 @@ class LearningGroup extends Model
         return $this->hasMany(HomeworkAssignment::class);
     }
 
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE);

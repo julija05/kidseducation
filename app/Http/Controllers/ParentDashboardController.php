@@ -8,8 +8,9 @@ use App\Models\ClassSchedule;
 use App\Models\User;
 use App\Models\WeeklyLearningReport;
 use App\Services\HomeworkAssignmentDashboardService;
-use Illuminate\Support\Collection;
+use App\Services\MeetingAttendanceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,17 +18,20 @@ use Inertia\Response;
 class ParentDashboardController extends Controller
 {
     public function __construct(
-        private HomeworkAssignmentDashboardService $homeworkAssignmentDashboardService
+        private HomeworkAssignmentDashboardService $homeworkAssignmentDashboardService,
+        private MeetingAttendanceService $meetingAttendanceService,
     ) {}
 
     public function index(Request $request): Response
     {
         $parent = $request->user();
+        $children = $this->childrenFor($parent);
+        $childProfiles = $this->childProfilesFor($parent);
 
         return Inertia::render('Parent/Dashboard', [
-            'childCards' => $this->childCardsFor($parent),
-            'children' => $this->childrenFor($parent),
-            'childProfiles' => $this->childProfilesFor($parent),
+            'childCards' => $this->childCardsFor($parent, $children, $childProfiles),
+            'children' => $children,
+            'childProfiles' => $childProfiles,
         ]);
     }
 
@@ -89,6 +93,7 @@ class ParentDashboardController extends Controller
             'status' => $child->status,
             'parent_visible_mentor_notes' => $this->parentVisibleMentorNotesFor($child->id),
             'homework_assignments' => $this->homeworkAssignmentDashboardService->forStudent($child),
+            'meeting_attendance' => $this->meetingAttendanceService->forStudent($child),
             'weekly_reports' => $this->weeklyReportsFor($child)->map(fn (WeeklyLearningReport $report) => $this->formatWeeklyReport($report, $child->id))->values(),
             'enrollments' => $child->enrollments->map(function ($enrollment) {
                 return [
@@ -149,10 +154,13 @@ class ParentDashboardController extends Controller
         ];
     }
 
-    private function childCardsFor(User $parent)
-    {
-        $profiles = $this->childProfilesFor($parent);
-        $children = $this->childrenFor($parent)->keyBy('id');
+    private function childCardsFor(
+        User $parent,
+        ?Collection $children = null,
+        ?Collection $profiles = null
+    ) {
+        $profiles ??= $this->childProfilesFor($parent);
+        $children = ($children ?? $this->childrenFor($parent))->keyBy('id');
 
         $cards = $profiles->map(function (array $profile) use ($children) {
             $child = $profile['child_user_id'] ?? null
@@ -197,6 +205,13 @@ class ParentDashboardController extends Controller
             'homework_status' => $homework['status'] ?? $this->homeworkStatusFrom($sessionData),
             'homework' => $homework,
             'homework_assignments' => $assignedHomework ? [$assignedHomework] : [],
+            'meeting_attendance' => $child['meeting_attendance'] ?? [
+                'attended_count' => 0,
+                'missed_count' => 0,
+                'total_records' => 0,
+                'attendance_rate' => null,
+                'recent_records' => [],
+            ],
             'progress' => $activeEnrollment['progress'] ?? 0,
             'latest_mentor_note' => $latestParentVisibleNote['note'] ?? null,
             'latest_weekly_learning_report' => $latestWeeklyLearningReport

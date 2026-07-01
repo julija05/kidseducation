@@ -1,8 +1,22 @@
 import MentorLayout from "@/Layouts/MentorLayout";
 import { Head, router } from "@inertiajs/react";
-import { Calendar, Clock, Users, Video, MapPin, ArrowLeft, CheckCircle, XCircle, AlertCircle, Trash2, Edit } from "lucide-react";
+import { Calendar, Clock, Users, Video, MapPin, ArrowLeft, CheckCircle, XCircle, AlertCircle, Trash2, UserCheck, UserX } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Show({ meeting }) {
+    const attendanceFromMeeting = () => Object.fromEntries(
+        meeting.participants.map((participant) => [participant.id, {
+            status: participant.status,
+            attendance_marked_at: participant.attendance_marked_at,
+        }])
+    );
+    const [attendanceByParticipant, setAttendanceByParticipant] = useState(attendanceFromMeeting);
+    const [updatingParticipantIds, setUpdatingParticipantIds] = useState([]);
+
+    useEffect(() => {
+        setAttendanceByParticipant(attendanceFromMeeting());
+    }, [meeting.participants]);
+
     const formatDate = (date) => {
         return new Date(date).toLocaleDateString('en-US', {
             weekday: 'long',
@@ -40,9 +54,21 @@ export default function Show({ meeting }) {
                 return <CheckCircle className="w-4 h-4 text-green-600" />;
             case 'declined':
                 return <XCircle className="w-4 h-4 text-red-600" />;
+            case 'attended':
+                return <UserCheck className="w-4 h-4 text-blue-600" />;
+            case 'missed':
+                return <UserX className="w-4 h-4 text-orange-600" />;
             default:
                 return <AlertCircle className="w-4 h-4 text-slate-600" />;
         }
+    };
+
+    const getStatusLabel = (status) => {
+        if (status === 'attended') return 'Present';
+        if (status === 'missed') return 'Absent';
+        if (status === 'confirmed') return 'Confirmed';
+        if (status === 'declined') return 'Declined';
+        return 'Invited';
     };
 
     const handleCancel = () => {
@@ -61,6 +87,36 @@ export default function Show({ meeting }) {
         if (confirm('Are you sure you want to delete this meeting? This action cannot be undone.')) {
             router.delete(route('mentor.meetings.destroy', meeting.id));
         }
+    };
+
+    const markAttendance = (participantId, status) => {
+        const previousAttendance = attendanceByParticipant[participantId];
+
+        if (previousAttendance?.status === status || updatingParticipantIds.includes(participantId)) {
+            return;
+        }
+
+        setAttendanceByParticipant((current) => ({
+            ...current,
+            [participantId]: {
+                status,
+                attendance_marked_at: new Date().toISOString(),
+            },
+        }));
+        setUpdatingParticipantIds((current) => [...current, participantId]);
+
+        router.post(route('mentor.meetings.attendance.store', meeting.id), {
+            attendance: [{ participant_id: participantId, status }],
+        }, {
+            preserveScroll: true,
+            onError: () => {
+                setAttendanceByParticipant((current) => ({
+                    ...current,
+                    [participantId]: previousAttendance,
+                }));
+            },
+            onFinish: () => setUpdatingParticipantIds((current) => current.filter((id) => id !== participantId)),
+        });
     };
 
     return (
@@ -82,6 +138,11 @@ export default function Show({ meeting }) {
                             <div>
                                 <h1 className="text-4xl font-black text-slate-900 mb-2">{meeting.title}</h1>
                                 <p className="text-lg text-slate-600">{meeting.description || 'No description provided'}</p>
+                                {meeting.learning_group && (
+                                    <p className="mt-2 text-sm font-semibold text-purple-700">
+                                        Group: {meeting.learning_group.name}
+                                    </p>
+                                )}
                             </div>
                             <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
                                 meeting.meeting_type === 'individual' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
@@ -150,8 +211,12 @@ export default function Show({ meeting }) {
                                     </span>
                                 </div>
                                 <div className="space-y-3">
-                                    {meeting.participants.map((participant) => (
-                                        <div key={participant.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    {meeting.participants.map((participant) => {
+                                        const attendance = attendanceByParticipant[participant.id] || participant;
+                                        const isUpdating = updatingParticipantIds.includes(participant.id);
+
+                                        return (
+                                        <div key={participant.id} className="flex flex-col gap-3 p-3 bg-slate-50 rounded-lg sm:flex-row sm:items-center">
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white font-bold">
                                                 {participant.student.name.charAt(0).toUpperCase()}
                                             </div>
@@ -160,13 +225,43 @@ export default function Show({ meeting }) {
                                                 <p className="text-sm text-slate-600">{participant.student.email}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                {getStatusIcon(participant.status)}
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(participant.status)}`}>
-                                                    {participant.status}
+                                                {getStatusIcon(attendance.status)}
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(attendance.status)}`}>
+                                                    {getStatusLabel(attendance.status)}
                                                 </span>
+                                                {attendance.attendance_marked_at && (
+                                                    <span className="text-xs text-slate-500">
+                                                        Recorded {new Date(attendance.attendance_marked_at).toLocaleString()}
+                                                    </span>
+                                                )}
                                             </div>
+                                            {meeting.status !== 'cancelled' && (
+                                                <div className="flex gap-2 sm:ml-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => markAttendance(participant.id, 'attended')}
+                                                        disabled={isUpdating}
+                                                        className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-wait disabled:opacity-60 ${attendance.status === 'attended' ? 'bg-blue-600 text-white' : 'bg-white text-blue-700 hover:bg-blue-50'}`}
+                                                        aria-label={`Mark ${participant.student.name} as attended`}
+                                                    >
+                                                        <UserCheck className="h-4 w-4" />
+                                                        Present
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => markAttendance(participant.id, 'missed')}
+                                                        disabled={isUpdating}
+                                                        className={`inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-wait disabled:opacity-60 ${attendance.status === 'missed' ? 'bg-orange-600 text-white' : 'bg-white text-orange-700 hover:bg-orange-50'}`}
+                                                        aria-label={`Mark ${participant.student.name} as missed`}
+                                                    >
+                                                        <UserX className="h-4 w-4" />
+                                                        Absent
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
 

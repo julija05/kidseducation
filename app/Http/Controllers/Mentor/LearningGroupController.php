@@ -6,18 +6,21 @@ use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Constants\EnrollmentType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Mentor\StoreLiveSessionAttendanceRequest;
 use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\HomeworkAssignment;
 use App\Models\HomeworkPracticeTask;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
+use App\Models\LiveSessionAttendance;
 use App\Models\Program;
 use App\Models\User;
 use App\Services\LearningGroupDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class LearningGroupController extends Controller
@@ -75,6 +78,13 @@ class LearningGroupController extends Controller
                 'lessons' => $this->lessonOptionsForGroup($learningGroup),
                 'liveSessions' => $this->liveSessionOptionsForGroup($learningGroup),
                 'statuses' => HomeworkAssignment::STATUSES,
+            ],
+            'attendanceOptions' => [
+                'liveSessions' => $this->attendanceSessionOptionsForGroup($learningGroup),
+                'statuses' => collect(LiveSessionAttendance::STATUSES)->map(fn (string $status) => [
+                    'value' => $status,
+                    'label' => ucfirst(str_replace('_', ' ', $status)),
+                ])->values(),
             ],
         ]);
     }
@@ -194,6 +204,45 @@ class LearningGroupController extends Controller
         return back()->with('success', 'Homework assignment created successfully.');
     }
 
+    public function storeAttendance(
+        StoreLiveSessionAttendanceRequest $request,
+        LearningGroup $learningGroup,
+        ClassSchedule $liveSession
+    ): RedirectResponse {
+        $this->authorizeMentorGroup($learningGroup);
+
+        if (! $this->liveSessionBelongsToGroup($liveSession->id, $learningGroup)) {
+            abort(404);
+        }
+
+        $participantIds = $this->attendanceParticipantsFor($liveSession, $learningGroup)->pluck('id');
+        $submittedStudentIds = collect($request->validated('attendance'))->pluck('student_id')->map(fn ($id) => (int) $id);
+
+        if ($submittedStudentIds->diff($participantIds)->isNotEmpty()) {
+            return back()->withErrors([
+                'attendance' => 'Attendance can only be marked for students assigned to this live session.',
+            ]);
+        }
+
+        DB::transaction(function () use ($request, $liveSession) {
+            foreach ($request->validated('attendance') as $attendance) {
+                LiveSessionAttendance::updateOrCreate(
+                    [
+                        'live_session_id' => $liveSession->id,
+                        'student_id' => $attendance['student_id'],
+                    ],
+                    [
+                        'status' => $attendance['status'],
+                        'marked_by' => Auth::id(),
+                        'marked_at' => now(),
+                    ]
+                );
+            }
+        });
+
+        return back()->with('success', 'Attendance saved successfully.');
+    }
+
     private function mentorPrograms()
     {
         $programIds = Enrollment::where('user_id', Auth::id())
@@ -299,6 +348,66 @@ class LearningGroupController extends Controller
                 'status' => $schedule->status,
             ])
             ->values();
+    }
+
+    private function attendanceSessionOptionsForGroup(LearningGroup $learningGroup)
+    {
+        $studentIds = $learningGroup->students()->pluck('users.id');
+
+        return ClassSchedule::with([
+            'student:id,name,email',
+            'students:id,name,email',
+            'attendanceRecords:id,live_session_id,student_id,status,marked_at',
+        ])
+            ->where('program_id', $learningGroup->program_id)
+            ->where('status', '!=', 'cancelled')
+            ->where(function ($query) use ($learningGroup, $studentIds) {
+                $query->where(function ($titleQuery) use ($learningGroup) {
+                    $titleQuery->where('is_group_class', true)
+                        ->where('title', $learningGroup->name);
+                });
+
+                if ($studentIds->isNotEmpty()) {
+                    $query->orWhereIn('student_id', $studentIds)
+                        ->orWhereHas('students', fn ($studentQuery) => $studentQuery->whereIn('users.id', $studentIds));
+                }
+            })
+            ->orderByDesc('scheduled_at')
+            ->limit(30)
+            ->get()
+            ->map(function (ClassSchedule $session) use ($learningGroup) {
+                $participants = $this->attendanceParticipantsFor($session, $learningGroup);
+                $attendanceByStudent = $session->attendanceRecords->keyBy('student_id');
+
+                return [
+                    'id' => $session->id,
+                    'title' => $session->title,
+                    'date' => $session->scheduled_at?->format('M d, Y'),
+                    'time' => $session->scheduled_at?->format('g:i A'),
+                    'status' => $session->status,
+                    'participants' => $participants->map(function (User $student) use ($attendanceByStudent) {
+                        $attendance = $attendanceByStudent->get($student->id);
+
+                        return [
+                            'id' => $student->id,
+                            'name' => $student->name,
+                            'email' => $student->email,
+                            'attendance_status' => $attendance?->status,
+                            'marked_at' => $attendance?->marked_at?->toISOString(),
+                        ];
+                    })->values(),
+                ];
+            })
+            ->filter(fn (array $session) => $session['participants']->isNotEmpty())
+            ->values();
+    }
+
+    private function attendanceParticipantsFor(ClassSchedule $liveSession, LearningGroup $learningGroup)
+    {
+        $liveSession->loadMissing(['student:id,name,email', 'students:id,name,email']);
+        $groupStudentIds = $learningGroup->students()->pluck('users.id');
+
+        return $liveSession->getAllStudents()->whereIn('id', $groupStudentIds)->values();
     }
 
     private function lessonBelongsToGroupProgram(int $lessonId, LearningGroup $learningGroup): bool

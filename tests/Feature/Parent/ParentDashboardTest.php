@@ -13,6 +13,8 @@ use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\LessonResource;
+use App\Models\Meeting;
+use App\Models\MeetingParticipant;
 use App\Models\Program;
 use App\Models\User;
 use App\Models\WeeklyLearningReport;
@@ -71,6 +73,57 @@ class ParentDashboardTest extends TestCase
             ->where('children.0.enrollments.0.progress', 55)
             ->where('childCards.0.child_id', $this->child->id)
             ->where('childCards.0.progress', 55)
+        );
+    }
+
+    public function test_parent_dashboard_shows_child_meeting_attendance_records(): void
+    {
+        $mentor = User::factory()->create();
+        $mentor->assignRole('mentor');
+
+        $attendedMeeting = Meeting::create([
+            'mentor_id' => $mentor->id,
+            'title' => 'Mental math class',
+            'meeting_type' => 'individual',
+            'scheduled_at' => now()->subDays(2),
+            'duration_minutes' => 45,
+            'max_participants' => 1,
+            'status' => 'completed',
+        ]);
+        $missedMeeting = Meeting::create([
+            'mentor_id' => $mentor->id,
+            'title' => 'Coding class',
+            'meeting_type' => 'individual',
+            'scheduled_at' => now()->subDay(),
+            'duration_minutes' => 45,
+            'max_participants' => 1,
+            'status' => 'completed',
+        ]);
+
+        MeetingParticipant::create([
+            'meeting_id' => $attendedMeeting->id,
+            'student_id' => $this->child->id,
+            'status' => 'attended',
+            'attendance_marked_at' => now()->subDays(2),
+            'attendance_marked_by' => $mentor->id,
+        ]);
+        MeetingParticipant::create([
+            'meeting_id' => $missedMeeting->id,
+            'student_id' => $this->child->id,
+            'status' => 'missed',
+            'attendance_marked_at' => now()->subDay(),
+            'attendance_marked_by' => $mentor->id,
+        ]);
+
+        $response = $this->actingAs($this->parent)->get('/parent/dashboard');
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('childCards.0.meeting_attendance.total_records', 2)
+            ->where('childCards.0.meeting_attendance.attended_count', 1)
+            ->where('childCards.0.meeting_attendance.missed_count', 1)
+            ->where('childCards.0.meeting_attendance.attendance_rate', 50)
+            ->where('childCards.0.meeting_attendance.recent_records.0.meeting_title', 'Coding class')
+            ->where('childCards.0.meeting_attendance.recent_records.0.status_label', 'Absent')
         );
     }
 

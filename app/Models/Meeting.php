@@ -14,6 +14,7 @@ class Meeting extends Model
 
     protected $fillable = [
         'mentor_id',
+        'learning_group_id',
         'title',
         'description',
         'meeting_type',
@@ -38,6 +39,11 @@ class Meeting extends Model
     public function mentor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'mentor_id');
+    }
+
+    public function learningGroup(): BelongsTo
+    {
+        return $this->belongsTo(LearningGroup::class);
     }
 
     /**

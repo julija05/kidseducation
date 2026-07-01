@@ -7,6 +7,7 @@ use App\Models\HomeworkAssignment;
 use App\Models\HomeworkAssignmentStatus;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
+use App\Models\LiveSessionAttendance;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Schema;
 
 class LearningGroupDashboardService
 {
+    public function __construct(
+        private MeetingAttendanceService $meetingAttendanceService,
+    ) {}
+
     public function activeGroupCardsForMentor(User $mentor): Collection
     {
         return LearningGroup::with(['program:id,name,slug', 'students:id,name,email'])
@@ -77,10 +82,24 @@ class LearningGroupDashboardService
             ->where('status', 'completed')
             ->orderByDesc('completed_at')
             ->orderByDesc('scheduled_at')
-            ->limit(12)
+            ->get();
+
+        $attendanceClasses = $this->schedulesForGroup($learningGroup, $studentIds)
+            ->with([
+                'student:id,name,email',
+                'students:id,name,email',
+                'attendanceRecords.student:id,name,email',
+                'attendanceRecords.markedBy:id,name',
+            ])
+            ->where(function (Builder $query) {
+                $query->where('status', 'completed')
+                    ->orWhereHas('attendanceRecords');
+            })
+            ->orderByDesc('scheduled_at')
             ->get();
 
         $currentLesson = $this->currentLessonFor($learningGroup, $upcomingClass, $completedClasses);
+        $meetingAttendance = $this->meetingAttendanceService->forGroup($learningGroup);
 
         return [
             'id' => $learningGroup->id,
@@ -106,7 +125,11 @@ class LearningGroupDashboardService
             'next_live_class' => $this->formatSchedule($upcomingClass),
             'current_lesson' => $currentLesson,
             'homework_summary' => $this->homeworkSummary($completedClasses, $learningGroup->homeworkAssignments, $learningGroup->students),
-            'attendance_summary' => $this->attendanceSummary($completedClasses, $learningGroup->students),
+            'attendance_summary' => $this->attendanceSummary(
+                $attendanceClasses,
+                $learningGroup->students,
+                $meetingAttendance
+            ),
             'help_requests' => $this->helpRequests($completedClasses, $learningGroup->students, $learningGroup->homeworkAssignments),
         ];
     }
@@ -361,43 +384,116 @@ class LearningGroupDashboardService
         ];
     }
 
-    private function attendanceSummary(Collection $completedClasses, Collection $groupStudents): array
-    {
-        $records = $completedClasses
+    private function attendanceSummary(
+        Collection $attendanceClasses,
+        Collection $groupStudents,
+        array $meetingAttendance
+    ): array {
+        $liveSessionRecords = $attendanceClasses
             ->flatMap(fn (ClassSchedule $schedule) => $this->attendanceRecordsFor($schedule, $groupStudents))
             ->values();
+        $meetingRecords = collect($meetingAttendance['student_summaries'] ?? [])
+            ->flatMap(fn (array $studentSummary) => $studentSummary['records'] ?? [])
+            ->map(fn (array $record) => [
+                'student_id' => $record['student_id'],
+                'student_name' => $record['student_name'],
+                'student_email' => $record['student_email'],
+                'status' => $record['status'] === 'attended'
+                    ? LiveSessionAttendance::STATUS_PRESENT
+                    : LiveSessionAttendance::STATUS_ABSENT,
+                'status_label' => $record['status_label'],
+                'class_id' => "meeting-{$record['meeting_id']}",
+                'class_title' => $record['meeting_title'],
+                'class_date' => $record['date'],
+                'scheduled_at' => $record['scheduled_at'],
+                'marked_at' => $record['attendance_marked_at'],
+                'marked_by' => $record['attendance_marked_by'],
+                'source_type' => 'meeting',
+                'source_id' => $record['meeting_id'],
+            ])
+            ->values();
+        $records = $liveSessionRecords->concat($meetingRecords)->values();
 
-        $attendedCount = $records->where('status', 'attended')->count();
-        $missedCount = $records->where('status', 'missed')->count();
-        $totalRecords = $records->count();
+        $attendedStatuses = [
+            LiveSessionAttendance::STATUS_PRESENT,
+            LiveSessionAttendance::STATUS_LATE,
+            LiveSessionAttendance::STATUS_CAUGHT_UP_LATER,
+        ];
+        $attendedCount = $records->whereIn('status', $attendedStatuses)->count();
+        $missedCount = $records->where('status', LiveSessionAttendance::STATUS_ABSENT)->count();
+        $excusedCount = $records->where('status', LiveSessionAttendance::STATUS_EXCUSED)->count();
+        $ratedRecords = $records->count() - $excusedCount;
 
         return [
-            'classes_completed' => $completedClasses->count(),
-            'attendance_records' => $totalRecords,
+            'classes_completed' => $attendanceClasses->where('status', 'completed')->count()
+                + $meetingRecords->pluck('source_id')->unique()->count(),
+            'attendance_records' => $records->count(),
             'attended_count' => $attendedCount,
             'missed_count' => $missedCount,
-            'attendance_rate' => $totalRecords > 0 ? (float) round(($attendedCount / $totalRecords) * 100, 1) : null,
-            'recent_classes' => $completedClasses
-                ->take(5)
+            'excused_count' => $excusedCount,
+            'status_counts' => collect(LiveSessionAttendance::STATUSES)
+                ->mapWithKeys(fn (string $status) => [$status => $records->where('status', $status)->count()]),
+            'attendance_rate' => $ratedRecords > 0 ? (float) round(($attendedCount / $ratedRecords) * 100, 1) : null,
+            'student_history' => $groupStudents->map(function (User $student) use ($records) {
+                return [
+                    'student_id' => $student->id,
+                    'student_name' => $student->name,
+                    'student_email' => $student->email,
+                    'records' => $records
+                        ->where('student_id', $student->id)
+                        ->sortByDesc('scheduled_at')
+                        ->values(),
+                ];
+            })->values(),
+            'recent_classes' => $attendanceClasses
                 ->map(function (ClassSchedule $schedule) use ($groupStudents) {
                     $records = collect($this->attendanceRecordsFor($schedule, $groupStudents));
 
                     return [
                         'id' => $schedule->id,
                         'title' => $schedule->title,
-                        'date' => ($schedule->completed_at ?? $schedule->scheduled_at)?->format('M d, Y'),
-                        'attended_count' => $records->where('status', 'attended')->count(),
-                        'missed_count' => $records->where('status', 'missed')->count(),
+                        'date' => $schedule->scheduled_at?->format('M d, Y'),
+                        'attended_count' => $records->whereIn('status', [
+                            LiveSessionAttendance::STATUS_PRESENT,
+                            LiveSessionAttendance::STATUS_LATE,
+                            LiveSessionAttendance::STATUS_CAUGHT_UP_LATER,
+                        ])->count(),
+                        'missed_count' => $records->where('status', LiveSessionAttendance::STATUS_ABSENT)->count(),
+                        'excused_count' => $records->where('status', LiveSessionAttendance::STATUS_EXCUSED)->count(),
+                        'records_count' => $records->count(),
                     ];
                 })
+                ->filter(fn (array $class) => $class['records_count'] > 0)
+                ->take(5)
                 ->values(),
         ];
     }
 
     private function attendanceRecordsFor(ClassSchedule $schedule, Collection $groupStudents): array
     {
-        $sessionData = $schedule->session_data ?? [];
         $studentMap = $groupStudents->keyBy('id');
+
+        if ($schedule->relationLoaded('attendanceRecords') && $schedule->attendanceRecords->isNotEmpty()) {
+            return $schedule->attendanceRecords
+                ->whereIn('student_id', $studentMap->keys())
+                ->map(fn (LiveSessionAttendance $attendance) => [
+                    'student_id' => $attendance->student_id,
+                    'student_name' => $studentMap->get($attendance->student_id)?->name ?? $attendance->student?->name,
+                    'student_email' => $studentMap->get($attendance->student_id)?->email ?? $attendance->student?->email,
+                    'status' => $attendance->status,
+                    'status_label' => ucfirst(str_replace('_', ' ', $attendance->status)),
+                    'class_id' => $schedule->id,
+                    'class_title' => $schedule->title,
+                    'class_date' => $schedule->scheduled_at?->format('M d, Y'),
+                    'scheduled_at' => $schedule->scheduled_at?->toISOString(),
+                    'marked_at' => $attendance->marked_at?->toISOString(),
+                    'marked_by' => $attendance->markedBy?->name,
+                ])
+                ->values()
+                ->all();
+        }
+
+        $sessionData = $schedule->session_data ?? [];
         $explicitAttendance = collect([
             data_get($sessionData, 'attendance'),
             data_get($sessionData, 'attendance_records'),
@@ -408,23 +504,7 @@ class LearningGroupDashboardService
             ->flatMap(fn ($value) => $this->normalizeAttendanceRecords($value, $studentMap, $schedule))
             ->values();
 
-        if ($explicitAttendance->isNotEmpty()) {
-            return $explicitAttendance->all();
-        }
-
-        $scheduledStudents = $schedule->is_group_class
-            ? $schedule->students->whereIn('id', $studentMap->keys())
-            : $groupStudents->where('id', $schedule->student_id);
-
-        return $scheduledStudents
-            ->map(fn (User $student) => [
-                'student_id' => $student->id,
-                'student_name' => $student->name,
-                'status' => 'attended',
-                'class_id' => $schedule->id,
-            ])
-            ->values()
-            ->all();
+        return $explicitAttendance->all();
     }
 
     private function normalizeAttendanceRecords($value, Collection $studentMap, ClassSchedule $schedule): array
@@ -479,8 +559,15 @@ class LearningGroupDashboardService
                         ?? $record['student_name']
                         ?? $record['name']
                         ?? null,
+                    'student_email' => $studentMap->get($studentId)?->email,
                     'status' => $status,
+                    'status_label' => ucfirst(str_replace('_', ' ', $status)),
                     'class_id' => $schedule->id,
+                    'class_title' => $schedule->title,
+                    'class_date' => $schedule->scheduled_at?->format('M d, Y'),
+                    'scheduled_at' => $schedule->scheduled_at?->toISOString(),
+                    'marked_at' => null,
+                    'marked_by' => null,
                 ];
             })
             ->filter()
@@ -495,15 +582,17 @@ class LearningGroupDashboardService
         }
 
         if (is_bool($value)) {
-            return $value ? 'attended' : 'missed';
+            return $value ? LiveSessionAttendance::STATUS_PRESENT : LiveSessionAttendance::STATUS_ABSENT;
         }
 
         $normalized = strtolower(trim((string) $value));
 
         return match ($normalized) {
-            '1', 'true', 'yes', 'present', 'attended', 'complete', 'completed' => 'attended',
-            '0', 'false', 'no', 'absent', 'missed', 'not attended', 'not_attended' => 'missed',
-            'late' => 'attended',
+            '1', 'true', 'yes', 'present', 'attended', 'complete', 'completed' => LiveSessionAttendance::STATUS_PRESENT,
+            '0', 'false', 'no', 'absent', 'missed', 'not attended', 'not_attended' => LiveSessionAttendance::STATUS_ABSENT,
+            'late' => LiveSessionAttendance::STATUS_LATE,
+            'excused' => LiveSessionAttendance::STATUS_EXCUSED,
+            'caught up later', 'caught_up_later', 'caught-up-later' => LiveSessionAttendance::STATUS_CAUGHT_UP_LATER,
             default => null,
         };
     }

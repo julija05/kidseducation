@@ -86,11 +86,12 @@ const customSelectStyles = {
  * Create Meeting component for mentors to schedule meetings with students
  * Allows scheduling individual or group meetings with searchable student selection
  */
-export default function Create({ students }) {
+export default function Create({ students, groups = [] }) {
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         description: '',
         meeting_type: 'individual',
+        learning_group_id: '',
         scheduled_at: '',
         duration_minutes: 60,
         meeting_url: '',
@@ -171,10 +172,11 @@ export default function Create({ students }) {
     const handleMeetingTypeChange = (type) => {
         setData('meeting_type', type);
 
-        if (type === 'individual' && selectedStudents.length > 1) {
-            const newSelected = [selectedStudents[0]];
-            setSelectedStudents(newSelected);
-            setData('student_ids', newSelected);
+        if (type === 'group') {
+            setSelectedStudents([]);
+            setData('student_ids', []);
+        } else {
+            setData('learning_group_id', '');
         }
     };
 
@@ -205,8 +207,14 @@ export default function Create({ students }) {
         post(route('mentor.meetings.store'));
     };
 
-    const maxParticipants = data.meeting_type === 'individual' ? 1 : 5;
-    const selectedStudentObjects = getSelectedStudentObjects();
+    const selectedGroup = groups.find((group) => String(group.id) === String(data.learning_group_id));
+    const maxParticipants = data.meeting_type === 'individual' ? 1 : (selectedGroup?.students_count || 0);
+    const selectedStudentObjects = data.meeting_type === 'group'
+        ? (selectedGroup?.students || [])
+        : getSelectedStudentObjects();
+    const hasParticipants = data.meeting_type === 'group'
+        ? Boolean(selectedGroup?.students_count)
+        : selectedStudents.length === 1;
 
     return (
         <MentorLayout>
@@ -288,7 +296,7 @@ export default function Create({ students }) {
                                     <p className={`text-base font-semibold ${
                                         data.meeting_type === 'group' ? 'text-emerald-800' : 'text-slate-600'
                                     }`}>
-                                        Up to 5 students
+                                        Your complete learning group
                                     </p>
                                 </button>
                             </div>
@@ -421,17 +429,49 @@ export default function Create({ students }) {
                             </div>
                         </div>
 
-                        {/* Students Selection Section */}
+                        {/* Participants Selection Section */}
                         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     <UserPlus className="w-6 h-6 text-emerald-600" />
-                                    Select Students <span className="text-red-600">*</span>
+                                    {data.meeting_type === 'group' ? 'Select Learning Group' : 'Select Student'} <span className="text-red-600">*</span>
                                 </h2>
                                 <span className="px-4 py-2 bg-emerald-100 text-emerald-800 text-sm font-bold rounded-full">
-                                    {selectedStudents.length}/{maxParticipants} selected
+                                    {selectedStudentObjects.length}/{maxParticipants || 1} selected
                                 </span>
                             </div>
+
+                            {data.meeting_type === 'group' && (
+                                <div className="mb-6">
+                                    {groups.length > 0 ? (
+                                        <>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                Active group
+                                            </label>
+                                            <select
+                                                value={data.learning_group_id}
+                                                onChange={(event) => setData('learning_group_id', event.target.value)}
+                                                className="w-full px-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none"
+                                                required
+                                            >
+                                                <option value="">Choose a group...</option>
+                                                {groups.map((group) => (
+                                                    <option key={group.id} value={group.id}>
+                                                        {group.name} · {group.program_name || 'Program'} · {group.students_count} students
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </>
+                                    ) : (
+                                        <div className="p-8 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+                                            <Users className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+                                            <p className="text-slate-700 font-semibold">No active groups with students</p>
+                                            <p className="text-slate-600 text-sm mt-1">Create a group and add students before scheduling its meeting.</p>
+                                        </div>
+                                    )}
+                                    {errors.learning_group_id && <p className="text-red-700 text-sm mt-3 font-semibold">{errors.learning_group_id}</p>}
+                                </div>
+                            )}
 
                             {/* Selected Students as Chips */}
                             {selectedStudentObjects.length > 0 && (
@@ -444,13 +484,15 @@ export default function Create({ students }) {
                                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-900 rounded-full border-2 border-emerald-300"
                                             >
                                                 <span className="font-semibold text-sm">{student.name}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleStudentRemove(student.id)}
-                                                    className="hover:bg-emerald-200 rounded-full p-1 transition-colors"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
+                                                {data.meeting_type === 'individual' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleStudentRemove(student.id)}
+                                                        className="hover:bg-emerald-200 rounded-full p-1 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -458,7 +500,7 @@ export default function Create({ students }) {
                             )}
 
                             {/* Search Input */}
-                            {students.length > 0 ? (
+                            {data.meeting_type === 'individual' && (students.length > 0 ? (
                                 <div ref={dropdownRef} className="relative">
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                                         Search and add students:
@@ -512,7 +554,7 @@ export default function Create({ students }) {
                                     <p className="text-slate-700 font-semibold text-base">No students available</p>
                                     <p className="text-slate-600 text-sm mt-1">Students must enroll through your invitation link first.</p>
                                 </div>
-                            )}
+                            ))}
                             {errors.student_ids && <p className="text-red-700 text-sm mt-3 font-semibold">{errors.student_ids}</p>}
                         </div>
 
@@ -533,7 +575,7 @@ export default function Create({ students }) {
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                             <button
                                 type="submit"
-                                disabled={processing || selectedStudents.length === 0}
+                                disabled={processing || !hasParticipants}
                                 className="flex-1 flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg"
                             >
                                 <Save className="w-6 h-6" />

@@ -318,7 +318,7 @@ class NotificationService
      */
     public function getForStudent(User $student): array
     {
-        $notifications = Notification::whereIn('type', ['schedule', 'lesson'])
+        $notifications = Notification::whereIn('type', ['schedule', 'lesson', 'meeting'])
             ->where(function ($query) use ($student) {
                 $query->whereJsonContains('data->student_id', (int) $student->id);
             })
@@ -326,7 +326,7 @@ class NotificationService
             ->limit(10)
             ->get();
 
-        $unreadCount = Notification::whereIn('type', ['schedule', 'lesson'])
+        $unreadCount = Notification::whereIn('type', ['schedule', 'lesson', 'meeting'])
             ->where(function ($query) use ($student) {
                 $query->whereJsonContains('data->student_id', (int) $student->id);
             })
@@ -344,7 +344,7 @@ class NotificationService
      */
     public function markAllAsReadForStudent(User $student): int
     {
-        return Notification::whereIn('type', ['schedule', 'lesson'])
+        return Notification::whereIn('type', ['schedule', 'lesson', 'meeting'])
             ->where(function ($query) use ($student) {
                 $query->whereJsonContains('data->student_id', (int) $student->id);
             })

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\MeetingParticipant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
 class StudentMeetingController extends Controller
 {
@@ -71,7 +70,7 @@ class StudentMeetingController extends Controller
             ->sortByDesc('meeting.scheduled_at')
             ->values();
 
-        return Inertia::render('Student/Meetings/Index', [
+        return $this->createView('Student/Meetings/Index', [
             'upcomingMeetings' => $upcomingMeetings,
             'pastMeetings' => $pastMeetings,
         ]);

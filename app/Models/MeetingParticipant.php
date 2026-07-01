@@ -16,10 +16,13 @@ class MeetingParticipant extends Model
         'status',
         'response_note',
         'responded_at',
+        'attendance_marked_at',
+        'attendance_marked_by',
     ];
 
     protected $casts = [
         'responded_at' => 'datetime',
+        'attendance_marked_at' => 'datetime',
     ];
 
     /**
@@ -36,6 +39,11 @@ class MeetingParticipant extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function attendanceMarkedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'attendance_marked_by');
     }
 
     /**

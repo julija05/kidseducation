@@ -15,6 +15,8 @@ import {
     MessageSquareText,
     Plus,
     RefreshCcw,
+    UserCheck,
+    UserX,
     Users,
 } from "lucide-react";
 
@@ -126,6 +128,7 @@ function ChildCard({ child }) {
 
             <NextClassPanel nextClass={child.next_live_class} />
             <HomeworkPanel homework={child.homework} fallbackStatus={child.homework_status} />
+            <AttendancePanel attendance={child.meeting_attendance} />
 
             <div className="mt-5">
                 <div className="flex items-center justify-between gap-3">
@@ -190,6 +193,66 @@ function ChildCard({ child }) {
                 </div>
             )}
         </article>
+    );
+}
+
+function AttendancePanel({ attendance }) {
+    const records = attendance?.recent_records || [];
+    const rate = attendance?.attendance_rate;
+
+    return (
+        <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                    <UserCheck className="h-4 w-4 text-emerald-600" />
+                    Meeting attendance
+                </div>
+                <span className="text-sm font-semibold text-slate-950">
+                    {rate === null || rate === undefined ? "No records" : `${rate}%`}
+                </span>
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-2">
+                <AttendanceMetric label="Classes" value={attendance?.total_records || 0} />
+                <AttendanceMetric label="Present" value={attendance?.attended_count || 0} tone="emerald" />
+                <AttendanceMetric label="Absent" value={attendance?.missed_count || 0} tone="amber" />
+            </div>
+
+            {records.length > 0 && (
+                <div className="mt-4 space-y-2 border-t border-slate-200 pt-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recent records</p>
+                    {records.slice(0, 4).map((record) => (
+                        <div key={record.id} className="flex items-center justify-between gap-3 text-sm">
+                            <div className="min-w-0">
+                                <p className="truncate font-medium text-slate-800">{record.meeting_title}</p>
+                                <p className="text-xs text-slate-500">
+                                    {record.date}{record.group_name ? ` · ${record.group_name}` : ""}
+                                </p>
+                            </div>
+                            <span className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${record.status === "attended" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                {record.status === "attended" ? <UserCheck className="h-3.5 w-3.5" /> : <UserX className="h-3.5 w-3.5" />}
+                                {record.status_label}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function AttendanceMetric({ label, value, tone = "slate" }) {
+    const tones = {
+        slate: "bg-white text-slate-900",
+        emerald: "bg-emerald-50 text-emerald-800",
+        amber: "bg-amber-50 text-amber-800",
+    };
+
+    return (
+        <div className={`rounded-md p-2 text-center ${tones[tone]}`}>
+            <p className="text-lg font-semibold">{value}</p>
+            <p className="text-xs font-medium">{label}</p>
+        </div>
     );
 }
 
