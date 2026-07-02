@@ -247,7 +247,7 @@ export default function GroupDashboard({ group, homeworkOptions, attendanceOptio
                             <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
                         </DashboardDisclosure>
                         <DashboardDisclosure icon={Users} title="Students" description={`${group.students.length} currently assigned to this group.`}>
-                            <StudentsPanel students={group.students} />
+                            <StudentsPanel students={group.students} group={group} theme={theme} />
                         </DashboardDisclosure>
                     </div>
                 </section>
@@ -257,7 +257,7 @@ export default function GroupDashboard({ group, homeworkOptions, attendanceOptio
                     <AttendanceHistory history={attendance.student_history || []} />
                     {homeworkOptions && <HomeworkAssignmentForm group={group} options={homeworkOptions} primaryButton={primaryButton} />}
                     <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
-                    <StudentsPanel students={group.students} />
+                    <StudentsPanel students={group.students} group={group} theme={theme} />
                 </>
             )}
         </div>
@@ -286,7 +286,7 @@ function DashboardDisclosure({ icon: Icon, title, description, children }) {
     );
 }
 
-function StudentsPanel({ students }) {
+function StudentsPanel({ students, group, theme }) {
     return (
         <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
@@ -313,7 +313,11 @@ function StudentsPanel({ students }) {
                         <tbody className="divide-y divide-slate-200 bg-white">
                             {students.map((student) => (
                                 <tr key={student.id}>
-                                    <td className="px-5 py-4 text-sm font-semibold text-slate-950">{student.name}</td>
+                                    <td className="px-5 py-4 text-sm font-semibold text-slate-950">
+                                        {theme === "mentor" ? (
+                                            <Link href={route("mentor.learning-groups.students.show", [group.id, student.id])} className="text-sky-700 hover:text-sky-900 hover:underline">{student.name}</Link>
+                                        ) : student.name}
+                                    </td>
                                     <td className="px-5 py-4 text-sm text-slate-600">
                                         <span className="inline-flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400" />{student.email}</span>
                                     </td>

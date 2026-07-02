@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Models\ClassSchedule;
+use App\Models\MentorNote;
 use App\Models\User;
 use App\Models\WeeklyLearningReport;
 use App\Services\HomeworkAssignmentDashboardService;
@@ -325,9 +326,24 @@ class ParentDashboardController extends Controller
 
     private function parentVisibleMentorNotesFor(int $childId): Collection
     {
-        return $this->completedClassesFor($childId)
+        $storedNotes = Schema::hasTable('mentor_notes')
+            ? MentorNote::with(['learningGroup:id,name', 'lesson:id,title', 'liveSession:id,title,scheduled_at'])
+                ->where('student_id', $childId)
+                ->where('visible_to_parent', true)
+                ->latest()
+                ->get()
+                ->map(fn (MentorNote $note) => [
+                    'note' => $note->note,
+                    'class_title' => $note->liveSession?->title ?? $note->lesson?->title ?? $note->learningGroup?->name,
+                    'class_date' => $note->liveSession?->scheduled_at?->format('M d, Y') ?? $note->created_at->format('M d, Y'),
+                ])
+            : collect();
+
+        $legacyNotes = $this->completedClassesFor($childId)
             ->flatMap(fn (ClassSchedule $schedule) => $this->parentVisibleMentorNotesFromSchedule($schedule))
             ->values();
+
+        return $storedNotes->concat($legacyNotes)->values();
     }
 
     private function formatSchedule(?ClassSchedule $schedule): ?array

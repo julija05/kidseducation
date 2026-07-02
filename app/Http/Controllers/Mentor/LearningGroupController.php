@@ -14,6 +14,7 @@ use App\Models\HomeworkPracticeTask;
 use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\LiveSessionAttendance;
+use App\Models\MentorNote;
 use App\Models\Program;
 use App\Models\User;
 use App\Services\LearningGroupDashboardService;
@@ -87,6 +88,80 @@ class LearningGroupController extends Controller
                 ])->values(),
             ],
         ]);
+    }
+
+    public function showStudent(LearningGroup $learningGroup, User $student)
+    {
+        $this->authorizeMentorStudent($learningGroup, $student);
+
+        $student->load(['enrollments' => fn ($query) => $query->where('program_id', $learningGroup->program_id)]);
+        $notes = MentorNote::with(['lesson:id,title', 'liveSession:id,title,scheduled_at'])
+            ->where('mentor_id', Auth::id())
+            ->where('student_id', $student->id)
+            ->where('learning_group_id', $learningGroup->id)
+            ->latest()
+            ->get()
+            ->map(fn (MentorNote $note) => [
+                'id' => $note->id,
+                'note' => $note->note,
+                'visible_to_parent' => $note->visible_to_parent,
+                'lesson' => $note->lesson ? ['id' => $note->lesson->id, 'title' => $note->lesson->title] : null,
+                'live_session' => $note->liveSession ? [
+                    'id' => $note->liveSession->id,
+                    'title' => $note->liveSession->title,
+                    'scheduled_at' => $note->liveSession->scheduled_at?->format('M d, Y g:i A'),
+                ] : null,
+                'created_at' => $note->created_at->format('M d, Y g:i A'),
+            ]);
+
+        return $this->createView('Mentor/Students/Show', [
+            'student' => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'email' => $student->email,
+                'progress' => $student->enrollments->first()?->progress,
+            ],
+            'group' => ['id' => $learningGroup->id, 'name' => $learningGroup->name],
+            'notes' => $notes,
+            'noteOptions' => [
+                'lessons' => $this->lessonOptionsForGroup($learningGroup),
+                'liveSessions' => $this->liveSessionOptionsForGroup($learningGroup),
+            ],
+        ]);
+    }
+
+    public function storeNote(Request $request, LearningGroup $learningGroup, User $student): RedirectResponse
+    {
+        $this->authorizeMentorStudent($learningGroup, $student);
+
+        $validated = $request->validate([
+            'note' => ['required', 'string', 'max:10000'],
+            'lesson_id' => ['nullable', 'integer', 'exists:lessons,id'],
+            'live_session_id' => ['nullable', 'integer', 'exists:class_schedules,id'],
+            'visible_to_parent' => ['required', 'boolean'],
+        ]);
+
+        if (! empty($validated['lesson_id']) && ! $this->lessonBelongsToGroupProgram((int) $validated['lesson_id'], $learningGroup)) {
+            return back()->withErrors(['lesson_id' => 'Select a lesson from this group program.'])->withInput();
+        }
+        if (! empty($validated['live_session_id']) && ! $this->liveSessionBelongsToGroup((int) $validated['live_session_id'], $learningGroup)) {
+            return back()->withErrors(['live_session_id' => 'Select a live session from this group.'])->withInput();
+        }
+
+        MentorNote::create([
+            ...$validated,
+            'mentor_id' => Auth::id(),
+            'student_id' => $student->id,
+            'learning_group_id' => $learningGroup->id,
+        ]);
+
+        return back()->with('success', 'Mentor note added successfully.');
+    }
+
+    private function authorizeMentorStudent(LearningGroup $learningGroup, User $student): void
+    {
+        $this->authorizeMentorGroup($learningGroup);
+        abort_unless($learningGroup->students()->whereKey($student->id)->exists(), 404);
     }
 
     public function store(Request $request): RedirectResponse

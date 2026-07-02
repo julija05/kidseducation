@@ -139,6 +139,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(LiveSessionAttendance::class, 'student_id');
     }
 
+    public function mentorNotes(): HasMany
+    {
+        return $this->hasMany(MentorNote::class, 'student_id');
+    }
+
+    public function writtenMentorNotes(): HasMany
+    {
+        return $this->hasMany(MentorNote::class, 'mentor_id');
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
