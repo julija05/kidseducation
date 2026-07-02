@@ -1,7 +1,7 @@
 import MentorLayout from "@/Layouts/MentorLayout";
 import { Head, router, useForm } from "@inertiajs/react";
 import { useState, useRef, useEffect } from "react";
-import { Calendar, Clock, Users, Video, MapPin, ArrowLeft, Save, Search, X, UserPlus, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, Users, Video, MapPin, ArrowLeft, Save, Search, X, UserPlus, CheckCircle2, FileText } from "lucide-react";
 import DatePicker from "react-datepicker";
 import Select from "react-select";
 import "react-datepicker/dist/react-datepicker.css";
@@ -25,32 +25,32 @@ const customSelectStyles = {
     control: (provided, state) => ({
         ...provided,
         borderRadius: '0.75rem',
-        borderWidth: '2px',
-        borderColor: state.isFocused ? '#10b981' : '#cbd5e1',
+        borderWidth: '1px',
+        borderColor: state.isFocused ? '#2563eb' : '#cbd5e1',
         paddingLeft: '2.25rem',
         paddingTop: '0.45rem',
         paddingBottom: '0.45rem',
         fontSize: '1rem',
         fontWeight: '500',
-        boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
+        boxShadow: state.isFocused ? '0 0 0 2px rgba(37, 99, 235, 0.15)' : 'none',
         '&:hover': {
-            borderColor: '#10b981',
+            borderColor: '#2563eb',
         },
         cursor: 'pointer',
     }),
     option: (provided, state) => ({
         ...provided,
         backgroundColor: state.isSelected
-            ? '#10b981'
+            ? '#2563eb'
             : state.isFocused
-            ? '#d1fae5'
+            ? '#dbeafe'
             : 'white',
         color: state.isSelected ? 'white' : '#1e293b',
         fontWeight: state.isSelected ? '700' : '600',
         padding: '0.75rem 1rem',
         cursor: 'pointer',
         '&:active': {
-            backgroundColor: '#10b981',
+            backgroundColor: '#2563eb',
         },
     }),
     menu: (provided) => ({
@@ -59,7 +59,7 @@ const customSelectStyles = {
         overflow: 'hidden',
         marginTop: '0.5rem',
         boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-        border: '2px solid #cbd5e1',
+        border: '1px solid #cbd5e1',
     }),
     singleValue: (provided) => ({
         ...provided,
@@ -72,9 +72,9 @@ const customSelectStyles = {
     }),
     dropdownIndicator: (provided, state) => ({
         ...provided,
-        color: state.isFocused ? '#10b981' : '#64748b',
+        color: state.isFocused ? '#2563eb' : '#64748b',
         '&:hover': {
-            color: '#10b981',
+            color: '#2563eb',
         },
     }),
     indicatorSeparator: () => ({
@@ -220,57 +220,59 @@ export default function Create({ students, groups = [] }) {
         <MentorLayout>
             <Head title="Schedule Meeting" />
 
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="-mx-4 -my-6 min-h-screen bg-slate-50 sm:-mx-6 lg:-mx-8">
+                <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-10">
+                    <div className="mb-6">
                         <button
                             onClick={() => router.visit(route('mentor.meetings.index'))}
-                            className="group flex items-center gap-2 text-slate-700 hover:text-emerald-700 mb-6 transition-all font-semibold"
+                            className="group mb-4 flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-blue-700"
                         >
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                             <span>Back to Meetings</span>
                         </button>
-                        <div className="flex items-center gap-4 mb-3">
-                            <div className="p-3 bg-emerald-100 rounded-2xl">
-                                <Calendar className="w-8 h-8 text-emerald-700" />
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                                <Calendar className="h-5 w-5" />
                             </div>
                             <div>
-                                <h1 className="text-4xl font-black text-slate-900">Schedule New Meeting</h1>
-                                <p className="text-lg text-slate-600 mt-1">Create a class session with your students</p>
+                                <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Schedule New Meeting</h1>
+                                <p className="mt-1 text-sm text-slate-600 sm:text-base">Create a class session with your students.</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-12">
                         {/* Meeting Type Section */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                <Users className="w-6 h-6 text-emerald-600" />
-                                Meeting Type
-                            </h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:col-span-12">
+                            <div className="mb-4 flex items-center gap-3">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                    <Users className="h-4 w-4" />
+                                </span>
+                                <h2 className="text-lg font-bold text-slate-900">Meeting Type</h2>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <button
                                     type="button"
                                     onClick={() => handleMeetingTypeChange('individual')}
-                                    className={`relative p-6 rounded-xl border-2 font-bold transition-all ${
+                                    className={`relative rounded-xl border p-4 text-left transition ${
                                         data.meeting_type === 'individual'
-                                            ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-950 shadow-lg'
-                                            : 'border-slate-300 bg-white text-slate-900 hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-md'
+                                            ? 'border-blue-500 bg-sky-50 text-blue-900 shadow-sm'
+                                            : 'border-slate-200 bg-white text-slate-900 hover:border-blue-300 hover:bg-slate-50'
                                     }`}
                                 >
                                     {data.meeting_type === 'individual' && (
-                                        <div className="absolute top-3 right-3">
-                                            <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                                        <div className="absolute right-3 top-3">
+                                            <CheckCircle2 className="h-5 w-5 text-blue-600" />
                                         </div>
                                     )}
-                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                        <Users className="w-7 h-7" />
-                                        <span className="text-xl">Individual</span>
+                                    <div className="mb-1 flex items-center gap-2">
+                                        <Users className="h-5 w-5" />
+                                        <span className="font-bold">Individual</span>
                                     </div>
-                                    <p className={`text-base font-semibold ${
-                                        data.meeting_type === 'individual' ? 'text-emerald-800' : 'text-slate-600'
+                                    <p className={`pl-7 text-sm ${
+                                        data.meeting_type === 'individual' ? 'text-blue-700' : 'text-slate-600'
                                     }`}>
                                         One-on-one meeting
                                     </p>
@@ -278,23 +280,23 @@ export default function Create({ students, groups = [] }) {
                                 <button
                                     type="button"
                                     onClick={() => handleMeetingTypeChange('group')}
-                                    className={`relative p-6 rounded-xl border-2 font-bold transition-all ${
+                                    className={`relative rounded-xl border p-4 text-left transition ${
                                         data.meeting_type === 'group'
-                                            ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-950 shadow-lg'
-                                            : 'border-slate-300 bg-white text-slate-900 hover:border-emerald-400 hover:bg-emerald-50 hover:shadow-md'
+                                            ? 'border-blue-500 bg-sky-50 text-blue-900 shadow-sm'
+                                            : 'border-slate-200 bg-white text-slate-900 hover:border-blue-300 hover:bg-slate-50'
                                     }`}
                                 >
                                     {data.meeting_type === 'group' && (
-                                        <div className="absolute top-3 right-3">
-                                            <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                                        <div className="absolute right-3 top-3">
+                                            <CheckCircle2 className="h-5 w-5 text-blue-600" />
                                         </div>
                                     )}
-                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                        <Users className="w-7 h-7" />
-                                        <span className="text-xl">Group</span>
+                                    <div className="mb-1 flex items-center gap-2">
+                                        <Users className="h-5 w-5" />
+                                        <span className="font-bold">Group</span>
                                     </div>
-                                    <p className={`text-base font-semibold ${
-                                        data.meeting_type === 'group' ? 'text-emerald-800' : 'text-slate-600'
+                                    <p className={`pl-7 text-sm ${
+                                        data.meeting_type === 'group' ? 'text-blue-700' : 'text-slate-600'
                                     }`}>
                                         Your complete learning group
                                     </p>
@@ -304,15 +306,17 @@ export default function Create({ students, groups = [] }) {
                         </div>
 
                         {/* Meeting Details Section */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <Calendar className="w-6 h-6 text-emerald-600" />
-                                Meeting Details
-                            </h2>
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:col-span-7">
+                            <div className="mb-6 flex items-center gap-3">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                    <Calendar className="h-4 w-4" />
+                                </span>
+                                <h2 className="text-lg font-bold text-slate-900">Meeting Details</h2>
+                            </div>
 
                             {/* Title */}
                             <div className="mb-6">
-                                <label className="block text-base font-bold text-slate-900 mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-slate-700">
                                     Meeting Title <span className="text-red-600">*</span>
                                 </label>
                                 <input
@@ -320,7 +324,7 @@ export default function Create({ students, groups = [] }) {
                                     value={data.title}
                                     onChange={(e) => setData('title', e.target.value)}
                                     placeholder="e.g., Math Review Session"
-                                    className="w-full px-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                                     required
                                 />
                                 {errors.title && <p className="text-red-700 text-sm mt-2 font-semibold">{errors.title}</p>}
@@ -328,21 +332,21 @@ export default function Create({ students, groups = [] }) {
 
                             {/* Description */}
                             <div className="mb-6">
-                                <label className="block text-base font-bold text-slate-900 mb-2">Description</label>
+                                <label className="mb-2 block text-sm font-semibold text-slate-700">Description</label>
                                 <textarea
                                     value={data.description}
                                     onChange={(e) => setData('description', e.target.value)}
                                     placeholder="What will you cover in this meeting?"
-                                    rows="4"
-                                    className="w-full px-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400 resize-none"
+                                    rows="3"
+                                    className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                                 />
                                 {errors.description && <p className="text-red-700 text-sm mt-2 font-semibold">{errors.description}</p>}
                             </div>
 
                             {/* Date and Time */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <div>
-                                    <label className="block text-base font-bold text-slate-900 mb-2">
+                                    <label className="mb-2 block text-sm font-semibold text-slate-700">
                                         Date & Time <span className="text-red-600">*</span>
                                     </label>
                                     <div className="relative">
@@ -355,17 +359,18 @@ export default function Create({ students, groups = [] }) {
                                             timeIntervals={15}
                                             dateFormat="MMMM d, yyyy h:mm aa"
                                             minDate={new Date()}
+                                            popperPlacement="bottom-start"
                                             placeholderText="Select date and time"
-                                            className="w-full pl-11 pr-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all"
+                                            className="w-full rounded-xl border border-slate-300 py-3 pl-11 pr-4 text-base text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                                             required
-                                            calendarClassName="modern-datepicker"
+                                            calendarClassName="modern-datepicker !inline-flex !items-stretch !border-slate-200 !font-sans [&_.react-datepicker__header]:!bg-blue-600 [&_.react-datepicker__header]:!bg-none [&_.react-datepicker__month-container]:!float-none [&_.react-datepicker__month]:!m-2 [&_.react-datepicker__day]:!m-1 [&_.react-datepicker__day:hover]:!scale-100 [&_.react-datepicker__day:hover]:!bg-blue-50 [&_.react-datepicker__day:hover]:!text-blue-700 [&_.react-datepicker__day--selected]:!bg-blue-600 [&_.react-datepicker__day--selected]:!bg-none [&_.react-datepicker__day--keyboard-selected]:!bg-blue-600 [&_.react-datepicker__day--keyboard-selected]:!bg-none [&_.react-datepicker__day--today]:!border-blue-600 [&_.react-datepicker__day--today]:!bg-blue-50 [&_.react-datepicker__day--today]:!text-blue-700 [&_.react-datepicker__time-container]:!float-none [&_.react-datepicker__time-container]:!w-28 [&_.react-datepicker__time-list]:!h-[248px] [&_.react-datepicker__time-list-item:hover]:!bg-blue-50 [&_.react-datepicker__time-list-item:hover]:!text-blue-700 [&_.react-datepicker__time-list-item--selected]:!bg-blue-600 [&_.react-datepicker__time-list-item--selected]:!bg-none"
                                             popperClassName="datepicker-popper"
                                         />
                                     </div>
                                     {errors.scheduled_at && <p className="text-red-700 text-sm mt-2 font-semibold">{errors.scheduled_at}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-base font-bold text-slate-900 mb-2">
+                                    <label className="mb-2 block text-sm font-semibold text-slate-700">
                                         Duration <span className="text-red-600">*</span>
                                     </label>
                                     <div className="relative">
@@ -386,15 +391,17 @@ export default function Create({ students, groups = [] }) {
                         </div>
 
                         {/* Location Section */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <MapPin className="w-6 h-6 text-emerald-600" />
-                                Location Details
-                            </h2>
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:col-span-5">
+                            <div className="mb-6 flex items-center gap-3">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                    <MapPin className="h-4 w-4" />
+                                </span>
+                                <h2 className="text-lg font-bold text-slate-900">Location Details</h2>
+                            </div>
 
                             {/* Meeting URL */}
                             <div className="mb-6">
-                                <label className="block text-base font-bold text-slate-900 mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-slate-700">
                                     Online Meeting URL <span className="text-slate-500 text-sm font-normal">(optional)</span>
                                 </label>
                                 <div className="relative">
@@ -404,7 +411,7 @@ export default function Create({ students, groups = [] }) {
                                         value={data.meeting_url}
                                         onChange={(e) => setData('meeting_url', e.target.value)}
                                         placeholder="https://zoom.us/j/..."
-                                        className="w-full pl-11 pr-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                                        className="w-full rounded-xl border border-slate-300 py-3 pl-11 pr-4 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                                     />
                                 </div>
                                 {errors.meeting_url && <p className="text-red-700 text-sm mt-2 font-semibold">{errors.meeting_url}</p>}
@@ -412,7 +419,7 @@ export default function Create({ students, groups = [] }) {
 
                             {/* Physical Location */}
                             <div>
-                                <label className="block text-base font-bold text-slate-900 mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-slate-700">
                                     Physical Location <span className="text-slate-500 text-sm font-normal">(optional)</span>
                                 </label>
                                 <div className="relative">
@@ -422,21 +429,42 @@ export default function Create({ students, groups = [] }) {
                                         value={data.location}
                                         onChange={(e) => setData('location', e.target.value)}
                                         placeholder="e.g., Classroom 101"
-                                        className="w-full pl-11 pr-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                                        className="w-full rounded-xl border border-slate-300 py-3 pl-11 pr-4 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                                     />
                                 </div>
                                 {errors.location && <p className="text-red-700 text-sm mt-2 font-semibold">{errors.location}</p>}
                             </div>
+
+                            <div className="my-6 border-t border-slate-100" />
+
+                            <div className="mb-4 flex items-center gap-3">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                    <FileText className="h-4 w-4" />
+                                </span>
+                                <h2 className="text-lg font-bold text-slate-900">Private Notes</h2>
+                            </div>
+                            <textarea
+                                value={data.notes}
+                                onChange={(e) => setData('notes', e.target.value)}
+                                placeholder="Any additional notes for yourself..."
+                                rows="4"
+                                className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
+                            />
+                            {errors.notes && <p className="mt-2 text-sm font-semibold text-red-700">{errors.notes}</p>}
                         </div>
 
                         {/* Participants Selection Section */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                    <UserPlus className="w-6 h-6 text-emerald-600" />
-                                    {data.meeting_type === 'group' ? 'Select Learning Group' : 'Select Student'} <span className="text-red-600">*</span>
-                                </h2>
-                                <span className="px-4 py-2 bg-emerald-100 text-emerald-800 text-sm font-bold rounded-full">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:col-span-12">
+                            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                        <UserPlus className="h-4 w-4" />
+                                    </span>
+                                    <h2 className="text-lg font-bold text-slate-900">
+                                        {data.meeting_type === 'group' ? 'Select Learning Group' : 'Select Student'} <span className="text-red-600">*</span>
+                                    </h2>
+                                </div>
+                                <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 ring-1 ring-blue-100">
                                     {selectedStudentObjects.length}/{maxParticipants || 1} selected
                                 </span>
                             </div>
@@ -451,7 +479,7 @@ export default function Create({ students, groups = [] }) {
                                             <select
                                                 value={data.learning_group_id}
                                                 onChange={(event) => setData('learning_group_id', event.target.value)}
-                                                className="w-full px-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none"
+                                                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                                                 required
                                             >
                                                 <option value="">Choose a group...</option>
@@ -463,7 +491,7 @@ export default function Create({ students, groups = [] }) {
                                             </select>
                                         </>
                                     ) : (
-                                        <div className="p-8 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+                                        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
                                             <Users className="w-12 h-12 mx-auto mb-3 text-slate-400" />
                                             <p className="text-slate-700 font-semibold">No active groups with students</p>
                                             <p className="text-slate-600 text-sm mt-1">Create a group and add students before scheduling its meeting.</p>
@@ -481,14 +509,14 @@ export default function Create({ students, groups = [] }) {
                                         {selectedStudentObjects.map((student) => (
                                             <div
                                                 key={student.id}
-                                                className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-900 rounded-full border-2 border-emerald-300"
+                                                className="flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-blue-800"
                                             >
                                                 <span className="font-semibold text-sm">{student.name}</span>
                                                 {data.meeting_type === 'individual' && (
                                                     <button
                                                         type="button"
                                                         onClick={() => handleStudentRemove(student.id)}
-                                                        className="hover:bg-emerald-200 rounded-full p-1 transition-colors"
+                                                        className="rounded-full p-1 transition-colors hover:bg-slate-100"
                                                     >
                                                         <X className="w-4 h-4" />
                                                     </button>
@@ -516,22 +544,22 @@ export default function Create({ students, groups = [] }) {
                                             }}
                                             onFocus={() => setShowDropdown(true)}
                                             placeholder="Search by name or email..."
-                                            className="w-full pl-11 pr-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400"
+                                            className="w-full rounded-xl border border-slate-300 py-3 pl-11 pr-4 text-base text-slate-900 transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/15"
                                             disabled={selectedStudents.length >= maxParticipants}
                                         />
                                     </div>
 
                                     {/* Dropdown with filtered students */}
                                     {showDropdown && searchTerm && filteredStudents.length > 0 && (
-                                        <div className="absolute z-10 w-full mt-2 bg-white border-2 border-slate-300 rounded-xl shadow-xl max-h-64 overflow-y-auto">
+                                        <div className="absolute z-10 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
                                             {filteredStudents.map((student) => (
                                                 <button
                                                     key={student.id}
                                                     type="button"
                                                     onClick={() => handleStudentAdd(student.id)}
-                                                    className="w-full px-4 py-3 text-left hover:bg-emerald-50 transition-colors border-b border-slate-100 last:border-b-0 flex items-center gap-3"
+                                                    className="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-slate-50"
                                                 >
-                                                    <UserPlus className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                                                    <UserPlus className="h-5 w-5 flex-shrink-0 text-blue-600" />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="font-bold text-slate-900 truncate">{student.name}</p>
                                                         <p className="text-sm text-slate-600 truncate">{student.email}</p>
@@ -543,13 +571,13 @@ export default function Create({ students, groups = [] }) {
 
                                     {/* No results message */}
                                     {showDropdown && searchTerm && filteredStudents.length === 0 && (
-                                        <div className="absolute z-10 w-full mt-2 bg-white border-2 border-slate-300 rounded-xl shadow-xl p-4 text-center">
+                                        <div className="absolute z-10 mt-2 w-full rounded-xl border border-slate-200 bg-white p-4 text-center shadow-xl">
                                             <p className="text-slate-600">No students found matching "{searchTerm}"</p>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div className="p-8 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+                                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
                                     <Users className="w-12 h-12 mx-auto mb-3 text-slate-400" />
                                     <p className="text-slate-700 font-semibold text-base">No students available</p>
                                     <p className="text-slate-600 text-sm mt-1">Students must enroll through your invitation link first.</p>
@@ -558,33 +586,20 @@ export default function Create({ students, groups = [] }) {
                             {errors.student_ids && <p className="text-red-700 text-sm mt-3 font-semibold">{errors.student_ids}</p>}
                         </div>
 
-                        {/* Notes Section */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                            <h2 className="text-xl font-bold text-slate-900 mb-6">Private Notes</h2>
-                            <textarea
-                                value={data.notes}
-                                onChange={(e) => setData('notes', e.target.value)}
-                                placeholder="Any additional notes for yourself..."
-                                rows="4"
-                                className="w-full px-4 py-3 text-base text-slate-900 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all placeholder:text-slate-400 resize-none"
-                            />
-                            {errors.notes && <p className="text-red-700 text-sm mt-2 font-semibold">{errors.notes}</p>}
-                        </div>
-
                         {/* Submit Buttons */}
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                        <div className="flex flex-col-reverse gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-end lg:col-span-12">
                             <button
                                 type="submit"
                                 disabled={processing || !hasParticipants}
-                                className="flex-1 flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg"
+                                className="flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-52"
                             >
-                                <Save className="w-6 h-6" />
+                                <Save className="h-4 w-4" />
                                 {processing ? 'Scheduling...' : 'Schedule Meeting'}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => router.visit(route('mentor.meetings.index'))}
-                                className="px-8 py-4 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl font-bold text-lg transition-all"
+                                className="rounded-xl border border-slate-300 !bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:!bg-slate-50"
                             >
                                 Cancel
                             </button>

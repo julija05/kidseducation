@@ -1,5 +1,5 @@
 import MentorLayout from "@/Layouts/MentorLayout";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import { Calendar, Clock, Users, Video, MapPin, CheckCircle, XCircle, Plus, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -21,7 +21,7 @@ export default function Index({ upcomingMeetings, pastMeetings }) {
     };
 
     const getMeetingTypeColor = (type) => {
-        return type === 'individual' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700';
+        return type === 'individual' ? 'bg-blue-50 text-blue-700 ring-blue-100' : 'bg-slate-100 text-slate-700 ring-slate-200';
     };
 
     const getMeetingTypeLabel = (type) => {
@@ -32,39 +32,41 @@ export default function Index({ upcomingMeetings, pastMeetings }) {
         <MentorLayout>
             <Head title="My Meetings" />
 
-            <div className="min-h-screen bg-slate-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="-mx-4 -my-6 min-h-screen bg-slate-50 sm:-mx-6 lg:-mx-8">
+                <div className="mx-auto max-w-[1500px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900">My Meetings</h1>
-                            <p className="text-lg text-slate-600 mt-1">Schedule and manage your class meetings</p>
+                            <p className="mb-2 text-xs font-bold text-blue-600">MENTOR SCHEDULE</p>
+                            <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">My Meetings</h1>
+                            <p className="mt-2 text-sm text-slate-600 sm:text-base">Schedule and manage your class meetings.</p>
                         </div>
-                        <Link href={route('mentor.meetings.create')}>
-                            <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
-                                <Plus className="w-5 h-5" />
-                                Schedule Meeting
-                            </button>
+                        <Link
+                            href={route('mentor.meetings.create')}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Schedule Meeting
                         </Link>
                     </div>
 
                     {/* Upcoming Meetings */}
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-4">Upcoming Meetings</h2>
+                    <section>
+                        <h2 className="mb-4 text-xl font-bold text-slate-900">Upcoming Meetings</h2>
                         {upcomingMeetings.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                                 {upcomingMeetings.map((meeting, index) => (
                                     <motion.div
                                         key={meeting.id}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.1 }}
-                                        className="bg-white rounded-2xl border-2 border-slate-200 p-6 hover:border-emerald-300 hover:shadow-lg transition-all"
+                                        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.4)] transition hover:border-blue-200 hover:shadow-md"
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getMeetingTypeColor(meeting.meeting_type)}`}>
+                                                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${getMeetingTypeColor(meeting.meeting_type)}`}>
                                                         {getMeetingTypeLabel(meeting.meeting_type)}
                                                     </span>
                                                     <span className="text-xs text-slate-500">
@@ -80,24 +82,24 @@ export default function Index({ upcomingMeetings, pastMeetings }) {
 
                                         <div className="space-y-2 mb-4">
                                             <div className="flex items-center gap-2 text-sm text-slate-700">
-                                                <Calendar className="w-4 h-4 text-emerald-600" />
+                                                <Calendar className="h-4 w-4 text-blue-600" />
                                                 <span>{formatDate(meeting.scheduled_at)}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-sm text-slate-700">
-                                                <Clock className="w-4 h-4 text-emerald-600" />
+                                                <Clock className="h-4 w-4 text-blue-600" />
                                                 <span>{formatTime(meeting.scheduled_at)} ({meeting.duration_minutes} min)</span>
                                             </div>
                                             {meeting.meeting_url && (
                                                 <div className="flex items-center gap-2 text-sm text-slate-700">
-                                                    <Video className="w-4 h-4 text-emerald-600" />
-                                                    <a href={meeting.meeting_url} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
+                                                    <Video className="h-4 w-4 text-blue-600" />
+                                                    <a href={meeting.meeting_url} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-700 hover:underline">
                                                         Join online
                                                     </a>
                                                 </div>
                                             )}
                                             {meeting.location && (
                                                 <div className="flex items-center gap-2 text-sm text-slate-700">
-                                                    <MapPin className="w-4 h-4 text-emerald-600" />
+                                                    <MapPin className="h-4 w-4 text-blue-600" />
                                                     <span>{meeting.location}</span>
                                                 </div>
                                             )}
@@ -120,33 +122,32 @@ export default function Index({ upcomingMeetings, pastMeetings }) {
                                             </div>
                                         </div>
 
-                                        <Link href={route('mentor.meetings.show', meeting.id)}>
-                                            <button className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold transition-all">
-                                                <Eye className="w-4 h-4" />
-                                                View Details
-                                            </button>
+                                        <Link
+                                            href={route('mentor.meetings.show', meeting.id)}
+                                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                            View Details
                                         </Link>
                                     </motion.div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-white rounded-2xl p-12 text-center border-2 border-dashed border-slate-300">
+                            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
                                 <Calendar className="w-16 h-16 mx-auto text-slate-300 mb-4" />
                                 <p className="text-slate-600 mb-4">No upcoming meetings scheduled</p>
-                                <Link href={route('mentor.meetings.create')}>
-                                    <button className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all">
-                                        Schedule Your First Meeting
-                                    </button>
+                                <Link href={route('mentor.meetings.create')} className="inline-flex rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
+                                    Schedule Your First Meeting
                                 </Link>
                             </div>
                         )}
-                    </div>
+                    </section>
 
                     {/* Past Meetings */}
                     {pastMeetings.length > 0 && (
-                        <div>
-                            <h2 className="text-2xl font-bold text-slate-900 mb-4">Past Meetings</h2>
-                            <div className="bg-white rounded-2xl border-2 border-slate-200 p-6">
+                        <section>
+                            <h2 className="mb-4 text-xl font-bold text-slate-900">Past Meetings</h2>
+                            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                 <div className="space-y-3">
                                     {pastMeetings.map((meeting) => (
                                         <div key={meeting.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all">
@@ -154,14 +155,14 @@ export default function Index({ upcomingMeetings, pastMeetings }) {
                                                 <h4 className="font-semibold text-slate-900">{meeting.title}</h4>
                                                 <div className="flex items-center gap-4 mt-1 text-xs text-slate-600">
                                                     <span>{formatDate(meeting.scheduled_at)}</span>
-                                                    <span className={`px-2 py-0.5 rounded-full ${getMeetingTypeColor(meeting.meeting_type)}`}>
+                                                <span className={`rounded-full px-2 py-0.5 ring-1 ${getMeetingTypeColor(meeting.meeting_type)}`}>
                                                         {getMeetingTypeLabel(meeting.meeting_type)}
                                                     </span>
                                                     <span>{meeting.participants_count} participants</span>
                                                 </div>
                                             </div>
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                meeting.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                                meeting.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                                             }`}>
                                                 {meeting.status}
                                             </span>
@@ -169,7 +170,7 @@ export default function Index({ upcomingMeetings, pastMeetings }) {
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     )}
                 </div>
             </div>

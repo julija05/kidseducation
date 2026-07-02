@@ -6,6 +6,7 @@ import {
     BookOpen,
     CalendarClock,
     CheckCircle2,
+    ChevronDown,
     Clock,
     ExternalLink,
     GraduationCap,
@@ -71,14 +72,14 @@ const display = (value, fallback = "Not available") => value || fallback;
 export default function GroupDashboard({ group, homeworkOptions, attendanceOptions, backHref, backLabel = "Groups", theme = "mentor" }) {
     const primaryButton = theme === "admin"
         ? "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
-        : "bg-slate-900 hover:bg-slate-800 focus:ring-slate-900";
+        : "bg-sky-600 hover:bg-sky-700 focus:ring-blue-500";
 
     const homework = group.homework_summary || {};
     const attendance = group.attendance_summary || {};
     const helpRequests = group.help_requests || [];
 
     return (
-        <div className="space-y-6">
+        <div className={`space-y-6 ${theme === "mentor" ? "[&_section]:rounded-2xl" : ""}`}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <Link
@@ -89,7 +90,7 @@ export default function GroupDashboard({ group, homeworkOptions, attendanceOptio
                         {backLabel}
                     </Link>
                     <div className="mt-3 flex flex-wrap items-center gap-3">
-                        <h1 className="text-2xl font-bold text-slate-950">{group.name}</h1>
+                        <h1 className={`${theme === "mentor" ? "text-3xl sm:text-4xl" : "text-2xl"} font-bold text-slate-950`}>{group.name}</h1>
                         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[group.status] || statusStyles.draft}`}>
                             {label(group.status)}
                         </span>
@@ -222,72 +223,111 @@ export default function GroupDashboard({ group, homeworkOptions, attendanceOptio
                 </section>
             </div>
 
-            {attendanceOptions && (
-                <AttendanceForm
-                    group={group}
-                    options={attendanceOptions}
-                    primaryButton={primaryButton}
-                />
+            {theme === "mentor" ? (
+                <section className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+                    <div className="border-b border-slate-100 px-5 py-5 sm:px-6">
+                        <h2 className="text-lg font-bold text-slate-950">Group tools</h2>
+                        <p className="mt-1 text-sm text-slate-500">Open a workspace when you need to manage attendance, homework, or students.</p>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                        {attendanceOptions && (
+                            <DashboardDisclosure icon={UserCheck} title="Mark attendance" description="Record attendance for a live session.">
+                                <AttendanceForm group={group} options={attendanceOptions} primaryButton={primaryButton} />
+                            </DashboardDisclosure>
+                        )}
+                        <DashboardDisclosure icon={Clock} title="Attendance history" description="Review previous attendance records by student.">
+                            <AttendanceHistory history={attendance.student_history || []} />
+                        </DashboardDisclosure>
+                        {homeworkOptions && (
+                            <DashboardDisclosure icon={CheckCircle2} title="Create homework" description="Prepare and assign practice work.">
+                                <HomeworkAssignmentForm group={group} options={homeworkOptions} primaryButton={primaryButton} />
+                            </DashboardDisclosure>
+                        )}
+                        <DashboardDisclosure icon={BookOpen} title="Homework completion" description="Review completion and support status.">
+                            <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
+                        </DashboardDisclosure>
+                        <DashboardDisclosure icon={Users} title="Students" description={`${group.students.length} currently assigned to this group.`}>
+                            <StudentsPanel students={group.students} />
+                        </DashboardDisclosure>
+                    </div>
+                </section>
+            ) : (
+                <>
+                    {attendanceOptions && <AttendanceForm group={group} options={attendanceOptions} primaryButton={primaryButton} />}
+                    <AttendanceHistory history={attendance.student_history || []} />
+                    {homeworkOptions && <HomeworkAssignmentForm group={group} options={homeworkOptions} primaryButton={primaryButton} />}
+                    <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
+                    <StudentsPanel students={group.students} />
+                </>
             )}
-
-            <AttendanceHistory history={attendance.student_history || []} />
-
-            {homeworkOptions && (
-                <HomeworkAssignmentForm
-                    group={group}
-                    options={homeworkOptions}
-                    primaryButton={primaryButton}
-                />
-            )}
-
-            <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
-
-            <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                    <div>
-                        <h2 className="text-lg font-bold text-slate-950">Students</h2>
-                        <p className="mt-1 text-sm text-slate-500">All students currently assigned to this group.</p>
-                    </div>
-                    <Users className="h-5 w-5 text-slate-400" />
-                </div>
-
-                {group.students.length === 0 ? (
-                    <div className="px-5 py-10">
-                        <EmptyLine text="No students have been added to this group yet." />
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <TableHeader>Name</TableHeader>
-                                    <TableHeader>Email</TableHeader>
-                                    <TableHeader>Progress</TableHeader>
-                                    <TableHeader>Status</TableHeader>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200 bg-white">
-                                {group.students.map((student) => (
-                                    <tr key={student.id}>
-                                        <td className="px-5 py-4 text-sm font-semibold text-slate-950">{student.name}</td>
-                                        <td className="px-5 py-4 text-sm text-slate-600">
-                                            <span className="inline-flex items-center gap-2">
-                                                <Mail className="h-4 w-4 text-slate-400" />
-                                                {student.email}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-slate-700">
-                                            {student.progress === null || student.progress === undefined ? "N/A" : `${student.progress}%`}
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-slate-700">{label(student.enrollment_status)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </section>
         </div>
+    );
+}
+
+function DashboardDisclosure({ icon: Icon, title, description, children }) {
+    return (
+        <details className="group/tool">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 transition hover:bg-blue-50/60 sm:px-6 [&::-webkit-details-marker]:hidden">
+                <span className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                        <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-slate-900">{title}</span>
+                        <span className="mt-0.5 block text-sm text-slate-500">{description}</span>
+                    </span>
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition group-open/tool:rotate-180" />
+            </summary>
+            <div className="border-t border-slate-100 bg-slate-50/50 p-3 sm:p-4 [&>section]:!rounded-xl [&>section]:!shadow-none">
+                {children}
+            </div>
+        </details>
+    );
+}
+
+function StudentsPanel({ students }) {
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <div>
+                    <h2 className="text-lg font-bold text-slate-950">Students</h2>
+                    <p className="mt-1 text-sm text-slate-500">All students currently assigned to this group.</p>
+                </div>
+                <Users className="h-5 w-5 text-slate-400" />
+            </div>
+
+            {students.length === 0 ? (
+                <div className="px-5 py-10"><EmptyLine text="No students have been added to this group yet." /></div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50">
+                            <tr>
+                                <TableHeader>Name</TableHeader>
+                                <TableHeader>Email</TableHeader>
+                                <TableHeader>Progress</TableHeader>
+                                <TableHeader>Status</TableHeader>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 bg-white">
+                            {students.map((student) => (
+                                <tr key={student.id}>
+                                    <td className="px-5 py-4 text-sm font-semibold text-slate-950">{student.name}</td>
+                                    <td className="px-5 py-4 text-sm text-slate-600">
+                                        <span className="inline-flex items-center gap-2"><Mail className="h-4 w-4 text-slate-400" />{student.email}</span>
+                                    </td>
+                                    <td className="px-5 py-4 text-sm text-slate-700">
+                                        {student.progress === null || student.progress === undefined ? "N/A" : `${student.progress}%`}
+                                    </td>
+                                    <td className="px-5 py-4 text-sm text-slate-700">{label(student.enrollment_status)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </section>
     );
 }
 

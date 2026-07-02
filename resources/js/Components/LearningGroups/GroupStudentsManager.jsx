@@ -27,10 +27,10 @@ export default function GroupStudentsManager({ group, storeRoute, destroyRoute, 
     const isFull = group.students_count >= group.max_students;
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-                <div className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <Users className="h-4 w-4 text-gray-400" />
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <Users className="h-4 w-4 text-slate-400" />
                     <span>{group.students_count}/{group.max_students} students</span>
                 </div>
             </div>
@@ -40,7 +40,7 @@ export default function GroupStudentsManager({ group, storeRoute, destroyRoute, 
                     value={studentId}
                     onChange={(event) => setStudentId(event.target.value)}
                     disabled={isFull || group.available_students.length === 0}
-                    className="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
+                    className="w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500/20 disabled:bg-slate-100"
                 >
                     <option value="">
                         {isFull
@@ -58,7 +58,7 @@ export default function GroupStudentsManager({ group, storeRoute, destroyRoute, 
                 <button
                     type="submit"
                     disabled={!studentId || isFull}
-                    className="inline-flex items-center justify-center gap-2 rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
                     <UserPlus className="h-4 w-4" />
                     Add
@@ -66,20 +66,20 @@ export default function GroupStudentsManager({ group, storeRoute, destroyRoute, 
             </form>
 
             {group.students.length > 0 && (
-                <div className="space-y-2">
+                <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
                     {group.students.map((student) => (
                         <div
                             key={student.id}
-                            className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2"
+                            className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5"
                         >
                             <div className="min-w-0">
-                                <div className="truncate text-sm font-medium text-gray-900">{student.name}</div>
-                                <div className="truncate text-xs text-gray-500">{student.email}</div>
+                                <div className="truncate text-sm font-semibold text-slate-900">{student.name}</div>
+                                <div className="truncate text-xs text-slate-500">{student.email}</div>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => removeStudent(student)}
-                                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-red-600 hover:bg-red-50"
+                                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50"
                                 title="Remove student"
                             >
                                 <Trash2 className="h-4 w-4" />
