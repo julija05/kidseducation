@@ -11,6 +11,7 @@ import {
     ExternalLink,
     GraduationCap,
     HelpCircle,
+    FileText,
     Mail,
     UserCheck,
     Users,
@@ -69,7 +70,7 @@ const label = (value) => {
 
 const display = (value, fallback = "Not available") => value || fallback;
 
-export default function GroupDashboard({ group, homeworkOptions, attendanceOptions, backHref, backLabel = "Groups", theme = "mentor" }) {
+export default function GroupDashboard({ group, homeworkOptions, attendanceOptions, weeklyReportOptions, backHref, backLabel = "Groups", theme = "mentor" }) {
     const primaryButton = theme === "admin"
         ? "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         : "bg-sky-600 hover:bg-sky-700 focus:ring-blue-500";
@@ -243,6 +244,11 @@ export default function GroupDashboard({ group, homeworkOptions, attendanceOptio
                                 <HomeworkAssignmentForm group={group} options={homeworkOptions} primaryButton={primaryButton} />
                             </DashboardDisclosure>
                         )}
+                        {weeklyReportOptions && (
+                            <DashboardDisclosure icon={FileText} title="Weekly reports" description="Publish a report for the group or one student.">
+                                <WeeklyReportForm group={group} options={weeklyReportOptions} primaryButton={primaryButton} />
+                            </DashboardDisclosure>
+                        )}
                         <DashboardDisclosure icon={BookOpen} title="Homework completion" description="Review completion and support status.">
                             <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
                         </DashboardDisclosure>
@@ -261,6 +267,97 @@ export default function GroupDashboard({ group, homeworkOptions, attendanceOptio
                 </>
             )}
         </div>
+    );
+}
+
+function WeeklyReportForm({ group, options, primaryButton }) {
+    const students = options.students || [];
+    const { data, setData, post, processing, errors, reset, recentlySuccessful } = useForm({
+        week_number: 1,
+        child_user_id: "",
+        what_we_learned: "",
+        what_to_practice: "",
+        next_focus: "",
+        individual_notes: {},
+    });
+
+    const submit = (event) => {
+        event.preventDefault();
+        post(route("mentor.learning-groups.weekly-reports.store", group.id), {
+            preserveScroll: true,
+            onSuccess: () => reset(),
+        });
+    };
+
+    const setNote = (studentId, note) => setData("individual_notes", {
+        ...data.individual_notes,
+        [studentId]: note,
+    });
+
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <form onSubmit={submit} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Week number" error={errors.week_number}>
+                        <input type="number" min="1" max="53" value={data.week_number} onChange={(e) => setData("week_number", e.target.value)} className="w-full rounded-md border-slate-300" required />
+                    </Field>
+                    <Field label="Report for" error={errors.child_user_id}>
+                        <select value={data.child_user_id} onChange={(e) => setData("child_user_id", e.target.value)} className="w-full rounded-md border-slate-300">
+                            <option value="">Whole group</option>
+                            {students.map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}
+                        </select>
+                    </Field>
+                </div>
+                <ReportTextarea label="What we learned" value={data.what_we_learned} onChange={(value) => setData("what_we_learned", value)} error={errors.what_we_learned} />
+                <ReportTextarea label="What to practice" value={data.what_to_practice} onChange={(value) => setData("what_to_practice", value)} error={errors.what_to_practice} />
+                <ReportTextarea label="Next week focus" value={data.next_focus} onChange={(value) => setData("next_focus", value)} error={errors.next_focus} />
+
+                {data.child_user_id ? (
+                    <ReportTextarea label="Optional individual note" value={data.individual_notes[data.child_user_id] || ""} onChange={(value) => setNote(data.child_user_id, value)} />
+                ) : students.length > 0 && (
+                    <details className="rounded-md border border-slate-200 p-4">
+                        <summary className="cursor-pointer text-sm font-semibold text-slate-800">Optional individual notes per child</summary>
+                        <div className="mt-4 space-y-4">
+                            {students.map((student) => (
+                                <ReportTextarea key={student.id} label={student.name} value={data.individual_notes[student.id] || ""} onChange={(value) => setNote(student.id, value)} error={errors[`individual_notes.${student.id}`]} />
+                            ))}
+                        </div>
+                    </details>
+                )}
+
+                <div className="flex items-center gap-3">
+                    <button disabled={processing} className={`rounded-md px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${primaryButton}`}>Publish report</button>
+                    {recentlySuccessful && <span className="text-sm font-medium text-emerald-700">Report published.</span>}
+                </div>
+            </form>
+
+            {(options.reports || []).length > 0 && (
+                <div className="mt-6 border-t border-slate-200 pt-4">
+                    <h3 className="text-sm font-semibold text-slate-900">Published reports</h3>
+                    <div className="mt-2 space-y-2">
+                        {options.reports.map((report) => <p key={report.id} className="text-sm text-slate-600">Week {report.week_number} · {report.audience} · {report.published_at}</p>)}
+                    </div>
+                </div>
+            )}
+        </section>
+    );
+}
+
+function Field({ label: fieldLabel, error, children }) {
+    return (
+        <label className="block text-sm font-semibold text-slate-800">
+            {fieldLabel}
+            <div className="mt-1">{children}</div>
+            {error && <span className="mt-1 block text-xs text-red-600">{error}</span>}
+        </label>
+    );
+}
+
+function ReportTextarea({ label: fieldLabel, value, onChange, error }) {
+    return (
+        <Field label={fieldLabel} error={error}>
+            <textarea rows="3" value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border-slate-300" />
+        </Field>
     );
 }
 

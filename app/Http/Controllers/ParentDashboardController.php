@@ -558,11 +558,24 @@ class ParentDashboardController extends Controller
             return null;
         }
 
-        return WeeklyLearningReport::with(['program:id,name,slug', 'classSchedule:id,title,program_id,scheduled_at,is_group_class,student_id', 'classSchedule.program:id,name,slug'])
+        return WeeklyLearningReport::with([
+            'program:id,name,slug',
+            'classSchedule:id,title,program_id,scheduled_at,is_group_class,student_id',
+            'classSchedule.program:id,name,slug',
+            'learningGroup:id,name',
+            'childNotes' => fn ($query) => $query->where('child_user_id', $childId),
+        ])
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->where(function ($query) use ($childId) {
                 $query->where('child_user_id', $childId);
+
+                if (Schema::hasColumn('weekly_learning_reports', 'learning_group_id')) {
+                    $query->orWhere(function ($groupQuery) use ($childId) {
+                        $groupQuery->whereNull('child_user_id')
+                            ->whereHas('learningGroup.students', fn ($studentQuery) => $studentQuery->where('users.id', $childId));
+                    });
+                }
 
                 if (Schema::hasTable('class_schedules')) {
                     $query->orWhere(function ($groupQuery) use ($childId) {
@@ -594,11 +607,13 @@ class ParentDashboardController extends Controller
             'week_start_date' => $report->week_start_date?->toDateString(),
             'week_end_date' => $report->week_end_date?->toDateString(),
             'week_range' => $this->formatWeekRange($report),
-            'group_name' => $report->group_name ?: ($report->classSchedule?->is_group_class ? $report->classSchedule?->title : null),
+            'group_name' => $report->group_name ?: $report->learningGroup?->name ?: ($report->classSchedule?->is_group_class ? $report->classSchedule?->title : null),
             'what_we_learned' => $report->what_we_learned,
             'what_to_practice' => $report->what_to_practice,
             'next_focus' => $report->next_focus,
-            'individual_child_note' => $isChildSpecific ? $report->individual_child_note : null,
+            'individual_child_note' => $isChildSpecific
+                ? $report->individual_child_note
+                : $report->childNotes->first()?->note,
             'published_at' => $report->published_at?->format('M d, Y'),
             'program' => $program ? [
                 'id' => $program->id,

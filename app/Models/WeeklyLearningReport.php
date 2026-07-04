@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WeeklyLearningReport extends Model
 {
@@ -12,6 +13,8 @@ class WeeklyLearningReport extends Model
 
     protected $fillable = [
         'child_user_id',
+        'learning_group_id',
+        'mentor_id',
         'class_schedule_id',
         'program_id',
         'week_number',
@@ -34,6 +37,21 @@ class WeeklyLearningReport extends Model
     public function child(): BelongsTo
     {
         return $this->belongsTo(User::class, 'child_user_id');
+    }
+
+    public function learningGroup(): BelongsTo
+    {
+        return $this->belongsTo(LearningGroup::class);
+    }
+
+    public function mentor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mentor_id');
+    }
+
+    public function childNotes(): HasMany
+    {
+        return $this->hasMany(WeeklyLearningReportNote::class);
     }
 
     public function classSchedule(): BelongsTo

@@ -17,6 +17,7 @@ use App\Models\LiveSessionAttendance;
 use App\Models\MentorNote;
 use App\Models\Program;
 use App\Models\User;
+use App\Models\WeeklyLearningReport;
 use App\Services\LearningGroupDashboardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,81 @@ use Illuminate\Validation\Rule;
 
 class LearningGroupController extends Controller
 {
+    public function weeklyReports(Request $request)
+    {
+        $mentorId = (int) Auth::id();
+        $filters = $request->validate([
+            'group_id' => ['nullable', 'integer'],
+            'student_id' => ['nullable', 'integer'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+        ]);
+
+        $groups = LearningGroup::query()
+            ->where('mentor_id', $mentorId)
+            ->with('students:id,name')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $students = $groups->flatMap->students->unique('id')->sortBy('name')->values();
+
+        $reports = WeeklyLearningReport::query()
+            ->with(['learningGroup:id,name', 'child:id,name', 'childNotes.child:id,name'])
+            ->where(function ($query) use ($mentorId) {
+                $query->where('mentor_id', $mentorId)
+                    ->orWhereHas('learningGroup', fn ($groupQuery) => $groupQuery->where('mentor_id', $mentorId));
+            })
+            ->when(! empty($filters['group_id']), fn ($query) => $query->where('learning_group_id', $filters['group_id']))
+            ->when(! empty($filters['student_id']), function ($query) use ($filters) {
+                $studentId = (int) $filters['student_id'];
+                $query->where(function ($studentQuery) use ($studentId) {
+                    $studentQuery->where('child_user_id', $studentId)
+                        ->orWhereHas('childNotes', fn ($noteQuery) => $noteQuery->where('child_user_id', $studentId))
+                        ->orWhere(function ($groupReportQuery) use ($studentId) {
+                            $groupReportQuery->whereNull('child_user_id')
+                                ->whereHas('learningGroup.students', fn ($memberQuery) => $memberQuery->where('users.id', $studentId));
+                        });
+                });
+            })
+            ->when(! empty($filters['date_from']), fn ($query) => $query->whereDate('published_at', '>=', $filters['date_from']))
+            ->when(! empty($filters['date_to']), fn ($query) => $query->whereDate('published_at', '<=', $filters['date_to']))
+            ->latest('published_at')
+            ->latest('id')
+            ->get()
+            ->map(function (WeeklyLearningReport $report) use ($filters) {
+                $selectedStudentId = isset($filters['student_id']) ? (int) $filters['student_id'] : null;
+
+                return [
+                    'id' => $report->id,
+                    'week_number' => $report->week_number,
+                    'group' => $report->learningGroup ? ['id' => $report->learningGroup->id, 'name' => $report->learningGroup->name] : null,
+                    'student' => $report->child ? ['id' => $report->child->id, 'name' => $report->child->name] : null,
+                    'audience' => $report->child?->name ?? 'Whole group',
+                    'what_we_learned' => $report->what_we_learned,
+                    'what_to_practice' => $report->what_to_practice,
+                    'next_focus' => $report->next_focus,
+                    'individual_notes' => $report->child_user_id
+                        ? collect([['child_id' => $report->child_user_id, 'child_name' => $report->child?->name, 'note' => $report->individual_child_note]])->filter(fn ($note) => $note['note'])->values()
+                        : $report->childNotes
+                            ->when($selectedStudentId, fn ($notes) => $notes->where('child_user_id', $selectedStudentId))
+                            ->map(fn ($note) => ['child_id' => $note->child_user_id, 'child_name' => $note->child?->name, 'note' => $note->note])
+                            ->values(),
+                    'published_at' => $report->published_at?->format('M d, Y'),
+                ];
+            });
+
+        return $this->createView('Mentor/WeeklyReports/Index', [
+            'reports' => $reports,
+            'groups' => $groups->map->only(['id', 'name'])->values(),
+            'students' => $students->map->only(['id', 'name'])->values(),
+            'filters' => [
+                'group_id' => $filters['group_id'] ?? '',
+                'student_id' => $filters['student_id'] ?? '',
+                'date_from' => $filters['date_from'] ?? '',
+                'date_to' => $filters['date_to'] ?? '',
+            ],
+        ]);
+    }
+
     public function index()
     {
         $mentor = Auth::user();
@@ -86,6 +162,19 @@ class LearningGroupController extends Controller
                     'value' => $status,
                     'label' => ucfirst(str_replace('_', ' ', $status)),
                 ])->values(),
+            ],
+            'weeklyReportOptions' => [
+                'students' => $learningGroup->students()->orderBy('name')->get(['users.id', 'users.name']),
+                'reports' => $learningGroup->weeklyLearningReports()
+                    ->with('child:id,name')
+                    ->latest('published_at')
+                    ->get()
+                    ->map(fn (WeeklyLearningReport $report) => [
+                        'id' => $report->id,
+                        'week_number' => $report->week_number,
+                        'audience' => $report->child?->name ?? 'Whole group',
+                        'published_at' => $report->published_at?->format('M d, Y'),
+                    ]),
             ],
         ]);
     }
@@ -160,6 +249,62 @@ class LearningGroupController extends Controller
         ]);
 
         return back()->with('success', 'Mentor note added successfully.');
+    }
+
+    public function storeWeeklyReport(Request $request, LearningGroup $learningGroup): RedirectResponse
+    {
+        $this->authorizeMentorGroup($learningGroup);
+
+        $validated = $request->validate([
+            'week_number' => ['required', 'integer', 'min:1', 'max:53'],
+            'child_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'what_we_learned' => ['required', 'string', 'max:10000'],
+            'what_to_practice' => ['required', 'string', 'max:10000'],
+            'next_focus' => ['required', 'string', 'max:10000'],
+            'individual_notes' => ['nullable', 'array'],
+            'individual_notes.*' => ['nullable', 'string', 'max:10000'],
+        ]);
+
+        $studentId = isset($validated['child_user_id']) ? (int) $validated['child_user_id'] : null;
+        if ($studentId && ! $learningGroup->students()->whereKey($studentId)->exists()) {
+            return back()->withErrors(['child_user_id' => 'Select a student from this group.'])->withInput();
+        }
+
+        $duplicate = WeeklyLearningReport::query()
+            ->where('learning_group_id', $learningGroup->id)
+            ->where('week_number', $validated['week_number'])
+            ->when($studentId, fn ($query) => $query->where('child_user_id', $studentId), fn ($query) => $query->whereNull('child_user_id'))
+            ->exists();
+        if ($duplicate) {
+            return back()->withErrors(['week_number' => 'A report for this week and audience already exists.'])->withInput();
+        }
+
+        DB::transaction(function () use ($validated, $learningGroup, $studentId) {
+            $report = WeeklyLearningReport::create([
+                'learning_group_id' => $learningGroup->id,
+                'mentor_id' => Auth::id(),
+                'child_user_id' => $studentId,
+                'program_id' => $learningGroup->program_id,
+                'week_number' => $validated['week_number'],
+                'group_name' => $learningGroup->name,
+                'what_we_learned' => $validated['what_we_learned'],
+                'what_to_practice' => $validated['what_to_practice'],
+                'next_focus' => $validated['next_focus'],
+                'individual_child_note' => $studentId ? ($validated['individual_notes'][$studentId] ?? null) : null,
+                'published_at' => now(),
+            ]);
+
+            if (! $studentId) {
+                collect($validated['individual_notes'] ?? [])
+                    ->filter(fn ($note, $childId) => trim((string) $note) !== '' && $learningGroup->students()->whereKey((int) $childId)->exists())
+                    ->each(fn ($note, $childId) => $report->childNotes()->create([
+                        'child_user_id' => (int) $childId,
+                        'note' => trim($note),
+                    ]));
+            }
+        });
+
+        return back()->with('success', 'Weekly report published successfully.');
     }
 
     private function authorizeMentorStudent(LearningGroup $learningGroup, User $student): void

@@ -163,6 +163,7 @@ Route::middleware(['auth', 'verified', 'role:parent', 'check.user.status'])->pre
 Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->prefix('mentor')->name('mentor.')->group(function () {
     Route::get('/dashboard', [MentorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'editMentor'])->name('profile.edit');
+    Route::get('/weekly-reports', [MentorLearningGroupController::class, 'weeklyReports'])->name('weekly-reports.index');
 
     // Mentor application routes (apply to teach programs)
     Route::post('/apply/{program:slug}', [MentorDashboardController::class, 'applyToTeach'])->name('apply');
@@ -242,6 +243,7 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         Route::get('/{learningGroup}/students/{student}', [MentorLearningGroupController::class, 'showStudent'])->name('students.show');
         Route::post('/{learningGroup}/students/{student}/notes', [MentorLearningGroupController::class, 'storeNote'])->name('students.notes.store');
         Route::post('/{learningGroup}/homework', [MentorLearningGroupController::class, 'storeHomework'])->name('homework.store');
+        Route::post('/{learningGroup}/weekly-reports', [MentorLearningGroupController::class, 'storeWeeklyReport'])->name('weekly-reports.store');
         Route::post('/{learningGroup}/live-sessions/{liveSession}/attendance', [MentorLearningGroupController::class, 'storeAttendance'])->name('attendance.store');
         Route::post('/{learningGroup}/students', [MentorLearningGroupController::class, 'addStudent'])->name('students.store');
         Route::delete('/{learningGroup}/students/{student}', [MentorLearningGroupController::class, 'removeStudent'])->name('students.destroy');

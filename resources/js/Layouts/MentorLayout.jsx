@@ -77,6 +77,12 @@ export default function MentorLayout({ children }) {
             active: url.startsWith("/mentor/learning-groups"),
         },
         {
+            label: "Weekly reports",
+            href: route("mentor.weekly-reports.index"),
+            icon: FileText,
+            active: url.startsWith("/mentor/weekly-reports"),
+        },
+        {
             label: "Programs",
             href: route("mentor.proposals.programs.my-programs"),
             icon: BookOpen,
