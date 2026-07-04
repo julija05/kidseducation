@@ -95,7 +95,7 @@ class LearningGroupController extends Controller
         $this->authorizeMentorStudent($learningGroup, $student);
 
         $student->load(['enrollments' => fn ($query) => $query->where('program_id', $learningGroup->program_id)]);
-        $notes = MentorNote::with(['lesson:id,title', 'liveSession:id,title,scheduled_at'])
+        $notes = MentorNote::with(['mentor:id,name', 'lesson:id,title', 'liveSession:id,title,scheduled_at'])
             ->where('mentor_id', Auth::id())
             ->where('student_id', $student->id)
             ->where('learning_group_id', $learningGroup->id)
@@ -105,6 +105,10 @@ class LearningGroupController extends Controller
                 'id' => $note->id,
                 'note' => $note->note,
                 'visible_to_parent' => $note->visible_to_parent,
+                'author' => $note->mentor ? [
+                    'id' => $note->mentor->id,
+                    'name' => $note->mentor->name,
+                ] : null,
                 'lesson' => $note->lesson ? ['id' => $note->lesson->id, 'title' => $note->lesson->title] : null,
                 'live_session' => $note->liveSession ? [
                     'id' => $note->liveSession->id,

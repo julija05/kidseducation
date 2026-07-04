@@ -1,8 +1,10 @@
 import MentorLayout from "@/Layouts/MentorLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { ArrowLeft, BookOpen, CalendarClock } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export default function Show({ student, group, notes = [], noteOptions = {} }) {
+    const [visibilityFilter, setVisibilityFilter] = useState("all");
     const { data, setData, post, processing, errors, reset } = useForm({
         note: "",
         lesson_id: "",
@@ -17,6 +19,18 @@ export default function Show({ student, group, notes = [], noteOptions = {} }) {
             onSuccess: () => reset(),
         });
     };
+
+    const filteredNotes = useMemo(() => notes.filter((note) => {
+        if (visibilityFilter === "parent") return note.visible_to_parent;
+        if (visibilityFilter === "private") return !note.visible_to_parent;
+        return true;
+    }), [notes, visibilityFilter]);
+
+    const filters = [
+        { value: "all", label: "All", count: notes.length },
+        { value: "private", label: "Private", count: notes.filter((note) => !note.visible_to_parent).length },
+        { value: "parent", label: "Parent-visible", count: notes.filter((note) => note.visible_to_parent).length },
+    ];
 
     return (
         <MentorLayout>
@@ -58,17 +72,34 @@ export default function Show({ student, group, notes = [], noteOptions = {} }) {
                 </form>
 
                 <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="border-b border-slate-200 p-6"><h2 className="text-lg font-bold text-slate-950">Mentor notes</h2></div>
-                    {notes.length ? <div className="divide-y divide-slate-100">{notes.map((note) => (
+                    <div className="border-b border-slate-200 p-6">
+                        <h2 className="text-lg font-bold text-slate-950">Notes history</h2>
+                        <div className="mt-4 flex flex-wrap gap-2" aria-label="Filter notes by visibility">
+                            {filters.map((filter) => (
+                                <button
+                                    key={filter.value}
+                                    type="button"
+                                    onClick={() => setVisibilityFilter(filter.value)}
+                                    aria-pressed={visibilityFilter === filter.value}
+                                    className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${visibilityFilter === filter.value ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                                >
+                                    {filter.label} ({filter.count})
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    {filteredNotes.length ? <div className="divide-y divide-slate-100">{filteredNotes.map((note) => (
                         <article key={note.id} className="p-6">
                             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
                                 <span>{note.created_at}</span>
+                                <span aria-hidden="true">·</span>
+                                <span>By {note.author?.name || "Unknown mentor"}</span>
                                 <span className={`rounded-full px-2 py-1 ${note.visible_to_parent ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>{note.visible_to_parent ? "Visible to parent" : "Private"}</span>
                             </div>
                             <p className="mt-3 whitespace-pre-wrap text-slate-800">{note.note}</p>
                             {(note.lesson || note.live_session) && <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-500">{note.lesson && <span className="inline-flex gap-1"><BookOpen className="h-4 w-4" />{note.lesson.title}</span>}{note.live_session && <span className="inline-flex gap-1"><CalendarClock className="h-4 w-4" />{note.live_session.title}</span>}</div>}
                         </article>
-                    ))}</div> : <p className="p-8 text-center text-slate-500">No notes recorded for this student in {group.name}.</p>}
+                    ))}</div> : <p className="p-8 text-center text-slate-500">{notes.length ? "No notes match this filter." : `No notes recorded for this student in ${group.name}.`}</p>}
                 </section>
             </div>
         </MentorLayout>
