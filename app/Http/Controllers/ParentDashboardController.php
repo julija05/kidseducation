@@ -197,6 +197,7 @@ class ParentDashboardController extends Controller
         $homework = $assignedHomework ? $this->homeworkFromAssignment($assignedHomework) : $this->homeworkFrom($sessionData);
         $latestParentVisibleNote = $childId ? $this->parentVisibleMentorNotesFor($childId)->first() : null;
         $latestWeeklyLearningReport = $childId ? $this->latestWeeklyReportFor($childId) : null;
+        $previousWeeklyLearningReports = $childId ? $this->previousWeeklyReportsFor($childId) : collect();
 
         return [
             'id' => $profile['id'] ?? $childId,
@@ -233,6 +234,9 @@ class ParentDashboardController extends Controller
             'latest_weekly_learning_report' => $latestWeeklyLearningReport
                 ? $this->formatWeeklyReport($latestWeeklyLearningReport, $childId)
                 : null,
+            'previous_weekly_learning_reports' => $previousWeeklyLearningReports
+                ->map(fn (WeeklyLearningReport $report) => $this->formatWeeklyReport($report, $childId))
+                ->values(),
             'latest_weekly_report' => $this->weeklyReportFrom($sessionData),
             'rejection_note' => $applicationStatus === 'rejected'
                 ? ($profile['enrollment']['rejection_reason'] ?? null)
@@ -539,6 +543,11 @@ class ParentDashboardController extends Controller
     private function latestWeeklyReportFor(int $childId): ?WeeklyLearningReport
     {
         return $this->weeklyReportsQueryFor($childId)?->first();
+    }
+
+    private function previousWeeklyReportsFor(int $childId): Collection
+    {
+        return $this->weeklyReportsQueryFor($childId)?->skip(1)->take(3)->get() ?? collect();
     }
 
     private function weeklyReportsFor(User $child): Collection

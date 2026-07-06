@@ -302,6 +302,9 @@ class ParentDashboardTest extends TestCase
             ->where('childCards.0.latest_weekly_learning_report.what_to_practice', 'Complete 10 mental math drills.')
             ->where('childCards.0.latest_weekly_learning_report.next_focus', 'Subtraction with regrouping.')
             ->where('childCards.0.latest_weekly_learning_report.individual_child_note', 'Ada asked thoughtful questions.')
+            ->has('childCards.0.previous_weekly_learning_reports', 1)
+            ->where('childCards.0.previous_weekly_learning_reports.0.week_number', 23)
+            ->where('childCards.0.previous_weekly_learning_reports.0.what_to_practice', 'Older worksheet.')
         );
     }
 

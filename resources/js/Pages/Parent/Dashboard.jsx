@@ -151,6 +151,7 @@ function ChildCard({ child }) {
                 <WeeklyReportSummary
                     report={child.latest_weekly_learning_report}
                     legacyReport={child.latest_weekly_report}
+                    previousReports={child.previous_weekly_learning_reports || []}
                 />
             </div>
 
@@ -465,7 +466,7 @@ function TextBlock({ icon: Icon, label, value }) {
     );
 }
 
-function WeeklyReportSummary({ report, legacyReport }) {
+function WeeklyReportSummary({ report, legacyReport, previousReports = [] }) {
     if (!report) {
         return <TextBlock icon={FileText} label="Latest weekly report" value={legacyReport} />;
     }
@@ -491,8 +492,37 @@ function WeeklyReportSummary({ report, legacyReport }) {
             </div>
             {report.individual_child_note && (
                 <p className="mt-3 rounded-md border border-blue-100 bg-white p-2 text-sm leading-5 text-slate-700">
+                    <span className="font-semibold text-blue-900">Note for your child: </span>
                     {report.individual_child_note}
                 </p>
+            )}
+            {previousReports.length > 0 && (
+                <details className="mt-4 border-t border-slate-200 pt-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                        Previous reports ({previousReports.length})
+                    </summary>
+                    <div className="mt-3 space-y-3">
+                        {previousReports.map((previousReport) => (
+                            <div key={previousReport.id} className="rounded-md border border-slate-200 bg-white p-3">
+                                <p className="text-sm font-semibold text-slate-900">
+                                    Week {previousReport.week_number}
+                                    {previousReport.group_name ? ` · ${previousReport.group_name}` : ""}
+                                </p>
+                                <div className="mt-2 grid gap-1 text-sm leading-5 text-slate-700">
+                                    <ReportLine label="Learned" value={previousReport.what_we_learned} />
+                                    <ReportLine label="Practice" value={previousReport.what_to_practice} />
+                                    <ReportLine label="Next" value={previousReport.next_focus} />
+                                </div>
+                                {previousReport.individual_child_note && (
+                                    <p className="mt-2 rounded-md bg-blue-50 p-2 text-sm text-blue-900">
+                                        <span className="font-semibold">Note for your child: </span>
+                                        {previousReport.individual_child_note}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </details>
             )}
         </div>
     );
