@@ -35,6 +35,7 @@ export default function ProgramContent({
     onStartLesson,
     onReviewLesson,
     readOnly = false,
+    learningPathOnly = false,
 }) {
     const { t } = useTranslation();
     // Temporarily disable theme system
@@ -370,7 +371,7 @@ export default function ProgramContent({
 
     return (
         <motion.div 
-            className="space-y-8"
+            className={`space-y-8 ${learningPathOnly ? "[&>*:not(:last-child)]:hidden" : ""}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}

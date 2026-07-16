@@ -6,6 +6,8 @@ use App\Constants\ApprovalStatus;
 use App\Constants\EnrollmentStatus;
 use App\Models\ClassSchedule;
 use App\Models\MentorNote;
+use App\Models\Program;
+use App\Models\Review;
 use App\Models\User;
 use App\Models\WeeklyLearningReport;
 use App\Services\HomeworkAssignmentDashboardService;
@@ -35,7 +37,35 @@ class ParentDashboardController extends Controller
             'childCards' => $this->childCardsFor($parent, $children, $childProfiles),
             'children' => $children,
             'childProfiles' => $childProfiles,
+            'programReviews' => $this->programReviewsForParentDashboard(),
         ]);
+    }
+
+    private function programReviewsForParentDashboard(): Collection
+    {
+        if (! Schema::hasTable('reviews')) {
+            return collect();
+        }
+
+        return Review::approved()
+            ->where('reviewable_type', Program::class)
+            ->with(['user:id,name', 'reviewable:id,name,slug'])
+            ->latest()
+            ->limit(6)
+            ->get()
+            ->map(fn (Review $review) => [
+                'id' => $review->id,
+                'rating' => $review->rating,
+                'comment' => $review->comment,
+                'created_at' => $review->created_at,
+                'user_name' => $review->user?->name,
+                'program' => $review->reviewable ? [
+                    'id' => $review->reviewable->id,
+                    'name' => $review->reviewable->name,
+                    'slug' => $review->reviewable->slug,
+                ] : null,
+            ])
+            ->values();
     }
 
     public function showChild(Request $request, User $child): Response

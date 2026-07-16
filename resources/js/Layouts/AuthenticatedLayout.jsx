@@ -1,13 +1,12 @@
 import Dropdown from "@/Components/Dropdown";
 import { Link, usePage, router } from "@inertiajs/react";
-import { useState, useEffect, useMemo } from "react";
-import { User, ChevronDown, Bell, Calculator } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronDown, Calculator } from "lucide-react";
 import { motion } from "framer-motion";
 import StudentNotifications from "@/Components/Dashboard/StudentNotifications";
 import AbacusSimulator from "@/Components/AbacusSimulator";
 import StudentNavBar from "@/Components/StudentNavBar";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useTheme, ThemeProvider } from "@/hooks/useTheme.jsx";
 import ThemeManager from "@/Components/ThemeManager";
 import { useAvatar } from "@/hooks/useAvatar.jsx";
 import { useRouteWithLocale } from "@/Utils/routeHelpers";
@@ -24,14 +23,15 @@ function AuthenticatedLayoutContentSimple({
     programConfig = null,
     showSideNavigation = false,
     customHeader = null,
+    abacusPlacement = "floating",
+    hideHeader = false,
 }) {
     const { props } = usePage();
     const user = props.auth.user;
     const { auth } = props;
     const { t } = useTranslation();
-    const { avatarData, renderAvatar } = useAvatar();
+    const { avatarData } = useAvatar();
     const { routeWithLocale } = useRouteWithLocale();
-    const [dropdownOpen, setDropdownOpen] = useState(false);
     const [showAbacus, setShowAbacus] = useState(false);
     const [currentTheme, setCurrentTheme] = useState(() => {
         try {
@@ -101,14 +101,17 @@ function AuthenticatedLayoutContentSimple({
          enrolledProgram.translated_name === 'Ментална Аритметика') && 
         enrolledProgram.approvalStatus === 'approved';
 
-    // Simple theme using CSS custom properties
-    const theme = {
-        name: "Dashboard",
-        color: programConfig?.color || null,
-        lightColor: programConfig?.lightColor || null,
-        borderColor: programConfig?.borderColor || null,
-        textColor: programConfig?.textColor || null,
-    };
+    useEffect(() => {
+        const handleOpenAbacus = () => {
+            if (isMentalArithmeticStudent) {
+                setShowAbacus(true);
+            }
+        };
+
+        window.addEventListener("open-abacus-simulator", handleOpenAbacus);
+
+        return () => window.removeEventListener("open-abacus-simulator", handleOpenAbacus);
+    }, [isMentalArithmeticStudent]);
 
     const handleMarkAllAsRead = () => {
         router.patch('/dashboard/notifications/mark-all-read', {}, {
@@ -129,33 +132,26 @@ function AuthenticatedLayoutContentSimple({
     
     // Force a default gradient if no theme is detected
     const activeTheme = currentTheme || 'default';
-    const headerStyle = {
-        background: themeGradients[activeTheme] || themeGradients.default,
-        backgroundImage: themeGradients[activeTheme] || themeGradients.default,
-        minHeight: '80px',
-        color: 'white !important'
-    };
-    
-
     return (
         <div className="min-h-screen bg-gray-50">
             <ThemeManager />
             {/* Modern Header */}
+            {!hideHeader && (
             <motion.header 
-                className="backdrop-blur-lg shadow-xl border-b border-white/20 relative overflow-visible"
-                style={{
-                    background: `${themeGradients[activeTheme]}, rgba(255, 255, 255, 0.1)`,
-                    backdropFilter: 'blur(16px)',
-                    color: 'white',
-                    minHeight: '70px',
-                    width: '100%',
-                    position: 'relative',
-                    zIndex: 100
-                }}
-                initial={{ y: -100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-            >
+                    className="backdrop-blur-lg shadow-xl border-b border-white/20 relative overflow-visible"
+                    style={{
+                        background: `${themeGradients[activeTheme]}, rgba(255, 255, 255, 0.1)`,
+                        backdropFilter: 'blur(16px)',
+                        color: 'white',
+                        minHeight: '70px',
+                        width: '100%',
+                        position: 'relative',
+                        zIndex: 100
+                    }}
+                    initial={{ y: -100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                >
                 {/* Background decorative elements */}
                 <div className="absolute inset-0">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
@@ -186,7 +182,7 @@ function AuthenticatedLayoutContentSimple({
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
                             {/* Modern Abacus Icon for Mental Arithmetic students */}
-                            {isMentalArithmeticStudent && (
+                            {isMentalArithmeticStudent && !["content", "dashboard"].includes(abacusPlacement) && (
                                 <motion.button
                                     onClick={() => setShowAbacus(true)}
                                     className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-xl transition-all duration-200 text-white text-sm border border-white/30 shadow-lg"
@@ -361,13 +357,41 @@ function AuthenticatedLayoutContentSimple({
                         </motion.div>
                     </div>
                 </div>
-            </motion.header>
+                </motion.header>
+            )}
+
+            {isMentalArithmeticStudent && abacusPlacement === "content" && (
+                <section className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8" aria-labelledby="extra-tools-heading">
+                    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-3">
+                                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                    <Calculator className="h-5 w-5" />
+                                </span>
+                                <div>
+                                    <p className="text-sm font-semibold text-amber-700">Extra tools</p>
+                                    <h2 id="extra-tools-heading" className="text-xl font-bold text-slate-900">Abacus simulator</h2>
+                                    <p className="mt-1 text-sm text-slate-600">Practice your abacus skills whenever you want.</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowAbacus(true)}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 px-5 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+                            >
+                                <Calculator className="h-4 w-4" />
+                                Open simulator
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Main Content */}
             <main className="flex-1">{children}</main>
             
             {/* Modern Floating Abacus Button - Only for Mental Arithmetic students */}
-            {isMentalArithmeticStudent && (
+            {isMentalArithmeticStudent && !["content", "dashboard"].includes(abacusPlacement) && (
                 <motion.div 
                     className="fixed bottom-6 right-6 z-40"
                     initial={{ opacity: 0, scale: 0 }}

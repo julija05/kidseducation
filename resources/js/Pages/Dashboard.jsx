@@ -4,10 +4,7 @@ import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Sparkles, Play, TrendingUp, Calendar, Trophy, Zap, ArrowRight, Star, BookOpen, Rocket, ArrowLeft, UserRound, ClipboardCheck, Clock, CheckCircle2, HelpCircle } from "lucide-react";
-import ReviewSection from "@/Components/ReviewSection";
-import ReviewPromptModal from "@/Components/ReviewPromptModal";
-import StudentNavBar from "@/Components/StudentNavBar";
+import { Sparkles, Play, TrendingUp, Calendar, Trophy, ArrowRight, Star, BookOpen, Rocket, ArrowLeft, UserRound, ClipboardCheck, Clock, CheckCircle2, HelpCircle, User, ExternalLink, Target, Bell, Home, BarChart3, Gamepad2, MessageCircle, Calculator, Award } from "lucide-react";
 import CertificateModal from "@/Components/Certificate/CertificateModal";
 
 // Import Dashboard components
@@ -20,7 +17,17 @@ import {
 import CompletedPrograms from "@/Components/Dashboard/CompletedPrograms";
 import NextClassCard from "@/Components/Dashboard/NextClassCard";
 import FirstTimeLanguageSelector from "@/Components/FirstTimeLanguageSelector";
-import { iconMap } from "@/Utils/iconMapping";
+
+// Import Abacoding design system components
+import { BeadRod, Card, CardHead, CardTitle, Chip, getChipForPercent } from "@/Components/StudentDashboard";
+import { ABACODING_COLORS } from "@/constants/abacodingTheme";
+
+// Bead color for the abacus-style progress rods on the student dashboard.
+const BEAD_ROD_COLOR = ABACODING_COLORS["aba-blue"];
+
+// Hour-of-day boundaries (24h clock) that switch the dashboard greeting.
+const GREETING_AFTERNOON_START_HOUR = 12;
+const GREETING_EVENING_START_HOUR = 18;
 
 export default function Dashboard() {
     const { props } = usePage();
@@ -33,14 +40,9 @@ export default function Dashboard() {
         nextClass,
         homeworkAssignments,
         pendingProgramId,
-        notifications,
         unreadNotificationCount,
         showLanguageSelector,
         flash,
-        canReview,
-        userReview,
-        shouldPromptReview,
-        program,
         userStatus,
         suspensionMessage,
         currentEnrollment,
@@ -52,7 +54,6 @@ export default function Dashboard() {
     const DashboardLayout = isParentView ? ParentLayout : AuthenticatedLayout;
     const [showLanguageModal, setShowLanguageModal] = useState(!isParentView && (showLanguageSelector || false));
     const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
-    const [showReviewPrompt, setShowReviewPrompt] = useState(shouldPromptReview || false);
     const [showCertificateModal, setShowCertificateModal] = useState(false);
     const [certificateProgram, setCertificateProgram] = useState(null);
 
@@ -202,40 +203,6 @@ export default function Dashboard() {
                             </div>
                         )}
 
-                        {/* Show available programs (disabled) */}
-                        {availablePrograms && availablePrograms.length > 0 && (
-                            <div className="mt-8 bg-gray-50/90 backdrop-blur-lg border border-gray-200 rounded-3xl p-8 shadow-xl opacity-60">
-                                <h3 className="text-xl font-semibold text-gray-500 mb-6 text-center">
-                                    Available Programs (Currently Unavailable)
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {availablePrograms.map((program) => {
-                                        const ProgramIcon = iconMap[program.icon] || iconMap.BookOpen;
-                                        return (
-                                            <div key={program.id} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                                                <div className="flex items-center space-x-3 mb-4">
-                                                    <div className={`p-2 rounded-lg ${program.lightColor || 'bg-gray-100'}`}>
-                                                        <ProgramIcon size={24} className={program.textColor || 'text-gray-600'} />
-                                                    </div>
-                                                    <h4 className="font-medium text-gray-600">
-                                                        {program.translated_name || program.name}
-                                                    </h4>
-                                                </div>
-                                                <p className="text-sm text-gray-500 mb-4">
-                                                    {program.translated_description || program.description}
-                                                </p>
-                                                <button 
-                                                    disabled 
-                                                    className="w-full bg-gray-200 text-gray-400 py-2 px-4 rounded-lg cursor-not-allowed"
-                                                >
-                                                    Enrollment Suspended
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </DashboardLayout>
@@ -244,12 +211,9 @@ export default function Dashboard() {
 
     // If student has an approved enrollment
     if (enrolledProgram && enrolledProgram.approvalStatus === "approved") {
-        const ProgramIcon =
-            iconMap[enrolledProgram.theme?.icon] || iconMap.BookOpen;
-
         return (
             <DashboardLayout
-                {...(!isParentView ? { programConfig: enrolledProgram.theme } : {})}
+                {...(!isParentView ? { programConfig: enrolledProgram.theme, abacusPlacement: "dashboard", hideHeader: true } : {})}
             >
                 <Head title={`${enrolledProgram.translated_name || enrolledProgram.name} Dashboard`} />
 
@@ -259,15 +223,16 @@ export default function Dashboard() {
                     onClose={() => setShowLanguageModal(false)}
                 />
 
-                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
-                    {/* Background decorative elements */}
-                    <div className="absolute inset-0">
-                        <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 animate-pulse" />
-                        <div className="absolute bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-pink-200 to-yellow-200 rounded-full blur-3xl opacity-30 animate-pulse" style={{animationDelay: '2s'}} />
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-emerald-200 to-cyan-200 rounded-full blur-3xl opacity-20 animate-pulse" style={{animationDelay: '1s'}} />
-                    </div>
+                <div className={`${isParentView ? "bg-gradient-to-br from-slate-50 via-white to-blue-50" : "bg-aba-bg"} min-h-screen relative overflow-hidden`}>
+                    {isParentView && (
+                        <div className="absolute inset-0">
+                            <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full blur-3xl opacity-30 animate-pulse" />
+                            <div className="absolute bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-pink-200 to-yellow-200 rounded-full blur-3xl opacity-30 animate-pulse" style={{animationDelay: '2s'}} />
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-emerald-200 to-cyan-200 rounded-full blur-3xl opacity-20 animate-pulse" style={{animationDelay: '1s'}} />
+                        </div>
+                    )}
                     
-                    <div className="relative z-5 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+                    <div className={`relative z-5 ${isParentView ? "mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8" : ""}`}>
                     <ParentViewBanner parentView={parentView} />
 
                     {/* Email Verification Success Message */}
@@ -304,12 +269,24 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                        <HomeworkAssignmentsPanel assignments={homeworkAssignments || []} canUpdate={!isParentView} />
-
-                        {/* Modern Next Class Card */}
-                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
-                            <NextClassCard nextClass={nextClass} />
-                        </div>
+                        {isParentView ? (
+                            <>
+                                <HomeworkAssignmentsPanel assignments={homeworkAssignments || []} canUpdate={false} />
+                                <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                                    <NextClassCard nextClass={nextClass} />
+                                </div>
+                            </>
+                        ) : (
+                            <StudentDashboardShell
+                                student={student}
+                                enrolledProgram={enrolledProgram}
+                                nextClass={nextClass}
+                                homeworkAssignments={homeworkAssignments || []}
+                                unreadNotificationCount={unreadNotificationCount || 0}
+                                onStartLesson={handleStartLesson}
+                                onReviewLesson={handleReviewLesson}
+                            />
+                        )}
 
                         {/* Program Completion Celebration - Show when program is completed */}
                         {enrolledProgram?.status === 'completed' && (
@@ -338,58 +315,25 @@ export default function Dashboard() {
                             </div>
                         )}
 
-                        {/* Modern Progress Overview */}
-                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
-                            <ProgressOverview
-                                enrolledProgram={enrolledProgram}
-                                nextClass={nextClass}
-                            />
-                        </div>
-
-
-                        {/* Modern Program Content */}
-                        <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
-                            <ProgramContent
-                                program={enrolledProgram}
-                                onStartLesson={handleStartLesson}
-                                onReviewLesson={handleReviewLesson}
-                                readOnly={isParentView}
-                            />
-                        </div>
-
-                        {/* Modern Program List for browsing other programs */}
-                        {availablePrograms && availablePrograms.length > 0 && (
-                            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
-                                <ProgramList
-                                    programs={availablePrograms || []}
-                                    userEnrollments={pendingEnrollments || []}
-                                    userDemoAccess={props.userDemoAccess || null}
-                                />
-                            </div>
+                        {isParentView && (
+                            <>
+                                <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                                    <ProgressOverview enrolledProgram={enrolledProgram} nextClass={nextClass} />
+                                </div>
+                                <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
+                                    <ProgramContent
+                                        program={enrolledProgram}
+                                        onStartLesson={handleStartLesson}
+                                        onReviewLesson={handleReviewLesson}
+                                        readOnly
+                                    />
+                                </div>
+                            </>
                         )}
 
-                        {/* Modern Review Section */}
-                        {!isParentView && program && (
-                            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
-                                <ReviewSection
-                                    enrolledProgram={enrolledProgram}
-                                    program={program}
-                                    userReview={userReview}
-                                    canReview={canReview}
-                                />
-                            </div>
-                        )}
+                        {/* Program browsing is handled from the parent dashboard. */}
                     </div>
                 </div>
-
-                {/* Review Prompt Modal */}
-                {!isParentView && program && (
-                    <ReviewPromptModal
-                        program={program}
-                        isOpen={showReviewPrompt}
-                        onClose={() => setShowReviewPrompt(false)}
-                    />
-                )}
 
                 {/* Certificate Modal */}
                 {!isParentView && certificateProgram && (
@@ -506,7 +450,7 @@ export default function Dashboard() {
                     )}
 
                     {/* Modern Program List */}
-                    {(!isParentView || (availablePrograms && availablePrograms.length > 0)) && (
+                    {isParentView && availablePrograms && availablePrograms.length > 0 && (
                         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/50 p-8">
                             <ProgramList
                                 programs={availablePrograms || []}
@@ -567,7 +511,559 @@ function ParentViewBanner({ parentView }) {
     );
 }
 
-function HomeworkAssignmentsPanel({ assignments, canUpdate = true }) {
+function StudentDashboardShell({
+    student,
+    enrolledProgram,
+    nextClass,
+    homeworkAssignments,
+    unreadNotificationCount,
+    onStartLesson,
+}) {
+    const progress = getProgramProgress(enrolledProgram);
+    const completedLessons = getCompletedLessons(enrolledProgram);
+    const nextLesson = enrolledProgram.nextLesson;
+    const isMentalArithmetic = isMentalArithmeticProgram(enrolledProgram);
+    const lessonsHref = getLessonsHref(enrolledProgram);
+
+    return (
+        <div className="min-h-screen">
+            <StudentDashboardSidebar
+                student={student}
+                progress={progress}
+                isMentalArithmetic={isMentalArithmetic}
+                lessonsHref={lessonsHref}
+            />
+
+            <main className="min-w-0 px-4 py-5 sm:px-6 sm:py-6 lg:pl-[282px] lg:pr-6">
+                <div className="mx-auto max-w-[1120px] space-y-4">
+                    <StudentMobileNav isMentalArithmetic={isMentalArithmetic} lessonsHref={lessonsHref} />
+                    <StudentDashboardHeader
+                        student={student}
+                        unreadNotificationCount={unreadNotificationCount}
+                    />
+
+                    <section aria-label="Today on your dashboard" className="grid gap-4 xl:grid-cols-2">
+                        <StudentNextClassCard nextClass={nextClass} />
+                        <HomeworkAssignmentsPanel assignments={homeworkAssignments} compact />
+                    </section>
+
+                    <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+                        <ContinueLearningCard
+                            enrolledProgram={enrolledProgram}
+                            nextLesson={nextLesson}
+                            progress={progress}
+                            onStartLesson={onStartLesson}
+                        />
+                        <StudentStatsCard
+                            enrolledProgram={enrolledProgram}
+                            completedLessons={completedLessons}
+                            progress={progress}
+                        />
+                    </section>
+
+                    <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+                        <StudentProgressSection
+                            enrolledProgram={enrolledProgram}
+                            completedLessons={completedLessons}
+                            progress={progress}
+                            lessonsHref={lessonsHref}
+                        />
+                        <ExtraToolsSection isMentalArithmetic={isMentalArithmetic} />
+                    </section>
+                </div>
+            </main>
+        </div>
+    );
+}
+
+function StudentDashboardSidebar({ student, progress, isMentalArithmetic, lessonsHref }) {
+    const navItems = [
+        { label: "Dashboard", icon: Home, href: safeRoute("dashboard"), active: true },
+        { label: "My Progress", icon: BarChart3, href: "#progress" },
+        // TODO: Replace this with a dedicated Learning Path route if the backend exposes one.
+        { label: "Lessons", icon: BookOpen, href: lessonsHref },
+        { label: "Practice", icon: Gamepad2, href: "#extra-tools" },
+        { label: "Challenges", icon: Trophy, href: "#progress" },
+        { label: "Achievements", icon: Award, href: "#progress" },
+        { label: "Messages", icon: MessageCircle, href: safeRoute("meetings.index") },
+    ].filter((item) => item.href);
+
+    return (
+        <aside className="hidden border-r border-aba-line bg-aba-surface lg:fixed lg:left-0 lg:top-0 lg:z-30 lg:flex lg:h-screen lg:min-h-screen lg:w-[250px] lg:flex-col lg:overflow-y-auto lg:p-5">
+            <div className="shrink-0">
+                <Link
+                    href={safeRoute("landing.index") || safeRoute("dashboard") || "#"}
+                    className="flex items-center px-2 py-3 font-display text-xl font-bold text-aba-ink transition hover:text-aba-blue"
+                >
+                    Abacoding
+                </Link>
+            </div>
+
+            <nav className="mt-7 shrink-0 space-y-1.5" aria-label="Student dashboard sections">
+                {navItems.map((item) => (
+                    <a
+                        key={item.label}
+                        href={item.href}
+                        className={`flex items-center gap-3 rounded-aba-sm px-3 py-2.5 text-sm font-bold transition ${
+                            item.active
+                                ? "bg-aba-blue-soft text-aba-blue"
+                                : "text-aba-ink-soft hover:bg-aba-surface-alt hover:text-aba-blue"
+                        }`}
+                    >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                    </a>
+                ))}
+            </nav>
+
+            <button
+                type="button"
+                onClick={openAbacusSimulator}
+                disabled={!isMentalArithmetic}
+                className="mt-6 flex shrink-0 items-center gap-3 rounded-aba-md border border-dashed border-aba-coral bg-aba-coral-soft px-4 py-4 text-left text-aba-coral-dark transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-aba-line disabled:bg-aba-surface-alt disabled:text-aba-ink-faint"
+            >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-aba-sm bg-aba-surface text-aba-coral shadow-aba-sm">
+                    <Calculator className="h-5 w-5" />
+                </span>
+                <span>
+                    <span className="block text-sm font-black">Open Abacus</span>
+                    <span className="block text-xs font-semibold">
+                        {isMentalArithmetic ? "Practice tool" : "Available in Mental Arithmetic"}
+                    </span>
+                </span>
+            </button>
+
+            <div className="mt-auto shrink-0 rounded-aba-md bg-aba-surface-alt p-4">
+                <div className="flex items-center gap-3">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-aba-sm bg-aba-surface text-xl font-black text-aba-blue shadow-aba-sm">
+                        {student?.name ? student.name.charAt(0).toUpperCase() : "S"}
+                    </span>
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-aba-ink">{student?.name || "Student"}</p>
+                        <p className="text-xs font-semibold text-aba-ink-soft">{Math.round(progress)}% complete</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    );
+}
+
+function StudentMobileNav({ isMentalArithmetic, lessonsHref }) {
+    const items = [
+        { label: "Dashboard", icon: Home, href: "#", active: true },
+        { label: "Progress", icon: BarChart3, href: "#progress" },
+        // TODO: Replace this with a dedicated Learning Path route if the backend exposes one.
+        { label: "Lessons", icon: BookOpen, href: lessonsHref },
+        { label: "Tools", icon: Calculator, href: "#extra-tools" },
+    ].filter((item) => item.href);
+
+    return (
+        <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Student dashboard navigation">
+            {items.map((item) => (
+                <a
+                    key={item.label}
+                    href={item.href}
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-aba-sm px-4 py-2.5 text-sm font-black ${
+                        item.active ? "bg-aba-blue text-white" : "bg-aba-surface text-aba-ink-soft"
+                    }`}
+                    onClick={item.label === "Tools" && isMentalArithmetic ? (event) => {
+                        event.preventDefault();
+                        openAbacusSimulator();
+                    } : undefined}
+                >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                </a>
+            ))}
+        </div>
+    );
+}
+
+function StudentDashboardHeader({ student, unreadNotificationCount }) {
+    const today = new Intl.DateTimeFormat(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+    }).format(new Date());
+
+    return (
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p className="text-sm font-black uppercase tracking-wide text-aba-blue">Dashboard</p>
+                <h1 className="mt-1 font-display text-3xl font-black leading-tight text-aba-ink">
+                    {getGreeting()}, {student?.name || "learner"}!
+                </h1>
+                <p className="mt-1 text-sm font-medium text-aba-ink-soft">
+                    Ready to continue your learning adventure?
+                </p>
+            </div>
+            <div className="flex items-center gap-3">
+                <span className="rounded-aba-sm bg-aba-surface px-4 py-2.5 text-sm font-bold text-aba-blue shadow-aba-sm">
+                    {today}
+                </span>
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-aba-sm bg-aba-surface text-aba-ink-soft shadow-aba-sm">
+                    <Bell className="h-5 w-5" />
+                    {unreadNotificationCount > 0 && (
+                        <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-aba-coral px-1.5 py-0.5 text-center text-xs font-black text-white">
+                            {unreadNotificationCount}
+                        </span>
+                    )}
+                </span>
+            </div>
+        </header>
+    );
+}
+
+function ContinueLearningCard({ enrolledProgram, nextLesson, progress, onStartLesson }) {
+    return (
+        <Card as="article" surface="alt" className="flex min-h-[205px] flex-col overflow-hidden p-5">
+            {/* Content grows so the action below is pushed to the bottom of the card */}
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-aba-surface text-aba-blue shadow-aba-sm">
+                        <Play className="h-5 w-5 fill-current" />
+                    </span>
+                    <div>
+                        <p className="text-xs font-black uppercase tracking-wide text-aba-blue">Next lesson</p>
+                        <h2 className="font-display text-xl font-black text-aba-ink">Continue learning</h2>
+                    </div>
+                </div>
+
+                <h3 className="mt-4 max-w-2xl break-words font-display text-2xl font-black leading-tight text-aba-ink">
+                    {nextLesson?.translated_title || nextLesson?.title || "Your next lesson will appear here"}
+                </h3>
+                <p className="mt-1 text-sm font-semibold text-aba-ink-soft">
+                    {enrolledProgram.translated_name || enrolledProgram.name}
+                    {nextLesson?.level ? ` · Level ${nextLesson.level}` : ""}
+                </p>
+
+                <div className="mt-4 max-w-xl">
+                    <div className="flex items-center justify-between text-xs font-black uppercase tracking-wide text-aba-ink-soft">
+                        <span>Adventure progress</span>
+                        <span>{Math.round(progress)}%</span>
+                    </div>
+                    <PlayfulProgress value={progress} className="mt-2" />
+                </div>
+            </div>
+
+            {/* Action pinned to the bottom-left of the card */}
+            <div className="mt-4 flex justify-start">
+                {nextLesson ? (
+                    <button
+                        type="button"
+                        onClick={() => onStartLesson(nextLesson.id)}
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-aba-sm bg-aba-coral px-5 py-3 text-sm font-black text-white shadow-aba-coral transition hover:bg-aba-coral-dark focus:outline-none focus:ring-2 focus:ring-aba-coral focus:ring-offset-2"
+                    >
+                        Continue Lesson <ArrowRight className="h-5 w-5" />
+                    </button>
+                ) : (
+                    <div className="rounded-aba-sm border border-aba-line bg-aba-surface px-5 py-3 text-sm font-bold text-aba-ink-soft">
+                        {/* TODO: The backend does not provide a reason when nextLesson is null. */}
+                        No lesson is ready yet. Check back soon!
+                    </div>
+                )}
+            </div>
+        </Card>
+    );
+}
+
+function StudentStatsCard({ enrolledProgram, completedLessons, progress }) {
+    const stats = [
+        { label: "Current level", value: enrolledProgram.currentLevel || 1, icon: Rocket, tone: "bg-aba-blue-soft text-aba-blue" },
+        { label: "Overall progress", value: `${Math.round(progress)}%`, icon: Target, tone: "bg-aba-green-soft text-aba-green" },
+        { label: "Lessons done", value: completedLessons, icon: CheckCircle2, tone: "bg-aba-yellow-soft text-aba-yellow" },
+    ];
+
+    if (Number(enrolledProgram.quizPoints) > 0) {
+        stats.push({ label: "Points", value: enrolledProgram.quizPoints, icon: Star, tone: "bg-aba-purple-soft text-aba-purple" });
+    }
+
+    return (
+        <Card as="aside" className="min-h-[205px] p-5">
+            <div className="mb-3">
+                <p className="text-xs font-black uppercase tracking-wide text-aba-blue">Your Stats</p>
+                <h2 className="text-xl font-black text-aba-ink font-display">Nice progress</h2>
+            </div>
+            <div className="space-y-2.5">
+                {stats.map((stat) => (
+                    <div key={stat.label} className="flex items-center gap-3 rounded-aba-sm bg-aba-surface-alt px-3 py-2">
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${stat.tone}`}>
+                            <stat.icon className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                            <p className="text-xs font-bold uppercase tracking-wide text-aba-ink-soft">{stat.label}</p>
+                            <p className="text-lg font-black text-aba-ink">{stat.value}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
+}
+
+function StudentProgressSection({ enrolledProgram, completedLessons, progress, lessonsHref }) {
+    const totalLessons = getTotalLessons(enrolledProgram);
+    const completedCopy = totalLessons
+        ? `${completedLessons} of ${totalLessons} lessons completed`
+        : `${completedLessons} lessons completed`;
+
+    return (
+        <Card
+            as="section"
+            id="progress"
+            aria-labelledby="student-progress-heading"
+            className="min-h-[180px] p-5"
+        >
+            <CardHead>
+                <CardTitle
+                    icon={<TrendingUp className="h-4 w-4" />}
+                    iconBg="bg-aba-green-soft"
+                    iconColor="text-aba-green"
+                >
+                    <span id="student-progress-heading">My Progress</span>
+                </CardTitle>
+                <ProgressMoodBadge progress={progress} />
+            </CardHead>
+
+            <div className="mt-4">
+                <div className="min-w-0">
+                    <p className="truncate text-lg font-black text-aba-ink">{enrolledProgram.translated_name || enrolledProgram.name}</p>
+                    <p className="mt-1 text-sm font-semibold text-aba-ink-soft">
+                        Level {enrolledProgram.currentLevel || 1} · {completedCopy}
+                    </p>
+                </div>
+
+                <div className="mt-4">
+                    <div className="flex items-center justify-between text-xs font-black uppercase tracking-wide text-aba-ink-soft">
+                        <span>Adventure progress</span>
+                        <span className="text-aba-blue">{Math.round(progress)}%</span>
+                    </div>
+                    <PlayfulProgress value={progress} className="mt-2" />
+                </div>
+
+                {lessonsHref && (
+                    <Link
+                        href={lessonsHref}
+                        className="mt-3 inline-flex items-center justify-center gap-2 rounded-aba-sm bg-aba-blue px-4 py-2.5 text-sm font-black text-white shadow-aba-sm transition hover:brightness-95"
+                    >
+                        Open Lessons <ArrowRight className="h-4 w-4" />
+                    </Link>
+                )}
+            </div>
+        </Card>
+    );
+}
+
+function ExtraToolsSection({ isMentalArithmetic }) {
+    return (
+        <Card as="section" id="extra-tools" className="min-h-[180px] p-5">
+            <div className="flex h-full flex-col gap-4 sm:items-start">
+                <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-aba-sm bg-aba-coral-soft text-aba-coral">
+                        <Calculator className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                        <p className="text-xs font-black uppercase tracking-wide text-aba-coral">Simulator / extra tools</p>
+                        <h2 className="text-xl font-black text-aba-ink font-display">Practice tools</h2>
+                        <p className="mt-1 text-sm font-semibold text-aba-ink-soft">
+                            {isMentalArithmetic
+                                ? "Open the abacus simulator when you are ready to practice."
+                                : "Extra tools will appear here when they are available for your program."}
+                        </p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={openAbacusSimulator}
+                    disabled={!isMentalArithmetic}
+                    className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-aba-sm border-2 border-dashed border-aba-coral bg-aba-coral-soft px-4 py-2.5 text-sm font-black text-aba-coral-dark transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-aba-line disabled:bg-aba-surface-alt disabled:text-aba-ink-faint sm:w-auto"
+                >
+                    <Calculator className="h-4 w-4" />
+                    Open Abacus
+                </button>
+            </div>
+        </Card>
+    );
+}
+
+/**
+ * PlayfulProgress - Progress indicator built on the design system's BeadRod.
+ *
+ * @param {number} value - Progress percentage (0-100)
+ * @param {string} className - Additional CSS classes
+ */
+function PlayfulProgress({ value, className = "" }) {
+    const progress = Math.max(0, Math.min(100, Number(value) || 0));
+
+    return (
+        <div className={`flex ${className}`}>
+            <BeadRod percent={progress} color={BEAD_ROD_COLOR} />
+        </div>
+    );
+}
+
+/**
+ * ProgressMoodBadge - Encouragement pill driven by the design system's Chip.
+ *
+ * @param {number} progress - Progress percentage (0-100)
+ */
+function ProgressMoodBadge({ progress }) {
+    const { variant, label } = getChipForPercent(Number(progress) || 0);
+
+    return <Chip variant={variant}>{label}</Chip>;
+}
+
+/**
+ * Returns a greeting that matches the learner's local time of day.
+ *
+ * @returns {string} "Good morning", "Good afternoon" or "Good evening"
+ */
+function getGreeting() {
+    const currentHour = new Date().getHours();
+
+    if (currentHour < GREETING_AFTERNOON_START_HOUR) {
+        return "Good morning";
+    }
+
+    if (currentHour < GREETING_EVENING_START_HOUR) {
+        return "Good afternoon";
+    }
+
+    return "Good evening";
+}
+
+function getProgramProgress(program) {
+    return Math.max(0, Math.min(100, Number(program?.progress) || 0));
+}
+
+function getCompletedLessons(program) {
+    return (program?.levelProgress || []).reduce(
+        (total, level) => total + (Number(level.completed) || 0),
+        0
+    );
+}
+
+function getTotalLessons(program) {
+    if (Array.isArray(program?.levelProgress) && program.levelProgress.length) {
+        return program.levelProgress.reduce(
+            (total, level) => total + (Number(level.total) || 0),
+            0
+        );
+    }
+
+    if (Array.isArray(program?.lessons)) {
+        return program.lessons.length;
+    }
+
+    if (program?.lessons && typeof program.lessons === "object") {
+        return Object.values(program.lessons).reduce(
+            (total, lessons) => total + (Array.isArray(lessons) ? lessons.length : 0),
+            0
+        );
+    }
+
+    return 0;
+}
+
+function isMentalArithmeticProgram(program) {
+    return Boolean(program) && (
+        program.name === "Mental Arithmetic Mastery" ||
+        program.translated_name === "Ментална Аритметика"
+    );
+}
+
+function getLessonsHref(program) {
+    const lessonId = program?.nextLesson?.id || getFirstLessonId(program);
+
+    if (!lessonId) {
+        return null;
+    }
+
+    return safeRoute("lessons.show", lessonId);
+}
+
+function getFirstLessonId(program) {
+    if (!program?.lessons) {
+        return null;
+    }
+
+    if (Array.isArray(program.lessons)) {
+        return program.lessons.find((lesson) => lesson?.id)?.id || null;
+    }
+
+    for (const lessons of Object.values(program.lessons)) {
+        if (Array.isArray(lessons)) {
+            const lesson = lessons.find((item) => item?.id);
+            if (lesson) {
+                return lesson.id;
+            }
+        }
+    }
+
+    return null;
+}
+
+function safeRoute(routeName, ...params) {
+    try {
+        if (typeof route === "function" && route().has && !route().has(routeName)) {
+            return null;
+        }
+
+        return route(routeName, ...params);
+    } catch {
+        return null;
+    }
+}
+
+function openAbacusSimulator() {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("open-abacus-simulator"));
+    }
+}
+
+function StudentNextClassCard({ nextClass }) {
+    const hasClass = nextClass && Object.keys(nextClass).length > 0 && (nextClass.day_description || nextClass.time_only);
+
+    return (
+        <Card as="article" className="flex min-h-[160px] flex-col p-5">
+            <CardHead className="gap-3">
+                <CardTitle
+                    icon={<Calendar className="h-4 w-4" />}
+                    iconBg="bg-aba-blue"
+                    iconColor="text-white"
+                >
+                    Next Live Class
+                </CardTitle>
+                {hasClass && <Chip variant="blue">Scheduled</Chip>}
+            </CardHead>
+
+            {hasClass ? (
+                <div className="mt-3 flex flex-1 flex-col">
+                    <h3 className="font-display text-xl font-black leading-tight text-aba-ink">{nextClass.title || "Live class"}</h3>
+                    <div className="mt-3 space-y-1.5 text-sm font-semibold text-aba-ink-soft">
+                        <p className="flex items-center gap-2 text-base font-black text-aba-ink"><Clock className="h-5 w-5 text-aba-blue" /> {nextClass.day_description} · {nextClass.time_only}</p>
+                        {(nextClass.group_name || nextClass.program_name) && <p className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-aba-blue" /> {nextClass.group_name || nextClass.program_name}</p>}
+                        {nextClass.admin_name && <p className="flex items-center gap-2"><User className="h-4 w-4 text-aba-blue" /> {nextClass.admin_name}</p>}
+                    </div>
+                    {nextClass.meeting_link && (
+                        <a href={nextClass.meeting_link} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex items-center justify-center gap-2 self-start rounded-aba-sm bg-aba-blue px-4 py-2.5 text-sm font-black text-white shadow-aba-sm transition hover:brightness-95">
+                            Join class <ExternalLink className="h-4 w-4" />
+                        </a>
+                    )}
+                </div>
+            ) : (
+                <div className="flex flex-1 flex-col items-center justify-center py-3 text-center">
+                    {/* TODO: Use a schedule detail route here if the backend exposes one. */}
+                    <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-aba-sm bg-aba-blue-soft text-aba-blue"><CheckCircle2 className="h-6 w-6" /></span>
+                    <p className="text-lg font-black text-aba-ink">No live class scheduled</p>
+                    <p className="mt-1 text-sm font-semibold text-aba-ink-soft">Your next class will appear here.</p>
+                </div>
+            )}
+        </Card>
+    );
+}
+
+function HomeworkAssignmentsPanel({ assignments, canUpdate = true, compact = false }) {
     const updateHomeworkStatus = (assignment, status) => {
         router.patch(route("dashboard.homework.status", assignment.id), { status }, {
             preserveScroll: true,
@@ -588,14 +1084,15 @@ function HomeworkAssignmentsPanel({ assignments, canUpdate = true }) {
 
     if (!currentAssignment) {
         return (
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
-                <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                        <ClipboardCheck className="h-5 w-5" />
+            <div className={`rounded-[24px] border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-yellow-50 p-5 shadow-sm ${compact ? "min-h-[160px]" : ""}`}>
+                <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                        <CheckCircle2 className="h-6 w-6" />
                     </span>
                     <div>
-                        <p className="text-xs font-semibold uppercase text-slate-500">Current homework</p>
-                        <p className="mt-1 text-sm text-slate-600">No homework assigned yet.</p>
+                        <p className="text-sm font-black uppercase tracking-wide text-amber-700">Homework</p>
+                        <p className="mt-1 text-lg font-black text-aba-ink">No homework for now</p>
+                        <p className="mt-1 text-sm font-semibold text-aba-ink-soft">You're all caught up!</p>
                     </div>
                 </div>
             </div>
@@ -603,30 +1100,47 @@ function HomeworkAssignmentsPanel({ assignments, canUpdate = true }) {
     }
 
     return (
-        <section className="rounded-2xl border border-emerald-200 bg-white/95 p-5 shadow-xl">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <section className={`rounded-[24px] border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-yellow-50 p-5 shadow-sm ${compact ? "min-h-[160px]" : ""}`}>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-2 rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold uppercase text-emerald-700 ring-1 ring-emerald-200">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800 ring-1 ring-amber-200">
                             <ClipboardCheck className="h-3.5 w-3.5" />
-                            Current homework
+                            Homework
                         </span>
-                        <span className="inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                        <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
                             {currentAssignment.student_status_label || currentAssignment.status}
                         </span>
                     </div>
-                    <h2 className="mt-3 text-xl font-bold text-slate-950">{currentAssignment.title}</h2>
-                    <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                    <h2 className="mt-3 text-xl font-black leading-tight text-aba-ink">{currentAssignment.title}</h2>
+                    {!compact && <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
                         {shortInstruction(currentAssignment.instructions)}
-                    </p>
+                    </p>}
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                        <HomeworkMeta icon={Clock} label="Practice time" value={currentAssignment.estimated_practice_time} />
-                        <HomeworkMeta icon={BookOpen} label="Lesson" value={currentAssignment.lesson?.title} />
-                        <HomeworkMeta icon={Calendar} label="Due date" value={currentAssignment.due_date} />
-                    </div>
+                    {compact ? (
+                        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold text-slate-600">
+                            {currentAssignment.lesson?.title && (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <BookOpen className="h-4 w-4 text-amber-700" />
+                                    {currentAssignment.lesson.title}
+                                </span>
+                            )}
+                            {currentAssignment.due_date && (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <Calendar className="h-4 w-4 text-amber-700" />
+                                    {currentAssignment.due_date}
+                                </span>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                            <HomeworkMeta icon={Clock} label="Practice time" value={currentAssignment.estimated_practice_time} />
+                            <HomeworkMeta icon={BookOpen} label="Lesson" value={currentAssignment.lesson?.title} />
+                            <HomeworkMeta icon={Calendar} label="Due date" value={currentAssignment.due_date} />
+                        </div>
+                    )}
 
-                    <PracticeTaskList tasks={currentAssignment.practice_tasks || []} onDone={markPracticeTaskDone} canUpdate={canUpdate} />
+                    {!compact && <PracticeTaskList tasks={currentAssignment.practice_tasks || []} onDone={markPracticeTaskDone} canUpdate={canUpdate} />}
                 </div>
 
                 {canUpdate && (
@@ -635,12 +1149,12 @@ function HomeworkAssignmentsPanel({ assignments, canUpdate = true }) {
                             type="button"
                             onClick={() => startHomework(currentAssignment)}
                             disabled={!currentAssignment.lesson?.id}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-aba-coral px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-aba-coral-dark disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <Play className="h-4 w-4" />
-                            Start homework
+                            {currentAssignment.student_status === "in_progress" ? "View homework" : "Start homework"}
                         </button>
-                        <button
+                        {!compact && <button
                             type="button"
                             onClick={() => updateHomeworkStatus(currentAssignment, "completed")}
                             disabled={currentAssignment.student_status === "completed"}
@@ -648,8 +1162,8 @@ function HomeworkAssignmentsPanel({ assignments, canUpdate = true }) {
                         >
                             <CheckCircle2 className="h-4 w-4" />
                             Completed
-                        </button>
-                        <button
+                        </button>}
+                        {!compact && <button
                             type="button"
                             onClick={() => updateHomeworkStatus(currentAssignment, "needs_help")}
                             disabled={currentAssignment.student_status === "needs_help"}
@@ -657,12 +1171,12 @@ function HomeworkAssignmentsPanel({ assignments, canUpdate = true }) {
                         >
                             <HelpCircle className="h-4 w-4" />
                             I need help
-                        </button>
+                        </button>}
                     </div>
                 )}
             </div>
 
-            {otherAssignments.length > 0 && (
+            {!compact && otherAssignments.length > 0 && (
                 <div className="mt-5 border-t border-slate-100 pt-4">
                     <p className="text-xs font-semibold uppercase text-slate-500">More homework</p>
                     <div className="mt-3 grid gap-3 lg:grid-cols-3">

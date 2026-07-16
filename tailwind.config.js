@@ -1,5 +1,10 @@
 import defaultTheme from "tailwindcss/defaultTheme";
 import forms from "@tailwindcss/forms";
+import {
+    ABACODING_COLORS,
+    ABACODING_RADII,
+    ABACODING_SHADOWS,
+} from "./resources/js/constants/abacodingTheme.js";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -34,10 +39,21 @@ export default {
 
     theme: {
         extend: {
+            // Abacoding design system tokens (defined in resources/js/constants/abacodingTheme.js
+            // so React components and Tailwind share one source of truth)
+            colors: ABACODING_COLORS,
+
+            borderRadius: ABACODING_RADII,
+
+            boxShadow: ABACODING_SHADOWS,
+
+            // Font families
             fontFamily: {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
                 montserrat: ["Montserrat", "serif"],
                 shantell: ["Shantell Sans", "serif"],
+                display: ["'Baloo 2'", "sans-serif"],
+                body: ["Nunito", "sans-serif"],
             },
         },
     },

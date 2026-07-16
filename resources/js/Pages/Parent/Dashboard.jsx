@@ -1,5 +1,6 @@
 import ParentLayout from "@/Layouts/ParentLayout";
 import { Head, Link } from "@inertiajs/react";
+import ReviewCard from "@/Components/ReviewCard";
 import {
     AlertTriangle,
     BarChart3,
@@ -46,7 +47,7 @@ const statusLabel = (status) => {
 
 const display = (value) => value || "Not available yet";
 
-export default function Dashboard({ childCards = [], children = [], childProfiles = [] }) {
+export default function Dashboard({ childCards = [], children = [], childProfiles = [], programReviews = [] }) {
     const averageProgress = childCards.length
         ? Math.round(childCards.reduce((sum, child) => sum + (child.progress || 0), 0) / childCards.length)
         : 0;
@@ -98,6 +99,35 @@ export default function Dashboard({ childCards = [], children = [], childProfile
                         <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
                             Register a child to create their learner account and start the approval process.
                         </p>
+                    </section>
+                )}
+
+                {programReviews.length > 0 && (
+                    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="mb-5 flex items-center gap-3">
+                            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+                                <MessageSquareText className="h-5 w-5" />
+                            </span>
+                            <div>
+                                <p className="text-sm font-medium text-slate-500">Program reviews</p>
+                                <h2 className="text-xl font-semibold text-slate-950">What families say</h2>
+                            </div>
+                        </div>
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {programReviews.map((review) => (
+                                <div key={review.id} className="space-y-2">
+                                    {review.program && (
+                                        <Link
+                                            href={route("programs.show", review.program.slug)}
+                                            className="inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800"
+                                        >
+                                            {review.program.name}
+                                        </Link>
+                                    )}
+                                    <ReviewCard review={review} />
+                                </div>
+                            ))}
+                        </div>
                     </section>
                 )}
             </div>
