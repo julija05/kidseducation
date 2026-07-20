@@ -1,74 +1,44 @@
 import React from "react";
 import ResourceViewer from "./Resources/Viewers/ResourceViewer";
 import ResourcesSidebar from "./Resources/ResourcesSidebar";
-import LessonActions from "./LessonActions";
 import QuizList from "./QuizList";
-import { motion } from "framer-motion";
+import { Card } from "@/Components/StudentDashboard";
 
+/**
+ * LessonContent - Main lesson working area: resource viewer, quizzes and the
+ * resources sidebar.
+ *
+ * Progress actions live in the sticky LessonActions footer, which the page
+ * renders outside this grid so it can span the full viewport width.
+ *
+ * @param {object} lesson - Lesson being viewed
+ * @param {object} selectedResource - Resource currently being viewed
+ * @param {function} onResourceSelect - Called with the resource to view
+ * @param {function} onResourceDownload - Called with (resource, event) to download
+ */
 export default function LessonContent({
     lesson,
     selectedResource,
-    currentProgress,
-    isLoading,
     onResourceSelect,
     onResourceDownload,
-    onUpdateProgress,
-    onCompleteLesson,
 }) {
+    const hasResources = (lesson.resources?.length || 0) > 0;
+
     return (
-        <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-4 gap-8"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-        >
-            {/* Modern Main Content Area */}
-            <div className="lg:col-span-3 space-y-8">
-                {/* Modern Resource Viewer */}
-                <motion.div 
-                    className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/50 p-8"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-                    whileHover={{ y: -5, shadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)" }}
-                >
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+            <div className="space-y-4 lg:col-span-3">
+                <Card as="section" className="flex min-h-[420px] flex-col p-5">
                     <ResourceViewer
                         selectedResource={selectedResource}
                         onDownload={onResourceDownload}
+                        hasResources={hasResources}
                     />
-                </motion.div>
+                </Card>
 
-                {/* Modern Lesson Actions */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.5 }}
-                >
-                    <LessonActions
-                        currentProgress={currentProgress}
-                        isLoading={isLoading}
-                        onUpdateProgress={onUpdateProgress}
-                        onCompleteLesson={onCompleteLesson}
-                    />
-                </motion.div>
-
-                {/* Modern Quizzes Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.6 }}
-                >
-                    <QuizList quizzes={lesson.quizzes} />
-                </motion.div>
+                <QuizList quizzes={lesson.quizzes} />
             </div>
 
-            {/* Modern Resources Sidebar */}
-            <motion.div 
-                className="lg:col-span-1"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.7 }}
-            >
+            <div className="lg:col-span-1">
                 <div className="sticky top-6">
                     <ResourcesSidebar
                         resources={lesson.resources}
@@ -77,7 +47,7 @@ export default function LessonContent({
                         onResourceDownload={onResourceDownload}
                     />
                 </div>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     );
 }

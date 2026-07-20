@@ -28,7 +28,7 @@ export default function LessonCompletionModal({
                 transition={{ duration: 0.3 }}
             >
                 {/* Header */}
-                <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-t-xl p-6 text-center relative overflow-hidden">
+                <div className="bg-aba-green rounded-t-xl p-6 text-center relative overflow-hidden">
                     {/* Celebration confetti effect */}
                     <div className="absolute inset-0">
                         <motion.div className="absolute top-2 left-4 text-yellow-300"
@@ -70,10 +70,10 @@ export default function LessonCompletionModal({
                         </motion.div>
                     </div>
                     
-                    <h2 className="text-2xl font-bold text-white mb-2 relative z-10">
+                    <h2 className="text-2xl font-black text-white mb-2 relative z-10 font-display">
                         🎉 {t('lessons.lesson_completed_title')} 🎉
                     </h2>
-                    <p className="text-green-100 relative z-10">
+                    <p className="text-aba-green-soft relative z-10">
                         {t('lessons.lesson_completed_message')}
                     </p>
                 </div>
@@ -83,14 +83,14 @@ export default function LessonCompletionModal({
                     {nextLesson ? (
                         <>
                             <div className="mb-6">
-                                <p className="text-sm font-medium text-gray-600 mb-2">
+                                <p className="text-sm font-bold uppercase tracking-wide text-aba-ink-soft mb-2">
                                     {t('lessons.next_lesson_title')}
                                 </p>
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h3 className="font-semibold text-blue-900">
+                                <div className="bg-aba-blue-soft border border-aba-blue rounded-aba-sm p-4">
+                                    <h3 className="font-black text-aba-ink">
                                         {nextLesson.translated_title || nextLesson.title}
                                     </h3>
-                                    <p className="text-sm text-blue-600 mt-1">
+                                    <p className="text-sm font-semibold text-aba-blue mt-1">
                                         {t('lessons.level')} {nextLesson.level}
                                     </p>
                                 </div>
@@ -100,14 +100,14 @@ export default function LessonCompletionModal({
                             <div className="flex gap-3">
                                 <button
                                     onClick={onProceed}
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    className="flex-1 bg-aba-coral hover:bg-aba-coral-dark text-white font-black py-3 px-4 rounded-aba-sm shadow-aba-coral transition flex items-center justify-center gap-2"
                                 >
                                     {t('lessons.proceed_to_next')}
                                     <ArrowRight size={16} />
                                 </button>
                                 <button
                                     onClick={onStay}
-                                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors"
+                                    className="flex-1 bg-aba-surface-alt hover:brightness-95 text-aba-ink-soft font-black py-3 px-4 rounded-aba-sm transition"
                                 >
                                     {t('lessons.stay_here')}
                                 </button>
@@ -117,17 +117,17 @@ export default function LessonCompletionModal({
                         <>
                             {/* All lessons completed */}
                             <div className="text-center mb-6">
-                                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle size={32} className="text-yellow-600" />
+                                <div className="w-16 h-16 bg-aba-yellow-soft rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <CheckCircle size={32} className="text-aba-yellow" />
                                 </div>
-                                <p className="text-gray-700">
+                                <p className="font-semibold text-aba-ink-soft">
                                     {t('lessons.all_lessons_completed')}
                                 </p>
                             </div>
-                            
+
                             <button
                                 onClick={onClose}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="w-full bg-aba-green hover:brightness-95 text-white font-black py-3 px-4 rounded-aba-sm shadow-aba-sm transition"
                             >
                                 {t('actions.back')}
                             </button>

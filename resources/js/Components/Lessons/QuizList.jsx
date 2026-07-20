@@ -1,89 +1,98 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
 import { Play, Clock, Award, Users, FileQuestion } from 'lucide-react';
+import { Card, CardHead, CardTitle } from '@/Components/StudentDashboard';
 
+// Emoji shown next to each quiz depending on its type.
+const QUIZ_TYPE_EMOJIS = {
+    mental_arithmetic: '🧮',
+    multiple_choice: '✅',
+    text_answer: '✏️',
+    true_false: '❓',
+    mixed: '📝',
+};
+
+const DEFAULT_QUIZ_EMOJI = '📝';
+
+/**
+ * QuizList - Renders the quizzes attached to a lesson.
+ *
+ * @param {Array} quizzes - Quizzes to display
+ */
 export default function QuizList({ quizzes = [] }) {
     if (!quizzes || quizzes.length === 0) {
         return null;
     }
 
-    const getQuizTypeIcon = (type) => {
-        const icons = {
-            mental_arithmetic: '🧮',
-            multiple_choice: '✅',
-            text_answer: '✏️',
-            true_false: '❓',
-            mixed: '📝'
-        };
-        return icons[type] || '📝';
-    };
+    const getQuizTypeEmoji = (type) => QUIZ_TYPE_EMOJIS[type] || DEFAULT_QUIZ_EMOJI;
 
     return (
-        <div className="mt-8">
-            <div className="flex items-center mb-4">
-                <FileQuestion className="w-6 h-6 text-indigo-600 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-900">
+        <Card as="section" className="p-5">
+            <CardHead>
+                <CardTitle
+                    icon={<FileQuestion className="h-4 w-4" />}
+                    iconBg="bg-aba-purple-soft"
+                    iconColor="text-aba-purple"
+                >
                     Quizzes ({quizzes.length})
-                </h3>
-            </div>
+                </CardTitle>
+            </CardHead>
 
-            <div className="grid gap-4">
+            <div className="grid gap-3">
                 {quizzes.map((quiz) => (
                     <div
                         key={quiz.id}
-                        className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                        className="rounded-aba-md border border-aba-line bg-aba-surface-alt p-4 transition hover:shadow-aba-sm"
                     >
-                        <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-2">
-                                    <span className="text-2xl">{getQuizTypeIcon(quiz.type)}</span>
-                                    <h4 className="text-lg font-medium text-gray-900">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                            <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-2xl">{getQuizTypeEmoji(quiz.type)}</span>
+                                    <h4 className="text-lg font-black text-aba-ink">
                                         {quiz.title}
                                     </h4>
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                    <span className="rounded-full bg-aba-purple-soft px-2.5 py-0.5 text-xs font-extrabold text-aba-purple">
                                         {quiz.type_display}
                                     </span>
                                 </div>
 
                                 {quiz.description && (
-                                    <p className="text-gray-600 mb-3">{quiz.description}</p>
+                                    <p className="mt-2 text-sm font-medium text-aba-ink-soft">{quiz.description}</p>
                                 )}
 
-                                <div className="flex items-center space-x-6 text-sm text-gray-500">
-                                    <div className="flex items-center">
-                                        <Users className="w-4 h-4 mr-1" />
+                                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-aba-ink-soft">
+                                    <span className="flex items-center gap-1.5">
+                                        <Users className="h-4 w-4 text-aba-blue" />
                                         {quiz.total_questions} questions
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Award className="w-4 h-4 mr-1" />
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        <Award className="h-4 w-4 text-aba-yellow" />
                                         {quiz.total_points} points
-                                    </div>
-                                    <div className="flex items-center">
-                                        <span className="font-medium">Pass:</span>
-                                        <span className="ml-1">{quiz.passing_score}%</span>
-                                    </div>
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <span className="font-black text-aba-ink">Pass:</span>
+                                        {quiz.passing_score}%
+                                    </span>
                                     {quiz.formatted_time_limit && (
-                                        <div className="flex items-center">
-                                            <Clock className="w-4 h-4 mr-1" />
+                                        <span className="flex items-center gap-1.5">
+                                            <Clock className="h-4 w-4 text-aba-green" />
                                             {quiz.formatted_time_limit}
-                                        </div>
+                                        </span>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="ml-4">
-                                <Link
-                                    href={route('student.quiz.show', quiz.id)}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                >
-                                    <Play className="w-4 h-4 mr-2" />
-                                    Take Quiz
-                                </Link>
-                            </div>
+                            <Link
+                                href={route('student.quiz.show', quiz.id)}
+                                className="inline-flex shrink-0 items-center gap-2 rounded-aba-sm bg-aba-purple px-4 py-2.5 text-sm font-black text-white shadow-aba-sm transition hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-aba-purple focus:ring-offset-2"
+                            >
+                                <Play className="h-4 w-4" />
+                                Take Quiz
+                            </Link>
                         </div>
                     </div>
                 ))}
             </div>
-        </div>
+        </Card>
     );
 }

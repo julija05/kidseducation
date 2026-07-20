@@ -1,4 +1,5 @@
 import React from "react";
+import { router } from "@inertiajs/react";
 import {
     BookOpen,
     Download,
@@ -14,55 +15,62 @@ import { RESOURCE_TYPES } from "@/constants/resourceTypes";
 import { useTranslation } from "@/hooks/useTranslation";
 
 const VIEWER_CONFIGS = {
-    [RESOURCE_TYPES.DOWNLOAD]: {
-        icon: "Download",
-        bgColor: "bg-indigo-50",
-        borderColor: "border-indigo-300",
-        iconColor: "text-indigo-500",
-        titleColor: "text-indigo-800",
-        textColor: "text-indigo-600",
-    },
-    [RESOURCE_TYPES.INTERACTIVE]: {
-        icon: "Calculator",
-        bgColor: "bg-orange-50",
-        borderColor: "border-orange-300",
-        iconColor: "text-orange-500",
-        titleColor: "text-orange-800",
-        textColor: "text-orange-600",
-    },
-    [RESOURCE_TYPES.QUIZ]: {
-        icon: "Trophy",
-        bgColor: "bg-yellow-50",
-        borderColor: "border-yellow-300",
-        iconColor: "text-yellow-500",
-        titleColor: "text-yellow-800",
-        textColor: "text-yellow-600",
-    },
-    [RESOURCE_TYPES.LINK]: {
-        icon: "ExternalLink",
-        bgColor: "bg-purple-50",
-        borderColor: "border-purple-300",
-        iconColor: "text-purple-500",
-        titleColor: "text-purple-800",
-        textColor: "text-purple-600",
-    },
+    [RESOURCE_TYPES.DOWNLOAD]: { icon: "Download" },
+    [RESOURCE_TYPES.INTERACTIVE]: { icon: "Calculator" },
+    [RESOURCE_TYPES.QUIZ]: { icon: "Trophy" },
+    [RESOURCE_TYPES.LINK]: { icon: "ExternalLink" },
 };
 
-export default function ResourceViewer({ selectedResource, onDownload }) {
+/**
+ * ResourceViewer - Renders the currently selected resource, or the appropriate
+ * empty state.
+ *
+ * A lesson with no resources at all is a different situation from one where the
+ * student simply has nothing selected yet, so the two get distinct messages:
+ * prompting someone to "choose a resource" is misleading when there is nothing
+ * to choose.
+ *
+ * @param {object} selectedResource - Resource currently being viewed
+ * @param {function} onDownload - Called with (resource, event) to download
+ * @param {boolean} hasResources - Whether the lesson has any resources at all
+ */
+export default function ResourceViewer({ selectedResource, onDownload, hasResources = true }) {
     const { t } = useTranslation();
-    
+
+    if (!hasResources) {
+        return (
+            <div className="flex min-h-[400px] flex-1 flex-col items-center justify-center px-8 py-10 text-center">
+                <span className="mb-4 flex h-[76px] w-[76px] items-center justify-center rounded-full bg-aba-surface-alt text-[34px]">
+                    📼
+                </span>
+                <h3 className="mb-2 font-display text-xl font-black text-aba-ink">
+                    {t('lessons.no_resources_available')}
+                </h3>
+                <p className="mb-5 max-w-[380px] text-sm font-medium leading-relaxed text-aba-ink-soft">
+                    {t('lessons.no_resources_viewer_hint')}
+                </p>
+                <button
+                    type="button"
+                    onClick={() => router.visit(route("dashboard"))}
+                    className="inline-flex items-center gap-2 rounded-aba-sm border-[1.5px] border-aba-line bg-aba-surface px-5 py-3 text-sm font-black text-aba-ink transition hover:bg-aba-surface-alt"
+                >
+                    {t('lessons.back_to_lessons')}
+                </button>
+            </div>
+        );
+    }
+
     if (!selectedResource) {
         return (
-            <div className="flex items-center justify-center h-full min-h-[400px]">
+            <div className="flex h-full min-h-[400px] items-center justify-center">
                 <div className="text-center">
-                    <BookOpen
-                        size={64}
-                        className="mx-auto mb-4 text-gray-400"
-                    />
-                    <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                    <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-aba-surface-alt text-aba-blue">
+                        <BookOpen size={32} />
+                    </span>
+                    <h3 className="mb-2 font-display text-xl font-black text-aba-ink">
                         {t('lessons.select_resource')}
                     </h3>
-                    <p className="text-gray-500">
+                    <p className="text-sm font-semibold text-aba-ink-soft">
                         {t('lessons.choose_resource_to_begin')}
                     </p>
                 </div>
@@ -92,7 +100,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                         action: (
                             <>
                                 {selectedResource.file_name && (
-                                    <p className="text-sm text-indigo-600 mb-4">
+                                    <p className="mb-4 text-sm font-semibold text-aba-coral-dark">
                                         {t('lessons.file')}: {selectedResource.file_name}
                                     </p>
                                 )}
@@ -100,9 +108,9 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                                     onClick={(e) =>
                                         onDownload(selectedResource, e)
                                     }
-                                    className="inline-flex items-center px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                                    className="inline-flex items-center gap-2 rounded-aba-sm bg-aba-coral px-6 py-2.5 text-sm font-black text-white shadow-aba-coral transition hover:bg-aba-coral-dark"
                                 >
-                                    <Download size={16} className="mr-2" />
+                                    <Download size={16} />
                                     {t('lessons.download_file')}
                                 </button>
                             </>
@@ -114,7 +122,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
         case RESOURCE_TYPES.INTERACTIVE:
             if (selectedResource.resource_url) {
                 return (
-                    <div className="h-[600px] border rounded-lg overflow-hidden">
+                    <div className="h-[600px] overflow-hidden rounded-aba-md border border-aba-line">
                         <iframe
                             src={selectedResource.resource_url}
                             title={selectedResource.title}
@@ -131,7 +139,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                     config={{
                         ...VIEWER_CONFIGS[RESOURCE_TYPES.INTERACTIVE],
                         action: (
-                            <p className="text-orange-600">
+                            <p className="font-semibold text-aba-purple">
                                 {t('lessons.interactive_content_coming_soon')}
                             </p>
                         ),
@@ -147,7 +155,7 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                     config={{
                         ...VIEWER_CONFIGS[RESOURCE_TYPES.QUIZ],
                         action: (
-                            <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition-colors">
+                            <button className="rounded-aba-sm bg-aba-yellow px-6 py-2.5 text-sm font-black text-white shadow-aba-sm transition hover:brightness-95">
                                 {t('lessons.start_quiz')}
                             </button>
                         ),
@@ -165,9 +173,9 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
                         action: (
                             <button
                                 onClick={(e) => onDownload(selectedResource, e)}
-                                className="inline-flex items-center px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                                className="inline-flex items-center gap-2 rounded-aba-sm bg-aba-purple px-6 py-2.5 text-sm font-black text-white shadow-aba-sm transition hover:brightness-95"
                             >
-                                <ExternalLink size={16} className="mr-2" />
+                                <ExternalLink size={16} />
                                 {t('lessons.open_link')}
                             </button>
                         ),
@@ -177,21 +185,21 @@ export default function ResourceViewer({ selectedResource, onDownload }) {
 
         default:
             return (
-                <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <div className="flex h-[400px] items-center justify-center rounded-aba-md border-2 border-dashed border-aba-line bg-aba-surface-alt">
                     <div className="text-center">
                         <File
                             size={64}
-                            className="mx-auto mb-4 text-gray-400"
+                            className="mx-auto mb-4 text-aba-ink-faint"
                         />
-                        <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                        <h3 className="mb-2 font-display text-xl font-black text-aba-ink">
                             {selectedResource.translated_title || selectedResource.title}
                         </h3>
                         {(selectedResource.translated_description || selectedResource.description) && (
-                            <p className="text-gray-500 mb-4">
+                            <p className="mb-4 text-sm font-medium text-aba-ink-soft">
                                 {selectedResource.translated_description || selectedResource.description}
                             </p>
                         )}
-                        <p className="text-gray-500">
+                        <p className="text-sm font-semibold text-aba-ink-soft">
                             {t('lessons.resource_preview_not_available')}
                         </p>
                     </div>

@@ -6,11 +6,11 @@ export const getCsrfToken = () => {
 };
 
 export const getResourceTypeColor = (type, isSelected = false) => {
-    
+
     const defaultScheme = {
-        base: "border-gray-200 text-gray-700",
-        selected: "bg-gray-100 border-gray-400",
-        hover: "hover:bg-gray-50",
+        base: "border-aba-line text-aba-ink",
+        selected: "bg-aba-surface-alt border-aba-ink-faint",
+        hover: "hover:bg-aba-surface-alt",
     };
 
     const scheme = RESOURCE_COLOR_SCHEMES[type] || defaultScheme;

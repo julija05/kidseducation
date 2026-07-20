@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import ThemeManager from "@/Components/ThemeManager";
 import { useAvatar } from "@/hooks/useAvatar.jsx";
 import { useRouteWithLocale } from "@/Utils/routeHelpers";
+import { ABACODING_COLORS } from "@/constants/abacodingTheme";
 
 
 export default function AuthenticatedLayout(props) {
@@ -23,6 +24,9 @@ function AuthenticatedLayoutContentSimple({
     programConfig = null,
     showSideNavigation = false,
     customHeader = null,
+    // Extra controls rendered in the header's right-hand action area, before the
+    // notification bell (e.g. the lesson page's homework drawer trigger).
+    headerActions = null,
     abacusPlacement = "floating",
     hideHeader = false,
 }) {
@@ -33,14 +37,7 @@ function AuthenticatedLayoutContentSimple({
     const { avatarData } = useAvatar();
     const { routeWithLocale } = useRouteWithLocale();
     const [showAbacus, setShowAbacus] = useState(false);
-    const [currentTheme, setCurrentTheme] = useState(() => {
-        try {
-            return document.documentElement.getAttribute('data-theme') || 'default';
-        } catch {
-            return 'default';
-        }
-    });
-    
+
     // Helper function to get the correct dashboard route based on user role
     const getDashboardRoute = () => {
         if (!auth?.user) return "dashboard";
@@ -67,30 +64,6 @@ function AuthenticatedLayoutContentSimple({
     
     // Check if user is a student (has student role)
     const isStudent = user.roles && user.roles.includes('student');
-    
-    // Listen for theme changes
-    useEffect(() => {
-        const handleThemeChange = () => {
-            const newTheme = document.documentElement.getAttribute('data-theme') || 'default';
-            setCurrentTheme(newTheme);
-        };
-        
-        // Listen for data-theme attribute changes
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
-                    handleThemeChange();
-                }
-            });
-        });
-        
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['data-theme']
-        });
-        
-        return () => observer.disconnect();
-    }, []);
     
     // Get notification data from props if available
     const { notifications = [], unreadNotificationCount = 0, nextClass = null, enrolledProgram = null } = props;
@@ -120,43 +93,23 @@ function AuthenticatedLayoutContentSimple({
         });
     };
 
-    // Define theme-specific gradients
-    const themeGradients = {
-        default: 'linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229))',
-        purple: 'linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))',
-        green: 'linear-gradient(to right, rgb(22, 163, 74), rgb(5, 150, 105))',
-        orange: 'linear-gradient(to right, rgb(234, 88, 12), rgb(239, 68, 68))',
-        teal: 'linear-gradient(to right, rgb(13, 148, 136), rgb(6, 182, 212))',
-        dark: 'linear-gradient(to right, rgb(31, 41, 55), rgb(17, 24, 39))'
-    };
-    
-    // Force a default gradient if no theme is detected
-    const activeTheme = currentTheme || 'default';
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-aba-bg">
             <ThemeManager />
             {/* Modern Header */}
             {!hideHeader && (
-            <motion.header 
-                    className="backdrop-blur-lg shadow-xl border-b border-white/20 relative overflow-visible"
+            <motion.header
+                    className="sticky top-0 border-b border-aba-line bg-aba-surface overflow-visible"
                     style={{
-                        background: `${themeGradients[activeTheme]}, rgba(255, 255, 255, 0.1)`,
-                        backdropFilter: 'blur(16px)',
-                        color: 'white',
+                        color: ABACODING_COLORS["aba-ink"],
                         minHeight: '70px',
                         width: '100%',
-                        position: 'relative',
                         zIndex: 100
                     }}
                     initial={{ y: -100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
                 >
-                {/* Background decorative elements */}
-                <div className="absolute inset-0">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
-                    <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-2xl transform -translate-x-1/3 translate-y-1/3" />
-                </div>
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                     <div className="flex items-center justify-between gap-2 sm:gap-4">
                         <motion.div 
@@ -185,7 +138,7 @@ function AuthenticatedLayoutContentSimple({
                             {isMentalArithmeticStudent && !["content", "dashboard"].includes(abacusPlacement) && (
                                 <motion.button
                                     onClick={() => setShowAbacus(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-xl transition-all duration-200 text-white text-sm border border-white/30 shadow-lg"
+                                    className="flex items-center gap-2 px-4 py-2 bg-aba-yellow-soft hover:brightness-95 rounded-aba-sm transition-all duration-200 text-[#B9790A] text-sm font-bold border border-aba-yellow"
                                     title={t('dashboard.open_abacus_simulator')}
                                     whileHover={{ scale: 1.05, y: -2 }}
                                     whileTap={{ scale: 0.95 }}
@@ -195,6 +148,8 @@ function AuthenticatedLayoutContentSimple({
                                 </motion.button>
                             )}
                             
+                            {headerActions}
+
                             {/* Student Notifications */}
                             {isStudent && (
                                 <StudentNotifications
@@ -213,38 +168,38 @@ function AuthenticatedLayoutContentSimple({
                                     <span className="inline-flex rounded-md">
                                         <motion.button
                                             type="button"
-                                            className="flex items-center space-x-2 sm:space-x-3 px-2 sm:px-4 py-2 sm:py-3 text-white hover:bg-white/20 rounded-xl transition-all duration-200 border border-white/30 hover:border-white/50 shadow-lg backdrop-blur-sm bg-white/10"
+                                            className="flex items-center gap-2 sm:gap-2.5 py-1.5 pl-1.5 pr-2.5 sm:pr-3.5 rounded-full bg-aba-blue-soft hover:brightness-95 transition-all duration-200"
                                             whileHover={{ scale: 1.05, y: -2 }}
                                             whileTap={{ scale: 0.95 }}
                                         >
-                                            <div className="text-right hidden sm:block">
-                                                <p className="text-xs opacity-90">
-                                                    {t('dashboard.welcome_back')},
-                                                </p>
-                                                <p className="font-semibold text-sm text-white">
-                                                    {user.name}
-                                                </p>
-                                            </div>
-                                            <motion.div 
-                                                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 shadow-lg"
+                                            <motion.div
+                                                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-gradient-to-b from-[#FFD27A] to-[#FFB627]"
                                                 whileHover={{ rotate: 5 }}
                                                 transition={{ duration: 0.2 }}
                                             >
                                                 {avatarData && avatarData.type === 'emoji' ? (
-                                                    <span className="text-lg sm:text-xl">{avatarData.value}</span>
+                                                    <span className="text-base sm:text-lg">{avatarData.value}</span>
                                                 ) : (
-                                                    <span className="text-lg sm:text-xl font-bold text-white">
+                                                    <span className="text-base sm:text-lg font-bold text-white">
                                                         {user.name ? user.name.charAt(0).toUpperCase() : '👤'}
                                                     </span>
                                                 )}
                                             </motion.div>
+                                            <div className="text-left hidden sm:block leading-tight">
+                                                <p className="text-[10.5px] font-bold text-aba-blue">
+                                                    {t('dashboard.welcome_back')}
+                                                </p>
+                                                <p className="text-sm font-black text-aba-ink">
+                                                    {user.name}
+                                                </p>
+                                            </div>
                                             <motion.div
                                                 animate={{ rotate: [0, 5, -5, 0] }}
                                                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                             >
                                                 <ChevronDown
                                                     size={14}
-                                                    className="opacity-90 text-white hidden sm:block"
+                                                    className="text-aba-ink-faint hidden sm:block"
                                                 />
                                             </motion.div>
                                         </motion.button>

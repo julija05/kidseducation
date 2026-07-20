@@ -1,6 +1,6 @@
 import React from 'react';
 import { router, Link, usePage } from '@inertiajs/react';
-import { User, BookOpen, Calendar, Settings } from 'lucide-react';
+import { User, BookOpen, Calendar, Settings, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -14,14 +14,16 @@ import { useTranslation } from '@/hooks/useTranslation';
  * @param {Object} props.program - Program object with name/translated_name
  * @param {React.Component} props.icon - Custom icon component (optional)
  * @param {function} props.onClick - Custom click handler (optional, defaults to dashboard redirect)
+ * @param {boolean} props.showBackButton - Render a back button before the panel icon (optional)
  */
-export default function StudentNavBar({ 
+export default function StudentNavBar({
     panelType = 'dashboard',
     title,
     subtitle,
     program,
     icon: CustomIcon,
-    onClick
+    onClick,
+    showBackButton = false
 }) {
     const { t } = useTranslation();
     const page = usePage();
@@ -102,29 +104,38 @@ export default function StudentNavBar({
     // Modern animated layout with beautiful animations
     return (
         <>
-            <motion.div 
-                className="bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-3 mr-2 sm:mr-4 border border-white/30 shadow-lg shrink-0"
+            {showBackButton && (
+                <Link
+                    href={route(getDashboardRoute())}
+                    aria-label={t('nav.dashboard', { fallback: 'Back' })}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-aba-line bg-aba-surface-alt text-aba-ink-soft transition hover:text-aba-ink mr-2 sm:mr-3"
+                >
+                    <ArrowLeft size={16} />
+                </Link>
+            )}
+            <motion.div
+                className="bg-gradient-to-b from-aba-blue to-[#2E6FE0] rounded-aba-sm p-2 sm:p-2.5 mr-2 sm:mr-3 shadow-aba-sm shrink-0"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 transition={{ duration: 0.3 }}
             >
                 <IconComponent
                     className="text-white"
-                    size={24}
+                    size={22}
                 />
             </motion.div>
-            <Link 
+            <Link
                 href={route(getDashboardRoute())}
-                className="text-white hover:text-gray-200 transition-colors group min-w-0 flex-1"
+                className="transition-colors group min-w-0 flex-1"
             >
-                <motion.div 
-                    className="flex flex-col min-w-0"
+                <motion.div
+                    className="flex flex-col min-w-0 sm:flex-row sm:items-center sm:gap-2.5"
                     whileHover={{ x: 5 }}
                     transition={{ duration: 0.2 }}
                 >
-                    <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-white to-white/90 bg-clip-text text-transparent group-hover:from-white/90 group-hover:to-white truncate">
+                    <span className="font-display text-lg sm:text-xl font-black text-aba-ink truncate">
                         {displayTitle}
                     </span>
-                    <span className="text-xs -mt-1 bg-gray-900/90 text-white backdrop-blur-sm rounded-full px-2 py-0.5 border border-gray-700/50 shadow-sm max-w-fit">
+                    <span className="text-[11px] font-black bg-aba-ink text-white rounded-full px-2.5 py-1 max-w-fit truncate">
                         {displaySubtitle}
                     </span>
                 </motion.div>

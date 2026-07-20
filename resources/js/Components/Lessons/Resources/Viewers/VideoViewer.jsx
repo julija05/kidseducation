@@ -6,16 +6,22 @@ import {
     getYouTubeEmbedUrl,
 } from "@/Utils/helpers";
 
+/**
+ * VideoViewer - Plays a lesson video, embedding YouTube links and falling back
+ * to a native player or a placeholder when no URL is available.
+ *
+ * @param {object} resource - Video resource to play
+ */
 export default function VideoViewer({ resource }) {
     if (!resource.resource_url) {
         return (
-            <div className="flex items-center justify-center h-[400px] bg-black rounded-lg">
-                <div className="text-white text-center">
+            <div className="flex h-[400px] items-center justify-center rounded-aba-md bg-aba-ink">
+                <div className="text-center text-white">
                     <Play size={64} className="mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">
+                    <h3 className="mb-2 font-display text-xl font-black">
                         {resource.title}
                     </h3>
-                    <p className="text-gray-300">
+                    <p className="text-sm font-medium text-aba-rod">
                         Video will be available soon
                     </p>
                 </div>
@@ -32,15 +38,15 @@ export default function VideoViewer({ resource }) {
                 <iframe
                     src={embedUrl}
                     title={resource.title}
-                    className="w-full aspect-video rounded-lg"
+                    className="aspect-video w-full rounded-aba-md"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                 />
                 <div className="mt-4">
-                    <h3 className="text-lg font-semibold">{resource.title}</h3>
+                    <h3 className="font-display text-lg font-black text-aba-ink">{resource.title}</h3>
                     {resource.description && (
-                        <p className="text-gray-600 mt-2">
+                        <p className="mt-2 text-sm font-medium text-aba-ink-soft">
                             {resource.description}
                         </p>
                     )}
@@ -54,14 +60,14 @@ export default function VideoViewer({ resource }) {
             <video
                 src={resource.resource_url}
                 controls
-                className="w-full aspect-video rounded-lg bg-black"
+                className="aspect-video w-full rounded-aba-md bg-aba-ink"
             >
                 Your browser does not support the video tag.
             </video>
             <div className="mt-4">
-                <h3 className="text-lg font-semibold">{resource.title}</h3>
+                <h3 className="font-display text-lg font-black text-aba-ink">{resource.title}</h3>
                 {resource.description && (
-                    <p className="text-gray-600 mt-2">{resource.description}</p>
+                    <p className="mt-2 text-sm font-medium text-aba-ink-soft">{resource.description}</p>
                 )}
             </div>
         </div>

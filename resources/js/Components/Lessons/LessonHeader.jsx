@@ -1,9 +1,23 @@
 import React from "react";
-import { router } from "@inertiajs/react";
-import { ArrowLeft, BookOpen, Clock, Eye, Target, Star, Sparkles } from "lucide-react";
+import { BookOpen, Clock, Eye, Sparkles } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { motion } from "framer-motion";
+import { Card, BeadRod, Chip, getChipForPercent } from "@/Components/StudentDashboard";
+import { ABACODING_COLORS } from "@/constants/abacodingTheme";
 
+// Bead color for the abacus-style progress rod, matching the student dashboard.
+const BEAD_ROD_COLOR = ABACODING_COLORS["aba-blue"];
+
+// Fallback duration shown when the lesson has no duration set.
+const DEFAULT_LESSON_DURATION_MINUTES = 30;
+
+/**
+ * LessonHeader - Hero card introducing the lesson, its program and progress.
+ *
+ * @param {object} lesson - Lesson being viewed
+ * @param {object} program - Program the lesson belongs to
+ * @param {number} progress - Lesson progress percentage (0-100)
+ * @param {boolean} hasResources - Whether the lesson has any resources
+ */
 export default function LessonHeader({
     lesson,
     program,
@@ -11,194 +25,103 @@ export default function LessonHeader({
     hasResources,
 }) {
     const { t } = useTranslation();
-    
+    const roundedProgress = Math.round(progress);
+    const { variant: chipVariant, label: chipLabel } = getChipForPercent(progress);
+
     return (
-        <motion.div 
-            className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-        >
-            {/* Modern Hero Section */}
-            <motion.div
-                className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-8 border border-white/50 shadow-lg mb-6"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                whileHover={{ scale: 1.02 }}
-            >
-                {/* Lesson Level Badge */}
-                <div className="flex items-center justify-between mb-6">
-                    <motion.div 
-                        className="bg-gradient-to-r from-blue-100 to-purple-100 px-4 py-2 rounded-full border border-blue-200/50"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.6, delay: 0.4 }}
-                    >
-                        <div className="flex items-center space-x-2">
-                            <Target size={16} className="text-blue-600" />
-                            <span className="text-sm font-semibold text-blue-700">
-                                {t('lessons.level')} {lesson.level} • {t('lessons.lesson')} {lesson.order_in_level}
-                            </span>
+        <Card as="header" surface="alt" className="p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-wide text-aba-blue">
+                        {t('lessons.level')} {lesson.level} • {t('lessons.lesson')} {lesson.order_in_level}
+                    </p>
+                    <div className="mt-2 flex items-start gap-3">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-aba-sm bg-aba-surface text-aba-blue shadow-aba-sm">
+                            <BookOpen className="h-5 w-5" />
+                        </span>
+                        <div className="min-w-0">
+                            <h1 className="break-words font-display text-3xl font-black leading-tight text-aba-ink">
+                                {lesson.translated_title || lesson.title}
+                            </h1>
+                            <p className="mt-1 text-sm font-semibold text-aba-ink-soft">
+                                {program?.translated_name || program?.name}
+                            </p>
                         </div>
-                    </motion.div>
-                    
-                    {/* Progress Circle */}
-                    <motion.div 
-                        className="flex items-center space-x-3"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.6, delay: 0.4 }}
-                    >
-                        <div className="relative w-16 h-16">
-                            <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 100 100">
-                                <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="40"
-                                    stroke="currentColor"
-                                    strokeWidth="8"
-                                    fill="none"
-                                    className="text-gray-200"
-                                />
-                                <motion.circle
-                                    cx="50"
-                                    cy="50"
-                                    r="40"
-                                    stroke="url(#gradient)"
-                                    strokeWidth="8"
-                                    fill="none"
-                                    strokeLinecap="round"
-                                    initial={{ pathLength: 0 }}
-                                    animate={{ pathLength: progress / 100 }}
-                                    transition={{ duration: 1.5, ease: "easeOut", delay: 0.6 }}
-                                    style={{
-                                        strokeDasharray: "251.2",
-                                        strokeDashoffset: 251.2 * (1 - progress / 100),
-                                    }}
-                                />
-                                <defs>
-                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#3B82F6" />
-                                        <stop offset="100%" stopColor="#8B5CF6" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    {Math.round(progress)}%
-                                </span>
-                            </div>
-                        </div>
-                    </motion.div>
+                    </div>
                 </div>
 
-                {/* Title Section */}
-                <motion.div 
-                    className="flex items-start justify-between"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                >
-                    <div className="flex-1">
-                        <div className="flex items-center mb-4">
-                            <motion.div 
-                                className="bg-gradient-to-r from-blue-500 to-purple-500 p-3 rounded-xl shadow-lg mr-4"
-                                animate={{ rotate: [0, 5, -5, 0] }}
-                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            >
-                                <BookOpen className="w-6 h-6 text-white" />
-                            </motion.div>
-                            <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    {lesson.translated_title || lesson.title}
-                                </h1>
-                                <div className="flex items-center mt-2 text-gray-600">
-                                    <Star size={16} className="mr-2 text-yellow-500" />
-                                    <span className="font-medium">{program?.translated_name || program?.name}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {(lesson.translated_description || lesson.description) && (
-                            <motion.div 
-                                className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50 mb-4"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.5 }}
-                            >
-                                <p className="text-gray-700 leading-relaxed">
-                                    {lesson.translated_description || lesson.description}
-                                </p>
-                            </motion.div>
-                        )}
+                <div className="w-full max-w-xs shrink-0 rounded-aba-md bg-aba-surface p-4 shadow-aba-sm">
+                    <div className="flex items-center justify-between text-xs font-black uppercase tracking-wide text-aba-ink-soft">
+                        <span>{t('lessons.lesson_progress')}</span>
+                        <span className="text-aba-blue">{roundedProgress}%</span>
                     </div>
-                </motion.div>
+                    <div className="mt-2 flex">
+                        <BeadRod percent={progress} color={BEAD_ROD_COLOR} />
+                    </div>
+                    <div className="mt-3">
+                        <Chip variant={chipVariant}>{chipLabel}</Chip>
+                    </div>
+                </div>
+            </div>
 
-                {/* Lesson Info Grid */}
-                <motion.div 
-                    className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.6 }}
-                >
-                    <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <div className="flex items-center space-x-3">
-                            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg">
-                                <Clock size={18} className="text-white" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">{t('lessons.duration')}</p>
-                                <p className="font-bold text-gray-800">
-                                    {lesson.formatted_duration || `${lesson.duration_minutes || 30} min`}
-                                </p>
-                            </div>
-                        </div>
-                    </motion.div>
+            {(lesson.translated_description || lesson.description) && (
+                <p className="mt-4 max-w-3xl text-sm font-medium leading-6 text-aba-ink-soft">
+                    {lesson.translated_description || lesson.description}
+                </p>
+            )}
 
-                    {hasResources && (
-                        <motion.div 
-                            className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-purple-200/50"
-                            whileHover={{ scale: 1.05 }}
-                            transition={{ duration: 0.2, delay: 0.1 }}
-                        >
-                            <div className="flex items-center space-x-3">
-                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-2 rounded-lg">
-                                    <Eye size={18} className="text-white" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 font-medium">{t('lessons.resources')}</p>
-                                    <p className="font-bold text-gray-800">
-                                        {lesson.resources.length} {lesson.resources.length !== 1 ? t('lessons.resources') : t('lessons.resource')}
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+                <LessonMeta
+                    icon={Clock}
+                    tone="bg-aba-blue-soft text-aba-blue"
+                    label={t('lessons.duration')}
+                    value={lesson.formatted_duration || `${lesson.duration_minutes || DEFAULT_LESSON_DURATION_MINUTES} min`}
+                />
 
-                    <motion.div 
-                        className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-yellow-200/50"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.2, delay: 0.2 }}
-                    >
-                        <div className="flex items-center space-x-3">
-                            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-2 rounded-lg">
-                                <Sparkles size={18} className="text-white" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 font-medium">{t('lessons.difficulty')}</p>
-                                <p className="font-bold text-gray-800">
-                                    {t('lessons.level')} {lesson.level}
-                                </p>
-                            </div>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            </motion.div>
-        </motion.div>
+                {hasResources && (
+                    <LessonMeta
+                        icon={Eye}
+                        tone="bg-aba-purple-soft text-aba-purple"
+                        label={t('lessons.resources')}
+                        value={`${lesson.resources.length} ${
+                            lesson.resources.length !== 1
+                                ? t('lessons.resources')
+                                : t('lessons.resource')
+                        }`}
+                    />
+                )}
+
+                <LessonMeta
+                    icon={Sparkles}
+                    tone="bg-aba-yellow-soft text-aba-yellow"
+                    label={t('lessons.difficulty')}
+                    value={`${t('lessons.level')} ${lesson.level}`}
+                />
+            </div>
+        </Card>
+    );
+}
+
+/**
+ * LessonMeta - Single labelled fact tile in the lesson header grid.
+ *
+ * @param {React.ElementType} icon - Lucide icon component
+ * @param {string} tone - Background/text classes for the icon tile
+ * @param {string} label - Fact label
+ * @param {string} value - Fact value
+ */
+function LessonMeta({ icon: Icon, tone, label, value }) {
+    return (
+        <div className="flex items-center gap-3 rounded-aba-sm bg-aba-surface px-3 py-2.5 shadow-aba-sm">
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+                <Icon className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-wide text-aba-ink-soft">
+                    {label}
+                </p>
+                <p className="truncate text-base font-black text-aba-ink">{value}</p>
+            </div>
+        </div>
     );
 }

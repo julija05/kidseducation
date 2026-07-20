@@ -3,48 +3,61 @@ import { router } from "@inertiajs/react";
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
+// Progress percentage at which a lesson counts as finished.
+const COMPLETED_PROGRESS_PERCENT = 100;
+
+/**
+ * LessonNavigation - Previous/next lesson controls and the completed indicator.
+ *
+ * @param {object} previousLesson - Lesson before this one, if any
+ * @param {object} nextLesson - Lesson after this one, if any
+ * @param {number} currentProgress - Lesson progress percentage (0-100)
+ */
 export default function LessonNavigation({
     previousLesson,
     nextLesson,
     currentProgress,
 }) {
     const { t } = useTranslation();
-    
+    const isCompleted = currentProgress >= COMPLETED_PROGRESS_PERCENT;
+
     return (
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-4 flex items-center justify-between">
             <div>
                 {previousLesson && (
                     <button
+                        type="button"
                         onClick={() =>
                             router.visit(
                                 route("lessons.show", previousLesson.id)
                             )
                         }
-                        className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                        className="inline-flex items-center gap-2 rounded-aba-sm bg-aba-surface px-4 py-2.5 text-sm font-black text-aba-ink-soft shadow-aba-sm transition hover:text-aba-blue"
                     >
-                        <ArrowLeft size={16} className="mr-2" />
+                        <ArrowLeft size={16} />
                         {t('lessons.previous_lesson')}
                     </button>
                 )}
             </div>
 
-            <div className="flex items-center space-x-4">
-                {currentProgress >= 100 && (
-                    <div className="flex items-center text-green-600">
-                        <CheckCircle size={20} className="mr-2" />
-                        <span className="font-medium">{t('lessons.completed')}</span>
+            <div className="flex items-center gap-4">
+                {isCompleted && (
+                    <div className="inline-flex items-center gap-2 text-aba-green">
+                        <CheckCircle size={20} />
+                        <span className="font-black">{t('lessons.completed')}</span>
                     </div>
                 )}
 
-                {nextLesson && currentProgress >= 100 && (
+                {nextLesson && isCompleted && (
                     <button
+                        type="button"
                         onClick={() =>
                             router.visit(route("lessons.show", nextLesson.id))
                         }
-                        className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="inline-flex items-center gap-2 rounded-aba-sm bg-aba-blue px-5 py-2.5 text-sm font-black text-white shadow-aba-sm transition hover:brightness-95"
                     >
                         {t('lessons.next_lesson')}
-                        <ArrowRight size={16} className="ml-2" />
+                        <ArrowRight size={16} />
                     </button>
                 )}
             </div>

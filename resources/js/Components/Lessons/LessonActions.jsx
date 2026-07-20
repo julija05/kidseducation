@@ -1,8 +1,26 @@
 import React from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { motion } from "framer-motion";
 import { CheckCircle, Target, Sparkles, Trophy } from "lucide-react";
 
+// Progress percentage applied by the "mark mostly done" shortcut.
+const PARTIAL_PROGRESS_PERCENT = 75;
+
+// Progress percentage at which a lesson counts as finished.
+const COMPLETED_PROGRESS_PERCENT = 100;
+
+/**
+ * LessonActions - Sticky footer bar holding the lesson progress summary and the
+ * buttons that advance the lesson.
+ *
+ * Rendered as the last child of the scrolling page wrapper (not inside the
+ * content grid) so it stays pinned to the bottom of the viewport while the
+ * lesson content scrolls behind it.
+ *
+ * @param {number} currentProgress - Lesson progress percentage (0-100)
+ * @param {boolean} isLoading - Whether a progress request is in flight
+ * @param {function} onUpdateProgress - Called with a percentage to save partial progress
+ * @param {function} onCompleteLesson - Called to mark the lesson complete
+ */
 export default function LessonActions({
     currentProgress,
     isLoading,
@@ -10,86 +28,66 @@ export default function LessonActions({
     onCompleteLesson,
 }) {
     const { t } = useTranslation();
-    
+    const isCompleted = currentProgress >= COMPLETED_PROGRESS_PERCENT;
+
     return (
-        <motion.div 
-            className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/50 p-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            whileHover={{ y: -2 }}
-        >
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                    <motion.div 
-                        className="bg-gradient-to-r from-emerald-500 to-teal-500 p-3 rounded-xl shadow-lg"
-                        animate={{ scale: [1, 1.05, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                        <Target className="w-6 h-6 text-white" />
-                    </motion.div>
+        <section className="sticky bottom-0 z-10 border-t border-aba-line bg-aba-surface shadow-aba-card">
+            <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+                <div className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-aba-sm bg-aba-green-soft text-aba-green">
+                        <Target className="h-5 w-5" />
+                    </span>
                     <div>
-                        <h3 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                        <p className="text-xs font-black uppercase tracking-wide text-aba-blue">
                             {t('lessons.lesson_progress')}
-                        </h3>
-                        <p className="text-gray-600 font-medium">
-                            {t('lessons.progress_complete', { progress: Math.round(currentProgress) })}
                         </p>
+                        <h3 className="font-display text-xl font-black text-aba-ink">
+                            {t('lessons.progress_complete', { progress: Math.round(currentProgress) })}
+                        </h3>
                     </div>
                 </div>
 
-                {currentProgress < 100 && (
-                    <div className="flex items-center space-x-4">
-                        <motion.button
-                            onClick={() => onUpdateProgress(75)}
-                            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
+                {!isCompleted && (
+                    <div className="flex flex-wrap items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => onUpdateProgress(PARTIAL_PROGRESS_PERCENT)}
+                            className="inline-flex items-center gap-2 rounded-aba-sm bg-aba-surface-alt px-5 py-3 text-sm font-black text-aba-ink-soft shadow-aba-sm transition hover:text-aba-blue"
                         >
-                            <Sparkles size={20} />
-                            <span>{t('lessons.mark_75_complete')}</span>
-                        </motion.button>
-                        
-                        <motion.button
+                            <Sparkles size={18} />
+                            {t('lessons.mark_75_complete')}
+                        </button>
+
+                        <button
+                            type="button"
                             onClick={() => onCompleteLesson()}
-                            className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                             disabled={isLoading}
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
+                            className="inline-flex items-center gap-2 rounded-aba-sm bg-aba-coral px-5 py-3 text-sm font-black text-white shadow-aba-coral transition hover:bg-aba-coral-dark focus:outline-none focus:ring-2 focus:ring-aba-coral focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {isLoading ? (
                                 <>
-                                    <motion.div
-                                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                    />
-                                    <span>{t('lessons.completing')}</span>
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                    {t('lessons.completing')}
                                 </>
                             ) : (
                                 <>
-                                    <CheckCircle size={20} />
-                                    <span>{t('lessons.complete_lesson')}</span>
+                                    <CheckCircle size={18} />
+                                    {t('lessons.complete_lesson')}
                                 </>
                             )}
-                        </motion.button>
+                        </button>
                     </div>
                 )}
 
-                {currentProgress >= 100 && (
-                    <motion.div 
-                        className="flex items-center space-x-3 bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-3 rounded-xl border border-green-200"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.6, type: "spring" }}
-                    >
-                        <Trophy className="w-6 h-6 text-green-600" />
-                        <span className="text-lg font-bold text-green-700">
+                {isCompleted && (
+                    <div className="inline-flex items-center gap-2.5 rounded-aba-sm bg-aba-green-soft px-5 py-3">
+                        <Trophy className="h-5 w-5 text-aba-green" />
+                        <span className="text-sm font-black text-aba-green">
                             {t('lessons.lesson_completed')}
                         </span>
-                    </motion.div>
+                    </div>
                 )}
             </div>
-        </motion.div>
+        </section>
     );
 }
