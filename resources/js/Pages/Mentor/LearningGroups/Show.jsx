@@ -2,7 +2,7 @@ import GroupDashboard from "@/Components/LearningGroups/GroupDashboard";
 import MentorLayout from "@/Layouts/MentorLayout";
 import { Head } from "@inertiajs/react";
 
-export default function Show({ group, homeworkOptions, attendanceOptions, weeklyReportOptions }) {
+export default function Show({ group, homeworkOptions, attendanceOptions, weeklyReportOptions, practiceResources }) {
     return (
         <MentorLayout>
             <Head title={`${group.name} Dashboard`} />
@@ -13,6 +13,7 @@ export default function Show({ group, homeworkOptions, attendanceOptions, weekly
                         homeworkOptions={homeworkOptions}
                         attendanceOptions={attendanceOptions}
                         weeklyReportOptions={weeklyReportOptions}
+                        practiceResources={practiceResources}
                         backHref={route("mentor.learning-groups.index")}
                         backLabel="My Groups"
                         theme="mentor"

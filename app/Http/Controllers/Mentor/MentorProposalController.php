@@ -542,6 +542,7 @@ class MentorProposalController extends Controller
             'duration' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'requires_monthly_payment' => 'boolean',
+            'has_mental_accelerator' => 'boolean',
             'duration_weeks' => 'nullable|integer|min:1',
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:50',

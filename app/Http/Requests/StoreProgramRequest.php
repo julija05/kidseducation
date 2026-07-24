@@ -42,6 +42,10 @@ class StoreProgramRequest extends BaseProgramRequest
         if (! array_key_exists('requires_monthly_payment', $data)) {
             $data['requires_monthly_payment'] = false;
         }
+        // Unchecked checkboxes are omitted by the browser; default to false.
+        if (! array_key_exists('has_mental_accelerator', $data)) {
+            $data['has_mental_accelerator'] = false;
+        }
         $this->replace($data);
     }
 }

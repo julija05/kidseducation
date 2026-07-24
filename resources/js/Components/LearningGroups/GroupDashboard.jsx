@@ -1,4 +1,4 @@
-import { Link, useForm } from "@inertiajs/react";
+import { Link, router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import {
     AlertCircle,
@@ -13,8 +13,11 @@ import {
     HelpCircle,
     FileText,
     Mail,
+    Paperclip,
+    Trash2,
     UserCheck,
     Users,
+    Zap,
 } from "lucide-react";
 
 const statusStyles = {
@@ -70,7 +73,7 @@ const label = (value) => {
 
 const display = (value, fallback = "Not available") => value || fallback;
 
-export default function GroupDashboard({ group, homeworkOptions, attendanceOptions, weeklyReportOptions, backHref, backLabel = "Groups", theme = "mentor" }) {
+export default function GroupDashboard({ group, homeworkOptions, attendanceOptions, weeklyReportOptions, practiceResources = [], backHref, backLabel = "Groups", theme = "mentor" }) {
     const primaryButton = theme === "admin"
         ? "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         : "bg-sky-600 hover:bg-sky-700 focus:ring-blue-500";
@@ -249,6 +252,9 @@ export default function GroupDashboard({ group, homeworkOptions, attendanceOptio
                                 <WeeklyReportForm group={group} options={weeklyReportOptions} primaryButton={primaryButton} />
                             </DashboardDisclosure>
                         )}
+                        <DashboardDisclosure icon={Zap} title="Practice resources" description="Share a practice message or file with the whole group.">
+                            <PracticeResourcesPanel group={group} resources={practiceResources} primaryButton={primaryButton} />
+                        </DashboardDisclosure>
                         <DashboardDisclosure icon={BookOpen} title="Homework completion" description="Review completion and support status.">
                             <HomeworkStatusTable assignments={homework.assignments || []} summary={homework} />
                         </DashboardDisclosure>
@@ -817,6 +823,138 @@ function formatDateTime(value) {
         hour: "numeric",
         minute: "2-digit",
     });
+}
+
+function PracticeResourcesPanel({ group, resources, primaryButton }) {
+    // Remount key lets us clear the native file input after a successful submit.
+    const [fileInputKey, setFileInputKey] = useState(0);
+    const { data, setData, post, processing, errors, reset } = useForm({
+        title: "",
+        message: "",
+        file: null,
+    });
+
+    const submit = (event) => {
+        event.preventDefault();
+
+        post(route("mentor.learning-groups.practice-resources.store", group.id), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                setFileInputKey((key) => key + 1);
+            },
+        });
+    };
+
+    const remove = (resource) => {
+        if (!window.confirm("Remove this practice resource?")) {
+            return;
+        }
+
+        router.delete(route("mentor.learning-groups.practice-resources.destroy", [group.id, resource.id]), {
+            preserveScroll: true,
+        });
+    };
+
+    return (
+        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-lg font-bold text-slate-950">Practice resources</h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Share a short practice message (e.g. "Practice the Big Friend rule") and/or attach a PDF. Everyone in this group will see it in their Practice section.
+                    </p>
+                </div>
+                <Zap className="h-5 w-5 text-slate-400" />
+            </div>
+
+            <form onSubmit={submit} className="mt-5 grid gap-4">
+                <FormField label="Title" error={errors.title}>
+                    <input
+                        type="text"
+                        value={data.title}
+                        onChange={(event) => setData("title", event.target.value)}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        placeholder="Big Friend rule practice"
+                    />
+                </FormField>
+
+                <FormField label="Message (optional)" error={errors.message}>
+                    <textarea
+                        value={data.message}
+                        onChange={(event) => setData("message", event.target.value)}
+                        rows={3}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                        placeholder="Practice the Big Friend rule for 10 minutes each day this week."
+                    />
+                </FormField>
+
+                <FormField label="Attach a file (optional)" error={errors.file}>
+                    <input
+                        key={fileInputKey}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        onChange={(event) => setData("file", event.target.files[0] || null)}
+                        className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-slate-700 hover:file:bg-slate-200"
+                    />
+                    <span className="mt-1 block text-xs text-slate-500">PDF, Word, or image up to 20MB.</span>
+                </FormField>
+
+                <div>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className={`rounded-md px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${primaryButton}`}
+                    >
+                        {processing ? "Sharing..." : "Share with group"}
+                    </button>
+                </div>
+            </form>
+
+            <div className="mt-6 border-t border-slate-100 pt-4">
+                <h3 className="text-sm font-bold text-slate-900">Shared resources</h3>
+                {resources.length > 0 ? (
+                    <ul className="mt-3 space-y-3">
+                        {resources.map((resource) => (
+                            <li key={resource.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-slate-900">{resource.title}</p>
+                                        {resource.message && (
+                                            <p className="mt-1 text-sm text-slate-600">{resource.message}</p>
+                                        )}
+                                        {resource.has_file && (
+                                            <a
+                                                href={resource.download_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-700 hover:text-sky-900 hover:underline"
+                                            >
+                                                <Paperclip className="h-4 w-4" />
+                                                {resource.file_name}
+                                            </a>
+                                        )}
+                                        <p className="mt-1 text-xs text-slate-400">{resource.created_at}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => remove(resource)}
+                                        className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        Remove
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <EmptyLine text="No practice resources shared yet." />
+                )}
+            </div>
+        </section>
+    );
 }
 
 function HomeworkAssignmentForm({ group, options, primaryButton }) {

@@ -13,6 +13,7 @@ export default function CreateProgram() {
         duration: '',
         price: '',
         requires_monthly_payment: false,
+        has_mental_accelerator: false,
         duration_weeks: '',
         icon: 'BookOpen',
         color: 'bg-blue-600',
@@ -169,6 +170,24 @@ export default function CreateProgram() {
                                     />
                                     <span className="text-sm font-bold text-slate-900">
                                         Requires Monthly Payment
+                                    </span>
+                                </label>
+                            </div>
+
+                            {/* Mental Accelerator */}
+                            <div className="flex items-start">
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.has_mental_accelerator}
+                                        onChange={(e) => setData('has_mental_accelerator', e.target.checked)}
+                                        className="mt-0.5 w-5 h-5 border-2 border-slate-200 rounded focus:ring-purple-400"
+                                    />
+                                    <span className="text-sm font-bold text-slate-900">
+                                        Include Mental Accelerator
+                                        <span className="block text-xs font-medium text-slate-500">
+                                            Kid-friendly Flash Anzan practice tool (recommended for Mental Arithmetic)
+                                        </span>
                                     </span>
                                 </label>
                             </div>

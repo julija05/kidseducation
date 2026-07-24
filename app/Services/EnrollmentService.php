@@ -168,6 +168,7 @@ class EnrollmentService
             'enrolledAt' => $enrollment->enrolled_at->format('M d, Y'),
             'currentLevel' => $currentLevel,
             'totalLevels' => count($this->programService->getProgramLevels($program)),
+            'hasMentalAccelerator' => (bool) $program->has_mental_accelerator,
             'levelProgress' => $levelProgress,
             'lessons' => $lessonsWithProgress,
             'nextLesson' => $nextLesson ? [

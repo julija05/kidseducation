@@ -17,7 +17,33 @@ if (typeof document !== 'undefined' && !document.getElementById('flashcard-quiz-
     document.head.appendChild(style);
 }
 
-export default function FlashCardQuiz({ sessions, onComplete, onSkip }) {
+/**
+ * Returns a font-size class that shrinks as the displayed number grows, so long
+ * (multi-digit) numbers stay inside the card instead of overflowing.
+ *
+ * @param {string|number} value - The value shown on the flash card.
+ * @returns {string} Tailwind font-size classes.
+ */
+function flashNumberSizeClass(value) {
+    // Count digits only (ignore a leading sign / operator).
+    const digits = String(value).replace(/[^0-9]/g, "").length;
+
+    if (digits <= 2) {
+        return "text-8xl sm:text-9xl";
+    }
+    if (digits <= 4) {
+        return "text-7xl sm:text-8xl";
+    }
+    if (digits <= 6) {
+        return "text-6xl sm:text-7xl";
+    }
+    if (digits <= 8) {
+        return "text-5xl sm:text-6xl";
+    }
+    return "text-4xl sm:text-5xl";
+}
+
+export default function FlashCardQuiz({ sessions, onComplete, onSkip, showSequenceRecap = true }) {
     const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
     const [currentNumberIndex, setCurrentNumberIndex] = useState(-1); // -1 = not started
     const [sessionAnswer, setSessionAnswer] = useState('');
@@ -201,9 +227,9 @@ export default function FlashCardQuiz({ sessions, onComplete, onSkip }) {
                         Session {currentSession.session_id} - Number {currentNumberIndex + 1} of {currentSession.numbers.length}
                     </div>
                     
-                    {/* Large number display */}
+                    {/* Large number display (shrinks for long numbers) */}
                     <div className="relative mb-6">
-                        <div className="text-9xl font-bold text-indigo-600 mb-2 animate-pulse">
+                        <div className={`${flashNumberSizeClass(displayNumber)} font-bold text-indigo-600 mb-2 animate-pulse tabular-nums`}>
                             {displayNumber}
                         </div>
                         
@@ -280,23 +306,27 @@ export default function FlashCardQuiz({ sessions, onComplete, onSkip }) {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                     Session {currentSession.session_id} Complete!
                 </h3>
-                <p className="text-gray-600 mb-2">
-                    You saw this sequence:
-                </p>
-                <div className="text-2xl font-bold text-indigo-600 mb-6">
-                    {currentSession.operations_sequence || currentSession.numbers.map((num, idx) => {
-                        if (idx === 0) {
-                            return typeof num === 'object' ? num.value : num;
-                        }
-                        if (typeof num === 'object') {
-                            if (num.operation === 'multiply') return ` ×${num.value}`;
-                            if (num.operation === 'divide') return ` ÷${num.value}`;
-                        }
-                        return num > 0 ? ` +${num}` : ` ${num}`;
-                    }).join('')}
-                </div>
+                {showSequenceRecap && (
+                    <>
+                        <p className="text-gray-600 mb-2">
+                            You saw this sequence:
+                        </p>
+                        <div className="text-2xl font-bold text-indigo-600 mb-6">
+                            {currentSession.operations_sequence || currentSession.numbers.map((num, idx) => {
+                                if (idx === 0) {
+                                    return typeof num === 'object' ? num.value : num;
+                                }
+                                if (typeof num === 'object') {
+                                    if (num.operation === 'multiply') return ` ×${num.value}`;
+                                    if (num.operation === 'divide') return ` ÷${num.value}`;
+                                }
+                                return num > 0 ? ` +${num}` : ` ${num}`;
+                            }).join('')}
+                        </div>
+                    </>
+                )}
                 <p className="text-gray-700 font-medium mb-6">
-                    What is the final result of this calculation?
+                    What is the final result?
                 </p>
                 <p className="text-sm text-gray-500 mb-4">
                     Take your time to think and enter your answer below.

@@ -24,6 +24,8 @@ class ProgramSeeder extends Seeder
                 'light_color' => 'bg-blue-100',
                 'text_color' => 'text-blue-900',
                 'requires_monthly_payment' => true,
+                // Mental Arithmetic ships with the Flash Anzan practice tool.
+                'has_mental_accelerator' => true,
             ],
         ];
 
@@ -35,10 +37,17 @@ class ProgramSeeder extends Seeder
             $program['duration_weeks'] = $this->convertDurationToWeeks($program['duration']);
 
             // Create program only if it doesn't exist (prevent duplicates)
-            Program::firstOrCreate(
+            $model = Program::firstOrCreate(
                 ['slug' => $program['slug']], // Check by slug (unique identifier)
                 $program // Create with these attributes if not found
             );
+
+            // Ensure the Mental Accelerator flag is applied even for programs that
+            // already existed before this feature was introduced.
+            if (array_key_exists('has_mental_accelerator', $program)
+                && $model->has_mental_accelerator !== $program['has_mental_accelerator']) {
+                $model->update(['has_mental_accelerator' => $program['has_mental_accelerator']]);
+            }
         }
     }
 

@@ -25,6 +25,7 @@ abstract class BaseProgramRequest extends FormRequest
             'duration' => 'string|max:255',
             'price' => 'numeric|min:0',
             'requires_monthly_payment' => 'boolean',
+            'has_mental_accelerator' => 'boolean',
             'icon' => 'string|max:255',
             'color' => 'string|max:255',
             'light_color' => 'string|max:255',

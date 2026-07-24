@@ -52,7 +52,7 @@ class UpdateProgramRequest extends BaseProgramRequest
                     return $value !== '' || $value === null;
                 }
                 // For boolean fields, keep false values
-                if ($key === 'requires_monthly_payment') {
+                if ($key === 'requires_monthly_payment' || $key === 'has_mental_accelerator') {
                     return true; // Always keep boolean fields
                 }
 
@@ -69,6 +69,9 @@ class UpdateProgramRequest extends BaseProgramRequest
         // Handle checkbox fields - if not present, set to false
         if (! array_key_exists('requires_monthly_payment', $filtered)) {
             $filtered['requires_monthly_payment'] = false;
+        }
+        if (! array_key_exists('has_mental_accelerator', $filtered)) {
+            $filtered['has_mental_accelerator'] = false;
         }
 
         $this->replace($filtered);

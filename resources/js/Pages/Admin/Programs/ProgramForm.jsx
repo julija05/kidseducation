@@ -11,6 +11,7 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
         duration: formData.duration || "",
         price: formData.price || "",
         requires_monthly_payment: formData.requires_monthly_payment || false,
+        has_mental_accelerator: formData.has_mental_accelerator || false,
         icon: formData.icon || "BookOpen",
         color: formData.color || "bg-blue-600",
         light_color: formData.light_color || "bg-blue-100",
@@ -103,6 +104,12 @@ export default function ProgramForm({ formData = {}, onSubmit }) {
             label: "Requires Monthly Payment",
             type: "checkbox",
             description: "If checked, admin can block user access for non-payment",
+        },
+        {
+            name: "has_mental_accelerator",
+            label: "Include Mental Accelerator",
+            type: "checkbox",
+            description: "Enables the kid-friendly Flash Anzan practice tool in this program's Practice section (recommended for Mental Arithmetic)",
         },
     ];
 

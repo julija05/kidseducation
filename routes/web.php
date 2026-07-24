@@ -85,6 +85,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/lesson-resources/{lessonResource}/serve', [LessonResourceController::class, 'serve'])->name('lesson-resources.serve');
     Route::get('/lesson-resources/{lessonResource}/preview', [LessonResourceController::class, 'preview'])->name('lesson-resources.preview');
     Route::post('/lesson-resources/{lessonResource}/mark-viewed', [LessonResourceController::class, 'markAsViewed'])->name('lesson-resources.mark-viewed');
+
+    // Practice resource file download (accessible to the group's mentor and students).
+    Route::get('/practice-resources/{practiceResource}/download', [\App\Http\Controllers\PracticeResourceController::class, 'download'])->name('practice-resources.download');
 });
 
 Route::middleware(['auth', 'verified', 'check.user.status'])->get('/dashboard', function (Request $request, DashboardController $controller) {
@@ -113,6 +116,9 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 
     // Student learning-progress overview (levels breakdown, points, milestones).
     Route::get('/progress', [\App\Http\Controllers\Student\ProgressController::class, 'index'])->name('progress.index');
+
+    // Student practice hub (Mental Accelerator + mentor practice resources).
+    Route::get('/practice', [\App\Http\Controllers\Student\PracticeController::class, 'index'])->name('practice.index');
 
     // Student schedule routes
     Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
@@ -248,6 +254,8 @@ Route::middleware(['auth', 'verified', 'role:mentor', 'check.user.status'])->pre
         Route::get('/{learningGroup}/students/{student}', [MentorLearningGroupController::class, 'showStudent'])->name('students.show');
         Route::post('/{learningGroup}/students/{student}/notes', [MentorLearningGroupController::class, 'storeNote'])->name('students.notes.store');
         Route::post('/{learningGroup}/homework', [MentorLearningGroupController::class, 'storeHomework'])->name('homework.store');
+        Route::post('/{learningGroup}/practice-resources', [MentorLearningGroupController::class, 'storePracticeResource'])->name('practice-resources.store');
+        Route::delete('/{learningGroup}/practice-resources/{practiceResource}', [MentorLearningGroupController::class, 'destroyPracticeResource'])->name('practice-resources.destroy');
         Route::post('/{learningGroup}/weekly-reports', [MentorLearningGroupController::class, 'storeWeeklyReport'])->name('weekly-reports.store');
         Route::post('/{learningGroup}/live-sessions/{liveSession}/attendance', [MentorLearningGroupController::class, 'storeAttendance'])->name('attendance.store');
         Route::post('/{learningGroup}/students', [MentorLearningGroupController::class, 'addStudent'])->name('students.store');

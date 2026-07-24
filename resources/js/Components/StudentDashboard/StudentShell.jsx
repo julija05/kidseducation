@@ -22,8 +22,6 @@ export const STUDENT_NAV_KEYS = {
     MESSAGES: "messages",
 };
 
-// In-page anchors that only exist on the dashboard page.
-const DASHBOARD_ANCHOR_EXTRA_TOOLS = "extra-tools";
 
 /**
  * Safely resolve a Ziggy route, returning null when the route is not defined
@@ -59,28 +57,17 @@ export function openAbacusSimulator() {
  * Builds the shared student navigation items.
  *
  * @param {Object} options
- * @param {string} options.active - Active nav key (see STUDENT_NAV_KEYS).
- * @param {string|null} options.lessonsHref - Href for the Lessons entry (null hides it).
+ * @param {string} options.lessonsHref - Href for the Lessons entry (null hides it).
  * @param {string|null} options.progressHref - Href for progress-related entries.
  * @param {string|null} options.dashboardHref - Href for the Dashboard entry.
  * @returns {Array} Navigation item descriptors.
  */
-function buildNavItems({ active, lessonsHref, progressHref, dashboardHref }) {
-    const onDashboard = active === STUDENT_NAV_KEYS.DASHBOARD;
-
-    // Practice lives in a dashboard section; link to the anchor in-page when on
-    // the dashboard, otherwise navigate back to the dashboard at that anchor.
-    const practiceHref = dashboardHref
-        ? onDashboard
-            ? `#${DASHBOARD_ANCHOR_EXTRA_TOOLS}`
-            : `${dashboardHref}#${DASHBOARD_ANCHOR_EXTRA_TOOLS}`
-        : null;
-
+function buildNavItems({ lessonsHref, progressHref, dashboardHref }) {
     return [
         { key: STUDENT_NAV_KEYS.DASHBOARD, label: "Dashboard", icon: Home, href: dashboardHref },
         { key: STUDENT_NAV_KEYS.PROGRESS, label: "My Progress", icon: BarChart3, href: progressHref },
         { key: STUDENT_NAV_KEYS.LESSONS, label: "Lessons", icon: BookOpen, href: lessonsHref },
-        { key: STUDENT_NAV_KEYS.PRACTICE, label: "Practice", icon: Gamepad2, href: practiceHref },
+        { key: STUDENT_NAV_KEYS.PRACTICE, label: "Practice", icon: Gamepad2, href: safeRoute("practice.index") },
         { key: STUDENT_NAV_KEYS.CHALLENGES, label: "Challenges", icon: Trophy, href: progressHref },
         { key: STUDENT_NAV_KEYS.ACHIEVEMENTS, label: "Achievements", icon: Award, href: progressHref },
         { key: STUDENT_NAV_KEYS.MESSAGES, label: "Messages", icon: MessageCircle, href: safeRoute("meetings.index") },
@@ -109,7 +96,6 @@ export default function StudentShell({
     children,
 }) {
     const navItems = buildNavItems({
-        active,
         lessonsHref: lessonsHref === undefined ? safeRoute("lessons.index") : lessonsHref,
         progressHref: safeRoute("progress.index"),
         dashboardHref: safeRoute("dashboard"),
@@ -127,11 +113,7 @@ export default function StudentShell({
 
             <main className="min-w-0 px-4 py-5 sm:px-6 sm:py-6 lg:pl-[282px] lg:pr-6">
                 <div className="mx-auto max-w-[1120px] space-y-4">
-                    <StudentMobileNav
-                        navItems={navItems}
-                        active={active}
-                        isMentalArithmetic={isMentalArithmetic}
-                    />
+                    <StudentMobileNav navItems={navItems} active={active} />
                     {children}
                 </div>
             </main>
@@ -207,7 +189,7 @@ function StudentSidebar({ student, progress, isMentalArithmetic, navItems, activ
 /**
  * StudentMobileNav - Horizontal scrollable nav shown on small screens.
  */
-function StudentMobileNav({ navItems, active, isMentalArithmetic }) {
+function StudentMobileNav({ navItems, active }) {
     return (
         <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Student dashboard navigation">
             {navItems.map((item) => (
@@ -218,14 +200,6 @@ function StudentMobileNav({ navItems, active, isMentalArithmetic }) {
                     className={`inline-flex shrink-0 items-center gap-2 rounded-aba-sm px-4 py-2.5 text-sm font-black ${
                         item.key === active ? "bg-aba-blue text-white" : "bg-aba-surface text-aba-ink-soft"
                     }`}
-                    onClick={
-                        item.key === STUDENT_NAV_KEYS.PRACTICE && isMentalArithmetic
-                            ? (event) => {
-                                  event.preventDefault();
-                                  openAbacusSimulator();
-                              }
-                            : undefined
-                    }
                 >
                     <item.icon className="h-4 w-4" />
                     {item.label}

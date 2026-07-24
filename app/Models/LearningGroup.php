@@ -81,6 +81,11 @@ class LearningGroup extends Model
         return $this->hasMany(MentorNote::class);
     }
 
+    public function practiceResources(): HasMany
+    {
+        return $this->hasMany(PracticeResource::class);
+    }
+
     public function weeklyLearningReports(): HasMany
     {
         return $this->hasMany(WeeklyLearningReport::class);

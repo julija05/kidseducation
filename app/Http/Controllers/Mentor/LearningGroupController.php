@@ -15,6 +15,7 @@ use App\Models\LearningGroup;
 use App\Models\Lesson;
 use App\Models\LiveSessionAttendance;
 use App\Models\MentorNote;
+use App\Models\PracticeResource;
 use App\Models\Program;
 use App\Models\User;
 use App\Models\WeeklyLearningReport;
@@ -23,6 +24,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class LearningGroupController extends Controller
@@ -176,7 +178,89 @@ class LearningGroupController extends Controller
                         'published_at' => $report->published_at?->format('M d, Y'),
                     ]),
             ],
+            'practiceResources' => $this->practiceResourcesForGroup($learningGroup),
         ]);
+    }
+
+    /**
+     * Format the group's practice resources for the mentor view.
+     */
+    private function practiceResourcesForGroup(LearningGroup $learningGroup): \Illuminate\Support\Collection
+    {
+        return $learningGroup->practiceResources()
+            ->latest()
+            ->get()
+            ->map(fn (PracticeResource $resource) => [
+                'id' => $resource->id,
+                'title' => $resource->title,
+                'message' => $resource->message,
+                'file_name' => $resource->file_name,
+                'has_file' => $resource->hasFile(),
+                'download_url' => $resource->hasFile()
+                    ? route('practice-resources.download', $resource->id)
+                    : null,
+                'created_at' => $resource->created_at->format('M d, Y'),
+            ]);
+    }
+
+    /**
+     * Store a new practice resource (message and/or attached file) for a group.
+     */
+    public function storePracticeResource(Request $request, LearningGroup $learningGroup): RedirectResponse
+    {
+        $this->authorizeMentorGroup($learningGroup);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:191'],
+            'message' => ['nullable', 'string', 'max:5000'],
+            // Practice attachments are typically PDFs or documents (max 20MB).
+            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
+        ]);
+
+        // Require at least a message or a file so the resource is meaningful.
+        if (empty($validated['message']) && ! $request->hasFile('file')) {
+            return back()
+                ->withErrors(['message' => 'Add a message or attach a file for the practice resource.'])
+                ->withInput();
+        }
+
+        $resourceData = [
+            'learning_group_id' => $learningGroup->id,
+            'created_by' => Auth::id(),
+            'title' => $validated['title'],
+            'message' => $validated['message'] ?? null,
+        ];
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $resourceData['file_path'] = $file->store('practice-resources/'.$learningGroup->id, 'private');
+            $resourceData['file_name'] = $file->getClientOriginalName();
+            $resourceData['file_size'] = $file->getSize();
+            $resourceData['mime_type'] = $file->getMimeType();
+        }
+
+        PracticeResource::create($resourceData);
+
+        return back()->with('success', 'Practice resource shared with the group.');
+    }
+
+    /**
+     * Delete a practice resource and its attached file (if any).
+     */
+    public function destroyPracticeResource(LearningGroup $learningGroup, PracticeResource $practiceResource): RedirectResponse
+    {
+        $this->authorizeMentorGroup($learningGroup);
+
+        // Ensure the resource belongs to the group being managed.
+        abort_unless($practiceResource->learning_group_id === $learningGroup->id, 404);
+
+        if ($practiceResource->hasFile()) {
+            Storage::disk('private')->delete($practiceResource->file_path);
+        }
+
+        $practiceResource->delete();
+
+        return back()->with('success', 'Practice resource removed.');
     }
 
     public function showStudent(LearningGroup $learningGroup, User $student)
