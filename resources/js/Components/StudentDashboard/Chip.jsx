@@ -2,7 +2,7 @@
  * Chip - Small colored status pill ("Awesome!", "Keep practicing", etc.)
  *
  * @param {React.ReactNode} children - Chip text
- * @param {"green" | "blue" | "yellow" | "purple" | "coral"} variant - Color variant
+ * @param {"green" | "blue" | "yellow" | "purple" | "coral" | "neutral"} variant - Color variant
  * @param {string} className - Additional CSS classes
  */
 export default function Chip({ children, variant = "green", className = "" }) {
@@ -12,6 +12,7 @@ export default function Chip({ children, variant = "green", className = "" }) {
         yellow: "bg-aba-yellow-soft text-[#B9790A]",
         purple: "bg-aba-purple-soft text-aba-purple",
         coral: "bg-aba-coral-soft text-aba-coral-dark",
+        neutral: "bg-aba-surface-alt text-aba-ink-soft",
     };
 
     return (

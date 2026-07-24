@@ -72,6 +72,8 @@ Route::post('/debug/language-preference', function (Request $request) {
 
 // Individual lesson routes - accessible by students, mentors, and demo users.
 Route::middleware(['auth'])->group(function () {
+    // Learning path overview - lists every level and lesson for the student's program.
+    Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
     Route::get('/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
     Route::post('/lessons/{lesson}/start', [LessonController::class, 'start'])->name('lessons.start');
     Route::patch('/lessons/{lesson}/progress', [LessonController::class, 'updateProgress'])->name('lessons.updateProgress');
@@ -108,6 +110,9 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
 
     // Student notification actions
     Route::patch('/dashboard/notifications/mark-all-read', [DashboardController::class, 'markAllNotificationsAsRead'])->name('dashboard.notifications.mark-all-read');
+
+    // Student learning-progress overview (levels breakdown, points, milestones).
+    Route::get('/progress', [\App\Http\Controllers\Student\ProgressController::class, 'index'])->name('progress.index');
 
     // Student schedule routes
     Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');

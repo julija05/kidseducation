@@ -29,6 +29,47 @@ class LessonController extends Controller
         private HomeworkAssignmentDashboardService $homeworkAssignmentDashboardService
     ) {}
 
+    /**
+     * Display the "learning path" overview: every level and lesson in the
+     * student's active program, grouped by level, so the student can browse
+     * all lessons and jump straight into the one they are currently on.
+     */
+    public function index()
+    {
+        $user = Auth::user();
+        $this->denyParentAccess($user);
+
+        // Suspended accounts must not reach any lesson content.
+        if ($user->isSuspended()) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Your account is suspended. Please contact admin@abacoding.com to resolve this issue.');
+        }
+
+        // Find the student's active/completed approved enrollment. This mirrors
+        // the query used by the dashboard so both views stay in sync.
+        $enrollment = $user->enrollments()
+            ->with('program')
+            ->whereIn('status', ['active', 'completed'])
+            ->where('approval_status', 'approved')
+            ->where('access_blocked', false)
+            ->orderByRaw("CASE status WHEN 'active' THEN 0 WHEN 'completed' THEN 1 ELSE 2 END")
+            ->first();
+
+        // Without an approved enrollment there is no learning path to show.
+        if (! $enrollment || ! $enrollment->program) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Enroll in a program to view your lessons.');
+        }
+
+        // Reuse the dashboard formatter so levels, lesson lock state, progress
+        // and the "next lesson" pointer all match what the dashboard shows.
+        $enrolledProgram = $this->enrollmentService->formatEnrollmentForDashboard($enrollment);
+
+        return $this->createView('Dashboard/Lessons/Index', [
+            'enrolledProgram' => $enrolledProgram,
+        ]);
+    }
+
     public function show(Lesson $lesson)
     {
         // TEMPORARY DEBUG - Remove after fixing

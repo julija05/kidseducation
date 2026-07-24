@@ -19,7 +19,7 @@ import NextClassCard from "@/Components/Dashboard/NextClassCard";
 import FirstTimeLanguageSelector from "@/Components/FirstTimeLanguageSelector";
 
 // Import Abacoding design system components
-import { BeadRod, Card, CardHead, CardTitle, Chip, getChipForPercent } from "@/Components/StudentDashboard";
+import { BeadRod, Card, CardHead, CardTitle, Chip, getChipForPercent, StudentShell, STUDENT_NAV_KEYS, openAbacusSimulator } from "@/Components/StudentDashboard";
 import { ABACODING_COLORS } from "@/constants/abacodingTheme";
 
 // Bead color for the abacus-style progress rods on the student dashboard.
@@ -526,156 +526,47 @@ function StudentDashboardShell({
     const lessonsHref = getLessonsHref(enrolledProgram);
 
     return (
-        <div className="min-h-screen">
-            <StudentDashboardSidebar
+        <StudentShell
+            student={student}
+            progress={progress}
+            isMentalArithmetic={isMentalArithmetic}
+            active={STUDENT_NAV_KEYS.DASHBOARD}
+            lessonsHref={lessonsHref}
+        >
+            <StudentDashboardHeader
                 student={student}
-                progress={progress}
-                isMentalArithmetic={isMentalArithmetic}
-                lessonsHref={lessonsHref}
+                unreadNotificationCount={unreadNotificationCount}
             />
 
-            <main className="min-w-0 px-4 py-5 sm:px-6 sm:py-6 lg:pl-[282px] lg:pr-6">
-                <div className="mx-auto max-w-[1120px] space-y-4">
-                    <StudentMobileNav isMentalArithmetic={isMentalArithmetic} lessonsHref={lessonsHref} />
-                    <StudentDashboardHeader
-                        student={student}
-                        unreadNotificationCount={unreadNotificationCount}
-                    />
+            <section aria-label="Today on your dashboard" className="grid gap-4 xl:grid-cols-2">
+                <StudentNextClassCard nextClass={nextClass} />
+                <HomeworkAssignmentsPanel assignments={homeworkAssignments} compact />
+            </section>
 
-                    <section aria-label="Today on your dashboard" className="grid gap-4 xl:grid-cols-2">
-                        <StudentNextClassCard nextClass={nextClass} />
-                        <HomeworkAssignmentsPanel assignments={homeworkAssignments} compact />
-                    </section>
+            <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+                <ContinueLearningCard
+                    enrolledProgram={enrolledProgram}
+                    nextLesson={nextLesson}
+                    progress={progress}
+                    onStartLesson={onStartLesson}
+                />
+                <StudentStatsCard
+                    enrolledProgram={enrolledProgram}
+                    completedLessons={completedLessons}
+                    progress={progress}
+                />
+            </section>
 
-                    <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
-                        <ContinueLearningCard
-                            enrolledProgram={enrolledProgram}
-                            nextLesson={nextLesson}
-                            progress={progress}
-                            onStartLesson={onStartLesson}
-                        />
-                        <StudentStatsCard
-                            enrolledProgram={enrolledProgram}
-                            completedLessons={completedLessons}
-                            progress={progress}
-                        />
-                    </section>
-
-                    <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-                        <StudentProgressSection
-                            enrolledProgram={enrolledProgram}
-                            completedLessons={completedLessons}
-                            progress={progress}
-                            lessonsHref={lessonsHref}
-                        />
-                        <ExtraToolsSection isMentalArithmetic={isMentalArithmetic} />
-                    </section>
-                </div>
-            </main>
-        </div>
-    );
-}
-
-function StudentDashboardSidebar({ student, progress, isMentalArithmetic, lessonsHref }) {
-    const navItems = [
-        { label: "Dashboard", icon: Home, href: safeRoute("dashboard"), active: true },
-        { label: "My Progress", icon: BarChart3, href: "#progress" },
-        // TODO: Replace this with a dedicated Learning Path route if the backend exposes one.
-        { label: "Lessons", icon: BookOpen, href: lessonsHref },
-        { label: "Practice", icon: Gamepad2, href: "#extra-tools" },
-        { label: "Challenges", icon: Trophy, href: "#progress" },
-        { label: "Achievements", icon: Award, href: "#progress" },
-        { label: "Messages", icon: MessageCircle, href: safeRoute("meetings.index") },
-    ].filter((item) => item.href);
-
-    return (
-        <aside className="hidden border-r border-aba-line bg-aba-surface lg:fixed lg:left-0 lg:top-0 lg:z-30 lg:flex lg:h-screen lg:min-h-screen lg:w-[250px] lg:flex-col lg:overflow-y-auto lg:p-5">
-            <div className="shrink-0">
-                <Link
-                    href={safeRoute("landing.index") || safeRoute("dashboard") || "#"}
-                    className="flex items-center px-2 py-3 font-display text-xl font-bold text-aba-ink transition hover:text-aba-blue"
-                >
-                    Abacoding
-                </Link>
-            </div>
-
-            <nav className="mt-7 shrink-0 space-y-1.5" aria-label="Student dashboard sections">
-                {navItems.map((item) => (
-                    <a
-                        key={item.label}
-                        href={item.href}
-                        className={`flex items-center gap-3 rounded-aba-sm px-3 py-2.5 text-sm font-bold transition ${
-                            item.active
-                                ? "bg-aba-blue-soft text-aba-blue"
-                                : "text-aba-ink-soft hover:bg-aba-surface-alt hover:text-aba-blue"
-                        }`}
-                    >
-                        <item.icon className="h-5 w-5" />
-                        {item.label}
-                    </a>
-                ))}
-            </nav>
-
-            <button
-                type="button"
-                onClick={openAbacusSimulator}
-                disabled={!isMentalArithmetic}
-                className="mt-6 flex shrink-0 items-center gap-3 rounded-aba-md border border-dashed border-aba-coral bg-aba-coral-soft px-4 py-4 text-left text-aba-coral-dark transition hover:brightness-95 disabled:cursor-not-allowed disabled:border-aba-line disabled:bg-aba-surface-alt disabled:text-aba-ink-faint"
-            >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-aba-sm bg-aba-surface text-aba-coral shadow-aba-sm">
-                    <Calculator className="h-5 w-5" />
-                </span>
-                <span>
-                    <span className="block text-sm font-black">Open Abacus</span>
-                    <span className="block text-xs font-semibold">
-                        {isMentalArithmetic ? "Practice tool" : "Available in Mental Arithmetic"}
-                    </span>
-                </span>
-            </button>
-
-            <div className="mt-auto shrink-0 rounded-aba-md bg-aba-surface-alt p-4">
-                <div className="flex items-center gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-aba-sm bg-aba-surface text-xl font-black text-aba-blue shadow-aba-sm">
-                        {student?.name ? student.name.charAt(0).toUpperCase() : "S"}
-                    </span>
-                    <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-aba-ink">{student?.name || "Student"}</p>
-                        <p className="text-xs font-semibold text-aba-ink-soft">{Math.round(progress)}% complete</p>
-                    </div>
-                </div>
-            </div>
-        </aside>
-    );
-}
-
-function StudentMobileNav({ isMentalArithmetic, lessonsHref }) {
-    const items = [
-        { label: "Dashboard", icon: Home, href: "#", active: true },
-        { label: "Progress", icon: BarChart3, href: "#progress" },
-        // TODO: Replace this with a dedicated Learning Path route if the backend exposes one.
-        { label: "Lessons", icon: BookOpen, href: lessonsHref },
-        { label: "Tools", icon: Calculator, href: "#extra-tools" },
-    ].filter((item) => item.href);
-
-    return (
-        <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Student dashboard navigation">
-            {items.map((item) => (
-                <a
-                    key={item.label}
-                    href={item.href}
-                    className={`inline-flex shrink-0 items-center gap-2 rounded-aba-sm px-4 py-2.5 text-sm font-black ${
-                        item.active ? "bg-aba-blue text-white" : "bg-aba-surface text-aba-ink-soft"
-                    }`}
-                    onClick={item.label === "Tools" && isMentalArithmetic ? (event) => {
-                        event.preventDefault();
-                        openAbacusSimulator();
-                    } : undefined}
-                >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                </a>
-            ))}
-        </div>
+            <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+                <StudentProgressSection
+                    enrolledProgram={enrolledProgram}
+                    completedLessons={completedLessons}
+                    progress={progress}
+                    lessonsHref={lessonsHref}
+                />
+                <ExtraToolsSection isMentalArithmetic={isMentalArithmetic} />
+            </section>
+        </StudentShell>
     );
 }
 
@@ -973,13 +864,16 @@ function isMentalArithmeticProgram(program) {
 }
 
 function getLessonsHref(program) {
-    const lessonId = program?.nextLesson?.id || getFirstLessonId(program);
+    // Point the "Lessons" navigation at the learning-path overview so students
+    // first see all levels and lessons instead of jumping into a single lesson.
+    const hasLessons =
+        Boolean(program?.nextLesson?.id) || Boolean(getFirstLessonId(program));
 
-    if (!lessonId) {
+    if (!hasLessons) {
         return null;
     }
 
-    return safeRoute("lessons.show", lessonId);
+    return safeRoute("lessons.index");
 }
 
 function getFirstLessonId(program) {
@@ -1012,12 +906,6 @@ function safeRoute(routeName, ...params) {
         return route(routeName, ...params);
     } catch {
         return null;
-    }
-}
-
-function openAbacusSimulator() {
-    if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("open-abacus-simulator"));
     }
 }
 

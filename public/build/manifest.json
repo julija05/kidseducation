@@ -1,6 +1,6 @@
 {
-  "_Chip-n5EaWgIJ.js": {
-    "file": "assets/Chip-n5EaWgIJ.js",
+  "_Chip-BTHoDRun.js": {
+    "file": "assets/Chip-BTHoDRun.js",
     "name": "Chip",
     "imports": [
       "_vendor-ui-CUfwRlJu.js"
@@ -114,6 +114,14 @@
   "_StarRating-BFniLtAY.js": {
     "file": "assets/StarRating-BFniLtAY.js",
     "name": "StarRating",
+    "imports": [
+      "_vendor-ui-CUfwRlJu.js",
+      "_vendor-inertia-B8ipwdfx.js"
+    ]
+  },
+  "_StudentShell-hgVHQObr.js": {
+    "file": "assets/StudentShell-hgVHQObr.js",
+    "name": "StudentShell",
     "imports": [
       "_vendor-ui-CUfwRlJu.js",
       "_vendor-inertia-B8ipwdfx.js"
@@ -1040,7 +1048,7 @@
     ]
   },
   "resources/js/Pages/Dashboard.jsx": {
-    "file": "assets/Dashboard-C_p8vSlo.js",
+    "file": "assets/Dashboard-sWRWQv4b.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Dashboard.jsx",
     "isDynamicEntry": true,
@@ -1052,14 +1060,32 @@
       "_admin-DRx18Jxc.js",
       "_iconMapping-CdG4i4U3.js",
       "_useTheme-D9D2Zj4u.js",
-      "_Chip-n5EaWgIJ.js",
+      "_Chip-BTHoDRun.js",
+      "_StudentShell-hgVHQObr.js",
       "_vendor-react-DYDc8crQ.js",
       "_abacus-DDPI6on5.js",
       "_quiz-CZr6-XWC.js"
     ]
   },
+  "resources/js/Pages/Dashboard/Lessons/Index.jsx": {
+    "file": "assets/Index-B3t0YFEn.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Dashboard/Lessons/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-ui-CUfwRlJu.js",
+      "_vendor-inertia-B8ipwdfx.js",
+      "_student-CdJLviI5.js",
+      "_Chip-BTHoDRun.js",
+      "_StudentShell-hgVHQObr.js",
+      "_vendor-react-DYDc8crQ.js",
+      "_admin-DRx18Jxc.js",
+      "_abacus-DDPI6on5.js",
+      "_quiz-CZr6-XWC.js"
+    ]
+  },
   "resources/js/Pages/Dashboard/Lessons/Show.jsx": {
-    "file": "assets/Show-dI1FMsn9.js",
+    "file": "assets/Show-2uXPwYBF.js",
     "name": "Show",
     "src": "resources/js/Pages/Dashboard/Lessons/Show.jsx",
     "isDynamicEntry": true,
@@ -1068,11 +1094,28 @@
       "_vendor-inertia-B8ipwdfx.js",
       "_student-CdJLviI5.js",
       "_admin-DRx18Jxc.js",
-      "_Chip-n5EaWgIJ.js",
+      "_Chip-BTHoDRun.js",
       "_DocumentViewer-D3ywn7If.js",
       "_helpers-rsm3X4xx.js",
       "_StarRating-BFniLtAY.js",
       "_vendor-react-DYDc8crQ.js",
+      "_abacus-DDPI6on5.js",
+      "_quiz-CZr6-XWC.js"
+    ]
+  },
+  "resources/js/Pages/Dashboard/Progress/Index.jsx": {
+    "file": "assets/Index-C2wD5g2V.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Dashboard/Progress/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-ui-CUfwRlJu.js",
+      "_vendor-inertia-B8ipwdfx.js",
+      "_student-CdJLviI5.js",
+      "_Chip-BTHoDRun.js",
+      "_StudentShell-hgVHQObr.js",
+      "_vendor-react-DYDc8crQ.js",
+      "_admin-DRx18Jxc.js",
       "_abacus-DDPI6on5.js",
       "_quiz-CZr6-XWC.js"
     ]
@@ -1969,7 +2012,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-Cftd5zbg.js",
+    "file": "assets/app-1sBhyxM_.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -2043,7 +2086,9 @@
       "resources/js/Pages/Auth/VerifyEmail.jsx",
       "resources/js/Pages/CountingOnAbacus/Index.jsx",
       "resources/js/Pages/Dashboard.jsx",
+      "resources/js/Pages/Dashboard/Lessons/Index.jsx",
       "resources/js/Pages/Dashboard/Lessons/Show.jsx",
+      "resources/js/Pages/Dashboard/Progress/Index.jsx",
       "resources/js/Pages/Demo/Access.jsx",
       "resources/js/Pages/Demo/Dashboard.jsx",
       "resources/js/Pages/Demo/Expired.jsx",
@@ -2104,7 +2149,7 @@
       "resources/js/Pages/Student/Reviews/Edit.jsx"
     ],
     "css": [
-      "assets/app-VGBUA1Gm.css"
+      "assets/app-gGMtJRbK.css"
     ]
   }
 }
