@@ -91,6 +91,16 @@ export default function MentalAccelerator({ isOpen, onClose }) {
     const handleComplete = (roundResults) => {
         setResults(roundResults);
         setPhase(PHASE.DONE);
+        // Record the run so it can count towards the student's practice
+        // achievements. Fire-and-forget: practice never blocks on the save.
+        persistPracticeRun({
+            operation,
+            minDigits,
+            maxDigits,
+            displayTime: SPEED_PRESETS[speed].displayTime,
+            numbersPerRound,
+            results: roundResults,
+        });
     };
 
     // Child chose "skip all" inside the quiz — return to setup.
@@ -503,6 +513,52 @@ function sampleNumbers(minDigits, maxDigits, count) {
         const max = 10 ** digits - 1;
         return Math.floor(Math.random() * (max - min + 1)) + min;
     });
+}
+
+/**
+ * Persists a completed run's summary to the server so it can drive the
+ * student's practice achievements. Best-effort: any failure (offline, route
+ * unavailable) is swallowed so a saving hiccup never interrupts practice.
+ *
+ * @param {Object} run
+ * @param {string} run.operation - Chosen operation mode.
+ * @param {number} run.minDigits - Smallest number size (digits).
+ * @param {number} run.maxDigits - Largest number size (digits).
+ * @param {number} run.displayTime - Seconds each number was shown.
+ * @param {number} run.numbersPerRound - Numbers flashed per round.
+ * @param {Array} run.results - Per-round results from FlashCardQuiz.
+ */
+function persistPracticeRun({ operation, minDigits, maxDigits, displayTime, numbersPerRound, results }) {
+    const totalRounds = results.length;
+
+    // Nothing meaningful to record for an empty run.
+    if (totalRounds === 0 || typeof window === "undefined" || !window.axios) {
+        return;
+    }
+
+    const correctRounds = results.filter((result) => result.is_correct).length;
+
+    let endpoint;
+    try {
+        endpoint = route("practice.runs.store");
+    } catch {
+        // Route helper unavailable — skip saving rather than crash the results screen.
+        return;
+    }
+
+    window.axios
+        .post(endpoint, {
+            operation,
+            min_digits: minDigits,
+            max_digits: maxDigits,
+            display_time: displayTime,
+            numbers_per_round: numbersPerRound,
+            total_rounds: totalRounds,
+            correct_rounds: correctRounds,
+        })
+        .catch(() => {
+            // Ignore: practice results are already shown; the save is non-critical.
+        });
 }
 
 /**

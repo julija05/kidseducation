@@ -4,11 +4,32 @@ import {
     BarChart3,
     BookOpen,
     Gamepad2,
-    Trophy,
     Award,
     MessageCircle,
     Calculator,
 } from "lucide-react";
+
+// Program names (in every supported language) that unlock the abacus simulator
+// practice tool. Kept here so every student page resolves it the same way.
+const MENTAL_ARITHMETIC_PROGRAM_NAMES = ["Mental Arithmetic Mastery", "Ментална Аритметика"];
+
+/**
+ * Determines whether a program unlocks the abacus simulator practice tool,
+ * matching on either the raw or translated program name.
+ *
+ * @param {Object|null} program - Formatted program data.
+ * @returns {boolean} True when the abacus tool should be available.
+ */
+export function isMentalArithmeticProgram(program) {
+    if (!program) {
+        return false;
+    }
+
+    return (
+        MENTAL_ARITHMETIC_PROGRAM_NAMES.includes(program.name) ||
+        MENTAL_ARITHMETIC_PROGRAM_NAMES.includes(program.translated_name)
+    );
+}
 
 // Stable identifiers for each sidebar entry, so pages can flag which one is
 // active without depending on label text.
@@ -17,7 +38,6 @@ export const STUDENT_NAV_KEYS = {
     PROGRESS: "progress",
     LESSONS: "lessons",
     PRACTICE: "practice",
-    CHALLENGES: "challenges",
     ACHIEVEMENTS: "achievements",
     MESSAGES: "messages",
 };
@@ -68,8 +88,7 @@ function buildNavItems({ lessonsHref, progressHref, dashboardHref }) {
         { key: STUDENT_NAV_KEYS.PROGRESS, label: "My Progress", icon: BarChart3, href: progressHref },
         { key: STUDENT_NAV_KEYS.LESSONS, label: "Lessons", icon: BookOpen, href: lessonsHref },
         { key: STUDENT_NAV_KEYS.PRACTICE, label: "Practice", icon: Gamepad2, href: safeRoute("practice.index") },
-        { key: STUDENT_NAV_KEYS.CHALLENGES, label: "Challenges", icon: Trophy, href: progressHref },
-        { key: STUDENT_NAV_KEYS.ACHIEVEMENTS, label: "Achievements", icon: Award, href: progressHref },
+        { key: STUDENT_NAV_KEYS.ACHIEVEMENTS, label: "Achievements", icon: Award, href: safeRoute("achievements.index") },
         { key: STUDENT_NAV_KEYS.MESSAGES, label: "Messages", icon: MessageCircle, href: safeRoute("meetings.index") },
     ].filter((item) => item.href);
 }

@@ -91,6 +91,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(QuizAttempt::class);
     }
 
+    /**
+     * Completed Mental Accelerator practice runs, newest first, used to award
+     * the practice achievement badges.
+     */
+    public function practiceRuns(): HasMany
+    {
+        return $this->hasMany(PracticeRun::class)->latest();
+    }
+
     public function scheduledClasses(): HasMany
     {
         return $this->hasMany(ClassSchedule::class, 'student_id');

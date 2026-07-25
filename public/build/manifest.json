@@ -1,4 +1,11 @@
 {
+  "_BeadRod-CvE81yJV.js": {
+    "file": "assets/BeadRod-CvE81yJV.js",
+    "name": "BeadRod",
+    "imports": [
+      "_vendor-ui-DEBlxqxb.js"
+    ]
+  },
   "_Card-DWhAF8g8.js": {
     "file": "assets/Card-DWhAF8g8.js",
     "name": "Card",
@@ -6,8 +13,8 @@
       "_vendor-ui-DEBlxqxb.js"
     ]
   },
-  "_Chip-CzrzqKgP.js": {
-    "file": "assets/Chip-CzrzqKgP.js",
+  "_Chip-BEdG-5Ou.js": {
+    "file": "assets/Chip-BEdG-5Ou.js",
     "name": "Chip",
     "imports": [
       "_vendor-ui-DEBlxqxb.js"
@@ -126,8 +133,8 @@
       "_vendor-inertia-B8ipwdfx.js"
     ]
   },
-  "_StudentShell-C2bqruaO.js": {
-    "file": "assets/StudentShell-C2bqruaO.js",
+  "_StudentShell-CHo9c2ka.js": {
+    "file": "assets/StudentShell-CHo9c2ka.js",
     "name": "StudentShell",
     "imports": [
       "_vendor-ui-DEBlxqxb.js",
@@ -1055,7 +1062,7 @@
     ]
   },
   "resources/js/Pages/Dashboard.jsx": {
-    "file": "assets/Dashboard-_sScmYII.js",
+    "file": "assets/Dashboard-D7MWLefN.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Dashboard.jsx",
     "isDynamicEntry": true,
@@ -1067,16 +1074,35 @@
       "_admin-Bwk_2AKq.js",
       "_iconMapping-B6AMtCnq.js",
       "_useTheme-BCOklbej.js",
-      "_Chip-CzrzqKgP.js",
+      "_BeadRod-CvE81yJV.js",
       "_Card-DWhAF8g8.js",
-      "_StudentShell-C2bqruaO.js",
+      "_Chip-BEdG-5Ou.js",
+      "_StudentShell-CHo9c2ka.js",
       "_vendor-react-DYDc8crQ.js",
       "_abacus-Qck2ynHd.js",
       "_quiz-BaIGuJ-A.js"
     ]
   },
+  "resources/js/Pages/Dashboard/Achievements/Index.jsx": {
+    "file": "assets/Index-mpBvlI60.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Dashboard/Achievements/Index.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor-ui-DEBlxqxb.js",
+      "_vendor-inertia-B8ipwdfx.js",
+      "_student-CQ8gNKjw.js",
+      "_BeadRod-CvE81yJV.js",
+      "_Card-DWhAF8g8.js",
+      "_StudentShell-CHo9c2ka.js",
+      "_vendor-react-DYDc8crQ.js",
+      "_admin-Bwk_2AKq.js",
+      "_abacus-Qck2ynHd.js",
+      "_quiz-BaIGuJ-A.js"
+    ]
+  },
   "resources/js/Pages/Dashboard/Lessons/Index.jsx": {
-    "file": "assets/Index-D0O3B-tQ.js",
+    "file": "assets/Index-DVLIrQzw.js",
     "name": "Index",
     "src": "resources/js/Pages/Dashboard/Lessons/Index.jsx",
     "isDynamicEntry": true,
@@ -1084,9 +1110,10 @@
       "_vendor-ui-DEBlxqxb.js",
       "_vendor-inertia-B8ipwdfx.js",
       "_student-CQ8gNKjw.js",
-      "_Chip-CzrzqKgP.js",
+      "_BeadRod-CvE81yJV.js",
       "_Card-DWhAF8g8.js",
-      "_StudentShell-C2bqruaO.js",
+      "_Chip-BEdG-5Ou.js",
+      "_StudentShell-CHo9c2ka.js",
       "_vendor-react-DYDc8crQ.js",
       "_admin-Bwk_2AKq.js",
       "_abacus-Qck2ynHd.js",
@@ -1094,7 +1121,7 @@
     ]
   },
   "resources/js/Pages/Dashboard/Lessons/Show.jsx": {
-    "file": "assets/Show-LdcfMzLM.js",
+    "file": "assets/Show-_O4BRDt3.js",
     "name": "Show",
     "src": "resources/js/Pages/Dashboard/Lessons/Show.jsx",
     "isDynamicEntry": true,
@@ -1103,8 +1130,9 @@
       "_vendor-inertia-B8ipwdfx.js",
       "_student-CQ8gNKjw.js",
       "_admin-Bwk_2AKq.js",
-      "_Chip-CzrzqKgP.js",
+      "_BeadRod-CvE81yJV.js",
       "_Card-DWhAF8g8.js",
+      "_Chip-BEdG-5Ou.js",
       "_DocumentViewer-BqZQeSrT.js",
       "_helpers-rsm3X4xx.js",
       "_StarRating-D5I8ZmQO.js",
@@ -1114,7 +1142,7 @@
     ]
   },
   "resources/js/Pages/Dashboard/Practice/Index.jsx": {
-    "file": "assets/Index-DlhOyWiv.js",
+    "file": "assets/Index-SFi-g0IA.js",
     "name": "Index",
     "src": "resources/js/Pages/Dashboard/Practice/Index.jsx",
     "isDynamicEntry": true,
@@ -1123,7 +1151,7 @@
       "_vendor-inertia-B8ipwdfx.js",
       "_student-CQ8gNKjw.js",
       "_Card-DWhAF8g8.js",
-      "_StudentShell-C2bqruaO.js",
+      "_StudentShell-CHo9c2ka.js",
       "_quiz-BaIGuJ-A.js",
       "_vendor-react-DYDc8crQ.js",
       "_admin-Bwk_2AKq.js",
@@ -1131,7 +1159,7 @@
     ]
   },
   "resources/js/Pages/Dashboard/Progress/Index.jsx": {
-    "file": "assets/Index-y3kYuhtR.js",
+    "file": "assets/Index-jldJHuif.js",
     "name": "Index",
     "src": "resources/js/Pages/Dashboard/Progress/Index.jsx",
     "isDynamicEntry": true,
@@ -1139,9 +1167,10 @@
       "_vendor-ui-DEBlxqxb.js",
       "_vendor-inertia-B8ipwdfx.js",
       "_student-CQ8gNKjw.js",
-      "_Chip-CzrzqKgP.js",
+      "_BeadRod-CvE81yJV.js",
       "_Card-DWhAF8g8.js",
-      "_StudentShell-C2bqruaO.js",
+      "_Chip-BEdG-5Ou.js",
+      "_StudentShell-CHo9c2ka.js",
       "_vendor-react-DYDc8crQ.js",
       "_admin-Bwk_2AKq.js",
       "_abacus-Qck2ynHd.js",
@@ -2040,7 +2069,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-Dek7lxD0.js",
+    "file": "assets/app-BYqYXkv-.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -2114,6 +2143,7 @@
       "resources/js/Pages/Auth/VerifyEmail.jsx",
       "resources/js/Pages/CountingOnAbacus/Index.jsx",
       "resources/js/Pages/Dashboard.jsx",
+      "resources/js/Pages/Dashboard/Achievements/Index.jsx",
       "resources/js/Pages/Dashboard/Lessons/Index.jsx",
       "resources/js/Pages/Dashboard/Lessons/Show.jsx",
       "resources/js/Pages/Dashboard/Practice/Index.jsx",
@@ -2178,7 +2208,7 @@
       "resources/js/Pages/Student/Reviews/Edit.jsx"
     ],
     "css": [
-      "assets/app-qgTERxgY.css"
+      "assets/app-3HzsETAy.css"
     ]
   }
 }

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePracticeRunRequest;
 use App\Models\PracticeResource;
+use App\Models\PracticeRun;
 use App\Services\EnrollmentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class PracticeController extends Controller
@@ -49,6 +52,39 @@ class PracticeController extends Controller
             'enrolledProgram' => $enrolledProgram,
             'practiceResources' => $this->practiceResourcesForStudent($user, $enrollment->program_id),
         ]);
+    }
+
+    /**
+     * Persist the summary of a completed Mental Accelerator run so it can power
+     * the student's practice achievements. Called from the practice modal via
+     * a background request, so it returns a small JSON acknowledgement rather
+     * than an Inertia response.
+     */
+    public function storeRun(StorePracticeRunRequest $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Attribute the run to the student's current approved program (if any),
+        // without blocking practice when the enrollment can't be resolved.
+        $programId = $user->enrollments()
+            ->whereIn('status', ['active', 'completed'])
+            ->where('approval_status', 'approved')
+            ->where('access_blocked', false)
+            ->value('program_id');
+
+        PracticeRun::create([
+            'user_id' => $user->id,
+            'program_id' => $programId,
+            'operation' => $request->validated('operation'),
+            'min_digits' => $request->validated('min_digits'),
+            'max_digits' => $request->validated('max_digits'),
+            'display_time' => $request->validated('display_time'),
+            'numbers_per_round' => $request->validated('numbers_per_round'),
+            'total_rounds' => $request->validated('total_rounds'),
+            'correct_rounds' => $request->validated('correct_rounds'),
+        ]);
+
+        return response()->json(['saved' => true]);
     }
 
     /**

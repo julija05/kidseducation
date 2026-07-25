@@ -120,6 +120,12 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.user.status'])->gr
     // Student practice hub (Mental Accelerator + mentor practice resources).
     Route::get('/practice', [\App\Http\Controllers\Student\PracticeController::class, 'index'])->name('practice.index');
 
+    // Record a completed Mental Accelerator run (drives practice achievements).
+    Route::post('/practice/runs', [\App\Http\Controllers\Student\PracticeController::class, 'storeRun'])->name('practice.runs.store');
+
+    // Student achievements (badges earned across skills, practice and homework).
+    Route::get('/achievements', [\App\Http\Controllers\Student\AchievementController::class, 'index'])->name('achievements.index');
+
     // Student schedule routes
     Route::get('/my-schedule', [DashboardController::class, 'mySchedule'])->name('my-schedule');
 
