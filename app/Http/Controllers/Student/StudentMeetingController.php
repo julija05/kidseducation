@@ -4,13 +4,22 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\MeetingParticipant;
+use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class StudentMeetingController extends Controller
 {
+    public function __construct(
+        private EnrollmentService $enrollmentService
+    ) {}
+
     /**
-     * Display student's meetings
+     * Display the student's Messages page.
+     *
+     * For now "Messages" surfaces the meetings a mentor has arranged with the
+     * student: upcoming invitations the student can confirm or decline, plus a
+     * short history of past sessions.
      */
     public function index()
     {
@@ -73,7 +82,36 @@ class StudentMeetingController extends Controller
         return $this->createView('Student/Meetings/Index', [
             'upcomingMeetings' => $upcomingMeetings,
             'pastMeetings' => $pastMeetings,
+            'enrolledProgram' => $this->resolveEnrolledProgram($student),
         ]);
+    }
+
+    /**
+     * Resolve the student's active/completed approved enrollment and format it
+     * for the dashboard shell (sidebar theme, progress, abacus availability).
+     *
+     * Mirrors the other student pages so the Messages page shares the same
+     * navigation chrome. Returns null when the student has no approved program,
+     * in which case the shell falls back to its neutral defaults.
+     *
+     * @param  \App\Models\User  $student
+     * @return array|null
+     */
+    private function resolveEnrolledProgram($student): ?array
+    {
+        $enrollment = $student->enrollments()
+            ->with('program')
+            ->whereIn('status', ['active', 'completed'])
+            ->where('approval_status', 'approved')
+            ->where('access_blocked', false)
+            ->orderByRaw("CASE status WHEN 'active' THEN 0 WHEN 'completed' THEN 1 ELSE 2 END")
+            ->first();
+
+        if (! $enrollment || ! $enrollment->program) {
+            return null;
+        }
+
+        return $this->enrollmentService->formatEnrollmentForDashboard($enrollment);
     }
 
     /**

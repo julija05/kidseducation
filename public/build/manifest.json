@@ -2022,14 +2022,16 @@
     ]
   },
   "resources/js/Pages/Student/Meetings/Index.jsx": {
-    "file": "assets/Index-D3sEj1J4.js",
+    "file": "assets/Index-CifnplD9.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Meetings/Index.jsx",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-DEBlxqxb.js",
-      "_student-C4wXFbhR.js",
       "_vendor-inertia-B8ipwdfx.js",
+      "_student-C4wXFbhR.js",
+      "_Card-DWhAF8g8.js",
+      "_StudentShell-CHo9c2ka.js",
       "_vendor-react-DYDc8crQ.js",
       "_admin-Bwk_2AKq.js",
       "_abacus-DVs1AJtK.js",
@@ -2069,7 +2071,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-BLe3ZZzz.js",
+    "file": "assets/app-C08oiwkx.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -2208,7 +2210,7 @@
       "resources/js/Pages/Student/Reviews/Edit.jsx"
     ],
     "css": [
-      "assets/app-B806gTqh.css"
+      "assets/app-Cb2RlkkW.css"
     ]
   }
 }
