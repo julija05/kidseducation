@@ -2,31 +2,94 @@ import React, { useState, useEffect } from 'react';
 import { X, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
+// Abacus dimensions. A 16-rod soroban lets students represent very large numbers.
+const ABACUS_COLUMN_COUNT = 16;
+const EARTH_BEADS_PER_COLUMN = 4;
+const HEAVEN_BEAD_VALUE = 5;
+
+// Shared Tailwind sizing so every stacked row (labels, rods, beads) stays aligned.
+const COLUMN_WIDTH_CLASS = 'w-14';
+const COLUMN_GAP_CLASS = 'gap-1.5';
+
+// Flattened-hexagon silhouette that gives each bead the classic bi-convex soroban shape.
+const SOROBAN_BEAD_CLIP_PATH = 'polygon(0% 50%, 22% 6%, 78% 6%, 100% 50%, 78% 94%, 22% 94%)';
+
+// A soft top highlight layered over the base colour to fake a rounded, glossy bead surface.
+const BEAD_SURFACE_HIGHLIGHT = 'radial-gradient(ellipse at 50% 28%, rgba(255,255,255,0.55), rgba(255,255,255,0) 58%)';
+
+// Bead colours drawn from the Abacoding dashboard palette: coral heaven beads
+// (aba-coral) and blue earth beads (aba-blue) to match the brand accents.
+const BEAD_GRADIENTS = {
+    heaven: {
+        idle: 'linear-gradient(155deg, #FF8A6E 0%, #E8543A 100%)',
+        active: 'linear-gradient(155deg, #FF6B4D 0%, #C6402A 100%)',
+    },
+    earth: {
+        idle: 'linear-gradient(155deg, #6FA8FE 0%, #2F6FE0 100%)',
+        active: 'linear-gradient(155deg, #3D8BFD 0%, #1E5FD0 100%)',
+    },
+};
+
+/**
+ * SorobanBead - A single bi-convex abacus bead.
+ *
+ * Renders the diamond/hexagon silhouette with layered gradients for a 3D look and
+ * slides toward the reckoning bar when it is counted (active).
+ *
+ * @param {"heaven" | "earth"} variant - Bead family, drives colour and dimensions.
+ * @param {boolean} active - Whether the bead currently counts (sits against the bar).
+ * @param {string} activeTranslateClass - Tailwind transform applied while active.
+ * @param {() => void} onClick - Toggle handler.
+ * @param {string} title - Accessible tooltip text.
+ */
+function SorobanBead({ variant, active, activeTranslateClass, onClick, title }) {
+    const dimensionClasses = variant === 'heaven' ? 'w-11 h-7' : 'w-9 h-6';
+    const gradients = BEAD_GRADIENTS[variant];
+
+    return (
+        <button
+            onClick={onClick}
+            title={title}
+            aria-pressed={active}
+            className={`${dimensionClasses} transition-transform duration-300 ease-out hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${active ? activeTranslateClass : ''}`}
+            style={{
+                clipPath: SOROBAN_BEAD_CLIP_PATH,
+                background: `${BEAD_SURFACE_HIGHLIGHT}, ${active ? gradients.active : gradients.idle}`,
+                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.35))',
+            }}
+        />
+    );
+}
+
 export default function AbacusSimulator({ isOpen, onClose }) {
     const { t } = useTranslation();
-    const [columns, setColumns] = useState(7); // Number of columns (digits)
+    const [columns, setColumns] = useState(ABACUS_COLUMN_COUNT); // Number of rods (digits)
     const [beadStates, setBeadStates] = useState({});
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [showValue, setShowValue] = useState(true);
+
+    // Build the empty state for a single column (no beads counted).
+    const createEmptyColumnState = () => ({
+        heaven: false, // 1 heaven bead (worth HEAVEN_BEAD_VALUE)
+        earth: Array(EARTH_BEADS_PER_COLUMN).fill(false), // earth beads (worth 1 each)
+    });
 
     // Initialize bead states
     useEffect(() => {
         const initialStates = {};
         for (let col = 0; col < columns; col++) {
-            initialStates[col] = {
-                heaven: false, // 1 heaven bead (worth 5)
-                earth: [false, false, false, false] // 4 earth beads (worth 1 each)
-            };
+            initialStates[col] = createEmptyColumnState();
         }
         setBeadStates(initialStates);
     }, [columns]);
 
-    // Calculate the current value displayed on the abacus
+    // Calculate the current value displayed on the abacus. BigInt is used because a
+    // 16-rod abacus can exceed JavaScript's safe-integer range for regular numbers.
     const calculateValue = () => {
-        let total = 0;
+        let total = 0n;
         for (let col = 0; col < columns; col++) {
-            const columnValue = getColumnValue(col);
-            total += columnValue * Math.pow(10, columns - 1 - col);
+            const placeValue = 10n ** BigInt(columns - 1 - col);
+            total += BigInt(getColumnValue(col)) * placeValue;
         }
         return total;
     };
@@ -37,11 +100,11 @@ export default function AbacusSimulator({ isOpen, onClose }) {
         if (!state) return 0;
         
         let value = 0;
-        // Heaven bead is worth 5
-        if (state.heaven) value += 5;
+        // Heaven bead is worth HEAVEN_BEAD_VALUE
+        if (state.heaven) value += HEAVEN_BEAD_VALUE;
         // Each earth bead is worth 1
         value += state.earth.filter(bead => bead).length;
-        
+
         return value;
     };
 
@@ -110,10 +173,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
     const resetAbacus = () => {
         const resetStates = {};
         for (let col = 0; col < columns; col++) {
-            resetStates[col] = {
-                heaven: false,
-                earth: [false, false, false, false]
-            };
+            resetStates[col] = createEmptyColumnState();
         }
         setBeadStates(resetStates);
         playBeadSound();
@@ -123,18 +183,19 @@ export default function AbacusSimulator({ isOpen, onClose }) {
     const setNumber = (number) => {
         const numberStr = number.toString().padStart(columns, '0');
         const newStates = {};
-        
+
         for (let col = 0; col < columns; col++) {
             const digit = parseInt(numberStr[col]);
-            const heaven = digit >= 5;
-            const earthCount = Math.min(digit % 5, 4); // Ensure we don't exceed 4 earth beads
-            
+            const heaven = digit >= HEAVEN_BEAD_VALUE;
+            // Earth beads represent the remainder after the heaven bead, capped at the rod's count.
+            const earthCount = Math.min(digit % HEAVEN_BEAD_VALUE, EARTH_BEADS_PER_COLUMN);
+
             newStates[col] = {
                 heaven,
-                earth: Array(4).fill(false).map((_, i) => i < earthCount)
+                earth: Array(EARTH_BEADS_PER_COLUMN).fill(false).map((_, i) => i < earthCount),
             };
         }
-        
+
         setBeadStates(newStates);
         playBeadSound();
     };
@@ -146,23 +207,23 @@ export default function AbacusSimulator({ isOpen, onClose }) {
             className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
             onClick={onClose}
         >
-            <div 
-                className="bg-white rounded-2xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-auto transform transition-all duration-300 scale-100"
+            <div
+                className="bg-aba-surface rounded-aba-lg shadow-aba-card max-w-7xl w-full max-h-[95vh] overflow-auto transform transition-all duration-300 scale-100"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Modern Header with Gradient */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-2xl">
+                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-aba-coral to-aba-coral-dark text-white rounded-t-aba-lg">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                        <div className="w-12 h-12 bg-white/20 rounded-aba-sm flex items-center justify-center backdrop-blur-sm">
                             <span className="text-2xl">🧮</span>
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold">{t('dashboard.abacus_simulator')}</h2>
-                            <p className="text-amber-100 text-sm">Mental Arithmetic Practice Tool</p>
+                            <h2 className="text-2xl font-black">{t('dashboard.abacus_simulator')}</h2>
+                            <p className="text-white/80 text-sm font-semibold">Mental Arithmetic Practice Tool</p>
                         </div>
                         {showValue && (
-                            <div className="bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm border border-white/30 ml-6">
-                                <div className="text-xs text-amber-100 mb-1">Current Value</div>
+                            <div className="bg-white/20 px-6 py-3 rounded-aba-sm backdrop-blur-sm border border-white/30 ml-6">
+                                <div className="text-xs text-white/80 mb-1 font-semibold">Current Value</div>
                                 <span className="text-2xl font-mono font-bold text-white">
                                     {calculateValue().toLocaleString()}
                                 </span>
@@ -174,7 +235,7 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                         {/* Modern Controls */}
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
-                            className="p-3 rounded-xl hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/30"
+                            className="p-3 rounded-aba-sm hover:bg-white/20 transition-all duration-200 backdrop-blur-sm border border-white/30"
                             title={soundEnabled ? t('dashboard.disable_sound') : t('dashboard.enable_sound')}
                         >
                             {soundEnabled ? (
@@ -183,25 +244,25 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                                 <VolumeX className="w-5 h-5 text-white" />
                             )}
                         </button>
-                        
+
                         <button
                             onClick={() => setShowValue(!showValue)}
-                            className="px-4 py-2 text-sm bg-white/20 hover:bg-white/30 rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/30 text-white"
+                            className="px-4 py-2 text-sm font-bold bg-white/20 hover:bg-white/30 rounded-aba-sm transition-all duration-200 backdrop-blur-sm border border-white/30 text-white"
                         >
                             {showValue ? t('dashboard.hide_value') : t('dashboard.show_value')}
                         </button>
-                        
+
                         <button
                             onClick={resetAbacus}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/30"
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold bg-white/20 hover:bg-white/30 text-white rounded-aba-sm transition-all duration-200 backdrop-blur-sm border border-white/30"
                         >
                             <RotateCcw className="w-4 h-4" />
                             {t('dashboard.reset')}
                         </button>
-                        
+
                         <button
                             onClick={onClose}
-                            className="p-3 rounded-xl hover:bg-red-500/20 transition-all duration-200 backdrop-blur-sm border border-white/30"
+                            className="p-3 rounded-aba-sm hover:bg-white/25 transition-all duration-200 backdrop-blur-sm border border-white/30"
                         >
                             <X className="w-5 h-5 text-white" />
                         </button>
@@ -209,18 +270,18 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                 </div>
 
                 {/* Enhanced Quick Number Input */}
-                <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="p-6 border-b border-aba-line bg-aba-surface-alt">
                     <div className="flex items-center gap-4 flex-wrap">
-                        <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <span className="text-sm font-bold text-aba-ink-soft flex items-center gap-2">
                             <span className="text-lg">⚡</span>
                             {t('dashboard.quick_set')}
                         </span>
                         <div className="flex gap-2 flex-wrap">
-                            {[0, 123, 456, 789, 1234, 5678, 9999].map(num => (
+                            {[0, 123, 456, 789, 1234, 5678, 9999, 1000000].map(num => (
                                 <button
                                     key={num}
                                     onClick={() => setNumber(num)}
-                                    className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
+                                    className="px-4 py-2 text-sm font-bold bg-aba-blue hover:brightness-95 text-white rounded-aba-sm transition-all duration-200 transform hover:scale-105 hover:shadow-aba-sm"
                                 >
                                     {num.toLocaleString()}
                                 </button>
@@ -230,160 +291,143 @@ export default function AbacusSimulator({ isOpen, onClose }) {
                 </div>
 
                 {/* Abacus */}
-                <div className="p-8">
-                    {/* Traditional Soroban Frame */}
-                    <div className="relative bg-gradient-to-b from-amber-900 to-amber-800 rounded-lg shadow-2xl border-4 border-amber-700 p-8">
+                <div className="p-6 sm:p-8">
+                    {/* Soroban Frame (navy, matching the dashboard ink palette) */}
+                    <div className="relative bg-gradient-to-b from-[#243456] to-aba-ink rounded-aba-lg shadow-aba-card p-4 sm:p-6 ring-1 ring-black/10">
                         {/* Outer frame decoration */}
-                        <div className="absolute inset-2 border-2 border-amber-600 rounded-md"></div>
-                        
-                        {/* Position Labels */}
-                        <div className="flex justify-center mb-6">
-                            <div className="flex gap-2">
-                                {Array.from({ length: columns }, (_, i) => (
-                                    <div key={i} className="w-20 text-center">
-                                        <div className="text-xs text-amber-200 mb-1 font-medium">
-                                            {Math.pow(10, columns - 1 - i).toLocaleString()}
-                                        </div>
-                                        <div className="font-mono text-base font-bold text-amber-100 bg-amber-800 rounded px-2 py-1">
-                                            {getColumnValue(i)}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <div className="absolute inset-2 border border-white/10 rounded-aba-md pointer-events-none"></div>
 
-                        {/* Abacus Body */}
-                        <div className="relative bg-gradient-to-b from-amber-50 to-amber-100 rounded-lg p-6 border-3 border-amber-600 shadow-inner">
-                            {/* Vertical Rods */}
-                            <div className="absolute inset-0 flex justify-center pointer-events-none">
-                                <div className="flex gap-2">
-                                    {Array.from({ length: columns }, (_, rodIndex) => (
-                                        <div key={`rod-${rodIndex}`} className="w-20 flex justify-center">
-                                            <div className="w-1 h-full bg-gradient-to-b from-amber-700 to-amber-900 rounded-full shadow-sm"></div>
+                        {/* Horizontal scroll keeps all 16 rods usable on narrow screens */}
+                        <div className="relative overflow-x-auto pb-1">
+                            <div className="mx-auto w-max min-w-full">
+                                {/* Position Labels (current digit on each rod) */}
+                                <div className={`flex justify-center mb-5 ${COLUMN_GAP_CLASS}`}>
+                                    {Array.from({ length: columns }, (_, i) => (
+                                        <div key={i} className={`${COLUMN_WIDTH_CLASS} text-center`}>
+                                            <div className="font-mono text-sm font-bold text-white bg-white/10 rounded-md px-1 py-1">
+                                                {getColumnValue(i)}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
 
-                            {/* Heaven Section */}
-                            <div className="relative z-10 mb-6">
-                                <div className="flex justify-center mb-4">
-                                    <div className="flex gap-2">
-                                        {Array.from({ length: columns }, (_, col) => (
-                                            <div key={col} className="w-20 flex flex-col items-center">
-                                                {/* Heaven Bead */}
-                                                <button
-                                                    onClick={() => toggleHeavenBead(col)}
-                                                    className={`w-12 h-8 rounded-full border-3 transition-all duration-300 shadow-lg hover:scale-105 ${
-                                                        beadStates[col]?.heaven
-                                                            ? 'bg-gradient-to-b from-red-400 to-red-600 border-red-800 shadow-red-400/50 transform translate-y-4'
-                                                            : 'bg-gradient-to-b from-red-300 to-red-500 border-red-700 hover:from-red-400 hover:to-red-600'
-                                                    }`}
-                                                    title={t('dashboard.heaven_bead', { column: col + 1 })}
-                                                >
-                                                    <div className="w-full h-full rounded-full bg-gradient-to-t from-transparent to-white/30"></div>
-                                                </button>
-                                            </div>
-                                        ))}
+                                {/* Abacus Body */}
+                                <div className="relative bg-gradient-to-b from-aba-surface to-aba-blue-soft rounded-aba-md p-5 border border-aba-line shadow-inner">
+                                    {/* Vertical Rods */}
+                                    <div className="absolute inset-0 flex justify-center pointer-events-none">
+                                        <div className={`flex ${COLUMN_GAP_CLASS}`}>
+                                            {Array.from({ length: columns }, (_, rodIndex) => (
+                                                <div key={`rod-${rodIndex}`} className={`${COLUMN_WIDTH_CLASS} flex justify-center`}>
+                                                    <div className="w-[3px] h-full bg-aba-rod rounded-full"></div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                {/* Crossbar (Separator) */}
-                                <div className="flex justify-center">
-                                    <div className="w-full max-w-4xl h-4 bg-gradient-to-b from-amber-700 to-amber-900 rounded-lg shadow-lg border-2 border-amber-800 relative">
-                                        <div className="absolute inset-1 bg-gradient-to-b from-amber-600 to-amber-800 rounded-md"></div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/* Earth Section */}
-                            <div className="relative z-10 pt-4">
-                                <div className="flex justify-center">
-                                    <div className="flex gap-2">
-                                        {Array.from({ length: columns }, (_, col) => (
-                                            <div key={col} className="w-20 flex flex-col items-center space-y-2">
-                                                {/* Earth Beads */}
-                                                {Array.from({ length: 4 }, (_, beadIndex) => (
-                                                    <button
-                                                        key={beadIndex}
-                                                        onClick={() => toggleEarthBead(col, beadIndex)}
-                                                        className={`w-10 h-7 rounded-full border-3 transition-all duration-300 shadow-lg hover:scale-105 ${
-                                                            beadStates[col]?.earth[beadIndex]
-                                                                ? 'bg-gradient-to-b from-blue-400 to-blue-600 border-blue-800 shadow-blue-400/50 transform -translate-y-2'
-                                                                : 'bg-gradient-to-b from-blue-300 to-blue-500 border-blue-700 hover:from-blue-400 hover:to-blue-600'
-                                                        }`}
-                                                        title={t('dashboard.earth_bead', { bead: beadIndex + 1, column: col + 1 })}
-                                                    >
-                                                        <div className="w-full h-full rounded-full bg-gradient-to-t from-transparent to-white/30"></div>
-                                                    </button>
-                                                ))}
+                                    {/* Heaven Section */}
+                                    <div className="relative z-10 mb-5">
+                                        <div className={`flex justify-center mb-4 ${COLUMN_GAP_CLASS}`}>
+                                            {Array.from({ length: columns }, (_, col) => (
+                                                <div key={col} className={`${COLUMN_WIDTH_CLASS} flex flex-col items-center`}>
+                                                    {/* Heaven Bead (worth 5) - slides down toward the bar when counted */}
+                                                    <SorobanBead
+                                                        variant="heaven"
+                                                        active={beadStates[col]?.heaven}
+                                                        activeTranslateClass="translate-y-2.5"
+                                                        onClick={() => toggleHeavenBead(col)}
+                                                        title={t('dashboard.heaven_bead', { column: col + 1 })}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Crossbar (reckoning bar) */}
+                                        <div className="flex justify-center">
+                                            <div className="w-full h-3.5 bg-gradient-to-b from-[#243456] to-aba-ink rounded-full shadow-md ring-1 ring-black/20 relative">
+                                                {/* Polished highlight line along the top of the bar */}
+                                                <div className="absolute inset-x-2 top-[3px] h-[2px] bg-aba-blue/50 rounded-full"></div>
                                             </div>
-                                        ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Earth Section */}
+                                    <div className="relative z-10 pt-3">
+                                        <div className={`flex justify-center ${COLUMN_GAP_CLASS}`}>
+                                            {Array.from({ length: columns }, (_, col) => (
+                                                <div key={col} className={`${COLUMN_WIDTH_CLASS} flex flex-col items-center space-y-1.5`}>
+                                                    {/* Earth Beads (worth 1 each) - slide up toward the bar when counted */}
+                                                    {Array.from({ length: EARTH_BEADS_PER_COLUMN }, (_, beadIndex) => (
+                                                        <SorobanBead
+                                                            key={beadIndex}
+                                                            variant="earth"
+                                                            active={beadStates[col]?.earth[beadIndex]}
+                                                            activeTranslateClass="-translate-y-1.5"
+                                                            onClick={() => toggleEarthBead(col, beadIndex)}
+                                                            title={t('dashboard.earth_bead', { bead: beadIndex + 1, column: col + 1 })}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Traditional corner decorations */}
-                        <div className="absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 border-amber-400 rounded-tl"></div>
-                        <div className="absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 border-amber-400 rounded-tr"></div>
-                        <div className="absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 border-amber-400 rounded-bl"></div>
-                        <div className="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-amber-400 rounded-br"></div>
                     </div>
                 </div>
 
                 {/* Enhanced Instructions */}
-                <div className="p-6 bg-gradient-to-r from-gray-50 to-blue-50 text-sm">
+                <div className="p-6 bg-aba-surface-alt text-sm">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <div className="bg-aba-surface p-6 rounded-aba-md shadow-aba-sm border border-aba-line">
+                            <h4 className="font-black text-aba-ink mb-4 flex items-center gap-2">
                                 <span className="text-lg">📚</span>
                                 {t('dashboard.how_to_use')}
                             </h4>
                             <ul className="space-y-3">
                                 <li className="flex items-start gap-3">
-                                    <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
-                                    <span className="text-gray-700">{t('dashboard.click_red_beads')}</span>
+                                    <span className="w-2 h-2 bg-aba-coral rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.click_red_beads')}</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                                    <span className="text-gray-700">{t('dashboard.click_blue_beads')}</span>
+                                    <span className="w-2 h-2 bg-aba-blue rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.click_blue_beads')}</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></span>
-                                    <span className="text-gray-700">{t('dashboard.each_column_earth')}</span>
+                                    <span className="w-2 h-2 bg-aba-ink-faint rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.each_column_earth')}</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
-                                    <span className="text-gray-700">{t('dashboard.earth_beads_move')}</span>
+                                    <span className="w-2 h-2 bg-aba-green rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.earth_beads_move')}</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
-                                    <span className="text-gray-700">{t('dashboard.each_column_digit')}</span>
+                                    <span className="w-2 h-2 bg-aba-purple rounded-full mt-2 flex-shrink-0"></span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.each_column_digit')}</span>
                                 </li>
                             </ul>
                         </div>
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <div className="bg-aba-surface p-6 rounded-aba-md shadow-aba-sm border border-aba-line">
+                            <h4 className="font-black text-aba-ink mb-4 flex items-center gap-2">
                                 <span className="text-lg">💡</span>
                                 {t('dashboard.tips')}
                             </h4>
                             <ul className="space-y-3">
                                 <li className="flex items-start gap-3">
-                                    <span className="text-amber-500 mt-1 flex-shrink-0">✨</span>
-                                    <span className="text-gray-700">{t('dashboard.use_heaven_beads')}</span>
+                                    <span className="text-aba-yellow mt-1 flex-shrink-0">✨</span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.use_heaven_beads')}</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <span className="text-green-500 mt-1 flex-shrink-0">🧮</span>
-                                    <span className="text-gray-700">{t('dashboard.practice_addition')}</span>
+                                    <span className="text-aba-green mt-1 flex-shrink-0">🧮</span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.practice_addition')}</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <span className="text-blue-500 mt-1 flex-shrink-0">⚡</span>
-                                    <span className="text-gray-700">{t('dashboard.try_quick_set')}</span>
+                                    <span className="text-aba-blue mt-1 flex-shrink-0">⚡</span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.try_quick_set')}</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <span className="text-purple-500 mt-1 flex-shrink-0">🔊</span>
-                                    <span className="text-gray-700">{t('dashboard.sound_toggle')}</span>
+                                    <span className="text-aba-purple mt-1 flex-shrink-0">🔊</span>
+                                    <span className="text-aba-ink-soft">{t('dashboard.sound_toggle')}</span>
                                 </li>
                             </ul>
                         </div>
