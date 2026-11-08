@@ -176,6 +176,9 @@ class EnrollmentService
                 'title' => $nextLesson->title,
                 'translated_title' => $nextLesson->translated_title,
                 'level' => $nextLesson->level,
+                // The "next lesson" pointer is always an unlocked lesson, but the
+                // frontend's openLesson() guard requires this flag to navigate.
+                'is_unlocked' => $this->isLessonUnlockedForUser($nextLesson, $user),
             ] : null,
             // Points system information
             'quizPoints' => $enrollment->quiz_points ?? 0,
