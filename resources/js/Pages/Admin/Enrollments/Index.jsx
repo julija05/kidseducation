@@ -21,6 +21,37 @@ import {
 } from "lucide-react";
 import AdminMentorReassignmentModal from "@/Components/Dashboard/AdminMentorReassignmentModal";
 
+// Rotating avatar background colors, picked by id for a stable color.
+const AVATAR_COLORS = [
+    "bg-blue-500",
+    "bg-violet-500",
+    "bg-emerald-500",
+    "bg-amber-500",
+    "bg-rose-500",
+    "bg-cyan-500",
+    "bg-indigo-500",
+];
+
+// Status filter options for the toolbar; activeClass applies when selected.
+const ENROLLMENT_STATUS_FILTERS = [
+    { value: "all", label: "All", activeClass: "bg-blue-600 text-white" },
+    { value: "pending", label: "Pending", activeClass: "bg-yellow-600 text-white" },
+    { value: "approved", label: "Approved", activeClass: "bg-green-600 text-white" },
+    { value: "rejected", label: "Rejected", activeClass: "bg-red-600 text-white" },
+];
+
+// Returns up-to-two-letter uppercase initials for a person's name.
+const getInitials = (name) =>
+    (name || "?")
+        .split(" ")
+        .map((part) => part.charAt(0))
+        .slice(0, 2)
+        .join("")
+        .toUpperCase();
+
+// Picks a stable avatar color for a given id.
+const avatarColor = (id) => AVATAR_COLORS[(id || 0) % AVATAR_COLORS.length];
+
 export default function AllEnrollments({
     enrollments,
     currentStatus,
@@ -182,9 +213,9 @@ export default function AllEnrollments({
         <AdminLayout>
             <Head title="All Enrollments" />
 
-            <div className="space-y-4 sm:space-y-6">
+            <div className="h-full flex flex-col gap-4 sm:gap-6">
                 {/* Header */}
-                <div className="mb-4 sm:mb-8">
+                <div className="flex-shrink-0">
                     <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                         All Enrollments
                     </h1>
@@ -194,7 +225,7 @@ export default function AllEnrollments({
                 </div>
 
                 {/* Search and Filters */}
-                <div className="space-y-4">
+                <div className="bg-white shadow-sm border border-gray-100 rounded-xl p-4 space-y-4 flex-shrink-0">
                     {/* Search Form */}
                     <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
                         <div className="relative flex-1">
@@ -216,47 +247,29 @@ export default function AllEnrollments({
                     </form>
 
                     {/* Status Filter Buttons */}
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={() => handleStatusFilter("all")}
-                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
-                                currentStatus === "all"
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
-                        >
-                            All
-                        </button>
-                        <button
-                            onClick={() => handleStatusFilter("pending")}
-                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
-                                currentStatus === "pending"
-                                    ? "bg-yellow-600 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
-                        >
-                            Pending
-                        </button>
-                        <button
-                            onClick={() => handleStatusFilter("approved")}
-                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
-                                currentStatus === "approved"
-                                    ? "bg-green-600 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
-                        >
-                            Approved
-                        </button>
-                        <button
-                            onClick={() => handleStatusFilter("rejected")}
-                            className={`px-4 py-3 sm:py-2 rounded-lg font-medium min-h-[44px] flex items-center justify-center ${
-                                currentStatus === "rejected"
-                                    ? "bg-red-600 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
-                        >
-                            Rejected
-                        </button>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap gap-2">
+                            {ENROLLMENT_STATUS_FILTERS.map((filter) => {
+                                const isActive = (currentStatus || "all") === filter.value;
+                                return (
+                                    <button
+                                        key={filter.value}
+                                        onClick={() => handleStatusFilter(filter.value)}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                                            isActive
+                                                ? filter.activeClass
+                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                        }`}
+                                    >
+                                        {filter.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            <span className="font-semibold text-gray-900">{enrollments.total}</span>{" "}
+                            {enrollments.total === 1 ? "enrollment" : "enrollments"}
+                        </p>
                     </div>
 
                     <div className="max-w-sm">
@@ -277,6 +290,7 @@ export default function AllEnrollments({
                 </div>
 
                 {/* Enrollments List - Mobile First Design */}
+                <div className="flex-1 min-h-0 overflow-auto">
                 {enrollments.data.length === 0 ? (
                     <div className="text-center text-gray-500 bg-gray-50 rounded-lg p-6 sm:p-8">
                         <h3 className="text-base sm:text-lg font-medium mb-2">No enrollments found</h3>
@@ -295,8 +309,8 @@ export default function AllEnrollments({
                                 >
                                     {/* Student Info */}
                                     <div className="flex items-start space-x-3 mb-3">
-                                        <div className="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-full flex items-center justify-center">
-                                            <User className="h-6 w-6 text-gray-500" />
+                                        <div className={`flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center text-white text-base font-semibold ${avatarColor(enrollment.user?.id ?? enrollment.id)}`}>
+                                            {getInitials(enrollment.user?.name)}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-base font-medium text-gray-900 truncate">
@@ -435,8 +449,8 @@ export default function AllEnrollments({
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                                            <User className="h-6 w-6 text-gray-500" />
+                                                        <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ${avatarColor(enrollment.user?.id ?? enrollment.id)}`}>
+                                                            {getInitials(enrollment.user?.name)}
                                                         </div>
                                                         <div className="ml-4">
                                                             <div className="text-sm font-medium text-gray-900">
@@ -546,10 +560,12 @@ export default function AllEnrollments({
                         </div>
                     </>
                 )}
+                </div>
+                {/* end scrolling rows region */}
 
-                {/* Pagination */}
+                {/* Pagination (pinned to the bottom of the panel) */}
                 {enrollments.links && enrollments.links.length > 3 && (
-                    <div className="flex justify-center mt-6">
+                    <div className="flex-shrink-0 flex justify-center pt-4 border-t border-gray-200">
                         <div className="flex gap-1 sm:gap-2 flex-wrap justify-center">
                             {enrollments.links.map((link, index) =>
                                 link.url ? (

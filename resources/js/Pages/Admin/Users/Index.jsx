@@ -18,6 +18,37 @@ import {
     Users,
 } from "lucide-react";
 
+// Rotating avatar background colors, picked by user id for a stable color.
+const AVATAR_COLORS = [
+    "bg-blue-500",
+    "bg-violet-500",
+    "bg-emerald-500",
+    "bg-amber-500",
+    "bg-rose-500",
+    "bg-cyan-500",
+    "bg-indigo-500",
+];
+
+// Status filter options for the toolbar; activeClass applies when selected.
+const STATUS_FILTERS = [
+    { value: "", label: "All", activeClass: "bg-blue-600 text-white" },
+    { value: "active", label: "Active", activeClass: "bg-green-600 text-white" },
+    { value: "blocked", label: "Blocked", activeClass: "bg-red-600 text-white" },
+    { value: "suspended", label: "Suspended", activeClass: "bg-yellow-600 text-white" },
+];
+
+// Returns up-to-two-letter uppercase initials for a person's name.
+const getInitials = (name) =>
+    (name || "?")
+        .split(" ")
+        .map((part) => part.charAt(0))
+        .slice(0, 2)
+        .join("")
+        .toUpperCase();
+
+// Picks a stable avatar color for a given user id.
+const avatarColor = (id) => AVATAR_COLORS[(id || 0) % AVATAR_COLORS.length];
+
 export default function UsersIndex({ users, filters }) {
     const [processing, setProcessing] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -152,10 +183,10 @@ export default function UsersIndex({ users, filters }) {
         <AdminLayout>
             <Head title="User Management" />
             
-            <div className="py-4 sm:py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="h-full flex flex-col">
+                <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 min-h-0 flex flex-col">
                     {/* Header */}
-                    <div className="mb-6 sm:mb-8">
+                    <div className="mb-6 sm:mb-8 flex-shrink-0">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
@@ -170,76 +201,71 @@ export default function UsersIndex({ users, filters }) {
                     </div>
 
                     {/* Search and Filters */}
-                    <div className="bg-white shadow rounded-lg mb-4 sm:mb-6">
-                        <div className="p-4 sm:p-6">
-                            <div className="flex flex-col gap-4">
-                                {/* Search Form */}
-                                <form onSubmit={handleSearch} className="w-full">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                        <input
-                                            type="text"
-                                            name="search"
-                                            placeholder="Search users by name or email..."
-                                            defaultValue={filters.search || ""}
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                        />
-                                    </div>
-                                </form>
-
-                                {/* Status Filter */}
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        onClick={() => handleStatusFilter('')}
-                                        className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md flex-shrink-0 ${
-                                            !filters.status 
-                                                ? 'bg-blue-600 text-white' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        All
-                                    </button>
-                                    <button
-                                        onClick={() => handleStatusFilter('active')}
-                                        className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md flex-shrink-0 ${
-                                            filters.status === 'active' 
-                                                ? 'bg-green-600 text-white' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        Active
-                                    </button>
-                                    <button
-                                        onClick={() => handleStatusFilter('blocked')}
-                                        className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md flex-shrink-0 ${
-                                            filters.status === 'blocked' 
-                                                ? 'bg-red-600 text-white' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        Blocked
-                                    </button>
-                                    <button
-                                        onClick={() => handleStatusFilter('suspended')}
-                                        className={`px-3 py-2 text-xs sm:text-sm font-medium rounded-md flex-shrink-0 ${
-                                            filters.status === 'suspended' 
-                                                ? 'bg-yellow-600 text-white' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        Suspended
-                                    </button>
-                                </div>
+                    <div className="bg-white shadow-sm border border-gray-100 rounded-xl mb-4 sm:mb-6 flex-shrink-0 p-4">
+                        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    name="search"
+                                    placeholder="Search by name or email..."
+                                    defaultValue={filters.search || ""}
+                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                />
                             </div>
+                            <button
+                                type="submit"
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                            >
+                                <Search className="h-4 w-4" />
+                                Search
+                            </button>
+                            {filters.search && (
+                                <button
+                                    type="button"
+                                    onClick={() => router.get(route("admin.users.index"), { status: filters.status })}
+                                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                                >
+                                    <XCircle className="h-4 w-4" />
+                                    Clear
+                                </button>
+                            )}
+                        </form>
+
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex flex-wrap gap-2">
+                                {STATUS_FILTERS.map((filter) => {
+                                    const isActive = (filters.status || "") === filter.value;
+                                    return (
+                                        <button
+                                            key={filter.value}
+                                            onClick={() => handleStatusFilter(filter.value)}
+                                            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                                                isActive
+                                                    ? filter.activeClass
+                                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            }`}
+                                        >
+                                            {filter.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-sm text-gray-500">
+                                <span className="font-semibold text-gray-900">{users.total}</span>{" "}
+                                {users.total === 1 ? "user" : "users"}
+                            </p>
                         </div>
                     </div>
 
-                    {/* Users Table - Desktop View */}
-                    <div className="bg-white shadow rounded-lg overflow-hidden">
+                    {/* Users Table Panel */}
+                    <div className="bg-white shadow rounded-lg overflow-hidden flex-1 min-h-0 flex flex-col">
+                        {/* Scrolling rows region */}
+                        <div className="flex-1 min-h-0 overflow-auto">
                         <div className="hidden sm:block">
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-gray-50 sticky top-0 z-10">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 User
@@ -271,15 +297,16 @@ export default function UsersIndex({ users, filters }) {
                                                 <tr key={user.id} className="hover:bg-gray-50">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div className="flex items-center">
-                                                            <div className="flex-shrink-0 h-10 w-10">
-                                                                <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                                                                    <User className="w-5 h-5 text-gray-600" />
-                                                                </div>
+                                                            <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ${avatarColor(user.id)}`}>
+                                                                {getInitials(user.name)}
                                                             </div>
                                                             <div className="ml-4">
-                                                                <div className="text-sm font-medium text-gray-900">
+                                                                <Link
+                                                                    href={route('admin.users.show', user.id)}
+                                                                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                                                >
                                                                     {user.name}
-                                                                </div>
+                                                                </Link>
                                                                 <div className="text-sm text-gray-500 flex items-center">
                                                                     <Mail className="w-3 h-3 mr-1" />
                                                                     {user.email}
@@ -290,8 +317,10 @@ export default function UsersIndex({ users, filters }) {
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         {getStatusBadge(user.status)}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {user.roles.length > 0 ? user.roles[0].name : 'No role'}
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium capitalize">
+                                                            {user.roles.length > 0 ? user.roles[0].name : 'No role'}
+                                                        </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                         <div className="flex items-center">
@@ -331,17 +360,18 @@ export default function UsersIndex({ users, filters }) {
                                     {users.data.map((user) => (
                                         <div key={user.id} className="p-4">
                                             <div className="flex items-start space-x-3">
-                                                <div className="flex-shrink-0">
-                                                    <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                                                        <User className="w-5 h-5 text-gray-600" />
-                                                    </div>
+                                                <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ${avatarColor(user.id)}`}>
+                                                    {getInitials(user.name)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-start justify-between">
                                                         <div className="flex-1">
-                                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                                            <Link
+                                                                href={route('admin.users.show', user.id)}
+                                                                className="block text-sm font-medium text-gray-900 truncate hover:text-blue-600"
+                                                            >
                                                                 {user.name}
-                                                            </p>
+                                                            </Link>
                                                             <div className="flex items-center mt-1 text-xs text-gray-500">
                                                                 <Mail className="w-3 h-3 mr-1" />
                                                                 <span className="truncate">{user.email}</span>
@@ -377,10 +407,12 @@ export default function UsersIndex({ users, filters }) {
                                 </div>
                             )}
                         </div>
+                        </div>
+                        {/* end scrolling rows region */}
 
-                        {/* Pagination */}
+                        {/* Pagination (pinned to the bottom of the panel) */}
                         {users.links.length > 3 && (
-                            <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                            <div className="flex-shrink-0 bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
                                 {/* Mobile Pagination */}
                                 <div className="flex justify-between sm:hidden">
                                     {users.prev_page_url ? (

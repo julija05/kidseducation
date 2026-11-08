@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminLessonResourceController;
 use App\Http\Controllers\Admin\AdminLearningGroupController;
 use App\Http\Controllers\Admin\AdminNewsController;
+use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminProgramController;
 use App\Http\Controllers\Admin\AdminProgramResourcesController;
 use App\Http\Controllers\Admin\AdminProposalController;
@@ -344,6 +345,12 @@ Route::middleware(['auth', 'role:admin', 'admin.english'])->prefix('admin')->nam
     Route::post('/enrollments/{enrollment}/block', [EnrollmentApprovalController::class, 'blockAccess'])->name('enrollments.block');
     Route::post('/enrollments/{enrollment}/unblock', [EnrollmentApprovalController::class, 'unblockAccess'])->name('enrollments.unblock');
     Route::post('/enrollments/{enrollment}/update-mentor', [EnrollmentApprovalController::class, 'updateMentor'])->name('enrollments.updateMentor');
+
+    // Manual (offline) Payment Routes
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments', [AdminPaymentController::class, 'store'])->name('payments.store');
+    Route::post('/payments/{payment}/confirm', [AdminPaymentController::class, 'confirm'])->name('payments.confirm');
+    Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'reject'])->name('payments.reject');
 
     // Proposal Routes (Resource, Lesson, and Level proposals from mentors)
     Route::prefix('proposals')->name('proposals.')->group(function () {

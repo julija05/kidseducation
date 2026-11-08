@@ -3,20 +3,27 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ClassSchedule;
 use App\Models\Enrollment;
 use App\Models\Program;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request)
-    {
-        $admin = $request->user();
+    /**
+     * Number of most recent enrollments to show in the dashboard activity list.
+     */
+    private const RECENT_ENROLLMENTS_LIMIT = 5;
 
+    /**
+     * Render the admin dashboard with high-level platform stats, the pending
+     * enrollments alert, and a short list of the most recent enrollments.
+     */
+    public function index()
+    {
+        // Enrollments awaiting admin approval — drives the alert banner at the top.
         $pendingEnrollmentsCount = Enrollment::where('approval_status', 'pending')->count();
 
+        // High-level platform stats shown in the summary cards.
         $stats = [
             'totalStudents' => User::role('student')->count(),
             'activePrograms' => Program::where('is_active', true)->count(),
@@ -25,67 +32,22 @@ class AdminDashboardController extends Controller
                 ->count(),
         ];
 
-        // Get next scheduled lesson for this admin - with safety check
-        $formattedNextLesson = null;
-        try {
-            // Check if ClassSchedule table exists before querying
-            if (\Schema::hasTable('class_schedules')) {
-                $nextScheduledLesson = ClassSchedule::with(['student', 'students', 'program', 'lesson'])
-                    ->where('admin_id', $admin->id)
-                    ->upcoming()
-                    ->orderBy('scheduled_at', 'asc')
-                    ->first();
-
-                // Format next lesson data if it exists
-                if ($nextScheduledLesson) {
-                    $scheduledAt = $nextScheduledLesson->scheduled_at;
-                    $dayName = $scheduledAt->isToday() ? 'today' :
-                              ($scheduledAt->isTomorrow() ? 'tomorrow' : $scheduledAt->format('l'));
-
-                    // Get student name(s) - handle both individual and group classes
-                    $studentName = 'No student assigned';
-                    if ($nextScheduledLesson->is_group_class) {
-                        $students = $nextScheduledLesson->students;
-                        if ($students->count() > 0) {
-                            $studentName = $students->count() === 1
-                                ? $students->first()->name
-                                : $students->count().' students';
-                        }
-                    } elseif ($nextScheduledLesson->student) {
-                        $studentName = $nextScheduledLesson->student->name;
-                    }
-
-                    $formattedNextLesson = [
-                        'id' => $nextScheduledLesson->id,
-                        'title' => $nextScheduledLesson->title,
-                        'description' => $nextScheduledLesson->description,
-                        'student_name' => $studentName,
-                        'program_name' => $nextScheduledLesson->program?->name,
-                        'lesson_name' => $nextScheduledLesson->lesson?->title,
-                        'scheduled_at' => $nextScheduledLesson->scheduled_at,
-                        'formatted_time' => $nextScheduledLesson->getFormattedScheduledTime(),
-                        'day_description' => $dayName,
-                        'time_only' => $scheduledAt->format('g:i A'),
-                        'duration' => $nextScheduledLesson->getFormattedDuration(),
-                        'type' => $nextScheduledLesson->getTypeLabel(),
-                        'location' => $nextScheduledLesson->location,
-                        'meeting_link' => $nextScheduledLesson->meeting_link,
-                        'status' => $nextScheduledLesson->status,
-                    ];
-                }
-            }
-        } catch (\Exception $e) {
-            // Log the error but don't break the dashboard
-            \Log::warning('ClassSchedule query failed in AdminDashboard', [
-                'error' => $e->getMessage(),
-                'admin_id' => $admin->id,
+        // Most recent enrollments for the activity list (read-only, eager-loaded to avoid N+1).
+        $recentEnrollments = Enrollment::with(['user:id,name', 'program:id,name'])
+            ->latest()
+            ->take(self::RECENT_ENROLLMENTS_LIMIT)
+            ->get()
+            ->map(fn (Enrollment $enrollment) => [
+                'id' => $enrollment->id,
+                'student_name' => $enrollment->user?->name ?? 'Unknown student',
+                'program_name' => $enrollment->program?->name ?? '—',
+                'status' => $enrollment->approval_status,
             ]);
-        }
 
         return $this->createView('Admin/AdminDashboard/AdminDashboard', [
             'pendingEnrollmentsCount' => $pendingEnrollmentsCount,
             'stats' => $stats,
-            'nextScheduledLesson' => $formattedNextLesson,
+            'recentEnrollments' => $recentEnrollments,
         ]);
     }
 }

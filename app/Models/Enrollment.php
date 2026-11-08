@@ -96,6 +96,16 @@ class Enrollment extends Model
         return $this->belongsTo(User::class, 'assigned_mentor_id');
     }
 
+    /**
+     * Get all manual payment records for this enrollment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function payments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     // Update progress based on completed lessons
     public function updateProgress(): void
     {
